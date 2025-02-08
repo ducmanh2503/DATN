@@ -88,19 +88,36 @@ class MoviesController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        //
+        //Tìm phim theo id
+        $movie = Movies::find($id);
+
+        //Nếu không tìm thấy phim trả về 404
+        if (!$movie) {
+            return response()->json([
+                'message' => 'Không tìm thấy phim này',
+            ], 404);
+        }
+
+        //Lấy dữ liệu phim hợp lệ từ request
+        $data = $request->all();
+
+        //Xủ lý upload poster nếu có
+        if (isset($data['poster']) && $data['poster'] instanceof \Illuminate\Http\UploadedFile) {
+            $posterPath = $data['poster']->store('image', 'public');
+            $data['poster'] = Storage::url($posterPath);
+        }
+
+        //Cập nhật thông tin phim
+        $movie->update($data);
+
+        return response()->json([
+            'message' => 'Cập nhật phim thành công',
+            'data' => $movie,
+        ], 200);
     }
 
     /**

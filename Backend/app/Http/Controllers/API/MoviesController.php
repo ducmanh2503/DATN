@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMoviesRequest;
+use App\Http\Requests\UpdateMoviesRequest;
 use App\Models\Movies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -90,7 +91,7 @@ class MoviesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateMoviesRequest $request, string $id)
     {
         //Tìm phim theo id
         $movie = Movies::find($id);
@@ -103,7 +104,7 @@ class MoviesController extends Controller
         }
 
         //Lấy dữ liệu phim hợp lệ từ request
-        $data = $request->all();
+        $data = $request->validated();
 
         //Xủ lý upload poster nếu có
         if (isset($data['poster']) && $data['poster'] instanceof \Illuminate\Http\UploadedFile) {

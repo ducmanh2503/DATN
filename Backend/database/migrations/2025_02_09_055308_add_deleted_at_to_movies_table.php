@@ -5,17 +5,17 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up()
+    public function up(): void
     {
         Schema::table('movies', function (Blueprint $table) {
-            $table->date('time')->change();
+            $table->softDeletes(); // Thêm cột deleted_at để hỗ trợ xóa mềm
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::table('movies', function (Blueprint $table) {
-            $table->integer('time')->change();
+            $table->dropSoftDeletes(); // Xóa cột deleted_at khi rollback
         });
     }
 };

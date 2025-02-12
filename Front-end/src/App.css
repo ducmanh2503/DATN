@@ -5,6 +5,10 @@ body {
     overflow-x: hidden;
 }
 
+:root {
+    --primary-color: #ddd;
+}
+
 body {
     font-family: "Mulish", serif;
 }

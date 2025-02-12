@@ -5,19 +5,36 @@ body {
     overflow-x: hidden;
 }
 
+body {
+    font-family: "Mulish", serif;
+}
+
 :root {
     --primary-color: #ddd;
 }
 
-body {
-    font-family: "Mulish", serif;
+/* chiều rộng cố định hiển thị */
+.main-base {
+    margin: 0 auto;
+    width: calc(100% - 400px);
+    max-width: 1250px;
 }
+
+a {
+    text-decoration: none;
+}
+
 .cliptextTitle {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
-a {
-    text-decoration: none;
+.cliptext {
+    display: -webkit-box;
+    -webkit-line-clamp: var(--line-clamp, 3);
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
 }

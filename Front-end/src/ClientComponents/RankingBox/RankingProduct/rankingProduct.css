@@ -1,12 +1,13 @@
 .r-product {
-    width: 290px;
-    height: 280px;
+    width: 310px;
+    height: 290px;
     flex-shrink: 0;
     text-align: center;
     background-color: aquamarine;
 }
 
 .r-product .image {
+    min-width: 300px;
     width: 100%;
     height: 100%;
     object-fit: cover;

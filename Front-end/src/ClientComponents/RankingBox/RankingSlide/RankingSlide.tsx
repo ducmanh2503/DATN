@@ -90,7 +90,7 @@ const RankingSlide = () => {
                         className="carousel-list"
                         ref={listRef}
                         style={{
-                            transform: `translateX(-${index * (290 + 75)}px)`,
+                            transform: `translateX(-${index * (310 + 75)}px)`,
                         }}
                     >
                         {products.map((product, index) => (

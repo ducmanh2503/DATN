@@ -8,6 +8,6 @@ export const router = createBrowserRouter([
     { path: "/", element: <Home></Home> },
 
     { path: "/information", element: <InfomationProduct></InfomationProduct> },
-    { path: "/check", element: <InfomationBox></InfomationBox> },
+    // { path: "/check", element: <Appp></Appp> },
     { path: "/check1", element: <RankingBox></RankingBox> },
 ]);

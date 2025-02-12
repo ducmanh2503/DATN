@@ -1,0 +1,50 @@
+.carousel-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    position: relative;
+    width: 1020px;
+    margin: 30px auto 0;
+}
+
+.carousel-wrapper {
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+    position: relative;
+}
+
+.carousel-list {
+    display: flex;
+    gap: 75px;
+    transition: transform 0.8s ease-in-out;
+}
+
+.carousel-item:nth-child(2) {
+    background-color: #727d73;
+}
+
+.prev-btn,
+.next-btn {
+    color: blue;
+    background-color: transparent;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 26px;
+    position: absolute;
+    z-index: 15;
+}
+
+.prev-btn {
+    left: -45px;
+}
+
+.next-btn {
+    right: -45px;
+}
+
+.prev-btn:disabled,
+.next-btn:disabled {
+    cursor: not-allowed;
+}

@@ -1,0 +1,59 @@
+.flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.row {
+    /* width: 100vw; */
+    height: 40px;
+    border-bottom: 1px solid #eee;
+}
+
+.slogan {
+    margin-left: 10px;
+    /* color: #eee; */
+}
+
+.network {
+    margin-right: 10px;
+}
+
+.network .icon-network {
+    margin-left: 14px;
+    margin-right: 5px;
+    font-size: 20px;
+}
+
+.btn-link .signUp {
+    width: 120px;
+    padding: 8px 0;
+    text-align: center;
+    border-left: 1px solid #eee;
+    text-decoration: none;
+    color: black;
+}
+
+.btn-link .signIn {
+    width: 120px;
+    padding: 8px 0;
+    text-align: center;
+    background-color: #ff4715;
+    line-height: 1.6;
+    text-decoration: none;
+    color: white;
+}
+
+.logo-search {
+    height: 60px;
+    border-bottom: 1px solid #eee;
+}
+
+.logo-search .logo {
+    width: 130px;
+    height: 60px;
+    background-color: #ff4715;
+}
+
+.custom-search input {
+}

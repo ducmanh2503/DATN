@@ -1,0 +1,28 @@
+.ranking {
+    position: relative;
+    left: 250px;
+    margin-top: 35px;
+}
+
+.ranking::before {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    left: -12px;
+    top: 3px;
+    width: 4px;
+    height: 40px;
+    background-color: red;
+}
+
+.ranking .title .sub-vn {
+    font-size: 22px;
+    font-weight: 600;
+    word-spacing: 2px;
+}
+
+.ranking .title .sub-en {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #4c585b;
+}

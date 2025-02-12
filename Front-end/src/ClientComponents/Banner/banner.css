@@ -1,0 +1,95 @@
+#app {
+    height: 100%;
+}
+
+.swiper {
+    width: 100%;
+    height: 300px;
+    overflow: visible !important;
+}
+
+.custom-slide {
+    width: 780px !important;
+    height: 340px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: green;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    position: relative;
+}
+
+.swiper-slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.swiper-button-prev,
+.swiper-button-next {
+    color: #005cbb;
+    border-radius: 999px;
+    width: 40px;
+    height: 40px;
+    z-index: 1 !important;
+}
+
+.swiper-button-prev::after,
+.swiper-button-next::after {
+    font-size: 30px !important;
+    font-weight: 600;
+    text-shadow: 0px -1px 1px #005cbb;
+}
+
+.swiper-button-prev {
+    left: calc(50% - 430px);
+    top: 50%;
+    transform: translateY(50%);
+}
+
+.swiper-button-next {
+    right: calc(50% - 430px);
+    top: 50%;
+    transform: translateY(50%);
+}
+
+.swiper-pagination-bullet {
+    width: 7px;
+    height: 7px;
+    background-color: gray;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+    background-color: white;
+    opacity: 1;
+}
+
+.swiper-pagination {
+    position: absolute !important;
+    bottom: -55px !important; /* Điều chỉnh khoảng cách so với slider */
+}
+
+.banner-box .promotion {
+    margin-top: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.promotion-1,
+.promotion-2 {
+    width: 450px;
+    height: 80px;
+    background-color: green;
+}
+
+.promotion .promotion-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

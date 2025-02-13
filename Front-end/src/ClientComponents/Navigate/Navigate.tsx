@@ -1,17 +1,30 @@
 import React from "react";
 import "./Navigate.css";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Navigate = () => {
+    const location = useLocation();
+    const isActive = (path: string) => location.pathname === path;
     return (
         <div className="navigate main-base">
-            <Link className="playingFilm film" to={"/playingFilm"}>
+            <Link
+                className={` film ${isActive(`/playingFilm`) ? "nowing" : ""}`}
+                to="/playingFilm"
+            >
                 Phim đang chiếu
             </Link>
-            <Link className="comingFilm film" to={"/comingFilm"}>
+            <Link
+                className={` comingFilm film ${
+                    isActive(`/comingFilm`) ? "nowing" : ""
+                }`}
+                to="/comingFilm"
+            >
                 Phim sắp chiếu
             </Link>
-            <Link className="cinemaFilm film" to={"/cinemaFilm"}>
+            <Link
+                className={` film ${isActive(`/cinemaFilm`) ? "nowing" : ""}`}
+                to="/cinemaFilm"
+            >
                 Rạp Forest
             </Link>
         </div>

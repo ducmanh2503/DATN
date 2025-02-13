@@ -28,10 +28,11 @@
 }
 
 .playingProduct .product-img .hover-btn .btn {
-    padding: 10px 24px;
-    background: green;
-    color: white;
+    padding: 12px 26px;
     border: none;
+    border-radius: 6px;
+    background: var(--border-color);
+    color: white;
     cursor: pointer;
 }
 

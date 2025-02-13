@@ -3,7 +3,7 @@
     width: 270px;
     height: 310px;
     color: black;
-    background-color: antiquewhite;
+    background-color: white;
 }
 
 .infomationProduct .info-thumnail {
@@ -22,7 +22,7 @@
     align-items: center;
     justify-content: space-between;
     margin-top: 4px;
-    border-top: 1px solid #eeeeee;
+    border-top: 1px solid var(--border-color);
 }
 
 .type .category {
@@ -31,7 +31,7 @@
     padding: 6px 10px;
     font-size: 14px;
     color: white;
-    background-color: #ff8a33;
+    background-color: var(--backgroud-product);
 }
 
 .type .date {

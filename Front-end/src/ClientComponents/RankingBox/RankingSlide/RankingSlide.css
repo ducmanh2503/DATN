@@ -20,13 +20,17 @@
     transition: transform 1.6s ease-in-out;
 }
 
-.carousel-item:nth-child(2) {
-    background-color: #727d73;
+.carousel-item:nth-child(1) .number {
+    background-color: var(--first-rank);
+}
+
+.carousel-item:nth-child(2) .number {
+    background-color: var(--secound-rank);
 }
 
 .prev-btn,
 .next-btn {
-    color: blue;
+    color: var(--border-color);
     background-color: transparent;
     border: none;
     padding: 10px;

@@ -61,7 +61,9 @@ const Header = () => {
                     </div>
                 </div>
                 <div className="logo-search flex">
-                    <Link className="logo" to={"/"}></Link>
+                    <Link className="logo" to={"/"}>
+                        Logo
+                    </Link>
                     <div className="sreach">
                         <Search
                             placeholder="Tìm kiếm phim"

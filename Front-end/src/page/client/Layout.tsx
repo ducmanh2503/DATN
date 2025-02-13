@@ -5,7 +5,7 @@ import { FloatButton } from "antd";
 
 const Layout = ({ children }: any) => {
     return (
-        <div>
+        <div style={{ background: "var(--mainBase-color)" }}>
             <Header></Header>
             <Navigate></Navigate>
             {children}

@@ -1,15 +1,18 @@
-// import React from "react";
-// import Header from "../Components/Header/Header";
-// import Navigate from "../Components/Navigate/Navigate";
+import React from "react";
+import Header from "../../ClientComponents/Header/Header";
+import Navigate from "../../ClientComponents/Navigate/Navigate";
+import { FloatButton } from "antd";
 
-// const Layout = ({ children }: any) => {
-//     return (
-//         <div>
-//             <Header></Header>
-//             <Navigate></Navigate>
-//             {children}
-//         </div>
-//     );
-// };
+const Layout = ({ children }: any) => {
+    return (
+        <div>
+            <Header></Header>
+            <Navigate></Navigate>
+            {children}
+            <FloatButton.BackTop />
+            {/* footer */}
+        </div>
+    );
+};
 
-// export default Layout;
+export default Layout;

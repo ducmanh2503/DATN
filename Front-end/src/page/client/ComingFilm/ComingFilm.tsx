@@ -1,7 +1,12 @@
 import React from "react";
+import Layout from "../Layout";
 
 const ComingFilm = () => {
-    return <div>ComingFilm</div>;
+    return (
+        <div>
+            <Layout></Layout>
+        </div>
+    );
 };
 
 export default ComingFilm;

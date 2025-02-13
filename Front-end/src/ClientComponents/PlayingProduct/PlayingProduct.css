@@ -1,0 +1,82 @@
+.playingProduct {
+    width: 220px;
+    height: 360px;
+}
+
+.playingProduct .product-img {
+    width: 100%;
+    height: 320px;
+    position: relative;
+}
+
+.playingProduct .product-img .img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.playingProduct .product-img .hover-btn {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 60px;
+    position: absolute;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.playingProduct .product-img .hover-btn .btn {
+    padding: 10px 24px;
+    background: green;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.playingProduct .product-img .hover-btn {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.playingProduct .product-img:hover .img {
+    filter: brightness(0.6);
+}
+
+.playingProduct .product-img:hover .hover-btn {
+    opacity: 1;
+    visibility: visible;
+}
+
+.playingProduct .product-sub {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+}
+
+.playingProduct .start-day {
+    margin-left: 3px;
+    margin-top: 2px;
+    font-size: 14px;
+}
+
+.playingProduct .product-sub .category {
+    margin-left: 3px;
+    width: 120px;
+    font-size: 13px;
+}
+
+.playingProduct .product-sub .date {
+    margin-right: 3px;
+    font-size: 14px;
+}
+
+.playingProduct .product-title {
+    margin-top: 10px;
+    margin-left: 3px;
+    font-size: 20px;
+    font-weight: 600;
+}

@@ -4,7 +4,9 @@ import "./rankingProduct.css";
 const RankingProduct = ({ number, name, image }: any) => {
     return (
         <div className="r-product">
-            <Image className="image" src={image}></Image>
+            <div className="img-box">
+                <img className="image" src={image}></img>
+            </div>
             <div className="title">
                 <span className="number">{number}</span>
                 <h2 className="product-name cliptextTitle">{name}</h2>

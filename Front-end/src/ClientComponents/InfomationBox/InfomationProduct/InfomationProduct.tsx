@@ -12,7 +12,7 @@ const InfomationProduct = ({
     return (
         <Link className={`infomationProduct ${className}`} to={"....."}>
             <div className="info-thumnail">
-                <Image className="product-image" src={image}></Image>
+                <img className="product-image" src={image}></img>
             </div>
             <div className="type">
                 <h5 className="category">{category}</h5>

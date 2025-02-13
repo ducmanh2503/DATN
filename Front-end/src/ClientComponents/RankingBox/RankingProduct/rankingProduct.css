@@ -6,7 +6,11 @@
     background-color: aquamarine;
 }
 
-.r-product .image {
+.r-product .img-box {
+    width: 100%;
+}
+
+.r-product .img-box .image {
     min-width: 300px;
     width: 100%;
     height: 100%;

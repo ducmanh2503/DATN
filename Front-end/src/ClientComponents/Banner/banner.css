@@ -1,7 +1,3 @@
-#app {
-    height: 100%;
-}
-
 .swiper {
     width: 100%;
     height: 300px;
@@ -9,7 +5,7 @@
 }
 
 .custom-slide {
-    width: 780px !important;
+    width: 780px;
     height: 340px;
     display: flex;
     align-items: center;
@@ -18,11 +14,10 @@
     color: white;
     font-size: 20px;
     font-weight: bold;
-    position: relative;
 }
 
 .swiper-slide img {
-    display: block;
+    display: inline-block;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -34,12 +29,12 @@
     border-radius: 999px;
     width: 40px;
     height: 40px;
-    z-index: 1 !important;
+    z-index: 0;
 }
 
 .swiper-button-prev::after,
 .swiper-button-next::after {
-    font-size: 30px !important;
+    font-size: 30px;
     font-weight: 600;
     text-shadow: 0px -1px 1px #005cbb;
 }
@@ -70,7 +65,6 @@
 }
 
 .swiper-pagination {
-    position: absolute !important;
     bottom: -55px !important; /* Điều chỉnh khoảng cách so với slider */
 }
 

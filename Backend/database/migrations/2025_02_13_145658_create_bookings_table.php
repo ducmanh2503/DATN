@@ -14,15 +14,13 @@ return new class extends Migration
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
 
-            $table->dateTime('booking_time');
-            $table->enum('payment_status', ['pending', 'completed', 'failed']);
-            $table->string('payment_method', 100);
-            $table->unsignedBigInteger('showTimes_id');
-            $table->unsignedBigInteger('user_id');
-
-            $table->foreign('showTimes_id')->references('id')->on('show_times')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('customers')->onDelete('cascade');
-
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('showtime_id')->constrained('show_times');
+            $table->decimal('total_price', 8, 2);
+            $table->decimal('total_seat_price', 8, 2);
+            $table->decimal('total_combo_price', 8, 2);
+            $table->enum('status', ['pending', 'confirmed', 'cancelled']);
+            
             $table->timestamps();
         });
     }

@@ -14,16 +14,11 @@ return new class extends Migration
         Schema::create('show_times', function (Blueprint $table) {
             $table->id();
 
-            $table->date('show_date');
-            $table->time('start_time');
-            $table->time('end_time');
-            $table->decimal('total_price', 8, 2);
-            $table->unsignedBigInteger('movie_id');
-            $table->unsignedBigInteger('room_id');
+            $table->foreignId('movie_id')->constrained('movies');
+            $table->foreignId('room_id')->constrained('rooms');
+            $table->time('show_time');
+            $table->decimal('price', 8, 2);
 
-            $table->foreign('movie_id')->references('id')->on('movies')->onDelete('cascade');
-            $table->foreign('room_id')->references('id')->on('room')->onDelete('cascade');
-            
             $table->timestamps();
         });
     }

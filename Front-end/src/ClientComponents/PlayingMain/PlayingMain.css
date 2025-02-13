@@ -1,20 +1,20 @@
-.infomationSlide {
+.playingMain {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    row-gap: 50px;
+    gap: 50px;
+    row-gap: 70px;
     margin-top: 40px;
 }
 
-.product-info {
+.item-main {
     width: 100%;
 }
 
-.product-info:nth-child(4n + 1) {
+.item-main:nth-child(4n + 1) {
     justify-self: start;
 }
 
-.product-info:nth-child(4n) {
+.item-main:nth-child(4n) {
     justify-self: end;
 }
 
@@ -22,7 +22,7 @@
     display: none !important;
 }
 
-.infomationSlide .show-more-btn {
+.playingMain .show-more-btn {
     grid-column: span 4;
     width: 120px;
     padding: 10px;

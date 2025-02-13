@@ -6,12 +6,11 @@ import Navigate from "../../../ClientComponents/Navigate/Navigate";
 import RankingBox from "../../../ClientComponents/RankingBox/RankingBox";
 import RankingSlide from "../../../ClientComponents/RankingBox/RankingSlide/RankingSlide";
 import TitleMenu from "../../../ClientComponents/TitleMenu/TitleMenu";
+import Layout from "../Layout";
 
 const Home = () => {
     return (
-        <div style={{ height: "4000px" }}>
-            <Header></Header>
-            <Navigate></Navigate>
+        <Layout>
             <Banner></Banner>
             <RankingBox>
                 <TitleMenu name="Xếp hạng phim" nameSub="Ranking"></TitleMenu>
@@ -21,7 +20,7 @@ const Home = () => {
                 <TitleMenu name="Thông tin" nameSub="Infomation"></TitleMenu>
                 <InfomationSlide></InfomationSlide>
             </InfomationBox>
-        </div>
+        </Layout>
     );
 };
 

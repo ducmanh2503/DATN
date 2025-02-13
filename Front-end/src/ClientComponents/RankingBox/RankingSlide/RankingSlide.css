@@ -3,7 +3,7 @@
     align-items: center;
     justify-content: space-evenly;
     position: relative;
-    width: 1020px;
+    width: 1080px;
     margin: 30px auto 0;
 }
 
@@ -17,16 +17,20 @@
 .carousel-list {
     display: flex;
     gap: 75px;
-    transition: transform 0.8s ease-in-out;
+    transition: transform 1.6s ease-in-out;
 }
 
-.carousel-item:nth-child(2) {
-    background-color: #727d73;
+.carousel-item:nth-child(1) .number {
+    background-color: var(--first-rank);
+}
+
+.carousel-item:nth-child(2) .number {
+    background-color: var(--secound-rank);
 }
 
 .prev-btn,
 .next-btn {
-    color: blue;
+    color: var(--border-color);
     background-color: transparent;
     border: none;
     padding: 10px;
@@ -37,11 +41,16 @@
 }
 
 .prev-btn {
-    left: -45px;
+    left: -35px;
 }
 
 .next-btn {
-    right: -45px;
+    right: -35px;
+}
+
+.prev-btn:hover,
+.next-btn:hover {
+    opacity: 0.6;
 }
 
 .prev-btn:disabled,

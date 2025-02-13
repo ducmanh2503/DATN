@@ -1,7 +1,15 @@
 import React from "react";
+import Layout from "../Layout";
+import PlayingMain from "../../../ClientComponents/PlayingMain/PlayingMain";
 
 const ComingFilm = () => {
-    return <div>ComingFilm</div>;
+    return (
+        <div>
+            <Layout>
+                <PlayingMain></PlayingMain>
+            </Layout>
+        </div>
+    );
 };
 
 export default ComingFilm;

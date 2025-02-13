@@ -2,27 +2,27 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 40px auto;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.nowing {
+    background-color: var(--border-color) !important;
+    border-bottom: 4px solid var(--primary-color) !important;
 }
 
 .navigate .film {
     text-align: center;
-    width: 330px;
+    width: 33.3%;
     height: 60px;
     line-height: 2.8;
     font-size: 20px;
-    color: black;
-    background-color: #d9d9d9;
-    border-bottom: 4px solid #686d76;
+    color: var(--word-color);
+    background-color: var(--primary-color);
+    border-bottom: 4px solid var(--border-color);
 }
 
 .comingFilm.film {
-    border-right: 1px solid #686d76;
-    border-left: 1px solid #686d76;
-}
-
-.film:active {
-    color: white;
-    border-bottom: 4px solid #ff4715;
-    background-color: #fcdbd3;
+    border-right: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
 }

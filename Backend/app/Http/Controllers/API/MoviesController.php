@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMoviesRequest;
-use App\Http\Requests\UpdateMoviesRequest;
 use App\Models\Movies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,14 +16,17 @@ class MoviesController extends Controller
      */
     public function index()
     {
+        $perPage = request()->input('per_page', 5);
+
+
         //Hiển thị phim sắp chiếu
-        $coming_soon = Movies::where('movie_status', 'coming_soon')->with(['genre:id,name_genre'])->get();
+        $coming_soon = Movies::where('movie_status', 'coming_soon')->with(['genre:id,name_genre'])->paginate($perPage);
 
         //Hiển thị phim đang chiếu
-        $now_showing = Movies::where('movie_status', 'now_showing')->with(['genre:id,name_genre'])->get();
+        $now_showing = Movies::where('movie_status', 'now_showing')->with(['genre:id,name_genre'])->paginate($perPage);
 
         // Hiển thị phim đã bị xóa mềm
-        $trashedMovies = Movies::onlyTrashed()->with(['genre:id,name_genre'])->get();
+        $trashedMovies = Movies::onlyTrashed()->with(['genre:id,name_genre'])->paginate($perPage);
 
         return response()->json([
             'coming_soon' => $coming_soon,
@@ -33,14 +35,14 @@ class MoviesController extends Controller
         ], 200);
     }
 
-    public function store(StoreMoviesRequest $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             '*.title' => 'required|string|max:255|unique:movies,title',
             '*.directors' => 'required|string|max:255',
             '*.actors' => 'required|string',
             '*.release_date' => 'required|date_format:Y-m-d',
-            '*.running_time' => 'required|integer',
+            '*.running_time' => 'required|string',
             '*.language' => 'required|string|max:100',
             '*.rated' => 'required|string|max:255',
             '*.description' => 'nullable|string|unique:movies,trailer',
@@ -141,7 +143,7 @@ class MoviesController extends Controller
             'directors' => 'required|string|max:255',
             'actors' => 'required|string',
             'release_date' => 'required|date_format:Y-m-d',
-            'running_time' => 'required|integer',
+            'running_time' => 'required|string',
             'language' => 'required|string|max:100',
             'rated' => 'required|string|max:255',
             'description' => 'nullable|string',

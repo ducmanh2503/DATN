@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\SeatType;
 use Illuminate\Http\Request;
 
 class SeatController extends Controller
@@ -12,7 +13,12 @@ class SeatController extends Controller
      */
     public function index()
     {
-        //
+        $perPage = request()->input('per_page', 5);
+
+        //Hiển thị tất cả loại ghế
+        $seatType = SeatType::paginate($perPage);
+
+        return response()->json(['seat_type' => $seatType], 200);
     }
 
     /**

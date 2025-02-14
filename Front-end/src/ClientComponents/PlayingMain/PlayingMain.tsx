@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import PlayingProduct from "../PlayingProduct/PlayingProduct";
 import "./PlayingMain.css";
-const PlayingMain = () => {
+const PlayingMain = ({ showChill }: any) => {
     const [showMore, setShowMore] = useState(false);
     // const [products, setProducts] = useState([]);
     // Fetch data call api
@@ -106,6 +106,7 @@ const PlayingMain = () => {
                     category={product.category}
                     date={product.date}
                     name={product.name}
+                    showChill={showChill}
                 ></PlayingProduct>
             ))}
             <button

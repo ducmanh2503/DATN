@@ -1,13 +1,15 @@
-import React from "react";
-import Layout from "../Layout";
+import React, { useState } from "react";
+
 import PlayingMain from "../../../ClientComponents/PlayingMain/PlayingMain";
+import ClientLayout from "../Layout";
 
 const ComingFilm = () => {
+    const [showChill, setShowChill] = useState(true);
     return (
         <div>
-            <Layout>
-                <PlayingMain></PlayingMain>
-            </Layout>
+            <ClientLayout>
+                <PlayingMain showChill={true}></PlayingMain>
+            </ClientLayout>
         </div>
     );
 };

@@ -3,7 +3,7 @@ import Header from "../../ClientComponents/Header/Header";
 import Navigate from "../../ClientComponents/Navigate/Navigate";
 import { FloatButton } from "antd";
 
-const Layout = ({ children }: any) => {
+const ClientLayout = ({ children }: any) => {
     return (
         <div style={{ background: "var(--mainBase-color)" }}>
             <Header></Header>
@@ -15,4 +15,4 @@ const Layout = ({ children }: any) => {
     );
 };
 
-export default Layout;
+export default ClientLayout;

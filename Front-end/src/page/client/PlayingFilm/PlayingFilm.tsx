@@ -1,15 +1,14 @@
-import React from "react";
-import Layout from "../Layout";
 import FilterPlayingCinema from "../../../ClientComponents/FilterPlayingCinema/FilterPlayingCinema";
 import PlayingMain from "../../../ClientComponents/PlayingMain/PlayingMain";
+import ClientLayout from "../Layout";
 
 const PlayingFilm = () => {
     return (
         <div>
-            <Layout>
+            <ClientLayout>
                 <FilterPlayingCinema></FilterPlayingCinema>
                 <PlayingMain></PlayingMain>
-            </Layout>
+            </ClientLayout>
         </div>
     );
 };

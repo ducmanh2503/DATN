@@ -17,10 +17,8 @@ return new class extends Migration
             $table->foreignId('room_id')->constrained('rooms');
             $table->integer('seat_number');
             $table->foreignId('seat_type_id')->constrained('seat_types');
-            $table->decimal('price', 8, 2);
-
+            $table->enum('seat_status', ['available', 'booked'])->default('available');
             $table->unique(['room_id', 'seat_number']);
-
             $table->timestamps();
         });
     }

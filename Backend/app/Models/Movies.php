@@ -13,18 +13,23 @@ class Movies extends Model
 
     protected $fillable = [
         'title',
-        'director',
+        'directors',
         'actors',
-        'genre',
-        'duration',
-        'time',
+        'genre_id',
+        'release_date',
+        'running_time',
         'language',
         'rated',
-        'trailer',
         'description',
         'poster',
+        'trailer',
         'movie_status',
     ];
 
     protected $dates = ['deleted_at']; // là cột chứa thời gian xóa mềm
+
+    public function genre()
+    {
+        return $this->belongsTo(Genre::class);  // Đảm bảo rằng Genre là model thể loại (genre)
+    }
 }

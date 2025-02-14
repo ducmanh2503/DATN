@@ -1,10 +1,10 @@
 import React from "react";
-import Layout from "../Layout";
+import ClientLayout from "../Layout";
 
 const CinemaForest = () => {
     return (
         <div>
-            <Layout></Layout>
+            <ClientLayout></ClientLayout>
         </div>
     );
 };

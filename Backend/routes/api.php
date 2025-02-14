@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\API\MoviesController;
-use App\Http\Controllers\API\SeatController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,4 +22,3 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::apiResource('movies', MoviesController::class);
 Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDelete']); // API xóa vĩnh viễn phim đã bị xóa mềm
 Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']); // API khôi phục phim đã bị xóa mềm
-Route::apiResource('seat', SeatController::class);

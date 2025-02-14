@@ -22,6 +22,14 @@ const Banner = () => {
                 }}
                 pagination={{ clickable: true }}
                 modules={[Autoplay, Navigation, Pagination]}
+                breakpoints={{
+                    640: {
+                        spaceBetween: 0, // Ẩn khoảng cách khi màn hình nhỏ
+                    },
+                    1024: {
+                        spaceBetween: 200, // Hiển thị khoảng cách lớn hơn khi màn hình đủ rộng
+                    },
+                }}
             >
                 <SwiperSlide className="custom-slide">Slide 1</SwiperSlide>
                 <SwiperSlide className="custom-slide">Slide 2</SwiperSlide>
@@ -36,7 +44,7 @@ const Banner = () => {
                     <Image className="promotion-image"></Image>
                 </div>
                 <div className="promotion-2">
-                    <Image className="promotion-image"> </Image>
+                    <Image className="promotion-image"></Image>
                 </div>
             </div>
         </div>

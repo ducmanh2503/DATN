@@ -14,13 +14,11 @@ return new class extends Migration
         Schema::create('seats', function (Blueprint $table) {
             $table->id();
 
-            $table->string('seat_number', 50);
-            $table->string('row', 50);
-            $table->string('type', 50);
-            $table->enum('seat_status', ['available', 'booked']);
-            $table->unsignedBigInteger('room_id'); 
-
-            $table->foreign('room_id')->references('id')->on('room')->onDelete('cascade');
+            $table->foreignId('room_id')->constrained('rooms');
+            $table->integer('seat_number');
+            $table->foreignId('seat_type_id')->constrained('seat_types');
+            $table->enum('seat_status', ['available', 'booked'])->default('available');
+            $table->unique(['room_id', 'seat_number']);
             $table->timestamps();
         });
     }

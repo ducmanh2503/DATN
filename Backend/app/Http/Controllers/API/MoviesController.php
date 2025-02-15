@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMoviesRequest;
-use App\Http\Requests\UpdateMoviesRequest;
 use App\Models\Movies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,14 +16,17 @@ class MoviesController extends Controller
      */
     public function index()
     {
+        $perPage = request()->input('per_page', 5);
+
+
         //Hiển thị phim sắp chiếu
-        $coming_soon = Movies::where('movie_status', 'coming_soon')->get();
+        $coming_soon = Movies::where('movie_status', 'coming_soon')->with(['genre:id,name_genre'])->paginate($perPage);
 
         //Hiển thị phim đang chiếu
-        $now_showing = Movies::where('movie_status', 'now_showing')->get();
+        $now_showing = Movies::where('movie_status', 'now_showing')->with(['genre:id,name_genre'])->paginate($perPage);
 
         // Hiển thị phim đã bị xóa mềm
-        $trashedMovies = Movies::onlyTrashed()->get();
+        $trashedMovies = Movies::onlyTrashed()->with(['genre:id,name_genre'])->paginate($perPage);
 
         return response()->json([
             'coming_soon' => $coming_soon,
@@ -33,20 +35,19 @@ class MoviesController extends Controller
         ], 200);
     }
 
-    public function store(StoreMoviesRequest $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             '*.title' => 'required|string|max:255|unique:movies,title',
-            '*.director' => 'required|string|max:255',
+            '*.directors' => 'required|string|max:255',
             '*.actors' => 'required|string',
-            '*.genre' => 'required|string|max:100',
-            '*.duration' => 'required|date_format:Y-m-d',
-            '*.time' => 'required|integer',
+            '*.release_date' => 'required|date_format:Y-m-d',
+            '*.running_time' => 'required|string',
             '*.language' => 'required|string|max:100',
             '*.rated' => 'required|string|max:255',
-            '*.trailer' => 'nullable|string|unique:movies,trailer',
-            '*.description' => 'nullable|string',
+            '*.description' => 'nullable|string|unique:movies,trailer',
             '*.poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            '*.trailer' => 'nullable|string',
             '*.movie_status' => 'required|in:coming_soon,now_showing',
         ]);
 
@@ -78,16 +79,16 @@ class MoviesController extends Controller
             // Chuẩn bị dữ liệu để chèn vào database
             $moviesToInsert[] = [
                 'title' => $data['title'],
-                'director' => $data['director'],
+                'directors' => $data['directors'],
                 'actors' => $data['actors'],
-                'genre' => $data['genre'],
-                'duration' => $data['duration'],
-                'time' => $data['time'],
+                'genre_id' => $data['genre_id'],
+                'release_date' => $data['release_date'],
+                'running_time' => $data['running_time'],
                 'language' => $data['language'],
                 'rated' => $data['rated'],
-                'trailer' => $data['trailer'] ?? null,
                 'description' => $data['description'] ?? null,
                 'poster' => $data['poster'] ?? null,
+                'trailer' => $data['trailer'] ?? null,
                 'movie_status' => $data['movie_status'],
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -139,17 +140,17 @@ class MoviesController extends Controller
         //Lấy dữ liệu phim hợp lệ từ request
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255|unique:movies,title',
-            'director' => 'required|string|max:255',
+            'directors' => 'required|string|max:255',
             'actors' => 'required|string',
-            'genre' => 'required|string|max:100',
-            'duration' => 'required|date_format:Y-m-d',
-            'time' => 'required|integer',
+            'release_date' => 'required|date_format:Y-m-d',
+            'running_time' => 'required|string',
             'language' => 'required|string|max:100',
             'rated' => 'required|string|max:255',
-            'trailer' => 'nullable|string|unique:movies,trailer',
             'description' => 'nullable|string',
             'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'trailer' => 'nullable|string|unique:movies,trailer',
             'movie_status' => 'required|in:coming_soon,now_showing',
+            'genre_id' => 'required|exists:genres,id',
         ]);
 
         if ($validator->fails()) {
@@ -179,17 +180,24 @@ class MoviesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request)
     {
-        $movie = Movies::find($id);
+        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
-        if (!$movie) {
-            return response()->json(['message' => 'Không tìm thấy phim'], 404);
+        // Nếu không có phim nào được chọn
+        if (empty($ids)) {
+            return response()->json(['message' => 'Không có phim nào được chọn'], 400);
         }
 
-        $movie->delete(); // Xóa mềm (không xóa khỏi database)
+        //Xóa mềm các phim được chọn
+        $deleted = Movies::whereIn('id', $ids)->delete();
 
-        return response()->json(['message' => 'Xóa mềm phim thành công'], 200);
+        //Kiểm tra xem có phim nào được xóa không
+        if ($deleted) {
+            return response()->json(['message' => 'Xóa phim thành công'], 200);
+        }
+
+        return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
     }
 
     public function restore($id)
@@ -205,16 +213,23 @@ class MoviesController extends Controller
         return response()->json(['message' => 'Khôi phục phim thành công'], 200);
     }
 
-    public function forceDelete($id)
+    public function forceDelete(Request $request)
     {
-        $movie = Movies::onlyTrashed()->find($id);
+        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
-        if (!$movie) {
-            return response()->json(['message' => 'Không tìm thấy phim đã bị xóa'], 404);
+        // Nếu không có phim nào được chọn
+        if (empty($ids)) {
+            return response()->json(['message' => 'Không có phim nào được chọn'], 400);
         }
 
-        $movie->forceDelete(); // Xóa vĩnh viễn khỏi database
+        //Xóa mềm các phim được chọn
+        $deleted = Movies::onlyTrashed()->whereIn('id', $ids)->forceDelete();
 
-        return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
+        //Kiểm tra xem có phim nào được xóa không
+        if ($deleted) {
+            return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
+        }
+
+        return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
     }
 }

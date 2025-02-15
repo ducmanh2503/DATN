@@ -16,8 +16,8 @@ return new class extends Migration
 
             $table->foreignId('movie_id')->constrained('movies');
             $table->foreignId('room_id')->constrained('rooms');
+            $table->date('show_date');
             $table->time('show_time');
-            $table->decimal('price', 8, 2);
 
             $table->timestamps();
         });

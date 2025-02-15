@@ -28,7 +28,7 @@ const onSearch: SearchProps["onSearch"] = (value, _e, info) =>
 const Header = () => {
     return (
         <div>
-            <header>
+            <header className="header-client">
                 <div className="flex row">
                     <p className="slogan">
                         Phim đỉnh cao, vé siêu nhanh - chỉ một cú chạm!

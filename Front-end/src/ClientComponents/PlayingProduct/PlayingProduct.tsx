@@ -56,7 +56,8 @@ const PlayingProduct = ({
             </div>
             {showChill && (
                 <h4 className="start-day">
-                    Ngày khởi chiếu: <span>{startDay}</span>
+                    Ngày khởi chiếu:{" "}
+                    <span className="word-render">12/3/2025{startDay}</span>
                 </h4>
             )}
             <h2 className="product-title cliptextTitle">{name}</h2>

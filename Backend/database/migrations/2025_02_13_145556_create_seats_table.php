@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('room_id')->constrained('rooms');
-            $table->integer('seat_number');
+            $table->string('row')->unique();
+            $table->string('column')->unique();
             $table->foreignId('seat_type_id')->constrained('seat_types');
             $table->enum('seat_status', ['available', 'booked'])->default('available');
-            $table->unique(['room_id', 'seat_number']);
+            $table->unique(['room_id']);
             $table->timestamps();
         });
     }

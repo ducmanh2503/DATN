@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('booking_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('booking_id')->constrained('bookings');
-            $table->foreignId('seat_id')->constrained('seats');
+            $table->foreignId('seat_type_id')->constrained('seat_types');
             $table->decimal('price', 8, 2);
             $table->timestamps();
         });

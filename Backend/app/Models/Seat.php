@@ -28,7 +28,7 @@ class Seat extends Model
     //Quan hệ với loại ghế
     public function seatType()
     {
-        return $this->belongsTo(SeatType::class, 'seat_type_id');
+        return $this->belongsTo(SeatType::class);
     }
 
     //Lấy giá của loại ghế

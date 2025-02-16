@@ -16,12 +16,10 @@ return new class extends Migration
 
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('showtime_id')->constrained('show_times');
-            
             $table->decimal('total_ticket_price', 8, 2);
             $table->decimal('total_combo_price', 8, 2);
-            
             $table->enum('status', ['pending', 'confirmed', 'cancelled']);
-            
+
             $table->timestamps();
         });
     }

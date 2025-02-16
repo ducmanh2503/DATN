@@ -16,7 +16,7 @@ class MoviesController extends Controller
      */
     public function index()
     {
-        $perPage = request()->input('per_page', 5);
+        $perPage = request()->input('per_page', 15);
 
 
         //Hiển thị phim sắp chiếu

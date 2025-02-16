@@ -31,4 +31,9 @@ Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']); // 
 Route::apiResource('room', RoomController::class);
 
 //Seats
-Route::apiResource('seat', SeatController::class);
+Route::post('/seats', [SeatController::class, 'store']);
+Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
+Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
+
+//showtimes
+Route::apiResource('showTime', ShowTimeController::class);

@@ -9,6 +9,11 @@ class SeatType extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'name',
+        'price',
+    ];
+
     //Quan hệ với ghế
     public function seat()
     {

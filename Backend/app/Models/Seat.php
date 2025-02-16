@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Seat extends Model
 {
     use HasFactory;
-    use SoftDeletes;
+    // use SoftDeletes;
 
     protected $fillable = [
         'room_id',
-        'seat_number',
+        'row',
+        'column',
         'seat_type_id',
         'seat_status',
     ];

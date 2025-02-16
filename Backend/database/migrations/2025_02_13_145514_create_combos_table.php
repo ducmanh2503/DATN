@@ -16,6 +16,7 @@ return new class extends Migration
 
             $table->string('name')->unique();
             $table->string('description');
+            $table->unsignedBigInteger('quantity');
             $table->decimal('price', 8, 2);
             $table->string('image');
 

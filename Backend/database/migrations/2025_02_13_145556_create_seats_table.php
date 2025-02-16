@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('statistics_per_movie', function (Blueprint $table) {
+        Schema::create('seats', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('movie_id')->constrained('movies');
-            $table->date('end_date');
-            $table->decimal('total_sales', 8, 2);
-            $table->integer('total_tickets_sold');
-
+            $table->foreignId('room_id')->constrained('rooms');
+            $table->string('row');
+            $table->string('column');
+            $table->foreignId('seat_type_id')->constrained('seat_types');
+            $table->enum('seat_status', ['available', 'booked'])->default('available');
             $table->timestamps();
         });
     }
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('statistics_per_movie');
+        Schema::dropIfExists('seats');
     }
 };

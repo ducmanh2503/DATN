@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Seat extends Model
 {
     use HasFactory;
-    use SoftDeletes;
+    // use SoftDeletes;
 
     protected $fillable = [
         'room_id',
@@ -28,7 +28,7 @@ class Seat extends Model
     //Quan hệ với loại ghế
     public function seatType()
     {
-        return $this->belongsTo(SeatType::class);
+        return $this->belongsTo(SeatType::class, 'seat_type_id');
     }
 
     //Lấy giá của loại ghế

@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('seats', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('room_id')->constrained('rooms');
             $table->string('row')->unique();
             $table->string('column')->unique();

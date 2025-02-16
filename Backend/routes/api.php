@@ -3,6 +3,8 @@
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
+use App\Http\Controllers\API\ShowTimeController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,3 +32,7 @@ Route::apiResource('room', RoomController::class);
 
 //Seats
 Route::apiResource('seat', SeatController::class);
+
+Route::apiResource('showTime', ShowTimeController::class);
+
+

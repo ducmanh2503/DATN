@@ -7,6 +7,8 @@ import PlayingProduct from "./ClientComponents/PlayingProduct/PlayingProduct";
 import AdminLayout from "./page/admin/AdminLayout";
 import FilmManage from "./page/admin/FilmManage/FilmManage";
 import ShowtimesManage from "./page/admin/ShowtimesManage/ShowtimesManage";
+import StoppedMovies from "./page/admin/FilmManage/StoppedMovies";
+import AddFilm from "./page/admin/FilmManage/AddFilm";
 
 export const router = createBrowserRouter([
     { path: "/", element: <Home></Home> },
@@ -21,6 +23,9 @@ export const router = createBrowserRouter([
         element: <AdminLayout></AdminLayout>,
         children: [
             { path: "film", element: <FilmManage></FilmManage> },
+            { path: "addFilm", element: <AddFilm></AddFilm> },
+            { path: "stoppedMovie", element: <StoppedMovies></StoppedMovies> },
+
             {
                 path: "showtimes",
                 element: <ShowtimesManage></ShowtimesManage>,

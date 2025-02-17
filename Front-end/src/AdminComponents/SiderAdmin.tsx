@@ -29,11 +29,11 @@ function getItem(
 const SiderAdmin = () => {
     const [collapsed, setCollapsed] = useState(false);
     const items: MenuItem[] = [
-        getItem(
-            <Link to="film">Phim</Link>,
-            "sub1",
-            <VideoCameraAddOutlined />
-        ),
+        getItem("Phim", "sub1", <VideoCameraAddOutlined />, [
+            getItem(<Link to="film">Danh sách</Link>, "sub1-1"),
+            getItem(<Link to="addFilm">Thêm phim</Link>, "sub1-2"),
+            getItem(<Link to="stoppedMovie">Phim ngừng chiếu</Link>, "sub1-3"),
+        ]),
         getItem(
             <Link to="showtimes">Lịch chiếu</Link>,
             "sub2",

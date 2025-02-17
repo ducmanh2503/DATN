@@ -1,7 +1,7 @@
 import React from "react";
 
 const AddFilm = () => {
-    return <div>AddFilm</div>;
+    return <div></div>;
 };
 
 export default AddFilm;

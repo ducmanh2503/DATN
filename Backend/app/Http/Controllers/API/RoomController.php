@@ -80,16 +80,61 @@ class RoomController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $room = Room::find($id);
+
+        // Nếu không tìm thấy phòng
+        if (!$room) {
+            return response()->json(['message' => 'Không tìm thấy phòng'], 404);
+        }
+        return response()->json($room);
     }
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
-    {
-        //
+{
+    try {
+        // Tìm phòng theo id
+        $room = Room::find($id);
+
+        // Nếu không tìm thấy phòng
+        if (!$room) {
+            return response()->json(['message' => 'Không tìm thấy phòng'], 404);
+        }
+
+        // Lấy dữ liệu JSON từ request
+        $data = $request->json()->all();
+
+        // Kiểm tra dữ liệu nhập vào
+        $validator = Validator::make($data, [
+            'name' => 'required|unique:rooms,name,' . $id,
+            'capacity' => 'required|integer|min:1',
+            'room_type' => 'required|in:2D,3D,4D'
+        ]);
+
+        // Nếu có lỗi validate, trả về lỗi
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Cập nhật thông tin phòng
+        $room->update($data);
+
+        // Trả về kết quả thành công
+        return response()->json([
+            'message' => 'Cập nhật phòng thành công',
+            'room' => $room
+        ], 200);
+    } catch (\Exception $e) {
+        // Nếu có lỗi, trả về thông tin lỗi (để debug)
+        return response()->json([
+            'error' => 'Đã xảy ra lỗi trong quá trình xử lý.',
+            'details' => $e->getMessage()
+        ], 500);
     }
+}
+
 
     /**
      * Remove the specified resource from storage.

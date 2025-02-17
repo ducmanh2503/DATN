@@ -180,25 +180,42 @@ class MoviesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request)
+    // public function destroy(Request $request)
+    // {
+    //     $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
+
+    //     // Nếu không có phim nào được chọn
+    //     if (empty($ids)) {
+    //         return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+    //     }
+
+    //     //Xóa mềm các phim được chọn
+    //     $deleted = Movies::whereIn('id', $ids)->delete();
+
+    //     //Kiểm tra xem có phim nào được xóa không
+    //     if ($deleted) {
+    //         return response()->json(['message' => 'Xóa phim thành công'], 200);
+    //     }
+
+    //     return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
+    // }
+
+    public function destroy($id)
     {
-        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
+        try {
+            // Tìm phim theo ID
+            $movie = Movies::findOrFail($id);
 
-        // Nếu không có phim nào được chọn
-        if (empty($ids)) {
-            return response()->json(['message' => 'Không có phim nào được chọn'], 400);
-        }
+            // Xóa phim
+            $movie->delete();
 
-        //Xóa mềm các phim được chọn
-        $deleted = Movies::whereIn('id', $ids)->delete();
-
-        //Kiểm tra xem có phim nào được xóa không
-        if ($deleted) {
+            // Trả về phản hồi thành công
             return response()->json(['message' => 'Xóa phim thành công'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Lỗi khi xóa phim: ' . $e->getMessage()], 500);
         }
-
-        return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
     }
+
 
     public function restore($id)
     {

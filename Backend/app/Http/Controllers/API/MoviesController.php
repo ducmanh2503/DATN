@@ -177,29 +177,30 @@ class MoviesController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Xóa mềm nhiều phim.
      */
-    // public function destroy(Request $request)
-    // {
-    //     $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
+    public function destroyMultiple(Request $request)
+    {
+        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
-    //     // Nếu không có phim nào được chọn
-    //     if (empty($ids)) {
-    //         return response()->json(['message' => 'Không có phim nào được chọn'], 400);
-    //     }
+        // Nếu không có phim nào được chọn
+        if (empty($ids)) {
+            return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+        }
 
-    //     //Xóa mềm các phim được chọn
-    //     $deleted = Movies::whereIn('id', $ids)->delete();
+        //Xóa mềm các phim được chọn
+        $deleted = Movies::whereIn('id', $ids)->delete();
 
-    //     //Kiểm tra xem có phim nào được xóa không
-    //     if ($deleted) {
-    //         return response()->json(['message' => 'Xóa phim thành công'], 200);
-    //     }
+        //Kiểm tra xem có phim nào được xóa không
+        if ($deleted) {
+            return response()->json(['message' => 'Xóa phim thành công'], 200);
+        }
 
-    //     return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
-    // }
+        return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
+    }
 
-    public function destroy($id)
+    //Xóa mềm 1 phim
+    public function destroySingle($id)
     {
         try {
             // Tìm phim theo ID
@@ -229,27 +230,29 @@ class MoviesController extends Controller
         return response()->json(['message' => 'Khôi phục phim thành công'], 200);
     }
 
-    // public function forceDelete(Request $request)
-    // {
-    //     $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
+    //Xóa vĩnh viễn nhiều phim
+    public function forceDeleteMultiple(Request $request)
+    {
+        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
-    //     // Nếu không có phim nào được chọn
-    //     if (empty($ids)) {
-    //         return response()->json(['message' => 'Không có phim nào được chọn'], 400);
-    //     }
+        // Nếu không có phim nào được chọn
+        if (empty($ids)) {
+            return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+        }
 
-    //     //Xóa mềm các phim được chọn
-    //     $deleted = Movies::onlyTrashed()->whereIn('id', $ids)->forceDelete();
+        //Xóa mềm các phim được chọn
+        $deleted = Movies::onlyTrashed()->whereIn('id', $ids)->forceDelete();
 
-    //     //Kiểm tra xem có phim nào được xóa không
-    //     if ($deleted) {
-    //         return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
-    //     }
+        //Kiểm tra xem có phim nào được xóa không
+        if ($deleted) {
+            return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
+        }
 
-    //     return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
-    // }
+        return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
+    }
 
-    public function forceDelete($id)
+    //Xóa vĩnh viễn 1 phim
+    public function forceDeleteSingle($id)
     {
         // Tìm phim đã xóa mềm theo ID
         $movie = Movies::onlyTrashed()->find($id);

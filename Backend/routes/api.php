@@ -25,7 +25,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 //Movie
 Route::apiResource('movies', MoviesController::class);
-Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDelete']); // API xóa vĩnh viễn phim đã bị xóa mềm
+Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']); // API xóa vĩnh viễn 1 phim
+Route::delete('/movies', [MoviesController::class, 'destroyMultiple']); // API xóa mềm nhiều phim
+Route::delete('/movies/force-delete', [MoviesController::class, 'forceDeleteMultiple']); // API xóa vĩnh viễn nhiều phim
 Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']); // API khôi phục phim đã bị xóa mềm
 //Room
 Route::apiResource('room', RoomController::class);

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreMoviesRequest;
 use App\Models\Movies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -230,23 +229,40 @@ class MoviesController extends Controller
         return response()->json(['message' => 'Khôi phục phim thành công'], 200);
     }
 
-    public function forceDelete(Request $request)
+    // public function forceDelete(Request $request)
+    // {
+    //     $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
+
+    //     // Nếu không có phim nào được chọn
+    //     if (empty($ids)) {
+    //         return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+    //     }
+
+    //     //Xóa mềm các phim được chọn
+    //     $deleted = Movies::onlyTrashed()->whereIn('id', $ids)->forceDelete();
+
+    //     //Kiểm tra xem có phim nào được xóa không
+    //     if ($deleted) {
+    //         return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
+    //     }
+
+    //     return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
+    // }
+
+    public function forceDelete($id)
     {
-        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
+        // Tìm phim đã xóa mềm theo ID
+        $movie = Movies::onlyTrashed()->find($id);
 
-        // Nếu không có phim nào được chọn
-        if (empty($ids)) {
-            return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+        // Kiểm tra nếu không tìm thấy phim
+        if (!$movie) {
+            return response()->json(['message' => 'Phim không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
         }
 
-        //Xóa mềm các phim được chọn
-        $deleted = Movies::onlyTrashed()->whereIn('id', $ids)->forceDelete();
+        // Xóa vĩnh viễn phim
+        $movie->forceDelete();
 
-        //Kiểm tra xem có phim nào được xóa không
-        if ($deleted) {
-            return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
-        }
-
-        return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
+        // Trả về phản hồi thành công
+        return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
     }
 }

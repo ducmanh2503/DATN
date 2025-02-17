@@ -76,7 +76,14 @@ const StoppedMovies: React.FC = () => {
                                 Xóa vĩnh viễn
                             </Button>
                         </Popconfirm>
-                        <Button type="primary">Khôi phục</Button>
+                        <Button
+                            type="primary"
+                            onClick={() => {
+                                restore(items.id);
+                            }}
+                        >
+                            Khôi phục
+                        </Button>
                     </Space>
                 );
             },

@@ -143,25 +143,32 @@ class ComboController extends Controller
     }
 
     //Xóa vĩnh viễn nhiều Combo
-    public function forceDeleteMultiple(Request $request)
-    {
-        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
+    // Xóa vĩnh viễn nhiều Combo
+public function forceDeleteMultiple(Request $request)
+{
+    $ids = $request->input('ids'); // Lấy danh sách ID combo cần xóa vĩnh viễn
 
-        // Nếu không có phim nào được chọn
-        if (empty($ids)) {
-            return response()->json(['message' => 'Không có phim nào được chọn'], 400);
-        }
-
-        //Xóa mềm các phim được chọn
-        $deleted = Combo::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-
-        //Kiểm tra xem có phim nào được xóa không
-        if ($deleted) {
-            return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
-        }
-
-        return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
+    // Nếu không có combo nào được chọn
+    if (empty($ids)) {
+        return response()->json(['message' => 'Không có combo nào được chọn để xóa vĩnh viễn'], 400);
     }
+
+    // Kiểm tra nếu combo có tồn tại trong bảng bị xóa mềm
+    $combos = Combo::onlyTrashed()->whereIn('id', $ids)->get();
+
+    // Nếu không có combo nào bị xóa mềm
+    if ($combos->isEmpty()) {
+        return response()->json(['message' => 'Không tìm thấy combo nào đã bị xóa mềm'], 404);
+    }
+
+    // Xóa vĩnh viễn tất cả các combo đã bị xóa mềm
+    $deletedCount = $combos->count();
+    Combo::onlyTrashed()->whereIn('id', $ids)->forceDelete();
+
+    // Trả về phản hồi thành công
+    return response()->json(['message' => "Xóa vĩnh viễn $deletedCount combo thành công"], 200);
+}
+
 
     // Xóa vĩnh viễn 1 Combo 
     public function forceDeleteSingle($id)

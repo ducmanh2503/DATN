@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\ComboController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
@@ -39,3 +40,27 @@ Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus'])
 
 //showtimes
 Route::apiResource('showTime', ShowTimeController::class);
+
+//Combo
+Route::apiResource('combo', ComboController::class);
+
+// Xóa mềm nhiều combo
+Route::delete('/combo', [ComboController::class, 'destroyMultiple']); 
+
+// Xóa mềm 1 combo
+Route::delete('/combo/{combo}', [ComboController::class, 'destroySingle'])
+    ->name('combo.destroySingle'); 
+
+// Xóa vĩnh viễn nhiều combo
+Route::delete('/combo/force-delete', [MoviesController::class, 'forceDeleteMultiple']);
+
+// Xóa vĩnh viễn 1 combo
+Route::delete('/combo/{combo}/force', [ComboController::class, 'forceDeleteSingle'])
+    ->name('combo.forceDeleteSingle'); 
+
+// Khôi phục 1 combo 
+Route::post('/combo/{combo}/restore', [ComboController::class, 'restore'])
+    ->name('combo.restore'); 
+
+// Khôi phục nhiều combo 
+Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);

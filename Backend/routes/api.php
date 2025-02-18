@@ -52,7 +52,7 @@ Route::delete('/combo', [ComboController::class, 'destroyMultiple']);
 Route::delete('/combo/{combo}', [ComboController::class, 'destroySingle']);
 
 // Xóa vĩnh viễn nhiều combo
-Route::delete('/combo/force-delete', [ComboController::class, 'forceDeleteMultiple']);
+Route::delete('/combos/force-delete-multiple', [ComboController::class, 'forceDeleteMultiple']);
 
 // Xóa vĩnh viễn 1 combo
 Route::delete('/combo/force/{combo}', [ComboController::class, 'forceDeleteSingle']);

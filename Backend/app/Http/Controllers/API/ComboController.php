@@ -105,17 +105,17 @@ class ComboController extends Controller
     //Xóa mềm nhiều Combo
     public function destroyMultiple(Request $request)
     {
-        $ids = $request->input('ids'); // Lấy danh sách id combo cần xóa
+        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
-        // Nếu không có combo nào được chọn
+        // Nếu không có phim nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có Combo nào được chọn'], 400);
         }
 
-        //Xóa mềm các combo được chọn
+        //Xóa mềm các phim được chọn
         $deleted = Combo::whereIn('id', $ids)->delete();
 
-        //Kiểm tra xem có combo nào được xóa không
+        //Kiểm tra xem có phim nào được xóa không
         if ($deleted) {
             return response()->json(['message' => 'Xóa combo thành công'], 200);
         }
@@ -142,6 +142,7 @@ class ComboController extends Controller
         }
     }
 
+    //Xóa vĩnh viễn nhiều Combo
     // Xóa vĩnh viễn nhiều Combo
     public function forceDeleteMultiple(Request $request)
     {

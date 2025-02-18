@@ -88,7 +88,7 @@ class ComboController extends Controller
 
             $combo->update($validated);
             return response()->json([
-                'message' => 'Update Combo thành công',
+                'message' => 'Cập nhật Combo thành công',
                 'combo' => $combo
             ]);
         } catch (ValidationException $e) {

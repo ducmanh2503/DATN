@@ -45,7 +45,7 @@ class MoviesController extends Controller
             '*.language' => 'required|string|max:100',
             '*.rated' => 'required|string|max:255',
             '*.description' => 'nullable|string|unique:movies,trailer',
-            '*.poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            '*.poster' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
             '*.trailer' => 'nullable|string',
             '*.movie_status' => 'required|in:coming_soon,now_showing',
         ]);
@@ -55,6 +55,14 @@ class MoviesController extends Controller
         }
 
         $moviesData = $request->all(); // Lấy danh sách phim hợp lệ
+
+        // Kiểm tra nếu request có file poster được upload
+        if ($request->hasFile('poster')) {
+            // Lưu file vào thư mục storage/app/public/images và lấy đường dẫn
+            $posterPath = $request->file('poster')->store('images', 'public');
+            // Lưu đường dẫn đầy đủ để truy cập ảnh sau này
+            $data['poster'] = Storage::url($posterPath);
+        }
 
         // Nếu chỉ có 1 phim, đảm bảo dữ liệu là mảng của mảng
         if (!isset($moviesData[0])) {

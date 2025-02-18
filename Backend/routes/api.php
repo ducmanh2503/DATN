@@ -28,8 +28,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::apiResource('movies', MoviesController::class);
 Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']); // API xóa vĩnh viễn 1 phim
 Route::delete('/movies', [MoviesController::class, 'destroyMultiple']); // API xóa mềm nhiều phim
-Route::delete('/movies/force-delete', [MoviesController::class, 'forceDeleteMultiple']); // API xóa vĩnh viễn nhiều phim
+Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']); // API xóa vĩnh viễn nhiều phim
 Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']); // API khôi phục phim đã bị xóa mềm
+
 //Room
 Route::apiResource('room', RoomController::class);
 
@@ -45,22 +46,19 @@ Route::apiResource('showTime', ShowTimeController::class);
 Route::apiResource('combo', ComboController::class);
 
 // Xóa mềm nhiều combo
-Route::delete('/combo', [ComboController::class, 'destroyMultiple']); 
+Route::delete('/combo', [ComboController::class, 'destroyMultiple']);
 
 // Xóa mềm 1 combo
-Route::delete('/combo/{combo}', [ComboController::class, 'destroySingle'])
-    ->name('combo.destroySingle'); 
+Route::delete('/combo/{combo}', [ComboController::class, 'destroySingle']);
 
 // Xóa vĩnh viễn nhiều combo
 Route::delete('/combo/force-delete', [MoviesController::class, 'forceDeleteMultiple']);
 
 // Xóa vĩnh viễn 1 combo
-Route::delete('/combo/{combo}/force', [ComboController::class, 'forceDeleteSingle'])
-    ->name('combo.forceDeleteSingle'); 
+Route::delete('/combo/force/{combo}', [ComboController::class, 'forceDeleteSingle']);
 
 // Khôi phục 1 combo 
-Route::post('/combo/{combo}/restore', [ComboController::class, 'restore'])
-    ->name('combo.restore'); 
+Route::post('/combo/restore/{combo}', [ComboController::class, 'restore']);
 
 // Khôi phục nhiều combo 
 Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);

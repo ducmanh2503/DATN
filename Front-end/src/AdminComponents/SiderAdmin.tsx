@@ -4,6 +4,7 @@ import {
     BuildOutlined,
     CalendarOutlined,
     DesktopOutlined,
+    SnippetsOutlined,
     TeamOutlined,
     VideoCameraAddOutlined,
 } from "@ant-design/icons";
@@ -29,16 +30,17 @@ function getItem(
 const SiderAdmin = () => {
     const [collapsed, setCollapsed] = useState(false);
     const items: MenuItem[] = [
-        getItem("Phim", "sub1", <VideoCameraAddOutlined />, [
-            getItem(<Link to="film">Danh sách</Link>, "sub1-1"),
+        getItem("Quản lý phim", "sub1", <VideoCameraAddOutlined />, [
+            getItem(<Link to="film">Danh sách phim</Link>, "sub1-1"),
             getItem(<Link to="addFilm">Thêm phim</Link>, "sub1-2"),
             getItem(<Link to="stoppedMovie">Phim ngừng chiếu</Link>, "sub1-3"),
         ]),
-        getItem(
-            <Link to="showtimes">Lịch chiếu</Link>,
-            "sub2",
-            <CalendarOutlined />
-        ),
+        getItem("Quản lý lịch chiếu", "sub2", <CalendarOutlined />, [
+            getItem(<Link to="showtimes">Danh sách lịch chiếu</Link>, "sub2-1"),
+        ]),
+        getItem("Quản lý suất chiếu", "sub7", <SnippetsOutlined />, [
+            getItem(<Link to="...">Danh sách suất chiếu</Link>, "sub7-1"),
+        ]),
         getItem("Phòng chiếu", "sub3", <DesktopOutlined />, [
             getItem("Tự tạo", "sub3-1"),
             getItem("Tự tạo", "sub3-2"),
@@ -58,7 +60,7 @@ const SiderAdmin = () => {
     return (
         <div>
             <Sider
-                style={{ height: "100%" }}
+                style={{ height: "100%", minWidth: "280px" }}
                 collapsible
                 collapsed={collapsed}
                 onCollapse={(value) => setCollapsed(value)}

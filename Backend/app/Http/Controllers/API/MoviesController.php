@@ -37,17 +37,17 @@ class MoviesController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            '*.title' => 'required|string|max:255|unique:movies,title',
-            '*.directors' => 'required|string|max:255',
-            '*.actors' => 'required|string',
-            '*.release_date' => 'required|date_format:Y-m-d',
-            '*.running_time' => 'required|string',
-            '*.language' => 'required|string|max:100',
-            '*.rated' => 'required|string|max:255',
-            '*.description' => 'nullable|string|unique:movies,trailer',
-            '*.poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            '*.trailer' => 'nullable|string',
-            '*.movie_status' => 'required|in:coming_soon,now_showing',
+            'title' => 'required|string|max:255|unique:movies,title',
+            'directors' => 'required|string|max:255',
+            'actors' => 'required|string',
+            'release_date' => 'required|date_format:Y-m-d',
+            'running_time' => 'required|string',
+            'language' => 'required|string|max:100',
+            'rated' => 'required|string|max:255',
+            'description' => 'nullable|string|unique:movies,trailer',
+            'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'trailer' => 'required|string',
+            'movie_status' => 'required|in:coming_soon,now_showing',
         ]);
 
         if ($validator->fails()) {
@@ -98,6 +98,9 @@ class MoviesController extends Controller
         Movies::insert($moviesToInsert);
         return response()->json(['message' => 'Thêm phim thành công', 'data' => $data], 201);
     }
+
+
+
 
     /**
      * Display the specified resource.

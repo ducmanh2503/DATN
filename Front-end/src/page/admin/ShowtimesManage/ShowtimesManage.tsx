@@ -1,6 +1,8 @@
 import React from "react";
 import { Button, Popconfirm, Space, Table, Tag } from "antd";
 import { DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 const { Column, ColumnGroup } = Table;
 
@@ -13,34 +15,22 @@ interface DataType {
     tags: string[];
 }
 
-const data: DataType[] = [
-    {
-        key: "1",
-        firstName: "John",
-        lastName: "Brown",
-        age: 32,
-        address: "New York No. 1 Lake Park",
-        tags: ["nice", "developer"],
-    },
-    {
-        key: "2",
-        firstName: "Jim",
-        lastName: "Green",
-        age: 42,
-        address: "London No. 1 Lake Park",
-        tags: ["loser"],
-    },
-    {
-        key: "3",
-        firstName: "Joe",
-        lastName: "Black",
-        age: 32,
-        address: "Sydney No. 1 Lake Park",
-        tags: ["cool", "teacher"],
-    },
-];
-
 const ShowtimesManage = () => {
+    const { data, isLoading } = useQuery({
+        queryKey: ["showtimesFilm"],
+        queryFn: async () => {
+            const { data } = await axios.get(
+                `http://localhost:8000/api/showTime`
+            );
+            console.log("showtime-data", data);
+
+            return data.now_showing.data.map((item: any) => ({
+                ...item,
+                key: item.id,
+            }));
+        },
+    });
+
     return (
         <div>
             <Button>

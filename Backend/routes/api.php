@@ -48,9 +48,6 @@ Route::apiResource('combo', ComboController::class);
 // Xóa mềm nhiều combo
 Route::delete('/combo', [ComboController::class, 'destroyMultiple']);
 
-// Xóa mềm 1 combo
-Route::delete('/combo/{combo}', [ComboController::class, 'destroySingle']);
-
 // Xóa vĩnh viễn nhiều combo
 Route::delete('/combos/force-delete-multiple', [ComboController::class, 'forceDeleteMultiple']);
 

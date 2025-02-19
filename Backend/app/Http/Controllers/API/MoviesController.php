@@ -46,7 +46,7 @@ class MoviesController extends Controller
             'rated' => 'required|string|max:255',
             'description' => 'nullable|string|unique:movies,trailer',
             'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'trailer' => 'required|string',
+            'trailer' => 'nullable|string',
             'movie_status' => 'required|in:coming_soon,now_showing',
         ]);
 
@@ -54,52 +54,37 @@ class MoviesController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $moviesData = $request->all(); // Lấy danh sách phim hợp lệ
+        $movieData = $request->all(); // Lấy dữ liệu phim hợp lệ
 
-        // Nếu chỉ có 1 phim, đảm bảo dữ liệu là mảng của mảng
-        if (!isset($moviesData[0])) {
-            $moviesData = [$moviesData];
+        // Xử lý upload poster nếu có
+        if (isset($movieData['poster']) && $movieData['poster'] instanceof \Illuminate\Http\UploadedFile) {
+            $posterPath = $movieData['poster']->store('image', 'public');
+            $movieData['poster'] = Storage::url($posterPath);
         }
 
-        //Kiểm tra dữ liệu phim có đúng kiểu mảng không
-        if (!is_array($moviesData)) {
-            return response()->json(['error' => 'Dữ liệu không đúng định dạng'], 400);
-        }
+        // Chuẩn bị dữ liệu để chèn vào database
+        $movieToInsert = [
+            'title' => $movieData['title'],
+            'directors' => $movieData['directors'],
+            'actors' => $movieData['actors'],
+            'genre_id' => $movieData['genre_id'],
+            'release_date' => $movieData['release_date'],
+            'running_time' => $movieData['running_time'],
+            'language' => $movieData['language'],
+            'rated' => $movieData['rated'],
+            'description' => $movieData['description'] ?? null,
+            'poster' => $movieData['poster'] ?? null,
+            'trailer' => $movieData['trailer'] ?? null,
+            'movie_status' => $movieData['movie_status'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
 
-        $moviesToInsert = []; //Mảng chứa dữ liệu phim để chèn vào database
+        // Thêm phim
+        Movies::insert([$movieToInsert]);
 
-        foreach ($moviesData as $data) {
-            // Xử lý upload poster nếu có
-            if (isset($data['poster']) && $data['poster'] instanceof \Illuminate\Http\UploadedFile) {
-                $posterPath = $data['poster']->store('image', 'public');
-                $data['poster'] = Storage::url($posterPath);
-            }
-
-            // Chuẩn bị dữ liệu để chèn vào database
-            $moviesToInsert[] = [
-                'title' => $data['title'],
-                'directors' => $data['directors'],
-                'actors' => $data['actors'],
-                'genre_id' => $data['genre_id'],
-                'release_date' => $data['release_date'],
-                'running_time' => $data['running_time'],
-                'language' => $data['language'],
-                'rated' => $data['rated'],
-                'description' => $data['description'] ?? null,
-                'poster' => $data['poster'] ?? null,
-                'trailer' => $data['trailer'] ?? null,
-                'movie_status' => $data['movie_status'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
-
-        //Thêm phim
-        Movies::insert($moviesToInsert);
-        return response()->json(['message' => 'Thêm phim thành công', 'data' => $data], 201);
+        return response()->json(['message' => 'Thêm phim thành công', 'data' => $movieToInsert], 201);
     }
-
-
 
 
     /**
@@ -203,7 +188,7 @@ class MoviesController extends Controller
     }
 
     //Xóa mềm 1 phim
-    public function destroySingle($id)
+    public function destroy($id)
     {
         try {
             // Tìm phim theo ID

@@ -126,7 +126,7 @@ class ComboController extends Controller
 
 
     //Xóa mềm 1 Combo
-    public function destroySingle($id)
+    public function destroy($id)
     {
         try {
             // Tìm combo theo ID

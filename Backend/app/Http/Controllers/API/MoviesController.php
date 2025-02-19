@@ -17,6 +17,9 @@ class MoviesController extends Controller
     {
         $perPage = request()->input('per_page', 15);
 
+        //Hiển thị tất cả phim
+        $movies = Movies::with(['genre:id,name_genre'])->paginate($perPage);
+
 
         //Hiển thị phim sắp chiếu
         $coming_soon = Movies::where('movie_status', 'coming_soon')->with(['genre:id,name_genre'])->paginate($perPage);
@@ -28,6 +31,7 @@ class MoviesController extends Controller
         $trashedMovies = Movies::onlyTrashed()->with(['genre:id,name_genre'])->paginate($perPage);
 
         return response()->json([
+            'movies' => $movies,
             'coming_soon' => $coming_soon,
             'now_showing' => $now_showing,
             'trashed_movies' => $trashedMovies,

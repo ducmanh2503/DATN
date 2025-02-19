@@ -8,11 +8,9 @@ import {
     Image,
     Input,
     Row,
-    Select,
 } from "antd";
-import { Option } from "antd/es/mentions";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { GET_FILM_DETAIL } from "../../../config/ApiConfig";
 import "./DetailFilm.css";
 
@@ -29,30 +27,30 @@ const DetailFilm = ({ id, film }: any) => {
         setSize("large");
         setOpen(true);
     };
+
     const { data, isLoading } = useQuery({
         queryKey: ["film", id],
         queryFn: async () => {
             const { data } = await axios.get(`${GET_FILM_DETAIL(id)}`);
-            // console.log(data);
+            console.log("re-render-detail-film");
 
             return data.data;
         },
-        onSuccess: (data: any) => {
+        enabled: open && !!id,
+    });
+    useEffect(() => {
+        if (data && open) {
             form.setFieldsValue(data);
             setPoster(data.poster || "");
-        },
-    });
-
-    useEffect(() => {
-        if (data) {
-            setPoster(data.poster);
         }
-    }, [data]);
+    }, [data, open]);
+
     return (
         <div>
             <a onClick={showLargeDrawer}>{film}</a>
             <Drawer
                 title={`Chi tiết phim ${film}`}
+                className="custom-drawer-title"
                 placement="right"
                 size={size}
                 onClose={onClose}
@@ -66,25 +64,35 @@ const DetailFilm = ({ id, film }: any) => {
                 <Form layout="vertical" form={form} initialValues={data}>
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item name="title" label="Tên phim">
+                            <Form.Item
+                                className="input-label"
+                                name="title"
+                                label="Tên phim:"
+                            >
                                 <Input className="input-detail" disabled />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="trailer" label="Trailer">
+                            <Form.Item
+                                className="input-label"
+                                name="trailer"
+                                label="Trailer:"
+                            >
                                 <Input
-                                    className="input"
+                                    className="input-detail"
                                     disabled
                                     style={{ width: "100%" }}
-                                    addonBefore="http://"
-                                    addonAfter=".com"
                                 />
                             </Form.Item>
                         </Col>
                     </Row>
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item name="poster" label="Poster">
+                            <Form.Item
+                                className="input-label"
+                                // name="poster"
+                                label="Poster:"
+                            >
                                 {poster && (
                                     <Image
                                         src={poster}
@@ -96,57 +104,122 @@ const DetailFilm = ({ id, film }: any) => {
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="directors" label="Đạo diễn">
-                                <Input disabled></Input>
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item name="movie_status" label="Trạng thái">
-                                <Select disabled>
-                                    <Option value="jack">Đang chiếu</Option>
-                                    <Option value="tom">Sắp chiếu</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="actors" label="Diễn viên">
-                                <Input disabled></Input>
+                            <Form.Item
+                                className="input-label"
+                                name="directors"
+                                label="Đạo diễn:"
+                            >
+                                <Input
+                                    className="input-detail"
+                                    disabled
+                                ></Input>
                             </Form.Item>
                         </Col>
                     </Row>
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                name="release_date"
-                                label="Ngày phát hành"
+                                className="input-label"
+                                name="movie_status"
+                                label="Trạng thái:"
                             >
-                                <Input disabled></Input>
+                                <Input
+                                    className="input-detail"
+                                    disabled
+                                ></Input>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="running_time" label="Thời lượng">
-                                <Input disabled></Input>
+                            <Form.Item
+                                className="input-label"
+                                name="actors"
+                                label="Diễn viên:"
+                            >
+                                <Input
+                                    className="input-detail"
+                                    disabled
+                                ></Input>
                             </Form.Item>
                         </Col>
                     </Row>
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item name="rated" label="Đánh giá">
-                                <Input disabled></Input>
+                            <Form.Item
+                                className="input-label"
+                                name="release_date"
+                                label="Ngày phát hành: "
+                            >
+                                <Input
+                                    className="input-detail"
+                                    disabled
+                                ></Input>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="id" label="ID">
-                                <Input disabled></Input>
+                            <Form.Item
+                                className="input-label"
+                                name="running_time"
+                                label="Thời lượng:"
+                            >
+                                <Input
+                                    className="input-detail"
+                                    disabled
+                                ></Input>
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                className="input-label"
+                                name="rated"
+                                label="Đánh giá:"
+                            >
+                                <Input
+                                    className="input-detail"
+                                    disabled
+                                ></Input>
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                className="input-label"
+                                name="language"
+                                label="Ngôn ngữ:"
+                            >
+                                <Input
+                                    className="input-detail"
+                                    disabled
+                                ></Input>
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                className="input-label"
+                                name="id"
+                                label="ID:"
+                            >
+                                <Input
+                                    className="input-detail"
+                                    disabled
+                                ></Input>
                             </Form.Item>
                         </Col>
                     </Row>
                     <Row gutter={16}>
                         <Col span={24}>
-                            <Form.Item name="description" label="Description">
-                                <Input.TextArea disabled rows={4} />
+                            <Form.Item
+                                className="input-label"
+                                name="description"
+                                label="Description:"
+                            >
+                                <Input.TextArea
+                                    className="input-detail"
+                                    disabled
+                                    rows={4}
+                                />
                             </Form.Item>
                         </Col>
                     </Row>
@@ -156,4 +229,4 @@ const DetailFilm = ({ id, film }: any) => {
     );
 };
 
-export default DetailFilm;
+export default memo(DetailFilm);

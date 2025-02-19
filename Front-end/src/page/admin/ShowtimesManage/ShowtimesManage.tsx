@@ -3,42 +3,63 @@ import { Button, Popconfirm, Space, Table, Tag } from "antd";
 import { DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-
-const { Column, ColumnGroup } = Table;
+import AddShowtimes from "./AddShowtimes";
+import Column from "antd/es/table/Column";
+import ColumnGroup from "antd/es/table/ColumnGroup";
 
 interface DataType {
     key: React.Key;
+    title: string;
     firstName: string;
     lastName: string;
-    age: number;
-    address: string;
-    tags: string[];
+    movie_status: string;
 }
 
 const ShowtimesManage = () => {
-    const { data, isLoading } = useQuery({
-        queryKey: ["showtimesFilm"],
-        queryFn: async () => {
-            const { data } = await axios.get(
-                `http://localhost:8000/api/showTime`
-            );
-            console.log("showtime-data", data);
+    //     const { data, isLoading } = useQuery({
+    //         queryKey: ["showtimesFilm"],
+    //         queryFn: async () => {
+    //             const { data } = await axios.get(
+    //                 `http://localhost:8000/api/showTime`
+    //             );
+    //             console.log("showtime-data", data);
 
-            return data.now_showing.data.map((item: any) => ({
-                ...item,
-                key: item.id,
-            }));
+    //             return data.now_showing.data.map((item: any) => ({
+    //                 ...item,
+    //                 key: item.id,
+    //             }));
+    //         },
+    //     });
+
+    const fakeData: DataType[] = [
+        {
+            key: "1",
+            title: "Phim A",
+            firstName: "2025-03-01",
+            lastName: "2025-03-10",
+            movie_status: "now_showing",
         },
-    });
+        {
+            key: "2",
+            title: "Phim B",
+            firstName: "2025-04-05",
+            lastName: "2025-04-15",
+            movie_status: "coming_soon",
+        },
+        {
+            key: "3",
+            title: "Phim C",
+            firstName: "2025-05-10",
+            lastName: "2025-05-20",
+            movie_status: "now_showing",
+        },
+    ];
 
     return (
         <div>
-            <Button>
-                <PlusCircleOutlined />
-                Tạo lịch chiếu
-            </Button>
-            <Table<DataType> dataSource={data}>
-                <Column title="Phim chiếu" dataIndex="age" key="title" />
+            <AddShowtimes></AddShowtimes>
+            <Table<DataType> dataSource={fakeData}>
+                <Column title="Phim chiếu" dataIndex="title" key="title" />
 
                 <ColumnGroup title="Thời gian chiếu">
                     <Column
@@ -52,7 +73,18 @@ const ShowtimesManage = () => {
                         key="lastName"
                     />
                 </ColumnGroup>
-                <Column title="Phân loại" dataIndex="address" key="address" />
+                <Column
+                    title="Phân loại"
+                    dataIndex="movie_status"
+                    key="movie_status"
+                    render={(status: string) => {
+                        return status === "now_showing" ? (
+                            <Tag color="green">Đang chiếu</Tag>
+                        ) : (
+                            <Tag color="red">Sắp chiếu</Tag>
+                        );
+                    }}
+                />
                 <Column
                     title="Action"
                     key="action"
@@ -77,5 +109,4 @@ const ShowtimesManage = () => {
         </div>
     );
 };
-
 export default ShowtimesManage;

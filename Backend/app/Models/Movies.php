@@ -33,8 +33,8 @@ class Movies extends Model
         return $this->belongsTo(Genre::class);  // Đảm bảo rằng Genre là model thể loại (genre)
     }
 
-    public function showTime()
+    public function showTimes()
     {
-        return $this->hasMany(ShowTime::class);  // Một phim có nhiều lịch chiếu
+        return $this->hasMany(ShowTime::class);
     }
 }

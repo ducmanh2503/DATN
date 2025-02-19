@@ -22,6 +22,11 @@ class Room extends Model
         return $this->hasMany(Seat::class);  // Một thể loại có nhiều phim
     }
 
+    public function showTime()
+    {
+        return $this->hasMany(ShowTime::class);  // Một phòng có nhiều lịch chiếu
+    }
+
     protected static function boot()
     {
         parent::boot();

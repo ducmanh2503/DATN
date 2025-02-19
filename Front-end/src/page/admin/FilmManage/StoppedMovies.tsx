@@ -7,7 +7,6 @@ import {
     Skeleton,
     Space,
     Table,
-    Tag,
 } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -115,9 +114,10 @@ const StoppedMovies: React.FC = () => {
         },
     });
 
-    const { restore } = useMutation({
+    const { mutate: restore } = useMutation({
         mutationFn: async (id: number) => {
             await axios.put(RESTORE_FILM(id));
+            console.log(RESTORE_FILM(id));
         },
         onSuccess: () => {
             messageApi.success("Khôi phục phim thành công");

@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\API\ActorController;
 use App\Http\Controllers\API\ComboController;
+use App\Http\Controllers\API\DirectorController;
+use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
@@ -59,3 +62,12 @@ Route::post('/combo/restore/{combo}', [ComboController::class, 'restore']);
 
 // Khôi phục nhiều combo 
 Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);
+
+// Thể loại phim
+Route::apiResource('genres', GenreController::class);
+
+//Diễn viên
+Route::apiResource('actors', ActorController::class);
+
+//Đạo diễn
+Route::apiResource('directors', DirectorController::class);

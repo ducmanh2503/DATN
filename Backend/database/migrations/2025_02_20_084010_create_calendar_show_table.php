@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('_calendar_show', function (Blueprint $table) {
+        Schema::create('calendar_show', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('movie_id')->constrained('movies');
-          
             $table->date('show_date');
             $table->time('end_date');
-
             $table->timestamps();
         });
     }

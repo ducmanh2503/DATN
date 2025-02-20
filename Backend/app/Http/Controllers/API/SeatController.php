@@ -65,7 +65,7 @@ class SeatController extends Controller
      * Lấy ghế theo id phòng và cập nhật trạng thái ghế
      */
 
-    public function getSeats(Request $request, $room_id)
+    public function getSeats($room_id)
     {
         // Lấy tất cả ghế trong phòng cụ thể
         $seats = Seat::where('room_id', $room_id)->with('seatType')->get();

@@ -28,12 +28,12 @@ class Movies extends Model
 
     public function actors()
     {
-        return $this->belongsToMany(Actor::class, 'movie_actor');
+        return $this->belongsToMany(Actor::class, 'actors_movies', 'movie_id', 'actor_id');
     }
 
-    public function genres()
+    public function genre()
     {
-        return $this->belongsToMany(Genre::class, 'movie_genre');
+        return $this->belongsToMany(Genre::class, 'genre_movies', 'movie_id', 'genre_id');
     }
 
     public function directors()

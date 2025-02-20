@@ -8,4 +8,21 @@ use Illuminate\Database\Eloquent\Model;
 class CalendarShow extends Model
 {
     use HasFactory;
+
+    protected $table = 'calendar_show';
+
+    protected $fillable = [
+        'movie_id',
+        'show_date',
+        'end_date',
+    ];
+    public function movie()
+    {
+        return $this->belongsTo(Movies::class, 'movie_id', 'id');
+    }
+
+    public function showTimes()
+    {
+        return $this->hasMany(ShowTime::class);
+    }
 }

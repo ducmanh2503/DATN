@@ -14,7 +14,7 @@ class ShowTimeController extends Controller
      */
     public function index()
     {
-        $showTime = ShowTime::with(['movie', 'room'])->get();
+        $showTime = ShowTime::with(['calendar_show_id','room'])->get();
 
         return response()->json($showTime, 200);
     }
@@ -26,10 +26,11 @@ class ShowTimeController extends Controller
     {
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
-            'movie_id' => 'required|exists:movies,id',
+           'calendar_show_id' => 'required|exists:calendar_show,id',
             'room_id' => 'required|exists:rooms,id',
-            'show_date' => 'required|date',
-            'show_time' => 'required|date_format:H:i:s',
+            'start_time' => 'required|date_format:Y-m-d H:i:s',
+            'end_time' => 'required|date_format:Y-m-d H:i:s',
+            'status' => 'required|in:referenced,now_showing,coming_soon',
         ]);
 
         if ($validator->fails()) {
@@ -38,13 +39,14 @@ class ShowTimeController extends Controller
 
         // Thêm lịch chiếu
         $showTime = ShowTime::create([
-            'movie_id' => $request->movie_id,
+            'calendar_show_id' => $request->calendar_show_id,
             'room_id' => $request->room_id,
-            'show_date' => $request->show_date,
-            'show_time' => $request->show_time,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'status' => $request->status,
         ]);
 
-        return response()->json(['message' => 'Lịch chiếu đã được thêm thành công', 'data' => $showTime], 201);
+        return response()->json(['message' => 'Xuất chiếu đã được thêm thành công', 'data' => $showTime], 201);
     }
 
 
@@ -53,10 +55,10 @@ class ShowTimeController extends Controller
      */
     public function show(string $id)
     {
-        $showTime = ShowTime::with(['movie', 'room'])->find($id);
+        $showTime = ShowTime::with(['calendar_show_id','room'])->find($id);
 
         if (!$showTime) {
-            return response()->json(['message' => 'Lịch chiếu không tồn tại'], 404);
+            return response()->json(['message' => 'Xuất chiếu không tồn tại'], 404);
         }
 
         return response()->json($showTime);
@@ -68,22 +70,23 @@ class ShowTimeController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
-            'movie_id' => 'required|exists:movies,id',
+            'calendar_show_id' => 'required|exists:calendar_show,id',
             'room_id' => 'required|exists:rooms,id',
-            'show_date' => 'required|date',
-            'show_time' => 'required|date_format:H:i',
+            'start_time' => 'required|date_format:Y-m-d H:i:s',
+            'end_time' => 'required|date_format:Y-m-d H:i:s',
+            'status' => 'required|in:referenced,now_showing,coming_soon',
         ]);
 
         $showTime = ShowTime::find($id);
 
         if (!$showTime) {
-            return response()->json(['message' => 'Không tìm thấy lịch chiếu'], 404);
+            return response()->json(['message' => 'Không tìm thấy xuất chiếu'], 404);
         }
 
         $showTime->update($validated);
 
         return response()->json([
-            'message' => 'Cập nhật lịch chiếu thành công',
+            'message' => 'Cập nhật xuất chiếu thành công',
             'data' => $showTime
         ]);
     }
@@ -96,13 +99,13 @@ class ShowTimeController extends Controller
         $showTime = ShowTime::find($id);
 
         if (!$showTime) {
-            return response()->json(['message' => 'Không tìm thấy lịch chiếu'], 404);
+            return response()->json(['message' => 'Không tìm thấy xuất chiếu'], 404);
         }
 
         $showTime->delete();
 
         return response()->json([
-            'message' => 'Lịch chiếu đã được gỡ'
+            'message' => 'Xuất chiếu đã được gỡ'
         ]);
     }
 }

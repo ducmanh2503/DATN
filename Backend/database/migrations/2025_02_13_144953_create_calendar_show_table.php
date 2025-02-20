@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('_calendar_show', function (Blueprint $table) {
+        Schema::create('calendar_show', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('movie_id')->constrained('movies');
           
             $table->date('show_date');
-            $table->time('end_date');
+            $table->date('end_date');
 
             $table->timestamps();
         });
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('_calendar_show');
+        Schema::dropIfExists('calendar_show');
     }
 };

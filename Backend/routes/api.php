@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\CalendarShowController;
 use App\Http\Controllers\API\ComboController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
@@ -41,6 +42,9 @@ Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus'])
 
 //showtimes
 Route::apiResource('showTime', ShowTimeController::class);
+
+// CalendarShow
+Route::apiResource('calendarShow',CalendarShowController::class);
 
 //Combo
 Route::apiResource('combo', ComboController::class);

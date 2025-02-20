@@ -37,4 +37,9 @@ class Movies extends Model
     {
         return $this->hasMany(ShowTime::class);
     }
+
+    public function calendarShows()
+    {
+        return $this->hasMany(CalendarShow::class);
+    }
 }

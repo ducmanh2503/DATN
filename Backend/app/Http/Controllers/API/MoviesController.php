@@ -17,17 +17,17 @@ class MoviesController extends Controller
     public function index()
     {
         //Hiển thị tất cả phim
-        $movies = Movies::query()->latest('id')->with(['genre:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
+        $movies = Movies::query()->latest('id')->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
 
         //Hiển thị phim sắp chiếu
-        $coming_soon = Movies::where('movie_status', 'coming_soon')->with(['genre:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
+        $coming_soon = Movies::where('movie_status', 'coming_soon')->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
         //Hiển thị phim đang chiếu
-        $now_showing = Movies::where('movie_status', 'now_showing')->with(['genre:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
+        $now_showing = Movies::where('movie_status', 'now_showing')->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
         // Hiển thị phim đã bị xóa mềm
-        $trashedMovies = Movies::onlyTrashed()->with(['genre:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
+        $trashedMovies = Movies::onlyTrashed()->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
         return response()->json([
             'movies' => $movies,

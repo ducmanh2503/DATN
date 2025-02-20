@@ -31,14 +31,14 @@ class Movies extends Model
         return $this->belongsToMany(Actor::class, 'actors_movies', 'movie_id', 'actor_id');
     }
 
-    public function genre()
+    public function genres()
     {
         return $this->belongsToMany(Genre::class, 'genre_movies', 'movie_id', 'genre_id');
     }
 
     public function directors()
     {
-        return $this->belongsTo(Director::class);
+        return $this->belongsTo(Director::class, 'director_id');
     }
 
     public function showTimes()

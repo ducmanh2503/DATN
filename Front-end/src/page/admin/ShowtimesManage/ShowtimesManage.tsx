@@ -1,14 +1,17 @@
-import React from "react";
-import { Button, Popconfirm, Space, Table, Tag } from "antd";
+import React, { useEffect, useState } from "react";
+import { Button, message, Popconfirm, Space, Table, Tag } from "antd";
 import { DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import AddShowtimes from "./AddShowtimes";
 import Column from "antd/es/table/Column";
 import ColumnGroup from "antd/es/table/ColumnGroup";
+import EditShowtimes from "./EditShowtimes";
+import "@ant-design/v5-patch-for-react-19";
 
 interface DataType {
     key: React.Key;
+    id: number;
     title: string;
     firstName: string;
     lastName: string;
@@ -16,61 +19,70 @@ interface DataType {
 }
 
 const ShowtimesManage = () => {
-    //     const { data, isLoading } = useQuery({
-    //         queryKey: ["showtimesFilm"],
-    //         queryFn: async () => {
-    //             const { data } = await axios.get(
-    //                 `http://localhost:8000/api/showTime`
-    //             );
-    //             console.log("showtime-data", data);
+    const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
+    // const [shouldFetch, setShouldFetch] = useState(false);
 
-    //             return data.now_showing.data.map((item: any) => ({
-    //                 ...item,
-    //                 key: item.id,
-    //             }));
-    //         },
-    //     });
+    const { data, isLoading } = useQuery({
+        queryKey: ["showtimesFilm"],
+        queryFn: async () => {
+            const { data } = await axios.get(
+                `http://localhost:8000/api/showTime`
+            );
+            console.log("showtime-data", data);
 
-    const fakeData: DataType[] = [
-        {
-            key: "1",
-            title: "Phim A",
-            firstName: "2025-03-01",
-            lastName: "2025-03-10",
-            movie_status: "now_showing",
+            return data.map((item: any) => ({
+                ...item,
+                key: item.id,
+            }));
         },
-        {
-            key: "2",
-            title: "Phim B",
-            firstName: "2025-04-05",
-            lastName: "2025-04-15",
-            movie_status: "coming_soon",
+        staleTime: 10000,
+    });
+
+    const { mutate } = useMutation({
+        mutationFn: async (id: number) => {
+            await axios.delete(`http://localhost:8000/api/showTime/${id}`);
         },
-        {
-            key: "3",
-            title: "Phim C",
-            firstName: "2025-05-10",
-            lastName: "2025-05-20",
-            movie_status: "now_showing",
+        onSuccess: () => {
+            messageApi.success("Xóa lịch chiếu thành công");
+            queryClient.invalidateQueries({
+                queryKey: ["showtimesFilm"],
+                refetchType: "none",
+            });
         },
-    ];
+    });
 
     return (
         <div>
             <AddShowtimes></AddShowtimes>
-            <Table<DataType> dataSource={fakeData}>
-                <Column title="Phim chiếu" dataIndex="title" key="title" />
-
+            {contextHolder}
+            <Table<DataType> dataSource={data}>
+                <Column
+                    title="Phim chiếu"
+                    dataIndex="movie"
+                    key="movie"
+                    render={(movie) => (
+                        <span
+                            style={{
+                                color: "var(--border-color)",
+                                fontWeight: 500,
+                                fontSize: "16px",
+                            }}
+                        >
+                            {movie?.title || "Không có tên"}
+                        </span>
+                    )}
+                />
                 <ColumnGroup title="Thời gian chiếu">
                     <Column
                         title="Ngày bắt đầu"
-                        dataIndex="firstName"
-                        key="firstName"
+                        dataIndex="show_date"
+                        key="show_date"
                     />
                     <Column
                         title="Ngày kết thúc"
-                        dataIndex="lastName"
-                        key="lastName"
+                        dataIndex="show_time"
+                        key="show_time"
                     />
                 </ColumnGroup>
                 <Column
@@ -94,18 +106,19 @@ const ShowtimesManage = () => {
                                 title="Xóa phim này?"
                                 description="Bạn có chắc chắn muốn xóa  không?"
                                 okText="Yes"
-                                // onConfirm={() => handleDelete(items.id)}
+                                onConfirm={() => mutate(record.id)}
                                 cancelText="No"
                             >
                                 <Button type="primary" danger>
                                     <DeleteOutlined /> Xóa
                                 </Button>
                             </Popconfirm>
-                            <Button type="primary">Chỉnh Sửa</Button>
+                            <EditShowtimes id={record.id}></EditShowtimes>
                         </Space>
                     )}
                 />
             </Table>
+            ;
         </div>
     );
 };

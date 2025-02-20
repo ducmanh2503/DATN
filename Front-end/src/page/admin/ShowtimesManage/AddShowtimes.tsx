@@ -1,51 +1,108 @@
 import React, { useState } from "react";
-import { Button, Col, DatePicker, Form, Input, Modal, Row, Select } from "antd";
+import {
+    Button,
+    DatePicker,
+    Form,
+    InputNumber,
+    message,
+    Modal,
+    Select,
+    TimePicker,
+} from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { GET_FILM_LIST } from "../../../config/ApiConfig";
 
 const AddShowtimes: React.FC = () => {
     const [open, setOpen] = useState(false);
-    const [confirmLoading, setConfirmLoading] = useState(false);
-    const [modalText, setModalText] = useState("Content of the modal");
+    const [formShowtime] = Form.useForm();
+    const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
 
     const showModal = () => {
         setOpen(true);
     };
 
-    const handleOk = () => {
-        setModalText("The modal will be closed after two seconds");
-        setConfirmLoading(true);
-        setTimeout(() => {
-            setOpen(false);
-            setConfirmLoading(false);
-        }, 2000);
+    const handleCancel = () => {
+        formShowtime.resetFields();
+        setOpen(false);
     };
 
-    const handleCancel = () => {
-        console.log("Clicked cancel button");
+    const { data } = useQuery({
+        queryKey: ["filmList"],
+        queryFn: async () => {
+            const { data } = await axios.get(`${GET_FILM_LIST}`);
+            console.log("re-render-takeNameFilm", data);
+            return data.now_showing.data.map((item: any) => ({
+                ...item,
+                key: item.id,
+            }));
+        },
+        enabled: open,
+    });
+
+    const { mutate } = useMutation({
+        mutationFn: async (formData) => {
+            await axios.post(`http://localhost:8000/api/showTime`, formData);
+        },
+        onSuccess: () => {
+            formShowtime.resetFields();
+            messageApi.success("Thêm thành công");
+            queryClient.invalidateQueries({
+                queryKey: ["showtimesFilm"],
+            });
+        },
+        onError: (error) => {
+            messageApi.error(error.message);
+        },
+    });
+    const onFinish = (formData: any) => {
+        console.log("re-render-addShowtimes", formData);
+        mutate(formData);
+        formShowtime.resetFields();
         setOpen(false);
     };
 
     return (
         <>
-            <Button type="primary" onClick={showModal}>
+            <Button
+                type="primary"
+                onClick={showModal}
+                style={{ marginBottom: "15px" }}
+            >
                 <PlusCircleOutlined />
                 Tạo lịch chiếu
             </Button>
             <Modal
                 title="Thêm lịch chiếu"
                 open={open}
-                onOk={handleOk}
-                confirmLoading={confirmLoading}
+                onOk={() => formShowtime.submit()}
                 onCancel={handleCancel}
             >
+                {contextHolder}
                 <Form
-                    // form={form}
-                    name="film-edit-form"
+                    form={formShowtime}
+                    name="showtimes-add-form"
                     labelCol={{ span: 8 }}
                     wrapperCol={{ span: 16 }}
-                    // onFinish={onFinish}
+                    onFinish={onFinish}
                 >
+                    <Form.Item
+                        label="movie_id"
+                        name="movie_id"
+                        // style={{ display: "none" }}
+                    >
+                        <InputNumber />
+                    </Form.Item>
+                    <Form.Item
+                        label="room_id"
+                        name="room_id"
+                        // style={{ display: "none" }}
+                    >
+                        <InputNumber />
+                    </Form.Item>
                     <Form.Item
                         label="Phim chiếu"
                         name="title"
@@ -54,18 +111,31 @@ const AddShowtimes: React.FC = () => {
                                 required: true,
                                 message: "Vui lòng nhập phim chiếu",
                             },
-                            {
-                                type: "string",
-                                min: 3,
-                                message: "Phim phải có ít nhất 6 ký tự",
-                            },
                         ]}
                     >
-                        <Input placeholder="Nhập tên phim" />
+                        <Select
+                            placeholder="Chọn phim"
+                            onChange={(value) => {
+                                const selectedFilm = data?.find(
+                                    (film: any) => film.title === value
+                                );
+                                formShowtime.setFieldsValue({
+                                    show_date: selectedFilm?.release_date
+                                        ? dayjs(selectedFilm.release_date)
+                                        : null,
+                                });
+                            }}
+                        >
+                            {data?.map((film: any) => (
+                                <Select.Option key={film.id} value={film.title}>
+                                    {film.title}
+                                </Select.Option>
+                            ))}
+                        </Select>
                     </Form.Item>
                     <Form.Item
-                        name="release_date"
-                        label="Ngày phát hành"
+                        name="show_date"
+                        label="Ngày bắt đầu"
                         rules={[
                             {
                                 required: true,
@@ -74,7 +144,7 @@ const AddShowtimes: React.FC = () => {
                         ]}
                         getValueFromEvent={(e: any) => e?.format("YYYY-MM-DD")}
                         getValueProps={(e: string) => ({
-                            value: e ? dayjs(e) : "",
+                            value: e ? dayjs(e) : null,
                         })}
                     >
                         <DatePicker
@@ -83,8 +153,8 @@ const AddShowtimes: React.FC = () => {
                             allowClear
                         />
                     </Form.Item>
-                    <Form.Item
-                        name="release_date"
+                    {/* <Form.Item
+                        name=""
                         label="Ngày kết thúc"
                         rules={[
                             {
@@ -92,15 +162,18 @@ const AddShowtimes: React.FC = () => {
                                 message: "Thêm ngày kết thúc",
                             },
                         ]}
-                        getValueFromEvent={(e: any) => e?.format("YYYY-MM-DD")}
-                        getValueProps={(e: string) => ({
-                            value: e ? dayjs(e) : "",
-                        })}
                     >
                         <DatePicker
                             style={{ width: "100%" }}
                             format="YYYY-MM-DD"
                             allowClear
+                        />
+                    </Form.Item> */}
+
+                    <Form.Item name="show_time" label="Ngày kết thúc">
+                        <TimePicker
+                            format="HH:mm:ss"
+                            style={{ width: "100%" }}
                         />
                     </Form.Item>
                     <Form.Item

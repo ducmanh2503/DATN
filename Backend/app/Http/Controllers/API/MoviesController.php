@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Movies;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -16,17 +17,17 @@ class MoviesController extends Controller
     public function index()
     {
         //Hiển thị tất cả phim
-        $movies = Movies::query()->latest('id')->with(['genre:id,name_genre'])->get();
+        $movies = Movies::query()->latest('id')->with(['genre:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
 
         //Hiển thị phim sắp chiếu
-        $coming_soon = Movies::where('movie_status', 'coming_soon')->with(['genre:id,name_genre'])->get();
+        $coming_soon = Movies::where('movie_status', 'coming_soon')->with(['genre:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
         //Hiển thị phim đang chiếu
-        $now_showing = Movies::where('movie_status', 'now_showing')->with(['genre:id,name_genre'])->get();
+        $now_showing = Movies::where('movie_status', 'now_showing')->with(['genre:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
         // Hiển thị phim đã bị xóa mềm
-        $trashedMovies = Movies::onlyTrashed()->with(['genre:id,name_genre'])->get();
+        $trashedMovies = Movies::onlyTrashed()->with(['genre:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
         return response()->json([
             'movies' => $movies,
@@ -38,9 +39,10 @@ class MoviesController extends Controller
 
     public function store(Request $request)
     {
+        // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255|unique:movies,title',
-            'director_id' => 'required|exists:directors,id|string',
+            'director_id' => 'required|exists:directors,id',
             'release_date' => 'required|date_format:Y-m-d',
             'running_time' => 'required|string',
             'language' => 'required|string|max:100',
@@ -49,13 +51,32 @@ class MoviesController extends Controller
             'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'trailer' => 'nullable|string',
             'movie_status' => 'required|in:coming_soon,now_showing',
+            'name_actors' => 'required|array',
+            'name_genres' => 'required|array',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $movieData = $request->all(); // Lấy dữ liệu phim hợp lệ
+        // Tìm id của diễn viên từ tên
+        $actorIds = DB::table('actors')->whereIn('name_actor', $request->name_actors)->pluck('id')->toArray();
+
+        // Tìm id của thể loại từ tên
+        $genreIds = DB::table('genres')->whereIn('name_genre', $request->name_genres)->pluck('id')->toArray();
+
+        // Nếu không tìm thấy diễn viên
+        if (count($actorIds) != count($request->name_actors)) {
+            return response()->json(['message' => 'Không tìm thấy diễn viên'], 404);
+        }
+
+        // Nếu không tìm thấy thể loại
+        if (count($genreIds) != count($request->name_genres)) {
+            return response()->json(['message' => 'Không tìm thấy thể loại'], 404);
+        }
+
+        // Lấy dữ liệu phim hợp lệ từ request
+        $movieData = $request->all();
 
         // Xử lý upload poster nếu có
         if (isset($movieData['poster']) && $movieData['poster'] instanceof \Illuminate\Http\UploadedFile) {
@@ -78,9 +99,13 @@ class MoviesController extends Controller
         ];
 
         // Thêm phim
-        Movies::query()->create($movieToInsert);
+        $movie = Movies::query()->create($movieToInsert);
 
-        return response()->json(['message' => 'Thêm phim thành công', 'data' => $movieToInsert], 201);
+        // Thêm diễn viên và thể loại cho phim
+        $movie->actors()->sync($actorIds);
+        $movie->genres()->sync($genreIds);
+
+        return response()->json(['message' => 'Thêm phim thành công', 'data' => $movie], 201);
     }
 
 
@@ -124,34 +149,59 @@ class MoviesController extends Controller
         //Lấy dữ liệu phim hợp lệ từ request
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255|unique:movies,title',
-            'director_id' => 'required|exists:directors,id|string',
+            'director_id' => 'required|exists:directors,id',
             'release_date' => 'required|date_format:Y-m-d',
             'running_time' => 'required|string',
             'language' => 'required|string|max:100',
             'rated' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|unique:movies,trailer',
             'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'trailer' => 'nullable|string|unique:movies,trailer',
+            'trailer' => 'nullable|string',
             'movie_status' => 'required|in:coming_soon,now_showing',
+            'name_actors' => 'required|array',
+            'name_genres' => 'required|array',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(
-                ['error' => $validator->errors()],
-                422
-            );
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $moviesData = $request->all();
+        $movieData = $request->all();
 
         //Xủ lý upload poster nếu có
-        if (isset($moviesData['poster']) && $moviesData['poster'] instanceof \Illuminate\Http\UploadedFile) {
-            $posterPath = $moviesData['poster']->store('image', 'public');
-            $moviesData['poster'] = Storage::url($posterPath);
+        if (isset($movieData['poster']) && $movieData['poster'] instanceof \Illuminate\Http\UploadedFile) {
+            $posterPath = $movieData['poster']->store('image', 'public');
+            $movieData['poster'] = Storage::url($posterPath);
         }
 
         //Cập nhật thông tin phim
-        $movie->update($moviesData);
+        $movie->update($movieData);
+
+        //Tìm id của diễn viên từ tên
+        if (isset($movieData['name_actors']) && is_array($movieData['name_actors'])) {
+            $actorIds = DB::table('actors')->whereIn('name_actor', $movieData['name_actors'])->pluck('id')->toArray();
+
+            // Nếu không tìm thấy diễn viên
+            if (count($actorIds) != count($movieData['name_actors'])) {
+                return response()->json(['message' => 'Không tìm thấy diễn viên'], 404);
+            }
+
+            // Cập nhật diễn viên cho phim
+            $movie->actors()->sync($actorIds); // Xóa và thêm lại
+        }
+
+        // Tìm id của thể loại từ tên
+        if (isset($movieData['name_genres']) && is_array($movieData['name_genres'])) {
+            $genreIds = DB::table('genres')->whereIn('name_genre', $movieData['name_genres'])->pluck('id')->toArray();
+
+            // Nếu không tìm thấy thể loại
+            if (count($genreIds) != count($movieData['name_genres'])) {
+                return response()->json(['message' => 'Không tìm thấy thể loại'], 404);
+            }
+
+            // Cập nhật thể loại cho phim
+            $movie->genres()->sync($genreIds); // Xóa và thêm lại   
+        }
 
         return response()->json([
             'message' => 'Cập nhật phim thành công',

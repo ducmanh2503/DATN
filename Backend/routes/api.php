@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\API\ActorController;
 use App\Http\Controllers\API\CalendarShowController;
 use App\Http\Controllers\API\ComboController;
+use App\Http\Controllers\API\DirectorController;
+use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
@@ -44,7 +47,7 @@ Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus'])
 Route::apiResource('showTime', ShowTimeController::class);
 
 // CalendarShow
-Route::apiResource('calendarShow',CalendarShowController::class);
+Route::apiResource('calendarShow', CalendarShowController::class);
 
 //Combo
 Route::apiResource('combo', ComboController::class);
@@ -63,3 +66,12 @@ Route::post('/combo/restore/{combo}', [ComboController::class, 'restore']);
 
 // Khôi phục nhiều combo 
 Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);
+
+// Thể loại phim
+Route::apiResource('genres', GenreController::class);
+
+//Diễn viên
+Route::apiResource('actors', ActorController::class);
+
+//Đạo diễn
+Route::apiResource('directors', DirectorController::class);

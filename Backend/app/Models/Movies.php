@@ -13,9 +13,7 @@ class Movies extends Model
 
     protected $fillable = [
         'title',
-        'directors',
-        'actors',
-        'genre_id',
+        'director_id',
         'release_date',
         'running_time',
         'language',
@@ -28,9 +26,19 @@ class Movies extends Model
 
     protected $dates = ['deleted_at']; // là cột chứa thời gian xóa mềm
 
-    public function genre()
+    public function actors()
     {
-        return $this->belongsTo(Genre::class);  // Đảm bảo rằng Genre là model thể loại (genre)
+        return $this->belongsToMany(Actor::class, 'movie_actor');
+    }
+
+    public function genres()
+    {
+        return $this->belongsToMany(Genre::class, 'movie_genre');
+    }
+
+    public function directors()
+    {
+        return $this->belongsTo(Director::class);
     }
 
     public function showTimes()

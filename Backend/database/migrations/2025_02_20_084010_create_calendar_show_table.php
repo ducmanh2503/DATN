@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('movie_id')->constrained('movies');
             $table->date('show_date');
             $table->date('end_date');
+            $table->timestamps();
         });
     }
 

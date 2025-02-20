@@ -16,6 +16,6 @@ class Genre extends Model
 
     public function movies()
     {
-        return $this->belongsToMany(Movies::class); // quan hệ nhiều nhiều
+        return $this->belongsToMany(Movies::class, 'genre_movies');
     }
 }

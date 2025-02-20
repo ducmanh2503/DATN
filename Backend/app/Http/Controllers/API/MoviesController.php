@@ -16,7 +16,7 @@ class MoviesController extends Controller
     public function index()
     {
         //Hiển thị tất cả phim
-        $movies = Movies::with(['genre:id,name_genre'])->get();
+        $movies = Movies::query()->latest('id')->with(['genre:id,name_genre'])->get();
 
 
         //Hiển thị phim sắp chiếu

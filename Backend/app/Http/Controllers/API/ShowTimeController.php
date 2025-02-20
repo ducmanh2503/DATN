@@ -14,7 +14,7 @@ class ShowTimeController extends Controller
      */
     public function index()
     {
-        $showTime = ShowTime::with(['calendar_show_id','room'])->get();
+        $showTime = ShowTime::query()->latest('id')->with(['calendar_show_id', 'room'])->get();
 
         return response()->json($showTime, 200);
     }
@@ -26,7 +26,7 @@ class ShowTimeController extends Controller
     {
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
-           'calendar_show_id' => 'required|exists:calendar_show,id',
+            'calendar_show_id' => 'required|exists:calendar_show,id',
             'room_id' => 'required|exists:rooms,id',
             'start_time' => 'required|date_format:Y-m-d H:i:s',
             'end_time' => 'required|date_format:Y-m-d H:i:s',
@@ -55,7 +55,7 @@ class ShowTimeController extends Controller
      */
     public function show(string $id)
     {
-        $showTime = ShowTime::with(['calendar_show_id','room'])->find($id);
+        $showTime = ShowTime::with(['calendar_show_id', 'room'])->find($id);
 
         if (!$showTime) {
             return response()->json(['message' => 'Xuất chiếu không tồn tại'], 404);

@@ -11,16 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('combos', function (Blueprint $table) {
+        Schema::create('actors', function (Blueprint $table) {
             $table->id();
-
-            $table->string('name')->unique();
-            $table->string('description');
-            $table->unsignedBigInteger('quantity');
-            $table->decimal('price', 8, 2);
-            $table->string('image');
-            $table->softDeletes();
-
+            $table->string('name_actor');
             $table->timestamps();
         });
     }
@@ -30,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('combos');
+        Schema::dropIfExists('actors');
     }
 };

@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('combos', function (Blueprint $table) {
+        Schema::create('discount_code', function (Blueprint $table) {
             $table->id();
-
-            $table->string('name')->unique();
-            $table->string('description');
+            
+            $table->string('name_code')->unique();
+            $table->decimal('percent', 5, 2);
             $table->unsignedBigInteger('quantity');
-            $table->decimal('price', 8, 2);
-            $table->string('image');
-            $table->softDeletes();
+            $table->enum('status', ['active', 'inactive']);  
+            $table->date('start_date');  // Ngày bắt đầu
+            $table->date('end_date');  // Ngày kết thúc
 
             $table->timestamps();
         });
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('combos');
+        Schema::dropIfExists('discount_code');
     }
 };

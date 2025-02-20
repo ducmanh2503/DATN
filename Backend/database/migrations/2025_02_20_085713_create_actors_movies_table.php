@@ -11,15 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('combos', function (Blueprint $table) {
+        Schema::create('actors_movies', function (Blueprint $table) {
             $table->id();
 
-            $table->string('name')->unique();
-            $table->string('description');
-            $table->unsignedBigInteger('quantity');
-            $table->decimal('price', 8, 2);
-            $table->string('image');
-            $table->softDeletes();
+            $table->foreignId('movie_id')->constrained('movies')->onDelete('cascade');
+            $table->foreignId('actor_id')->constrained('actors')->onDelete('cascade');
 
             $table->timestamps();
         });
@@ -30,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('combos');
+        Schema::dropIfExists('actors_movies');
     }
 };

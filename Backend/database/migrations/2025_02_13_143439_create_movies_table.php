@@ -15,9 +15,7 @@ return new class extends Migration
             $table->id();
 
             $table->string('title')->unique();
-            $table->text('directors');
-            $table->text('actors');
-            $table->foreignId('genre_id')->constrained('genres');
+            $table->foreignId('director_id')->constrained('directors');
             $table->date('release_date');
             $table->string('running_time');
             $table->string('language');

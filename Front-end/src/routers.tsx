@@ -1,9 +1,8 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Home from "./page/client/Home/home";
 import PlayingFilm from "./page/client/PlayingFilm/PlayingFilm";
 import ComingFilm from "./page/client/ComingFilm/ComingFilm";
 import CinemaForest from "./page/client/CinemaForest/CinemaForest";
-import PlayingProduct from "./ClientComponents/PlayingProduct/PlayingProduct";
 import AdminLayout from "./page/admin/AdminLayout";
 import FilmManage from "./page/admin/FilmManage/FilmManage";
 import ShowtimesManage from "./page/admin/ShowtimesManage/ShowtimesManage";
@@ -16,8 +15,6 @@ export const router = createBrowserRouter([
     { path: "/comingFilm", element: <ComingFilm></ComingFilm> },
     { path: "/cinemaFilm", element: <CinemaForest></CinemaForest> },
 
-    // { path: "/check", element: <Appp></Appp> },
-    { path: "/check1", element: <PlayingProduct></PlayingProduct> },
     {
         path: "/admin",
         element: <AdminLayout></AdminLayout>,

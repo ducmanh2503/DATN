@@ -1,0 +1,32 @@
+.title-addFilm {
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--border-color);
+}
+
+.container-addFilm {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.form-addFilm {
+    width: 60%;
+    margin-right: 15px;
+}
+
+.list-addFilm {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    width: 40%;
+    height: 1000px;
+    background-color: green;
+}
+
+.list-addFilm .list-product {
+    width: 30%;
+}

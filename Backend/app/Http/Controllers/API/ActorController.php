@@ -15,7 +15,7 @@ class ActorController extends Controller
     public function index()
     {
         //Danh sách diễn viên
-        $actors = Actor::get();
+        $actors = Actor::query()->latest('id')->get();
 
         return response()->json($actors, 200);
     }

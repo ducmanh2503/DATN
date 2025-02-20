@@ -14,7 +14,7 @@ class CalendarShowController extends Controller
      */
     public function index()
     {
-        $calendarShows = CalendarShow::with(['movie'])->get();
+        $calendarShows = CalendarShow::query()->latest('id')->with(['movie'])->get();
 
         return response()->json($calendarShows, 200);
     }

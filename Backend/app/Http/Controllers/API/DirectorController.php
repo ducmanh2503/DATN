@@ -15,7 +15,7 @@ class DirectorController extends Controller
     public function index()
     {
         // Danh sách đạo diễn
-        $directors = Director::get();
+        $directors = Director::query()->latest('id')->get();
 
         return response()->json(
             $directors,

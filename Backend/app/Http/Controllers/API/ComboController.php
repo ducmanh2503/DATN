@@ -14,24 +14,13 @@ class ComboController extends Controller
      */
     public function index(Request $request)
     {
-        // Số lượng phòng hiển thị trên mỗi trang (mặc định là 5, có thể thay đổi qua query param)
-        $perPage = $request->query('per_page', 5);
-
         // Lấy danh sách phòng và phân trang
-        $combo = Combo::query()->latest('id')->paginate($perPage);
+        $combo = Combo::query()->latest('id')->get();
 
-        // Trả về phản hồi dạng JSON với cấu trúc dữ liệu phân trang đầy đủ
         return response()->json([
             'message' => 'Danh Combo',
             'data' => $combo->items(),
-            'pagination' => [
-                'current_page' => $combo->currentPage(),
-                'total_pages' => $combo->lastPage(),
-                'total_combo' => $combo->total(),
-                'per_page' => $combo->perPage(),
-                'next_page_url' => $combo->nextPageUrl(),
-                'prev_page_url' => $combo->previousPageUrl()
-            ]
+
         ], 200);
     }
 

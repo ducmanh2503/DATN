@@ -6,17 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class ShowTime extends Model
 {
-    protected $fillable = ['movie_id', 'room_id', 'show_date', 'show_time'];
-
-    // Quan hệ nhiều - một với model Movie
-    public function movie()
-    {
-        return $this->belongsTo(Movies::class, 'movie_id');
-    }
+    protected $fillable = [
+        'calendar_show_id',
+        'room_id',
+        'start_time',
+        'end_time',
+        'status',
+        ];
 
     // Quan hệ nhiều - một với model Room
     public function room()
     {
-        return $this->belongsTo(Room::class, 'room_id');
+        return $this->belongsTo(Room::class);
+    }
+
+    public function calendarShow()
+    {
+        return $this->belongsTo(CalendarShow::class);
     }
 }

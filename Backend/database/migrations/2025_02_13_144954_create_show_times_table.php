@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('show_times', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('show_time_id')->constrained('show_times');
+            $table->foreignId('calendar_show_id')->constrained('calendar_show');
             $table->foreignId('room_id')->constrained('rooms');
             $table->date('start_time');
             $table->time('end_time');

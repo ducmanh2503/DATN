@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('combos', function (Blueprint $table) {
-            $table->softDeletes(); // Thêm cột deleted_at
+        Schema::create('genre_movies', function (Blueprint $table) {
+            $table->id();
+            
+            $table->foreignId('movie_id')->constrained('movies')->onDelete('cascade');
+            $table->foreignId('genre_id')->constrained('genres')->onDelete('cascade');
+
+            $table->timestamps();
         });
     }
 
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('combos', function (Blueprint $table) {
-            $table->dropSoftDeletes(); // Gỡ bỏ cột deleted_at khi rollback migration
-        });
+        Schema::dropIfExists('genre_movies');
     }
 };

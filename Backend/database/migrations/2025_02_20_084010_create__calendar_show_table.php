@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('combos', function (Blueprint $table) {
+        Schema::create('_calendar_show', function (Blueprint $table) {
             $table->id();
 
-            $table->string('name')->unique();
-            $table->string('description');
-            $table->unsignedBigInteger('quantity');
-            $table->decimal('price', 8, 2);
-            $table->string('image');
-            $table->softDeletes();
+            $table->foreignId('movie_id')->constrained('movies');
+          
+            $table->date('show_date');
+            $table->time('end_date');
 
             $table->timestamps();
         });
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('combos');
+        Schema::dropIfExists('_calendar_show');
     }
 };

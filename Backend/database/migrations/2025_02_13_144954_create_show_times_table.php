@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('show_times', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('movie_id')->constrained('movies');
+            $table->foreignId('show_time_id')->constrained('show_times');
             $table->foreignId('room_id')->constrained('rooms');
-            $table->date('show_date');
-            $table->time('show_time');
+            $table->date('start_time');
+            $table->time('end_time');
+            $table->enum('status',['referenced','now_showing', 'coming_soon']);
 
             $table->timestamps();
         });

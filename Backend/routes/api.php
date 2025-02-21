@@ -35,6 +35,8 @@ Route::delete('/movies', [MoviesController::class, 'destroyMultiple']); // API x
 Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']); // API xóa vĩnh viễn nhiều phim
 Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']); // API khôi phục phim đã bị xóa mềm
 
+Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']); // API hiển thị thông tin phim đã bị xóa mềm
+
 //Room
 Route::apiResource('room', RoomController::class);
 

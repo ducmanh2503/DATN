@@ -131,6 +131,25 @@ class MoviesController extends Controller
         ], 200);
     }
 
+    public function showMovieDestroy(string $id)
+    {
+        //Tìm phim theo id và lấy thông tin liên quan (Actors, Genres, Director)
+        $movie = Movies::onlyTrashed()->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->find($id);
+
+        //nếu không tìm thấy trả về 404
+        if (!$movie) {
+            return response()->json([
+                'message' => 'Không tìm thấy phim này',
+            ], 404);
+        }
+
+        //trả về chi tiết phim
+        return response()->json([
+            'message' => 'Thông tin chi tiết phim',
+            'data' => $movie
+        ], 200);
+    }
+
     /**
      * Update the specified resource in storage.
      */

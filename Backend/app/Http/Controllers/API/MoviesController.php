@@ -114,8 +114,8 @@ class MoviesController extends Controller
      */
     public function show(string $id)
     {
-        //Tìm phim theo id
-        $movie = Movies::findOrFail($id);
+        //Tìm phim theo id và lấy thông tin liên quan (Actors, Genres, Director)
+        $movie = Movies::with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->find($id);
 
         //nếu không tìm thấy trả về 404
         if (!$movie) {

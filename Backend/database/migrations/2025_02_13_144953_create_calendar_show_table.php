@@ -13,9 +13,13 @@ return new class extends Migration
     {
         Schema::create('calendar_show', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('movie_id')->constrained('movies');
             $table->date('show_date');
             $table->date('end_date');
+            
+            $table->timestamps();
+
         });
     }
 

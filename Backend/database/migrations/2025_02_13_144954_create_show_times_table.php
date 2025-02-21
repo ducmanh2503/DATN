@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->foreignId('calendar_show_id')->constrained('calendar_show');
             $table->foreignId('room_id')->constrained('rooms');
-            $table->date('start_time');
+            $table->time('start_time');
             $table->time('end_time');
             $table->enum('status',['referenced','now_showing', 'coming_soon']);
 

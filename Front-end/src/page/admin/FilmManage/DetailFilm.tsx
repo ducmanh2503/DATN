@@ -12,7 +12,7 @@ import {
 import axios from "axios";
 import React, { useEffect, useState, memo } from "react";
 import "./DetailFilm.css";
-import { GET_FILM_LIST } from "../../../config/ApiConfig";
+import { GET_FILM_LIST, URL_IMAGE } from "../../../config/ApiConfig";
 
 const DetailFilm = ({ id, film, apiUrl }: any) => {
     const [open, setOpen] = useState(false);
@@ -33,7 +33,7 @@ const DetailFilm = ({ id, film, apiUrl }: any) => {
         queryFn: async () => {
             const { data } = await axios.get(apiUrl);
             console.log("re-render-detail-film");
-            console.log("checkk", data);
+            console.log("checkk-data", data);
 
             return data.data;
         },
@@ -55,7 +55,9 @@ const DetailFilm = ({ id, film, apiUrl }: any) => {
                           .join(", ")
                     : "không có",
             });
+
             setPoster(data.poster || "");
+            console.log("checkk", `${URL_IMAGE}${data.poster}`);
         }
     }, [data, open]);
 
@@ -114,7 +116,7 @@ const DetailFilm = ({ id, film, apiUrl }: any) => {
                             >
                                 {poster && (
                                     <Image
-                                        src={`${GET_FILM_LIST}/${poster}`}
+                                        src={`${URL_IMAGE}${poster}`}
                                         alt="poster"
                                         width={160}
                                         height={240}

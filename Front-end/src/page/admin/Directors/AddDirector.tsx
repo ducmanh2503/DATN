@@ -87,20 +87,6 @@ const AddDirector = () => {
                     >
                         <Input placeholder="Nhập tên đạo diễn" />
                     </Form.Item>
-
-                    <Form.Item
-                        className="input-label"
-                        label="ID"
-                        name="id"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Phải có ID",
-                            },
-                        ]}
-                    >
-                        <InputNumber placeholder="Nhập id"></InputNumber>
-                    </Form.Item>
                 </Form>
             </Modal>
         </>

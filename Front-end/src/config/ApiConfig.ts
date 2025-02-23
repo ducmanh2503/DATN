@@ -39,4 +39,5 @@ export {
     DELETE_ACTOR,
     GET_GENRES,
     DELETE_GENRES,
+    URL_IMAGE,
 };

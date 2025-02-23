@@ -64,7 +64,7 @@ const EditActor = ({ id }: any) => {
                 <EditOutlined /> Cập nhật
             </Button>
             <Modal
-                title={`Cập nhật diễn viên ${data.name_actor}`}
+                title={`Cập nhật diễn viên `}
                 open={open}
                 onOk={handleOk}
                 onCancel={handleCancel}
@@ -107,7 +107,10 @@ const EditActor = ({ id }: any) => {
                             },
                         ]}
                     >
-                        <InputNumber placeholder="Nhập id"></InputNumber>
+                        <InputNumber
+                            placeholder="Nhập id"
+                            disabled
+                        ></InputNumber>
                     </Form.Item>
                 </Form>
             </Modal>

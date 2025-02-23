@@ -64,7 +64,7 @@ const EditDirector = ({ id }: any) => {
                 <EditOutlined /> Cập nhật
             </Button>
             <Modal
-                title={`Cập nhật đạo diễn ${data.name_director}`}
+                title={`Cập nhật đạo diễn `}
                 open={open}
                 onOk={handleOk}
                 onCancel={handleCancel}
@@ -107,7 +107,10 @@ const EditDirector = ({ id }: any) => {
                             },
                         ]}
                     >
-                        <InputNumber placeholder="Nhập id"></InputNumber>
+                        <InputNumber
+                            placeholder="Nhập id"
+                            disabled
+                        ></InputNumber>
                     </Form.Item>
                 </Form>
             </Modal>

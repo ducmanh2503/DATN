@@ -88,7 +88,7 @@ const AddActor = () => {
                         <Input placeholder="Nhập tên đạo diễn" />
                     </Form.Item>
 
-                    <Form.Item
+                    {/* <Form.Item
                         className="input-label"
                         label="ID"
                         name="id"
@@ -100,7 +100,7 @@ const AddActor = () => {
                         ]}
                     >
                         <InputNumber placeholder="Nhập id"></InputNumber>
-                    </Form.Item>
+                    </Form.Item> */}
                 </Form>
             </Modal>
         </>

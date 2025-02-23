@@ -1,7 +1,15 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import { DeleteOutlined, SearchOutlined } from "@ant-design/icons";
+import type {
+    InputRef,
+    TableColumnsType,
+    TableColumnType,
+    TableProps,
+} from "antd";
 import {
     Button,
     Divider,
+    Input,
     message,
     Popconfirm,
     Skeleton,
@@ -9,32 +17,144 @@ import {
     Table,
     Tag,
 } from "antd";
-import type { TableColumnsType, TableProps } from "antd";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { FilterDropdownProps } from "antd/es/table/interface";
+import Highlighter from "react-highlight-words";
 import axios from "axios";
-import DetailFilm from "./DetailFilm";
-import { GET_FILM_LIST, DELETE_FILM } from "../../../config/ApiConfig";
-import EditFilm from "./EditFilm";
-import { DeleteOutlined } from "@ant-design/icons";
+import {
+    DELETE_FILM,
+    GET_FILM_DETAIL,
+    GET_FILM_LIST,
+} from "../../../config/ApiConfig";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import DetailFilm from "../FilmManage/DetailFilm";
+import EditFilm from "../FilmManage/EditFilm";
+import "./AddFilm.css";
+import { FormData } from "../../../types/interface";
 
-interface DataType {
-    key: React.Key;
-    id: number;
-    name: string;
-    age: number;
-    address: string;
-}
+type DataIndex = keyof FormData;
 
 const FilmManage: React.FC = () => {
+    const [searchText, setSearchText] = useState("");
+    const [searchedColumn, setSearchedColumn] = useState("");
+    const searchInput = useRef<InputRef>(null);
     const [messageApi, holderMessageApi] = message.useMessage();
     const queryClient = useQueryClient();
     const [selectionType, setSelectionType] = useState<"checkbox" | "radio">(
         "checkbox"
     );
 
+    const handleSearch = (
+        selectedKeys: string[],
+        confirm: FilterDropdownProps["confirm"],
+        dataIndex: DataIndex
+    ) => {
+        confirm();
+        setSearchText(selectedKeys[0]);
+        setSearchedColumn(dataIndex);
+    };
+
+    const handleReset = (clearFilters: () => void) => {
+        clearFilters();
+        setSearchText("");
+    };
+
+    const getColumnSearchProps = (
+        dataIndex: DataIndex
+    ): TableColumnType<FormData> => ({
+        filterDropdown: ({
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            close,
+        }) => (
+            <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+                <Input
+                    ref={searchInput}
+                    placeholder={`Search`}
+                    value={selectedKeys[0]}
+                    onChange={(e) =>
+                        setSelectedKeys(e.target.value ? [e.target.value] : [])
+                    }
+                    onPressEnter={() =>
+                        handleSearch(
+                            selectedKeys as string[],
+                            confirm,
+                            dataIndex
+                        )
+                    }
+                    style={{ marginBottom: 8, display: "block" }}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() =>
+                            handleSearch(
+                                selectedKeys as string[],
+                                confirm,
+                                dataIndex
+                            )
+                        }
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Search
+                    </Button>
+                    <Button
+                        onClick={() =>
+                            clearFilters && handleReset(clearFilters)
+                        }
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Reset
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            close();
+                        }}
+                    >
+                        close
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: (filtered: boolean) => (
+            <SearchOutlined
+                style={{ color: filtered ? "#1677ff" : undefined }}
+            />
+        ),
+        onFilter: (value, record) =>
+            record[dataIndex]
+                .toString()
+                .toLowerCase()
+                .includes((value as string).toLowerCase()),
+        filterDropdownProps: {
+            onOpenChange(open) {
+                if (open) {
+                    setTimeout(() => searchInput.current?.select(), 100);
+                }
+            },
+        },
+        render: (text) =>
+            searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+                    searchWords={[searchText]}
+                    autoEscape
+                    textToHighlight={text ? text.toString() : ""}
+                />
+            ) : (
+                text
+            ),
+    });
+
     const onRowSelectionChange = (
         selectedRowKeys: React.Key[],
-        selectedRows: DataType[]
+        selectedRows: FormData[]
     ) => {
         console.log(
             `selectedRowKeys: ${selectedRowKeys}`,
@@ -42,39 +162,53 @@ const FilmManage: React.FC = () => {
             selectedRows
         );
     };
-
-    const rowSelection: TableProps<DataType>["rowSelection"] = {
+    const rowSelection: TableProps<FormData>["rowSelection"] = {
         onChange: onRowSelectionChange,
-        getCheckboxProps: (record: DataType) => ({
-            disabled: record.name === "Disabled User",
-            name: record.name,
+        getCheckboxProps: (record: FormData) => ({
+            disabled: record.title === "Disabled Film",
+            name: record.title,
         }),
     };
 
     const renderDetailFilm = React.useCallback(
         (text: string, item: any) => (
-            <DetailFilm id={item.id} film={text}></DetailFilm>
+            <DetailFilm
+                id={item.id}
+                film={text}
+                apiUrl={`${GET_FILM_DETAIL(item.id)}`}
+            ></DetailFilm>
         ),
         []
     );
 
-    const columns: TableColumnsType<DataType> = React.useMemo(
+    const columns: TableColumnsType<FormData> = React.useMemo(
         () => [
             {
                 title: "Tên Phim",
                 dataIndex: "title",
                 key: "title",
+                ...getColumnSearchProps("title"),
                 render: renderDetailFilm,
             },
             {
                 title: "Đạo diễn",
                 dataIndex: "directors",
                 key: "directors",
+                ...getColumnSearchProps("directors"),
+                render: (records: any) => {
+                    return (
+                        <div className="cliptextTitle directorsColumn">
+                            {records.name_director}
+                        </div>
+                    );
+                },
             },
             {
                 title: "Thể loại",
-                dataIndex: "genre",
-                key: "genre",
+                dataIndex: "genres",
+                key: "genres",
+                width: 190,
+                ...getColumnSearchProps("genre"),
                 render: (genres: any) => {
                     if (!Array.isArray(genres)) {
                         genres = [genres];
@@ -90,18 +224,22 @@ const FilmManage: React.FC = () => {
                         "Tình cảm": "pink",
                     };
                     return (
-                        <>
-                            {genres.map((genre: any) => {
+                        <div className="cliptextTitle genresColumn">
+                            {genres.map((genre: any, index: number) => {
                                 const color =
                                     colorMap[genre.name_genre] || "blue";
 
                                 return (
-                                    <Tag color={color} key={genre}>
+                                    <Tag
+                                        color={color}
+                                        key={index}
+                                        style={{ marginBottom: "5px" }}
+                                    >
                                         {genre.name_genre}
                                     </Tag>
                                 );
                             })}
-                        </>
+                        </div>
                     );
                 },
             },
@@ -109,6 +247,7 @@ const FilmManage: React.FC = () => {
                 title: "Ngày phát hành",
                 dataIndex: "release_date",
                 key: "release_date",
+                ...getColumnSearchProps("release_date"),
             },
             {
                 title: "Thời lượng",
@@ -149,7 +288,7 @@ const FilmManage: React.FC = () => {
                         <Space>
                             <Popconfirm
                                 title="Xóa phim này?"
-                                description="Bạn có chắc chắn muốn xóa  không?"
+                                description="Bạn có chắc chắn muốn xóa không?"
                                 okText="Yes"
                                 onConfirm={() => handleDelete(items.id)}
                                 cancelText="No"
@@ -166,14 +305,13 @@ const FilmManage: React.FC = () => {
         ],
         [renderDetailFilm]
     );
-
     const { data, isLoading, isError } = useQuery({
         queryKey: ["filmList"],
         queryFn: async () => {
             const { data } = await axios.get(`${GET_FILM_LIST}`);
             console.log(data);
 
-            return data.now_showing.data.map((item: any) => ({
+            return data.movies.map((item: any) => ({
                 ...item,
                 key: item.id,
             }));
@@ -194,6 +332,11 @@ const FilmManage: React.FC = () => {
                 queryKey: ["filmList"],
             });
         },
+        onError: (error: any) => {
+            messageApi.error(
+                error?.response?.data?.message || "Có lỗi xảy ra!"
+            );
+        },
     });
 
     const handleDelete = (id: number) => {
@@ -205,10 +348,11 @@ const FilmManage: React.FC = () => {
             {holderMessageApi}
             <Divider />
             <Skeleton loading={isLoading} active>
-                <Table<DataType>
-                    rowSelection={{ type: selectionType, ...rowSelection }}
+                <Table<FormData>
                     columns={columns}
                     dataSource={dataSource}
+                    rowSelection={{ type: selectionType, ...rowSelection }}
+                    rowClassName={() => "custom-row"}
                 />
             </Skeleton>
         </div>

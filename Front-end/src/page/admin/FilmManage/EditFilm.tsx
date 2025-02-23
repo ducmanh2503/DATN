@@ -16,9 +16,14 @@ import {
 } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { GET_FILM_DETAIL, UPDATE_FILM } from "../../../config/ApiConfig";
+import {
+    GET_FILM_DETAIL,
+    GET_FILM_LIST,
+    UPDATE_FILM,
+} from "../../../config/ApiConfig";
 import { EditOutlined, UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import "./DetailFilm.css";
 
 const EditFilm = ({ id }: any) => {
     const [form] = Form.useForm();
@@ -33,19 +38,26 @@ const EditFilm = ({ id }: any) => {
         queryKey: ["filmList", id],
         queryFn: async () => {
             const { data } = await axios.get(`${GET_FILM_DETAIL(id)}`);
-            console.log("re-render-edit-film");
+            console.log("re-render-edit-film", data);
             return data.data;
         },
         enabled: openModal,
         onSuccess: (data: any) => {
-            form.setFieldsValue(data);
-            setPoster(data.poster || "");
+            form.setFieldsValue({
+                ...data,
+                directors: data.directors?.name_director ?? "chưa công bố",
+            });
+            setPoster(data.poster ?? "");
         },
     });
 
     const { mutate } = useMutation({
         mutationFn: async (formData) => {
-            await axios.put(UPDATE_FILM(id), formData);
+            await axios.put(UPDATE_FILM(id), formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
         },
         onSuccess: () => {
             messageApi.success("Sửa thành công");
@@ -58,29 +70,45 @@ const EditFilm = ({ id }: any) => {
     });
 
     const handleFinish = (formData: any) => {
-        console.log(formData);
-        // const formDataNew = formData;
-        // formDataNew.append("poster", selectedFile);
-        // formDataNew.append("title", formData.title);
-        // formDataNew.append("trailer", formData.trailer);
-        // formDataNew.append("running_time", formData.running_time);
-        // formDataNew.append("release_date", formData.release_date);
-        // formDataNew.append("rated", formData.rated);
-        // formDataNew.append("movie_status", formData.movie_status);
-        // formDataNew.append("language", formData.language);
-        mutate(formData, {
-            onSuccess: () => {
-                form.resetFields();
-                setOpenModal(false);
-            },
+        const dataToSend = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+            dataToSend.append(key, value);
         });
+
+        if (selectedFile) {
+            dataToSend.append("poster", selectedFile);
+        }
+
+        mutate(dataToSend);
     };
 
     const handleCancel = () => {
         form.resetFields();
         setOpenModal(false);
     };
-    const showDrawer = () => setOpenModal(true);
+    const showDrawer = () => {
+        setOpenModal(true);
+    };
+
+    useEffect(() => {
+        if (openModal && data) {
+            form.setFieldsValue({
+                ...data,
+                directors: data.directors?.name_director ?? "chưa công bố",
+                actors: Array.isArray(data.actors)
+                    ? data.actors
+                          .map((actor: any) => actor.name_actor)
+                          .join(", ")
+                    : "không có",
+                genres: Array.isArray(data.genres)
+                    ? data.genres
+                          .map((genre: any) => genre.name_genre)
+                          .join(", ")
+                    : "không có",
+            });
+            setPoster(data.poster ?? "");
+        }
+    }, [openModal, data, form]);
 
     useEffect(() => {
         if (!selectedFile) {
@@ -88,24 +116,35 @@ const EditFilm = ({ id }: any) => {
             return;
         }
 
-        if (data && openModal) {
-            form.setFieldsValue(data);
-            setPoster(data.poster || "");
-        }
-
         const objectUrl = URL.createObjectURL(selectedFile);
-
         setPreview(objectUrl);
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [selectedFile, data, openModal]);
 
-    const handleChange = (e: any) => {
-        if (!e.target.files || e.target.files.length === 0) {
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [selectedFile]);
+
+    const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+
+        if (!file) {
             setSelectedFile(undefined);
+            setPreview(undefined);
             return;
         }
 
-        setSelectedFile(e.target.files[0]);
+        if (!file.type.startsWith("image/")) {
+            message.error("Vui lòng chọn tệp hình ảnh (jpg, png, jpeg).");
+            e.target.value = "";
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            message.error("Kích thước ảnh không được vượt quá 2MB.");
+            e.target.value = "";
+            return;
+        }
+
+        setSelectedFile(file);
+        setPreview(URL.createObjectURL(file));
     };
 
     if (isLoading) {
@@ -123,7 +162,7 @@ const EditFilm = ({ id }: any) => {
                 Cập nhật
             </Button>
             <Drawer
-                title="Cập nhật sản phẩm"
+                title="Cập nhật phim "
                 placement="right"
                 width={700}
                 onClose={handleCancel}
@@ -150,6 +189,7 @@ const EditFilm = ({ id }: any) => {
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item
+                                    className="input-label"
                                     label="Tiêu đề"
                                     name="title"
                                     rules={[
@@ -168,77 +208,50 @@ const EditFilm = ({ id }: any) => {
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
-                                <Form.Item label="Trailer" name="trailer">
+                                <Form.Item
+                                    className="input-label"
+                                    label="Trailer"
+                                    name="trailer"
+                                >
                                     <Input placeholder="Nhập tên trailer"></Input>
                                 </Form.Item>
                             </Col>
                         </Row>
                         <Row gutter={16}>
                             <Col span={12}>
-                                <Form.Item label="Poster" name="poster">
-                                    <input
-                                        type="file"
-                                        id="uploadFile"
-                                        onChange={handleChange}
-                                        style={{ display: "none" }}
-                                    />
-                                    <label htmlFor="uploadFile">Thêm ảnh</label>
-                                    {selectedFile && (
-                                        <Image
-                                            src={preview}
-                                            alt="poster"
-                                            style={{ marginTop: "8px" }}
-                                            width={160}
-                                            height={180}
+                                <Form.Item
+                                    className="input-label"
+                                    label="Poster"
+                                    name="poster"
+                                >
+                                    <Space.Compact>
+                                        <input
+                                            type="file"
+                                            id="uploadFile"
+                                            onChange={handleChangeImage}
+                                            style={{ display: "none" }}
                                         />
-                                    )}
+                                        <label htmlFor="uploadFile">
+                                            Thêm ảnh
+                                        </label>
+                                        {selectedFile && (
+                                            <Image
+                                                src={`${GET_FILM_LIST}/${preview}`}
+                                                alt="poster"
+                                                style={{
+                                                    marginTop: "8px",
+                                                    objectFit: "cover",
+                                                }}
+                                                width={160}
+                                                height={980}
+                                            />
+                                        )}
+                                    </Space.Compact>
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
                                 <Form.Item
-                                    label="Đạo diễn"
-                                    name="directors"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Vui lòng nhập đạo diễn",
-                                        },
-                                        {
-                                            type: "string",
-                                            min: 6,
-                                            message:
-                                                "Đạo diễn phải có ít nhất 6 ký tự",
-                                        },
-                                    ]}
-                                >
-                                    <Input placeholder="Tên đạo diễn"></Input>
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    label="Trạng thái"
-                                    name="movie_status"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Vui lòng nhập trạng thái",
-                                        },
-                                    ]}
-                                >
-                                    <Select placeholder="Chọn trạng thái">
-                                        <Select.Option value="now_showing">
-                                            Đang chiếu
-                                        </Select.Option>
-                                        <Select.Option value="coming_soon">
-                                            Sắp chiếu
-                                        </Select.Option>
-                                    </Select>
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item
+                                    className="input-label"
                                     label="Diễn viên"
                                     name="actors"
                                     rules={[
@@ -261,6 +274,52 @@ const EditFilm = ({ id }: any) => {
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item
+                                    className="input-label"
+                                    label="Trạng thái"
+                                    name="movie_status"
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message: "Vui lòng nhập trạng thái",
+                                        },
+                                    ]}
+                                >
+                                    <Select placeholder="Chọn trạng thái">
+                                        <Select.Option value="now_showing">
+                                            Đang chiếu
+                                        </Select.Option>
+                                        <Select.Option value="coming_soon">
+                                            Sắp chiếu
+                                        </Select.Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    className="input-label"
+                                    label="Đạo diễn"
+                                    name="directors"
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message: "Vui lòng nhập đạo diễn",
+                                        },
+                                        {
+                                            type: "string",
+                                            min: 6,
+                                            message:
+                                                "Đạo diễn phải có ít nhất 6 ký tự",
+                                        },
+                                    ]}
+                                >
+                                    <Input placeholder="Tên đạo diễn"></Input>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    className="input-label"
                                     name="release_date"
                                     label="Ngày phát hành"
                                     rules={[
@@ -285,6 +344,7 @@ const EditFilm = ({ id }: any) => {
                             </Col>
                             <Col span={12}>
                                 <Form.Item
+                                    className="input-label"
                                     label="Thời lượng"
                                     name="running_time"
                                 >
@@ -295,6 +355,7 @@ const EditFilm = ({ id }: any) => {
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item
+                                    className="input-label"
                                     label="Giới hạn tuổi"
                                     name="rated"
                                     rules={[
@@ -311,6 +372,7 @@ const EditFilm = ({ id }: any) => {
 
                             <Col span={12}>
                                 <Form.Item
+                                    className="input-label"
                                     label="Ngôn ngữ"
                                     name="language"
                                     rules={[
@@ -330,8 +392,9 @@ const EditFilm = ({ id }: any) => {
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item
+                                    className="input-label"
                                     label="ID"
-                                    name="genre_id"
+                                    name="id"
                                     rules={[
                                         {
                                             required: true,
@@ -341,6 +404,21 @@ const EditFilm = ({ id }: any) => {
                                     ]}
                                 >
                                     <Input placeholder="Nhập ID sản phẩm" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    className="input-label"
+                                    label="Thể loại:"
+                                    name="genres"
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message: "Vui lòng nhập thể loại ",
+                                        },
+                                    ]}
+                                >
+                                    <Input placeholder="Nhập thể loại" />
                                 </Form.Item>
                             </Col>
                         </Row>

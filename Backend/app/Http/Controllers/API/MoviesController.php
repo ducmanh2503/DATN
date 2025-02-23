@@ -64,7 +64,6 @@ class MoviesController extends Controller
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
-
         // Tìm id của diễn viên từ tên
         $actorIds = DB::table('actors')->whereIn('name_actor', $request->name_actors)->pluck('id')->toArray();
 
@@ -93,7 +92,7 @@ class MoviesController extends Controller
         // Chuẩn bị dữ liệu để chèn vào database
         $movieToInsert = [
             'title' => $movieData['title'],
-            'director_id' => $movieData['director_id'],
+            'director_id' => $movieData['director_id'],// check it
             'release_date' => $movieData['release_date'],
             'running_time' => $movieData['running_time'],
             'language' => $movieData['language'],
@@ -190,7 +189,7 @@ class MoviesController extends Controller
 
         //Lấy dữ liệu phim hợp lệ từ request
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255|unique:movies,title,' . $id,
+            'title' => 'required|string|max:255|unique:movies,title,',
             'director_id' => 'required|exists:directors,id',
             'release_date' => 'required|date_format:Y-m-d',
             'running_time' => 'required|string',
@@ -200,7 +199,7 @@ class MoviesController extends Controller
             'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'trailer' => 'nullable|string',
             'movie_status' => 'required|in:coming_soon,now_showing',
-            'name_actors' => 'required|array',
+            'name_actor' => 'required|array',
             'name_genres' => 'required|array',
         ]);
 

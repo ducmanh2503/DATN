@@ -16,7 +16,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { EditOutlined } from "@ant-design/icons";
 
-const EditShowtimes = ({ id }: any) => {
+const EditCalendar = ({ id }: any) => {
     const [openEdit, setOpenEdit] = useState(false);
     const [formShowtime] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
@@ -25,7 +25,7 @@ const EditShowtimes = ({ id }: any) => {
     const { mutate } = useMutation({
         mutationFn: async (formData) => {
             await axios.put(
-                `http://localhost:8000/api/showTime/${id}`,
+                `http://localhost:8000/api/calendarShow/${id}`,
                 formData
             );
         },
@@ -45,7 +45,7 @@ const EditShowtimes = ({ id }: any) => {
         queryKey: ["showtimesFilm", id],
         queryFn: async () => {
             const { data } = await axios.get(
-                `http://localhost:8000/api/showTime/${id}`
+                `http://localhost:8000/api/calendarShow/${id}`
             );
 
             console.log("check", data);
@@ -57,20 +57,22 @@ const EditShowtimes = ({ id }: any) => {
     });
 
     useEffect(() => {
+        console.log(data);
         if (data) {
+            console.log(data.movie?.title);
             formShowtime.setFieldsValue({
                 movie_id: data.movie_id,
                 room_id: data.room_id,
                 title: data.movie?.title,
                 movie_status: data.movie?.movie_status,
-                show_date: dayjs(data.show_date),
-                show_time: dayjs(data.show_time, "HH:mm:ss"),
+                show_date: dayjs(data.show_date).format("YYYY/MM/DD"),
+                end_date: dayjs(data.show_time).format("YYYY/MM/DD"),
             });
         }
         return () => {
             formShowtime.resetFields();
         };
-    }, [data, formShowtime]);
+    }, [data, formShowtime, openEdit]);
 
     const onFinish = (formData: any) => {
         console.log("re-render-addShowtimes", formData);
@@ -133,11 +135,11 @@ const EditShowtimes = ({ id }: any) => {
                             rules={[
                                 {
                                     required: true,
-                                    message: "Thêm ngày phát hành",
+                                    message: "Thêm ngày kết thúc",
                                 },
                             ]}
                             getValueProps={(value) => ({
-                                value: value ? dayjs(value) : null, // Chuyển đổi sang `dayjs`
+                                value: value ? dayjs(value) : null,
                             })}
                             getValueFromEvent={(e) => e?.format("YYYY-MM-DD")}
                         >
@@ -149,38 +151,24 @@ const EditShowtimes = ({ id }: any) => {
                             />
                         </Form.Item>
 
-                        {/* <Form.Item
-                        name="show_time"
-                        label="Ngày kết thúc"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Thêm ngày kết thúc",
-                            },
-                        ]}
-                        getValueFromEvent={(e: any) => e?.format("YYYY-MM-DD")}
-                        getValueProps={(e: string) => ({
-                            value: e ? dayjs(e) : "",
-                        })}
-                    >
-                        <DatePicker
-                            style={{ width: "100%" }}
-                            format="YYYY-MM-DD"
-                            allowClear
-                        />
-                    </Form.Item> */}
-
                         <Form.Item
-                            name="show_time"
-                            label="Giờ chiếu"
+                            name="end_date"
+                            label="Ngày kết thúc"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Thêm ngày kết thúc",
+                                },
+                            ]}
                             getValueProps={(value) => ({
-                                value: value ? dayjs(value, "HH:mm:ss") : null,
+                                value: value ? dayjs(value) : null,
                             })}
-                            getValueFromEvent={(e) => e?.format("HH:mm:ss")}
+                            getValueFromEvent={(e) => e?.format("YYYY-MM-DD")}
                         >
-                            <TimePicker
-                                format="HH:mm:ss"
+                            <DatePicker
                                 style={{ width: "100%" }}
+                                format="YYYY-MM-DD"
+                                allowClear
                             />
                         </Form.Item>
 
@@ -210,4 +198,4 @@ const EditShowtimes = ({ id }: any) => {
     );
 };
 
-export default EditShowtimes;
+export default EditCalendar;

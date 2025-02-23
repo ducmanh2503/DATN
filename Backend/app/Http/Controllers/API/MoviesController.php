@@ -16,6 +16,9 @@ class MoviesController extends Controller
      */
     public function index()
     {
+        // Kiểm tra quyền xem danh sách phim trong admin
+        // $this->authorize('viewAny', Movies::class);
+
         //Hiển thị tất cả phim
         $movies = Movies::query()->latest('id')->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
@@ -39,6 +42,9 @@ class MoviesController extends Controller
 
     public function store(Request $request)
     {
+        // Kiểm tra quyền thêm mới phim trong admin
+        // $this->authorize('create', Movies::class);
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255|unique:movies,title',
@@ -108,6 +114,20 @@ class MoviesController extends Controller
         return response()->json(['message' => 'Thêm phim thành công', 'data' => $movie], 201);
     }
 
+    public function getImageUrl($imageName)
+    {
+        // Kiểm tra xem ảnh có tồn tại trong thư mục storage/public không
+        if (Storage::exists('public/images/' . $imageName)) {
+            // Trả về URL của ảnh
+            $url = Storage::url('images/' . $imageName);
+            return response()->json(['url' => $url], 200);
+        }
+
+        // Nếu ảnh không tồn tại, trả về lỗi
+        return response()->json(['message' => 'Ảnh không tồn tại'], 404);
+    }
+
+
 
     /**
      * Display the specified resource.
@@ -164,6 +184,9 @@ class MoviesController extends Controller
                 'message' => 'Không tìm thấy phim này',
             ], 404);
         }
+
+        // Kiểm tra quyền cập nhật phim trong admin
+        // $this->authorize('update', $movie);
 
         //Lấy dữ liệu phim hợp lệ từ request
         $validator = Validator::make($request->all(), [
@@ -235,6 +258,9 @@ class MoviesController extends Controller
     {
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
+        // Kiểm tra quyền xóa phim trong admin
+        // $this->authorize('delete', Movies::class);
+
         // Nếu không có phim nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có phim nào được chọn'], 400);
@@ -258,6 +284,9 @@ class MoviesController extends Controller
             // Tìm phim theo ID
             $movie = Movies::findOrFail($id);
 
+            // Kiểm tra quyền xóa phim trong admin
+            // $this->authorize('delete', $movie);
+
             // Xóa phim
             $movie->delete();
 
@@ -277,6 +306,9 @@ class MoviesController extends Controller
             return response()->json(['message' => 'Không tìm thấy phim đã bị xóa'], 404);
         }
 
+        // Kiểm tra quyền khôi phục phim trong admin
+        // $this->authorize('restore', $movie);
+
         $movie->restore(); // Khôi phục phim
 
         return response()->json(['message' => 'Khôi phục phim thành công'], 200);
@@ -292,7 +324,10 @@ class MoviesController extends Controller
             return response()->json(['message' => 'Không có phim nào được chọn'], 400);
         }
 
-        //Xóa mềm các phim được chọn
+        // Kiểm tra quyền xóa vĩnh viễn phim trong admin
+        // $this->authorize('forceDelete', Movies::class);
+
+        //Xóa vĩnh viễn các phim được chọn
         $deleted = Movies::onlyTrashed()->whereIn('id', $ids)->forceDelete();
 
         //Kiểm tra xem có phim nào được xóa không
@@ -313,6 +348,9 @@ class MoviesController extends Controller
         if (!$movie) {
             return response()->json(['message' => 'Phim không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
         }
+
+        // Kiểm tra quyền xóa vĩnh viễn phim trong admin
+        // $this->authorize('forceDelete', $movie);
 
         // Xóa vĩnh viễn phim
         $movie->forceDelete();

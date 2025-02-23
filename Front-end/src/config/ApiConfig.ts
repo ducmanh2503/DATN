@@ -1,5 +1,5 @@
 const BASE_URL = "http://localhost:8000/api";
-
+const URL_IMAGE = "http://localhost:8000";
 const GET_FILM_LIST = `${BASE_URL}/movies`;
 const GET_FILM_DETAIL = (id: number) => `${BASE_URL}/movies/${id}`;
 const CREATE_FILM = `${BASE_URL}/movies`;

@@ -11,10 +11,10 @@ import {
 } from "antd";
 import axios from "axios";
 import React, { useEffect, useState, memo } from "react";
-import { GET_FILM_DETAIL } from "../../../config/ApiConfig";
 import "./DetailFilm.css";
+import { GET_FILM_LIST } from "../../../config/ApiConfig";
 
-const DetailFilm = ({ id, film }: any) => {
+const DetailFilm = ({ id, film, apiUrl }: any) => {
     const [open, setOpen] = useState(false);
     const [size, setSize] = useState<DrawerProps["size"]>();
     const [poster, setPoster] = useState("");
@@ -31,8 +31,9 @@ const DetailFilm = ({ id, film }: any) => {
     const { data, isLoading } = useQuery({
         queryKey: ["film", id],
         queryFn: async () => {
-            const { data } = await axios.get(`${GET_FILM_DETAIL(id)}`);
+            const { data } = await axios.get(apiUrl);
             console.log("re-render-detail-film");
+            console.log("checkk", data);
 
             return data.data;
         },
@@ -40,7 +41,20 @@ const DetailFilm = ({ id, film }: any) => {
     });
     useEffect(() => {
         if (data && open) {
-            form.setFieldsValue(data);
+            form.setFieldsValue({
+                ...data,
+                directors: data.directors?.name_director || "không có",
+                actors: Array.isArray(data.actors)
+                    ? data.actors
+                          .map((actor: any) => actor.name_actor)
+                          .join(", ")
+                    : "không có",
+                genres: Array.isArray(data.genres)
+                    ? data.genres
+                          .map((genre: any) => genre.name_genre)
+                          .join(", ")
+                    : "không có",
+            });
             setPoster(data.poster || "");
         }
     }, [data, open]);
@@ -61,7 +75,12 @@ const DetailFilm = ({ id, film }: any) => {
                     </Button>
                 }
             >
-                <Form layout="vertical" form={form} initialValues={data}>
+                <Form
+                    name="detail-film-form"
+                    layout="vertical"
+                    form={form}
+                    initialValues={data}
+                >
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
@@ -90,12 +109,12 @@ const DetailFilm = ({ id, film }: any) => {
                         <Col span={12}>
                             <Form.Item
                                 className="input-label"
-                                // name="poster"
+                                name="poster"
                                 label="Poster:"
                             >
                                 {poster && (
                                     <Image
-                                        src={poster}
+                                        src={`${GET_FILM_LIST}/${poster}`}
                                         alt="poster"
                                         width={160}
                                         height={240}
@@ -106,8 +125,8 @@ const DetailFilm = ({ id, film }: any) => {
                         <Col span={12}>
                             <Form.Item
                                 className="input-label"
-                                name="directors"
-                                label="Đạo diễn:"
+                                name="actors"
+                                label="Diễn viên:"
                             >
                                 <Input
                                     className="input-detail"
@@ -132,8 +151,8 @@ const DetailFilm = ({ id, film }: any) => {
                         <Col span={12}>
                             <Form.Item
                                 className="input-label"
-                                name="actors"
-                                label="Diễn viên:"
+                                name="directors"
+                                label="Đạo diễn:"
                             >
                                 <Input
                                     className="input-detail"
@@ -200,6 +219,18 @@ const DetailFilm = ({ id, film }: any) => {
                                 className="input-label"
                                 name="id"
                                 label="ID:"
+                            >
+                                <Input
+                                    className="input-detail"
+                                    disabled
+                                ></Input>
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                className="input-label"
+                                name="genres"
+                                label="Thể loại:"
                             >
                                 <Input
                                     className="input-detail"

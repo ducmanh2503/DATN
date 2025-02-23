@@ -1,13 +1,17 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import Home from "./page/client/Home/home";
 import PlayingFilm from "./page/client/PlayingFilm/PlayingFilm";
 import ComingFilm from "./page/client/ComingFilm/ComingFilm";
 import CinemaForest from "./page/client/CinemaForest/CinemaForest";
 import AdminLayout from "./page/admin/AdminLayout";
 import FilmManage from "./page/admin/FilmManage/FilmManage";
-import ShowtimesManage from "./page/admin/ShowtimesManage/ShowtimesManage";
 import StoppedMovies from "./page/admin/FilmManage/StoppedMovies";
 import AddFilm from "./page/admin/FilmManage/AddFilm";
+import CalendarManage from "./page/admin/CalendarShow/CalendarManage";
+import ShowtimesManage from "./page/admin/Showtimes/ShowtimesManage";
+import ActorsManage from "./page/admin/Actors/ActorsManage";
+import GenresManage from "./page/admin/Genres/GenresManage";
+import DirectorsManage from "./page/admin/Directors/DirectorsManage";
 
 export const router = createBrowserRouter([
     { path: "/", element: <Home></Home> },
@@ -22,11 +26,14 @@ export const router = createBrowserRouter([
             { path: "film", element: <FilmManage></FilmManage> },
             { path: "addFilm", element: <AddFilm></AddFilm> },
             { path: "stoppedMovie", element: <StoppedMovies></StoppedMovies> },
-
             {
-                path: "showtimes",
-                element: <ShowtimesManage></ShowtimesManage>,
+                path: "calendarShow",
+                element: <CalendarManage></CalendarManage>,
             },
+            { path: "showtimes", element: <ShowtimesManage></ShowtimesManage> },
+            { path: "actors", element: <ActorsManage></ActorsManage> },
+            { path: "directors", element: <DirectorsManage></DirectorsManage> },
+            { path: "genre", element: <GenresManage></GenresManage> },
         ],
     },
 ]);

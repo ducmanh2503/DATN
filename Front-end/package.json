@@ -27,6 +27,7 @@
         "lodash": "^4.17.21",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
+        "react-highlight-words": "^0.21.0",
         "react-router-dom": "^7.1.5",
         "swiper": "^11.2.2",
         "tailwind": "^4.0.0"

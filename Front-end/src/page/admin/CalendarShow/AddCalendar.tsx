@@ -3,6 +3,7 @@ import {
     Button,
     DatePicker,
     Form,
+    Input,
     InputNumber,
     message,
     Modal,
@@ -15,7 +16,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { GET_FILM_LIST } from "../../../config/ApiConfig";
 
-const AddShowtimes: React.FC = () => {
+const AddCalendar: React.FC = () => {
     const [open, setOpen] = useState(false);
     const [formShowtime] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
@@ -35,7 +36,7 @@ const AddShowtimes: React.FC = () => {
         queryFn: async () => {
             const { data } = await axios.get(`${GET_FILM_LIST}`);
             console.log("re-render-takeNameFilm", data);
-            return data.now_showing.data.map((item: any) => ({
+            return data.movies.map((item: any) => ({
                 ...item,
                 key: item.id,
             }));
@@ -45,7 +46,15 @@ const AddShowtimes: React.FC = () => {
 
     const { mutate } = useMutation({
         mutationFn: async (formData) => {
-            await axios.post(`http://localhost:8000/api/showTime`, formData);
+            const newFormData = {
+                ...formData,
+                show_date: dayjs(data.show_date).format("YYYY/MM/DD"),
+            };
+            await axios.post(
+                `http://localhost:8000/api/calendarShow`,
+                newFormData
+            );
+            console.log("check-formdata", newFormData);
         },
         onSuccess: () => {
             formShowtime.resetFields();
@@ -58,9 +67,9 @@ const AddShowtimes: React.FC = () => {
             messageApi.error(error.message);
         },
     });
-    const onFinish = (formData: any) => {
-        console.log("re-render-addShowtimes", formData);
-        mutate(formData);
+    const onFinish = (newFormData: any) => {
+        console.log("re-render-addShowtimes", newFormData);
+        mutate(newFormData);
         formShowtime.resetFields();
         setOpen(false);
     };
@@ -90,18 +99,14 @@ const AddShowtimes: React.FC = () => {
                     onFinish={onFinish}
                 >
                     <Form.Item
-                        label="movie_id"
                         name="movie_id"
-                        // style={{ display: "none" }}
+                        label="movie_id"
+                        getValueProps={(e: string) => ({
+                            value: e,
+                        })}
+                        style={{ display: "none" }}
                     >
-                        <InputNumber />
-                    </Form.Item>
-                    <Form.Item
-                        label="room_id"
-                        name="room_id"
-                        // style={{ display: "none" }}
-                    >
-                        <InputNumber />
+                        <Input></Input>
                     </Form.Item>
                     <Form.Item
                         label="Phim chiếu"
@@ -123,6 +128,7 @@ const AddShowtimes: React.FC = () => {
                                     show_date: selectedFilm?.release_date
                                         ? dayjs(selectedFilm.release_date)
                                         : null,
+                                    movie_id: selectedFilm.id,
                                 });
                             }}
                         >
@@ -153,8 +159,8 @@ const AddShowtimes: React.FC = () => {
                             allowClear
                         />
                     </Form.Item>
-                    {/* <Form.Item
-                        name=""
+                    <Form.Item
+                        name="end_date"
                         label="Ngày kết thúc"
                         rules={[
                             {
@@ -162,18 +168,15 @@ const AddShowtimes: React.FC = () => {
                                 message: "Thêm ngày kết thúc",
                             },
                         ]}
+                        getValueFromEvent={(e: any) => e?.format("YYYY-MM-DD")}
+                        getValueProps={(e: string) => ({
+                            value: e ? dayjs(e) : null,
+                        })}
                     >
                         <DatePicker
                             style={{ width: "100%" }}
                             format="YYYY-MM-DD"
                             allowClear
-                        />
-                    </Form.Item> */}
-
-                    <Form.Item name="show_time" label="Ngày kết thúc">
-                        <TimePicker
-                            format="HH:mm:ss"
-                            style={{ width: "100%" }}
                         />
                     </Form.Item>
                     <Form.Item
@@ -201,4 +204,4 @@ const AddShowtimes: React.FC = () => {
     );
 };
 
-export default AddShowtimes;
+export default AddCalendar;

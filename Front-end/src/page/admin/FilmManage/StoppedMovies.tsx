@@ -16,6 +16,7 @@ import {
     GET_FILM_LIST,
     FORCE_DELETE_FILM,
     RESTORE_FILM,
+    DETAIL_DELETE_FILM,
 } from "../../../config/ApiConfig";
 
 interface DataType {
@@ -26,26 +27,9 @@ interface DataType {
     address: string;
 }
 
-const rowSelection: TableProps<DataType>["rowSelection"] = {
-    onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-        console.log(
-            `selectedRowKeys: ${selectedRowKeys}`,
-            "selectedRows: ",
-            selectedRows
-        );
-    },
-    getCheckboxProps: (record: DataType) => ({
-        disabled: record.name === "Disabled User",
-        name: record.name,
-    }),
-};
-
 const StoppedMovies: React.FC = () => {
     const [messageApi, holderMessageApi] = message.useMessage();
     const queryClient = useQueryClient();
-    const [selectionType, setSelectionType] = useState<"checkbox" | "radio">(
-        "checkbox"
-    );
 
     const columns: TableColumnsType<DataType> = [
         {
@@ -53,7 +37,11 @@ const StoppedMovies: React.FC = () => {
             dataIndex: "title",
             key: "title",
             render: (text: string, item: any) => (
-                <DetailFilm id={item.id} film={text}></DetailFilm>
+                <DetailFilm
+                    id={item.id}
+                    film={text}
+                    apiUrl={`${DETAIL_DELETE_FILM(item.id)}`}
+                ></DetailFilm>
             ),
         },
 
@@ -95,7 +83,7 @@ const StoppedMovies: React.FC = () => {
             const { data } = await axios.get(`${GET_FILM_LIST}`);
             console.log(data);
 
-            return data.trashed_movies.data.map((item: any) => ({
+            return data.trashed_movies.map((item: any) => ({
                 ...item,
                 key: item.id,
             }));
@@ -131,11 +119,7 @@ const StoppedMovies: React.FC = () => {
             {holderMessageApi}
             <Divider />
             <Skeleton loading={isLoading} active>
-                <Table<DataType>
-                    rowSelection={{ type: selectionType, ...rowSelection }}
-                    columns={columns}
-                    dataSource={data}
-                />
+                <Table<DataType> columns={columns} dataSource={data} />
             </Skeleton>
         </div>
     );

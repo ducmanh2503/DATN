@@ -36,10 +36,13 @@ const SiderAdmin = () => {
             getItem(<Link to="stoppedMovie">Phim ngừng chiếu</Link>, "sub1-3"),
         ]),
         getItem("Quản lý lịch chiếu", "sub2", <CalendarOutlined />, [
-            getItem(<Link to="showtimes">Danh sách lịch chiếu</Link>, "sub2-1"),
+            getItem(
+                <Link to="calendarShow">Danh sách lịch chiếu</Link>,
+                "sub2-1"
+            ),
         ]),
         getItem("Quản lý suất chiếu", "sub7", <SnippetsOutlined />, [
-            getItem(<Link to="...">Danh sách suất chiếu</Link>, "sub7-1"),
+            getItem(<Link to="showtimes">Danh sách suất chiếu</Link>, "sub7-1"),
         ]),
         getItem("Phòng chiếu", "sub3", <DesktopOutlined />, [
             getItem("Tự tạo", "sub3-1"),
@@ -55,6 +58,15 @@ const SiderAdmin = () => {
         ]),
         getItem("Thống kê", "sub6", <BarChartOutlined />, [
             getItem("Tự tạo", "sub6-1"),
+        ]),
+        getItem("Quản lý đạo diễn", "sub8", <BarChartOutlined />, [
+            getItem(<Link to="directors">Danh sách đạo diễn</Link>, "sub8-1"),
+        ]),
+        getItem("Quản lý diễn viên", "sub9", <BarChartOutlined />, [
+            getItem(<Link to="actors">Danh sách diễn viên</Link>, "sub9-1"),
+        ]),
+        getItem("Quản lý thể loại", "sub10", <BarChartOutlined />, [
+            getItem(<Link to="genre">Danh sách thể loại</Link>, "sub10-1"),
         ]),
     ];
     return (

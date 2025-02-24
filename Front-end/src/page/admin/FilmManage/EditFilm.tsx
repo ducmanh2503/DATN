@@ -7,7 +7,6 @@ import {
     Form,
     Image,
     Input,
-    InputNumber,
     message,
     Row,
     Select,
@@ -20,7 +19,6 @@ import {
     GET_ACTOR_LIST,
     GET_DIRECTORS_LIST,
     GET_FILM_DETAIL,
-    GET_FILM_LIST,
     GET_GENRES,
     UPDATE_FILM,
     URL_IMAGE,
@@ -148,7 +146,7 @@ const EditFilm = ({ id }: any) => {
     };
 
     useEffect(() => {
-        if (openModal && data) {
+        if (data) {
             form.setFieldsValue({
                 ...data,
                 name_actor:
@@ -159,10 +157,13 @@ const EditFilm = ({ id }: any) => {
             });
             setPoster(data.poster ?? "");
         }
+    }, [openModal, data]);
+
+    useEffect(() => {
         refetchDataActors();
         refetchDataDirectors();
         refetchDataGenres();
-    }, [openModal, data, form]);
+    }, []);
 
     useEffect(() => {
         if (!selectedFile) {
@@ -200,7 +201,6 @@ const EditFilm = ({ id }: any) => {
             e.target.value = "";
             return;
         }
-
         setSelectedFile(file);
         setPreview(URL.createObjectURL(file));
     };

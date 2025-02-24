@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\ActorController;
+use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalendarShowController;
 use App\Http\Controllers\API\ComboController;
 use App\Http\Controllers\API\DirectorController;
@@ -24,10 +25,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'user']); // API lấy thông tin người dùng đã xác thực
+//admin
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
+
+// Đảm bảo người dùng đã xác thực và có quyền admin
+// Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 //Movie
 Route::apiResource('movies', MoviesController::class);
 Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']); // API xóa vĩnh viễn 1 phim
@@ -36,6 +41,8 @@ Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceD
 Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']); // API khôi phục phim đã bị xóa mềm
 
 Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']); // API hiển thị thông tin phim đã bị xóa mềm
+// Route::get('/movie/image/{imageName}', [MoviesController::class, 'getImageUrl']); // API lấy đường dẫn ảnh phim
+// });
 
 //Room
 Route::apiResource('room', RoomController::class);

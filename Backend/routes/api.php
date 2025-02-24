@@ -41,7 +41,6 @@ Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceD
 Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']); // API khôi phục phim đã bị xóa mềm
 
 Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']); // API hiển thị thông tin phim đã bị xóa mềm
-// Route::get('/movie/image/{imageName}', [MoviesController::class, 'getImageUrl']); // API lấy đường dẫn ảnh phim
 // });
 
 //Room
@@ -54,6 +53,8 @@ Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus'])
 
 //showtimes
 Route::apiResource('showTime', ShowTimeController::class);
+Route::post('show-times/filter-by-date', [ShowTimeController::class, 'filterByDate']);
+
 
 // CalendarShow
 Route::apiResource('calendarShow', CalendarShowController::class);
@@ -84,3 +85,4 @@ Route::apiResource('actors', ActorController::class);
 
 //Đạo diễn
 Route::apiResource('directors', DirectorController::class);
+

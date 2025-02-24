@@ -100,4 +100,6 @@ class CalendarShowController extends Controller
             'message' => 'Lịch chiếu đã được gỡ'
         ]);
     }
+
+    
 }

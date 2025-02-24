@@ -92,7 +92,7 @@ class MoviesController extends Controller
         // Chuẩn bị dữ liệu để chèn vào database
         $movieToInsert = [
             'title' => $movieData['title'],
-            'director_id' => $movieData['director_id'],// check it
+            'director_id' => $movieData['director_id'], // check it
             'release_date' => $movieData['release_date'],
             'running_time' => $movieData['running_time'],
             'language' => $movieData['language'],
@@ -112,21 +112,6 @@ class MoviesController extends Controller
 
         return response()->json(['message' => 'Thêm phim thành công', 'data' => $movie], 201);
     }
-
-    public function getImageUrl($imageName)
-    {
-        // Kiểm tra xem ảnh có tồn tại trong thư mục storage/public không
-        if (Storage::exists('public/images/' . $imageName)) {
-            // Trả về URL của ảnh
-            $url = Storage::url('images/' . $imageName);
-            return response()->json(['url' => $url], 200);
-        }
-
-        // Nếu ảnh không tồn tại, trả về lỗi
-        return response()->json(['message' => 'Ảnh không tồn tại'], 404);
-    }
-
-
 
     /**
      * Display the specified resource.
@@ -189,17 +174,17 @@ class MoviesController extends Controller
 
         //Lấy dữ liệu phim hợp lệ từ request
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255|unique:movies,title,',
+            'title' => 'required|string|max:255|unique:movies,title,' . $id,
             'director_id' => 'required|exists:directors,id',
             'release_date' => 'required|date_format:Y-m-d',
-            'running_time' => 'required|string',
+            'running_time' => 'required|integer',
             'language' => 'required|string|max:100',
             'rated' => 'required|string|max:255',
             'description' => 'nullable|string|unique:movies,trailer',
             'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'trailer' => 'nullable|string',
             'movie_status' => 'required|in:coming_soon,now_showing',
-            'name_actor' => 'required|array',
+            'name_actors' => 'required|array',
             'name_genres' => 'required|array',
         ]);
 

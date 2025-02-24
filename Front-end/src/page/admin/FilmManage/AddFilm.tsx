@@ -1,16 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-    Button,
-    Col,
-    DatePicker,
-    Form,
-    Image,
-    Input,
-    message,
-    Row,
-    Select,
-    Skeleton,
-    Space,
+  Button,
+  Col,
+  DatePicker,
+  Form,
+  Image,
+  Input,
+  message,
+  Row,
+  Select,
+  Skeleton,
+  Space,
 } from "antd";
 import axios from "axios";
 import {
@@ -28,159 +28,157 @@ import { FormData } from "../../../types/interface";
 import { VerticalAlignTopOutlined } from "@ant-design/icons";
 
 const AddFilm = () => {
-    const [messageApi, contextHolder] = message.useMessage();
-    const queryClient = useQueryClient();
-    const [form] = Form.useForm();
-    const [selectedFile, setSelectedFile] = useState();
-    const [preview, setPreview] = useState<string>();
-    const [name_actors, setName_actors] = useState([]);
-    const [name_directors, setName_directors] = useState([]);
+  const [messageApi, contextHolder] = message.useMessage();
+  const queryClient = useQueryClient();
+  const [form] = Form.useForm();
+  const [selectedFile, setSelectedFile] = useState();
+  const [preview, setPreview] = useState<string>();
+  const [name_actors, setName_actors] = useState([]);
+  const [name_directors, setName_directors] = useState([]);
 
-    const onFinish = (formData: FormData) => {
-        const newForm = {
-            title: formData.title,
-            poster: selectedFile,
-            trailer: formData.trailer,
-            name_directors: formData.name_director,
-            name_actors: formData.name_actor,
-            movie_status: formData.movie_status,
-            release_date: formData.release_date,
-            running_time: formData.running_time,
-            rated: formData.rated,
-            language: formData.language,
-            genre_id: formData.genre_id,
-            name_genres: formData.name_genres,
-            description: formData.description,
-            director_id: formData.name_director[0],
-        };
-        mutate(newForm);
-        form.resetFields();
+  const onFinish = (formData: FormData) => {
+    const newForm = {
+      title: formData.title,
+      poster: selectedFile,
+      trailer: formData.trailer,
+      name_directors: formData.name_director,
+      name_actors: formData.name_actor,
+      movie_status: formData.movie_status,
+      release_date: formData.release_date,
+      running_time: formData.running_time,
+      rated: formData.rated,
+      language: formData.language,
+      genre_id: formData.genre_id,
+      name_genres: formData.name_genres,
+      description: formData.description,
+      director_id: formData.name_director[0],
     };
+    mutate(newForm);
+    form.resetFields();
+  };
 
-    const handleChange = (value: string[], fieldName: string) => {
-        form.setFieldsValue({ [fieldName]: value });
-    };
+  const handleChange = (value: string[], fieldName: string) => {
+    form.setFieldsValue({ [fieldName]: value });
+  };
 
-    const { data: moviesName, isLoading } = useQuery({
+  const { data: moviesName, isLoading } = useQuery({
+    queryKey: ["filmList"],
+    queryFn: async () => {
+      const { data } = await axios.get(GET_FILM_LIST);
+      console.log("check-4", data);
+
+      return data.movies.map((item: any) => ({
+        ...item,
+        key: item.id,
+      }));
+    },
+  });
+
+  const { data: dataActors, refetch: refetchDataActors } = useQuery({
+    queryKey: ["Actors"],
+    queryFn: async () => {
+      const { data } = await axios.get(GET_ACTOR_LIST);
+      console.log("check-3", data);
+      return data.map((item: any) => ({
+        label: item.name_actor,
+        value: item.name_actor,
+      }));
+    },
+    enabled: false,
+  });
+
+  const { data: dataDirectors, refetch: refetchDataDirectors } = useQuery({
+    queryKey: ["Directors"],
+    queryFn: async () => {
+      const { data } = await axios.get(GET_DIRECTORS_LIST);
+      console.log("check-2", data);
+
+      return data.map((item: any) => ({
+        label: item.name_director,
+        value: item.id,
+      }));
+    },
+    enabled: false,
+  });
+
+  const { data: dataGenres, refetch: refetchDataGenres } = useQuery({
+    queryKey: ["Genres"],
+    queryFn: async () => {
+      const { data } = await axios.get(GET_GENRES);
+      console.log("check-1", data);
+
+      return data.map((item: any) => ({
+        label: item.name_genre,
+        value: item.name_genre,
+      }));
+    },
+    enabled: false,
+  });
+
+  useEffect(() => {
+    refetchDataActors(); // Chạy API dataActors 1 lần
+    refetchDataDirectors(); // Chạy API dataDirectors 1 lần
+    refetchDataGenres(); // Chạy API DataGenres 1 lần
+  }, []);
+
+  const { mutate } = useMutation({
+    mutationFn: async (formData: FormData) => {
+      await axios.post(`${CREATE_FILM}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    },
+    onSuccess: () => {
+      form.resetFields();
+      messageApi.success("Thêm thành công");
+      setSelectedFile(undefined);
+      setPreview(undefined);
+      queryClient.invalidateQueries({
         queryKey: ["filmList"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_FILM_LIST);
-            console.log("check-4", data);
+      });
+    },
+    onError: (error: any) => {
+      messageApi.error(error?.response?.data?.message || "Có lỗi xảy ra!");
+    },
+  });
 
-            return data.movies.map((item: any) => ({
-                ...item,
-                key: item.id,
-            }));
-        },
-    });
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreview(undefined);
+      return;
+    }
 
-    const { data: dataActors, refetch: refetchDataActors } = useQuery({
-        queryKey: ["Actors"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_ACTOR_LIST);
-            console.log("check-3", data);
-            return data.map((item: any) => ({
-                label: item.name_actor,
-                value: item.name_actor,
-            }));
-        },
-        enabled: false,
-    });
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreview(objectUrl);
 
-    const { data: dataDirectors, refetch: refetchDataDirectors } = useQuery({
-        queryKey: ["Directors"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_DIRECTORS_LIST);
-            console.log("check-2", data);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
 
-            return data.map((item: any) => ({
-                label: item.name_director,
-                value: item.id,
-            }));
-        },
-        enabled: false,
-    });
+  const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
-    const { data: dataGenres, refetch: refetchDataGenres } = useQuery({
-        queryKey: ["Genres"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_GENRES);
-            console.log("check-1", data);
+    if (!file) {
+      setSelectedFile(undefined);
+      setPreview(undefined);
+      return;
+    }
 
-            return data.map((item: any) => ({
-                label: item.name_genre,
-                value: item.name_genre,
-            }));
-        },
-        enabled: false,
-    });
+    if (!file.type.startsWith("image/")) {
+      message.error("Vui lòng chọn tệp hình ảnh (jpg, png, jpeg).");
+      e.target.value = "";
+      return;
+    }
 
-    useEffect(() => {
-        refetchDataActors(); // Chạy API dataActors 1 lần
-        refetchDataDirectors(); // Chạy API dataDirectors 1 lần
-        refetchDataGenres(); // Chạy API DataGenres 1 lần
-    }, []);
+    if (file.size > 2 * 1024 * 1024) {
+      message.error("Kích thước ảnh không được vượt quá 2MB.");
+      e.target.value = "";
+      return;
+    }
 
-    const { mutate } = useMutation({
-        mutationFn: async (formData: FormData) => {
-            await axios.post(`${CREATE_FILM}`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-        },
-        onSuccess: () => {
-            form.resetFields();
-            messageApi.success("Thêm thành công");
-            setSelectedFile(undefined);
-            setPreview(undefined);
-            queryClient.invalidateQueries({
-                queryKey: ["filmList"],
-            });
-        },
-        onError: (error: any) => {
-            messageApi.error(
-                error?.response?.data?.message || "Có lỗi xảy ra!"
-            );
-        },
-    });
-
-    useEffect(() => {
-        if (!selectedFile) {
-            setPreview(undefined);
-            return;
-        }
-
-        const objectUrl = URL.createObjectURL(selectedFile);
-        setPreview(objectUrl);
-
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [selectedFile]);
-
-    const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-
-        if (!file) {
-            setSelectedFile(undefined);
-            setPreview(undefined);
-            return;
-        }
-
-        if (!file.type.startsWith("image/")) {
-            message.error("Vui lòng chọn tệp hình ảnh (jpg, png, jpeg).");
-            e.target.value = "";
-            return;
-        }
-
-        if (file.size > 2 * 1024 * 1024) {
-            message.error("Kích thước ảnh không được vượt quá 2MB.");
-            e.target.value = "";
-            return;
-        }
-
-        setSelectedFile(file);
-        setPreview(URL.createObjectURL(file));
-    };
+    setSelectedFile(file);
+    setPreview(URL.createObjectURL(file));
+  };
 
     return (
         <div className="container-addFilm">

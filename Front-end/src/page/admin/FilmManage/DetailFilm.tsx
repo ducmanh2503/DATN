@@ -10,9 +10,9 @@ import {
     Row,
 } from "antd";
 import axios from "axios";
-import React, { useEffect, useState, memo } from "react";
+import { useEffect, useState, memo } from "react";
 import "./DetailFilm.css";
-import { GET_FILM_LIST, URL_IMAGE } from "../../../config/ApiConfig";
+import { URL_IMAGE } from "../../../config/ApiConfig";
 
 const DetailFilm = ({ id, film, apiUrl }: any) => {
     const [open, setOpen] = useState(false);

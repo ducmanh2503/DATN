@@ -19,6 +19,7 @@ import {
     GET_DIRECTORS_LIST,
     GET_FILM_LIST,
     GET_GENRES,
+    URL_IMAGE,
 } from "../../../config/ApiConfig";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
@@ -486,13 +487,11 @@ const AddFilm = () => {
                 {moviesName?.map((film: any) => (
                     <div key={film.key} className="list-product">
                         <img
-                            src={film.poster}
+                            src={`${URL_IMAGE}${film.poster}`}
                             alt={film.title}
-                            className="w-full h-auto rounded-md"
+                            className="moviesNameOfImage"
                         />
-                        <h2 className="mt-2 text-white text-lg font-semibold">
-                            {film.title}
-                        </h2>
+                        <h2 className="moviesNameOfTitle">{film.title}</h2>
                     </div>
                 ))}
             </div>

@@ -17,18 +17,13 @@ import {
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    GET_ACTOR_LIST,
-    GET_DIRECTORS_LIST,
     GET_FILM_DETAIL,
     GET_FILM_LIST,
-    GET_GENRES,
     UPDATE_FILM,
-    URL_IMAGE,
 } from "../../../config/ApiConfig";
-import { EditOutlined, VerticalAlignTopOutlined } from "@ant-design/icons";
+import { EditOutlined, UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "./DetailFilm.css";
-import { FormData } from "../../../types/interface";
 
 const EditFilm = ({ id }: any) => {
     const [form] = Form.useForm();
@@ -39,47 +34,6 @@ const EditFilm = ({ id }: any) => {
     const [preview, setPreview] = useState<string>();
     const [openModal, setOpenModal] = useState(false);
 
-    const { data: dataActors, refetch: refetchDataActors } = useQuery({
-        queryKey: ["Actors"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_ACTOR_LIST);
-            console.log("check-3", data);
-            return data.map((item: any) => ({
-                label: item.name_actor,
-                value: item.name_actor,
-            }));
-        },
-        enabled: false,
-    });
-
-    const { data: dataDirectors, refetch: refetchDataDirectors } = useQuery({
-        queryKey: ["Directors"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_DIRECTORS_LIST);
-            console.log("check-2", data);
-
-            return data.map((item: any) => ({
-                label: item.name_director,
-                value: item.id,
-            }));
-        },
-        enabled: false,
-    });
-
-    const { data: dataGenres, refetch: refetchDataGenres } = useQuery({
-        queryKey: ["Genres"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_GENRES);
-            console.log("check-1", data);
-
-            return data.map((item: any) => ({
-                label: item.name_genre,
-                value: item.name_genre,
-            }));
-        },
-        enabled: false,
-    });
-
     const { data, isLoading } = useQuery({
         queryKey: ["filmList", id],
         queryFn: async () => {
@@ -89,13 +43,16 @@ const EditFilm = ({ id }: any) => {
         },
         enabled: openModal,
         onSuccess: (data: any) => {
-            form.setFieldsValue(data);
+            form.setFieldsValue({
+                ...data,
+                directors: data.directors?.name_director ?? "chưa công bố",
+            });
             setPoster(data.poster ?? "");
         },
     });
 
     const { mutate } = useMutation({
-        mutationFn: async (formData: FormData) => {
+        mutationFn: async (formData) => {
             await axios.put(UPDATE_FILM(id), formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -103,40 +60,26 @@ const EditFilm = ({ id }: any) => {
             });
         },
         onSuccess: () => {
-            form.resetFields();
-            messageApi.success("Thêm thành công");
-            setSelectedFile(undefined);
-            setPreview(undefined);
+            messageApi.success("Sửa thành công");
             queryClient.invalidateQueries({
                 queryKey: ["filmList"],
             });
-        },
-        onError: (error: any) => {
-            messageApi.error(
-                error?.response?.data?.message || "Có lỗi xảy ra!"
-            );
+            form.resetFields();
+            setOpenModal(false);
         },
     });
 
-    const onFinish = (formData: FormData) => {
-        const newForm = {
-            title: formData.title,
-            poster: selectedFile,
-            trailer: formData.trailer,
-            name_directors: formData.name_director,
-            name_actors: formData.name_actor,
-            movie_status: formData.movie_status,
-            release_date: formData.release_date,
-            running_time: formData.running_time,
-            rated: formData.rated,
-            language: formData.language,
-            id: formData.id,
-            name_genres: formData.name_genres,
-            description: formData.description,
-            director_id: formData.name_director[0],
-        };
-        mutate(newForm);
-        form.resetFields();
+    const handleFinish = (formData: any) => {
+        const dataToSend = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+            dataToSend.append(key, value);
+        });
+
+        if (selectedFile) {
+            dataToSend.append("poster", selectedFile);
+        }
+
+        mutate(dataToSend);
     };
 
     const handleCancel = () => {
@@ -151,17 +94,20 @@ const EditFilm = ({ id }: any) => {
         if (openModal && data) {
             form.setFieldsValue({
                 ...data,
-                name_actor:
-                    data.actors?.map((actor: any) => actor.name_actor) || [],
-                name_director: data.directors ? [data.directors.id] : [],
-                name_genres:
-                    data.genres?.map((genre: any) => genre.name_genre) || [],
+                directors: data.directors?.name_director ?? "chưa công bố",
+                actors: Array.isArray(data.actors)
+                    ? data.actors
+                          .map((actor: any) => actor.name_actor)
+                          .join(", ")
+                    : "không có",
+                genres: Array.isArray(data.genres)
+                    ? data.genres
+                          .map((genre: any) => genre.name_genre)
+                          .join(", ")
+                    : "không có",
             });
             setPoster(data.poster ?? "");
         }
-        refetchDataActors();
-        refetchDataDirectors();
-        refetchDataGenres();
     }, [openModal, data, form]);
 
     useEffect(() => {
@@ -175,10 +121,6 @@ const EditFilm = ({ id }: any) => {
 
         return () => URL.revokeObjectURL(objectUrl);
     }, [selectedFile]);
-
-    const handleChange = (value: string[], fieldName: string) => {
-        form.setFieldsValue({ [fieldName]: value });
-    };
 
     const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -222,7 +164,7 @@ const EditFilm = ({ id }: any) => {
             <Drawer
                 title="Cập nhật phim "
                 placement="right"
-                width={800}
+                width={700}
                 onClose={handleCancel}
                 open={openModal}
                 extra={
@@ -238,10 +180,11 @@ const EditFilm = ({ id }: any) => {
                 <Skeleton loading={isLoading} active>
                     <Form
                         form={form}
-                        name="add-film-form"
+                        name="film-edit-form"
                         labelCol={{ span: 8 }}
                         wrapperCol={{ span: 16 }}
-                        onFinish={onFinish}
+                        onFinish={handleFinish}
+                        initialValues={data}
                     >
                         <Row gutter={16}>
                             <Col span={12}>
@@ -284,43 +227,24 @@ const EditFilm = ({ id }: any) => {
                                     <Space.Compact>
                                         <input
                                             type="file"
-                                            accept="image/*"
                                             id="uploadFile"
                                             onChange={handleChangeImage}
                                             style={{ display: "none" }}
                                         />
-                                        <label
-                                            htmlFor="uploadFile"
-                                            className="addImage"
-                                        >
-                                            <VerticalAlignTopOutlined /> Thêm
-                                            ảnh
+                                        <label htmlFor="uploadFile">
+                                            Thêm ảnh
                                         </label>
-
-                                        {preview ? (
+                                        {selectedFile && (
                                             <Image
-                                                src={preview}
-                                                alt="Preview"
+                                                src={`${GET_FILM_LIST}/${preview}`}
+                                                alt="poster"
                                                 style={{
                                                     marginTop: "8px",
                                                     objectFit: "cover",
                                                 }}
-                                                width={180}
-                                                height={220}
+                                                width={160}
+                                                height={980}
                                             />
-                                        ) : (
-                                            poster && (
-                                                <Image
-                                                    src={`${URL_IMAGE}${poster}`}
-                                                    alt="Poster"
-                                                    style={{
-                                                        marginTop: "8px",
-                                                        objectFit: "cover",
-                                                    }}
-                                                    width={180}
-                                                    height={220}
-                                                />
-                                            )
                                         )}
                                     </Space.Compact>
                                 </Form.Item>
@@ -329,25 +253,21 @@ const EditFilm = ({ id }: any) => {
                                 <Form.Item
                                     className="input-label"
                                     label="Diễn viên"
-                                    name="name_actor"
+                                    name="actors"
                                     rules={[
                                         {
                                             required: true,
                                             message: "Vui lòng nhập diễn viên",
                                         },
+                                        {
+                                            type: "string",
+                                            min: 6,
+                                            message:
+                                                "Diễn viên phải có ít nhất 6 ký tự",
+                                        },
                                     ]}
                                 >
-                                    <Select
-                                        mode="multiple"
-                                        allowClear
-                                        style={{ width: "100%" }}
-                                        placeholder="Please select"
-                                        onChange={(value) =>
-                                            handleChange(value, "name_actor")
-                                        }
-                                        options={dataActors}
-                                        value={form.getFieldValue("name_actor")}
-                                    />
+                                    <Input placeholder="Nhập tên diễn viên" />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -378,27 +298,21 @@ const EditFilm = ({ id }: any) => {
                                 <Form.Item
                                     className="input-label"
                                     label="Đạo diễn"
-                                    name="name_director"
+                                    name="directors"
                                     rules={[
                                         {
                                             required: true,
                                             message: "Vui lòng nhập đạo diễn",
                                         },
+                                        {
+                                            type: "string",
+                                            min: 6,
+                                            message:
+                                                "Đạo diễn phải có ít nhất 6 ký tự",
+                                        },
                                     ]}
                                 >
-                                    <Select
-                                        mode="multiple"
-                                        allowClear
-                                        style={{ width: "100%" }}
-                                        placeholder="Please select"
-                                        onChange={(value) =>
-                                            handleChange(value, "name_director")
-                                        }
-                                        options={dataDirectors}
-                                        value={form.getFieldValue(
-                                            "name_director"
-                                        )}
-                                    />
+                                    <Input placeholder="Tên đạo diễn"></Input>
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -434,10 +348,7 @@ const EditFilm = ({ id }: any) => {
                                     label="Thời lượng"
                                     name="running_time"
                                 >
-                                    <Input
-                                        placeholder="Nhập Thời lượng phim"
-                                        style={{ width: "100%" }}
-                                    />
+                                    <InputNumber placeholder="Nhập Thời lượng phim" />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -498,49 +409,27 @@ const EditFilm = ({ id }: any) => {
                             <Col span={12}>
                                 <Form.Item
                                     className="input-label"
-                                    label="Thể loại"
-                                    name="name_genres"
+                                    label="Thể loại:"
+                                    name="genres"
                                     rules={[
                                         {
                                             required: true,
-                                            message:
-                                                "Vui lòng nhập ID sản phẩm",
+                                            message: "Vui lòng nhập thể loại ",
                                         },
                                     ]}
                                 >
-                                    <Select
-                                        mode="multiple"
-                                        allowClear
-                                        style={{ width: "100%" }}
-                                        placeholder="Please select"
-                                        onChange={(value) =>
-                                            handleChange(value, "name_genre")
-                                        }
-                                        options={dataGenres}
-                                        value={form.getFieldValue("name_genre")}
-                                    />
+                                    <Input placeholder="Nhập thể loại" />
                                 </Form.Item>
                             </Col>
                         </Row>
                         <Row gutter={16}>
                             <Col span={24}>
                                 <Form.Item
-                                    className="input-labell"
+                                    className="input-label"
                                     name="description"
                                     label="Description:"
                                 >
                                     <Input.TextArea rows={4} />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={24}>
-                                <Form.Item
-                                    style={{ display: "none" }}
-                                    name="director_id"
-                                    label="ID đạo diễn:"
-                                >
-                                    <Input disabled></Input>
                                 </Form.Item>
                             </Col>
                         </Row>

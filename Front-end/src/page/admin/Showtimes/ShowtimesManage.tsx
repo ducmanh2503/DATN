@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
-import { Button, Input, Space, Table } from "antd";
+import { Button, Divider, Form, Input, Select, Space, Table } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
 
@@ -11,6 +11,12 @@ interface DataType {
     age: number;
     address: string;
 }
+
+type FieldType = {
+    username?: string;
+    password?: string;
+    remember?: string;
+};
 
 type DataIndex = keyof DataType;
 
@@ -155,6 +161,10 @@ const ShowtimesManage: React.FC = () => {
             ),
     });
 
+    const handleChange = (value: string) => {
+        console.log(`selected ${value}`);
+    };
+
     const columns: TableColumnsType<DataType> = [
         {
             title: "Phim chiếu",
@@ -194,7 +204,69 @@ const ShowtimesManage: React.FC = () => {
         },
     ];
 
-    return <Table<DataType> columns={columns} dataSource={data} />;
+    return (
+        <>
+            <Form
+                name="basic"
+                // onFinish={onFinish}
+                // onFinishFailed={onFinishFailed}
+                autoComplete="off"
+                layout="inline"
+            >
+                <Form.Item<FieldType>
+                    label="Phòng chiếu:"
+                    name="username"
+                    rules={[
+                        {
+                            required: true,
+                            message: "Please input your username!",
+                        },
+                    ]}
+                >
+                    <Select
+                        placeholder={"phòng chiếu"}
+                        style={{ width: 120 }}
+                        onChange={handleChange}
+                        options={[
+                            { value: "2D", label: "2D" },
+                            { value: "3D", label: "3D" },
+                            { value: "4D", label: "4D" },
+                        ]}
+                    ></Select>
+                </Form.Item>
+
+                <Form.Item<FieldType>
+                    label="Ngày chiếu:"
+                    name="password"
+                    rules={[
+                        {
+                            required: true,
+                            message: "Please input your password!",
+                        },
+                    ]}
+                >
+                    <Select
+                        placeholder={"ngày chiếu"}
+                        style={{ width: 120 }}
+                        onChange={handleChange}
+                        options={[
+                            { value: "2D", label: "2D" },
+                            { value: "3D", label: "3D" },
+                            { value: "4D", label: "4D" },
+                        ]}
+                    ></Select>
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary">Tìm kiếm</Button>
+                </Form.Item>
+            </Form>
+            <Divider variant="solid" style={{ borderColor: "#7cb305" }}>
+                Lịch chiếu ngày:
+            </Divider>
+            <h1>Phòng chiếu</h1>
+            <Table<DataType> columns={columns} dataSource={data} />;
+        </>
+    );
 };
 
 export default ShowtimesManage;

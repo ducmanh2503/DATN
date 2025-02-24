@@ -170,7 +170,6 @@ const CalendarManage: React.FC = () => {
             messageApi.success("Xóa lịch chiếu thành công");
             queryClient.invalidateQueries({
                 queryKey: ["showtimesFilm"],
-                refetchType: "none",
             });
         },
     });
@@ -204,6 +203,10 @@ const CalendarManage: React.FC = () => {
                             title="Ngày bắt đầu"
                             dataIndex="show_date"
                             key="show_date"
+                            sorter={(a, b) =>
+                                new Date(a.show_date).getTime() -
+                                new Date(b.show_date).getTime()
+                            }
                         />
                         <Column
                             title="Ngày kết thúc"
@@ -213,9 +216,16 @@ const CalendarManage: React.FC = () => {
                     </ColumnGroup>
                     <Column
                         title="Phân loại"
-                        dataIndex="movie_status"
+                        dataIndex={["movie", "movie_status"]} // Truy cập trực tiếp
                         key="movie_status"
-                        render={(status: string) => {
+                        sorter={
+                            (a, b) =>
+                                a.movie.movie_status.localeCompare(
+                                    b.movie.movie_status
+                                ) // So sánh chuỗi
+                        }
+                        render={(_, record: any) => {
+                            const status = record.movie.movie_status;
                             return status === "now_showing" ? (
                                 <Tag color="green">Đang chiếu</Tag>
                             ) : (
@@ -223,6 +233,7 @@ const CalendarManage: React.FC = () => {
                             );
                         }}
                     />
+
                     <Column
                         title="Action"
                         key="action"
@@ -230,7 +241,7 @@ const CalendarManage: React.FC = () => {
                             <Space size="middle">
                                 <Popconfirm
                                     title="Xóa phim này?"
-                                    description="Bạn có chắc chắn muốn xóa  không?"
+                                    description="Bạn có chắc chắn muốn xóa không?"
                                     okText="Yes"
                                     onConfirm={() => mutate(record.id)}
                                     cancelText="No"

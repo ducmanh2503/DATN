@@ -9,7 +9,6 @@ import {
     Modal,
     Select,
     Skeleton,
-    TimePicker,
 } from "antd";
 import dayjs from "dayjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -21,25 +20,6 @@ const EditCalendar = ({ id }: any) => {
     const [formShowtime] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
     const queryClient = useQueryClient();
-
-    const { mutate } = useMutation({
-        mutationFn: async (formData) => {
-            await axios.put(
-                `http://localhost:8000/api/calendarShow/${id}`,
-                formData
-            );
-        },
-        onSuccess: (updatedData) => {
-            queryClient.setQueryData(["showtimesFilm", id], updatedData);
-            messageApi.success("Cập nhật thành công");
-            setOpenEdit(false);
-            formShowtime.resetFields();
-        },
-
-        onError: (error) => {
-            messageApi.error(error.message);
-        },
-    });
 
     const { data, isLoading } = useQuery({
         queryKey: ["showtimesFilm", id],
@@ -56,17 +36,44 @@ const EditCalendar = ({ id }: any) => {
         retry: false,
     });
 
+    const { mutate } = useMutation({
+        mutationFn: async (formData) => {
+            console.log("check api", formData);
+
+            const response = await axios.put(
+                `http://localhost:8000/api/calendarShow/${id}`,
+                formData
+            );
+
+            return response.data;
+        },
+        onSuccess: (data) => {
+            console.log("checkkk", data);
+
+            queryClient.invalidateQueries({
+                queryKey: ["showtimesFilm"],
+            });
+            messageApi.success("Cập nhật thành công");
+            setOpenEdit(false);
+            formShowtime.resetFields();
+        },
+        onError: (error) => {
+            console.error("API Error:", error?.response?.data || error.message);
+            messageApi.error(
+                error?.response?.data?.message || "Cập nhật thất bại"
+            );
+        },
+    });
+
     useEffect(() => {
-        console.log(data);
         if (data) {
-            console.log(data.movie?.title);
+            console.log("Movie status:", data.movie?.movie_status);
             formShowtime.setFieldsValue({
                 movie_id: data.movie_id,
-                room_id: data.room_id,
                 title: data.movie?.title,
                 movie_status: data.movie?.movie_status,
                 show_date: dayjs(data.show_date).format("YYYY/MM/DD"),
-                end_date: dayjs(data.show_time).format("YYYY/MM/DD"),
+                end_date: dayjs(data.end_date).format("YYYY/MM/DD"),
             });
         }
         return () => {
@@ -114,13 +121,6 @@ const EditCalendar = ({ id }: any) => {
                         <Form.Item
                             label="movie_id"
                             name="movie_id"
-                            style={{ display: "none" }}
-                        >
-                            <InputNumber disabled />
-                        </Form.Item>
-                        <Form.Item
-                            label="room_id"
-                            name="room_id"
                             style={{ display: "none" }}
                         >
                             <InputNumber disabled />
@@ -182,7 +182,17 @@ const EditCalendar = ({ id }: any) => {
                                 },
                             ]}
                         >
-                            <Select placeholder="Chọn trạng thái">
+                            <Select
+                                placeholder="Chọn trạng thái"
+                                allowClear
+                                onChange={(value) =>
+                                    formShowtime.setFieldValue(
+                                        "movie_status",
+                                        value
+                                    )
+                                }
+                                disabled
+                            >
                                 <Select.Option value="now_showing">
                                     Đang chiếu
                                 </Select.Option>

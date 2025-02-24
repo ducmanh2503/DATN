@@ -13,6 +13,7 @@ export interface FormData {
     description: string;
     directors: string; //filmManage type
     genre: string; //filmManage type
+    id: number; // editFilmManage type
 }
 
 export interface DataTypeGenresActorsDirectors {

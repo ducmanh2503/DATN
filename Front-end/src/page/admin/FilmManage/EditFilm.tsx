@@ -12,6 +12,7 @@ import {
     Select,
     Skeleton,
     Space,
+
 } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
@@ -29,13 +30,13 @@ import "./DetailFilm.css";
 import { FormData } from "../../../types/interface";
 
 const EditFilm = ({ id }: any) => {
-    const [form] = Form.useForm();
-    const [messageApi, contextHolder] = message.useMessage();
-    const queryClient = useQueryClient();
-    const [poster, setPoster] = useState("");
-    const [selectedFile, setSelectedFile] = useState();
-    const [preview, setPreview] = useState<string>();
-    const [openModal, setOpenModal] = useState(false);
+  const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
+  const queryClient = useQueryClient();
+  const [poster, setPoster] = useState("");
+  const [selectedFile, setSelectedFile] = useState();
+  const [preview, setPreview] = useState<string>();
+  const [openModal, setOpenModal] = useState(false);
 
     const { data: dataActors, refetch: refetchDataActors } = useQuery({
         queryKey: ["Actors"],
@@ -114,7 +115,17 @@ const EditFilm = ({ id }: any) => {
                 error?.response?.data?.message || "Có lỗi xảy ra!"
             );
         },
-    });
+      });
+    },
+    onSuccess: () => {
+      messageApi.success("Sửa thành công");
+      queryClient.invalidateQueries({
+        queryKey: ["filmList"],
+      });
+      form.resetFields();
+      setOpenModal(false);
+    },
+  });
 
     const onFinish = (formData: FormData) => {
         const newForm = {
@@ -137,13 +148,10 @@ const EditFilm = ({ id }: any) => {
         form.resetFields();
     };
 
-    const handleCancel = () => {
-        form.resetFields();
-        setOpenModal(false);
-    };
-    const showDrawer = () => {
-        setOpenModal(true);
-    };
+    // Đạo diễn: đảm bảo đúng `director_id`
+    if (formData.directors && formData.directors !== "chưa công bố") {
+      dataToSend.append("director_id", formData.directors);
+    }
 
     useEffect(() => {
         if (data) {
@@ -165,17 +173,32 @@ const EditFilm = ({ id }: any) => {
         refetchDataGenres();
     }, []);
 
-    useEffect(() => {
-        if (!selectedFile) {
-            setPreview(undefined);
-            return;
-        }
+    mutate(dataToSend);
+  };
 
-        const objectUrl = URL.createObjectURL(selectedFile);
-        setPreview(objectUrl);
+  const handleCancel = () => {
+    form.resetFields();
+    setOpenModal(false);
+  };
+  const showDrawer = () => {
+    setOpenModal(true);
+  };
 
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [selectedFile]);
+  useEffect(() => {
+    if (openModal && data) {
+      form.setFieldsValue({
+        ...data,
+        directors: data.directors?.name_director ?? "chưa công bố",
+        actors: Array.isArray(data.actors)
+          ? data.actors.map((actor: any) => actor.name_actor).join(", ")
+          : "không có",
+        genres: Array.isArray(data.genres)
+          ? data.genres.map((genre: any) => genre.name_genre).join(", ")
+          : "không có",
+      });
+      setPoster(data.poster ?? "");
+    }
+  }, [openModal, data, form]);
 
     const handleChange = (value: string[], fieldName: string) => {
         form.setFieldsValue({ [fieldName]: value });
@@ -184,17 +207,11 @@ const EditFilm = ({ id }: any) => {
     const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
 
-        if (!file) {
-            setSelectedFile(undefined);
-            setPreview(undefined);
-            return;
-        }
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreview(objectUrl);
 
-        if (!file.type.startsWith("image/")) {
-            message.error("Vui lòng chọn tệp hình ảnh (jpg, png, jpeg).");
-            e.target.value = "";
-            return;
-        }
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
 
         if (file.size > 2 * 1024 * 1024) {
             message.error("Kích thước ảnh không được vượt quá 2MB.");
@@ -205,19 +222,37 @@ const EditFilm = ({ id }: any) => {
         setPreview(URL.createObjectURL(file));
     };
 
-    if (isLoading) {
-        return <Skeleton active></Skeleton>;
+    if (file.size > 2 * 1024 * 1024) {
+      message.error("Kích thước ảnh không được vượt quá 2MB.");
+      e.target.value = "";
+      return;
     }
 
-    return (
-        <div>
-            <Button
-                type="primary"
-                onClick={showDrawer}
-                style={{ padding: "6px" }}
-            >
-                <EditOutlined />
-                Cập nhật
+    setSelectedFile(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
+  if (isLoading) {
+    return <Skeleton active></Skeleton>;
+  }
+
+  return (
+    <div>
+      <Button type="primary" onClick={showDrawer} style={{ padding: "6px" }}>
+        <EditOutlined />
+        Cập nhật
+      </Button>
+      <Drawer
+        title="Cập nhật phim "
+        placement="right"
+        width={700}
+        onClose={handleCancel}
+        open={openModal}
+        extra={
+          <Space>
+            <Button onClick={handleCancel}>Hủy</Button>
+            <Button type="primary" onClick={() => form.submit()}>
+              Lưu
             </Button>
             <Drawer
                 title="Cập nhật phim "

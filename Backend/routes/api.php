@@ -53,6 +53,8 @@ Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus'])
 
 //showtimes
 Route::apiResource('showTime', ShowTimeController::class);
+Route::post('show-times/filter-by-date', [ShowTimeController::class, 'filterByDate']);
+
 
 // CalendarShow
 Route::apiResource('calendarShow', CalendarShowController::class);
@@ -83,3 +85,4 @@ Route::apiResource('actors', ActorController::class);
 
 //Đạo diễn
 Route::apiResource('directors', DirectorController::class);
+

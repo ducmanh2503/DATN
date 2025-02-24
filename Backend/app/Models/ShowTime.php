@@ -22,6 +22,6 @@ class ShowTime extends Model
 
     public function calendarShow()
     {
-        return $this->belongsTo(CalendarShow::class);
+        return $this->belongsTo(CalendarShow::class, 'calendar_show_id');
     }
 }

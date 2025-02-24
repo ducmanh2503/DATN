@@ -174,10 +174,10 @@ class MoviesController extends Controller
 
         //Lấy dữ liệu phim hợp lệ từ request
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255|unique:movies,title',
+            'title' => 'required|string|max:255|unique:movies,title,' . $id,
             'director_id' => 'required|exists:directors,id',
             'release_date' => 'required|date_format:Y-m-d',
-            'running_time' => 'required|string',
+            'running_time' => 'required|integer',
             'language' => 'required|string|max:100',
             'rated' => 'required|string|max:255',
             'description' => 'nullable|string|unique:movies,trailer',

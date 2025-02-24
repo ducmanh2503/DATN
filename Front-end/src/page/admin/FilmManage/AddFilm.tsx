@@ -1,24 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-    Button,
-    Col,
-    DatePicker,
-    Form,
-    Image,
-    Input,
-    message,
-    Row,
-    Select,
-    Skeleton,
-    Space,
+  Button,
+  Col,
+  DatePicker,
+  Form,
+  Image,
+  Input,
+  message,
+  Row,
+  Select,
+  Skeleton,
+  Space,
 } from "antd";
 import axios from "axios";
 import {
-    CREATE_FILM,
-    GET_ACTOR_LIST,
-    GET_DIRECTORS_LIST,
-    GET_FILM_LIST,
-    GET_GENRES,
+  CREATE_FILM,
+  GET_ACTOR_LIST,
+  GET_DIRECTORS_LIST,
+  GET_FILM_LIST,
+  GET_GENRES,
 } from "../../../config/ApiConfig";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
@@ -27,477 +27,453 @@ import { FormData } from "../../../types/interface";
 import { VerticalAlignTopOutlined } from "@ant-design/icons";
 
 const AddFilm = () => {
-    const [messageApi, contextHolder] = message.useMessage();
-    const queryClient = useQueryClient();
-    const [form] = Form.useForm();
-    const [selectedFile, setSelectedFile] = useState();
-    const [preview, setPreview] = useState<string>();
-    const [name_actors, setName_actors] = useState([]);
-    const [name_directors, setName_directors] = useState([]);
+  const [messageApi, contextHolder] = message.useMessage();
+  const queryClient = useQueryClient();
+  const [form] = Form.useForm();
+  const [selectedFile, setSelectedFile] = useState();
+  const [preview, setPreview] = useState<string>();
+  const [name_actors, setName_actors] = useState([]);
+  const [name_directors, setName_directors] = useState([]);
 
-    const onFinish = (formData: FormData) => {
-        const newForm = {
-            title: formData.title,
-            poster: selectedFile,
-            trailer: formData.trailer,
-            name_directors: formData.name_director,
-            name_actors: formData.name_actor,
-            movie_status: formData.movie_status,
-            release_date: formData.release_date,
-            running_time: formData.running_time,
-            rated: formData.rated,
-            language: formData.language,
-            genre_id: formData.genre_id,
-            name_genres: formData.name_genres,
-            description: formData.description,
-            director_id: formData.name_director[0],
-        };
-        mutate(newForm);
-        form.resetFields();
+  const onFinish = (formData: FormData) => {
+    const newForm = {
+      title: formData.title,
+      poster: selectedFile,
+      trailer: formData.trailer,
+      name_directors: formData.name_director,
+      name_actors: formData.name_actor,
+      movie_status: formData.movie_status,
+      release_date: formData.release_date,
+      running_time: formData.running_time,
+      rated: formData.rated,
+      language: formData.language,
+      genre_id: formData.genre_id,
+      name_genres: formData.name_genres,
+      description: formData.description,
+      director_id: formData.name_director[0],
     };
+    mutate(newForm);
+    form.resetFields();
+  };
 
-    const handleChange = (value: string[], fieldName: string) => {
-        form.setFieldsValue({ [fieldName]: value });
-    };
+  const handleChange = (value: string[], fieldName: string) => {
+    form.setFieldsValue({ [fieldName]: value });
+  };
 
-    const { data: moviesName, isLoading } = useQuery({
+  const { data: moviesName, isLoading } = useQuery({
+    queryKey: ["filmList"],
+    queryFn: async () => {
+      const { data } = await axios.get(GET_FILM_LIST);
+      console.log("check-4", data);
+
+      return data.movies.map((item: any) => ({
+        ...item,
+        key: item.id,
+      }));
+    },
+  });
+
+  const { data: dataActors, refetch: refetchDataActors } = useQuery({
+    queryKey: ["Actors"],
+    queryFn: async () => {
+      const { data } = await axios.get(GET_ACTOR_LIST);
+      console.log("check-3", data);
+      return data.map((item: any) => ({
+        label: item.name_actor,
+        value: item.name_actor,
+      }));
+    },
+    enabled: false,
+  });
+
+  const { data: dataDirectors, refetch: refetchDataDirectors } = useQuery({
+    queryKey: ["Directors"],
+    queryFn: async () => {
+      const { data } = await axios.get(GET_DIRECTORS_LIST);
+      console.log("check-2", data);
+
+      return data.map((item: any) => ({
+        label: item.name_director,
+        value: item.id,
+      }));
+    },
+    enabled: false,
+  });
+
+  const { data: dataGenres, refetch: refetchDataGenres } = useQuery({
+    queryKey: ["Genres"],
+    queryFn: async () => {
+      const { data } = await axios.get(GET_GENRES);
+      console.log("check-1", data);
+
+      return data.map((item: any) => ({
+        label: item.name_genre,
+        value: item.name_genre,
+      }));
+    },
+    enabled: false,
+  });
+
+  useEffect(() => {
+    refetchDataActors(); // Chạy API dataActors 1 lần
+    refetchDataDirectors(); // Chạy API dataDirectors 1 lần
+    refetchDataGenres(); // Chạy API DataGenres 1 lần
+  }, []);
+
+  const { mutate } = useMutation({
+    mutationFn: async (formData: FormData) => {
+      await axios.post(`${CREATE_FILM}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    },
+    onSuccess: () => {
+      form.resetFields();
+      messageApi.success("Thêm thành công");
+      setSelectedFile(undefined);
+      setPreview(undefined);
+      queryClient.invalidateQueries({
         queryKey: ["filmList"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_FILM_LIST);
-            console.log("check-4", data);
+      });
+    },
+    onError: (error: any) => {
+      messageApi.error(error?.response?.data?.message || "Có lỗi xảy ra!");
+    },
+  });
 
-            return data.movies.map((item: any) => ({
-                ...item,
-                key: item.id,
-            }));
-        },
-    });
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreview(undefined);
+      return;
+    }
 
-    const { data: dataActors, refetch: refetchDataActors } = useQuery({
-        queryKey: ["Actors"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_ACTOR_LIST);
-            console.log("check-3", data);
-            return data.map((item: any) => ({
-                label: item.name_actor,
-                value: item.name_actor,
-            }));
-        },
-        enabled: false,
-    });
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreview(objectUrl);
 
-    const { data: dataDirectors, refetch: refetchDataDirectors } = useQuery({
-        queryKey: ["Directors"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_DIRECTORS_LIST);
-            console.log("check-2", data);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
 
-            return data.map((item: any) => ({
-                label: item.name_director,
-                value: item.id,
-            }));
-        },
-        enabled: false,
-    });
+  const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
-    const { data: dataGenres, refetch: refetchDataGenres } = useQuery({
-        queryKey: ["Genres"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_GENRES);
-            console.log("check-1", data);
+    if (!file) {
+      setSelectedFile(undefined);
+      setPreview(undefined);
+      return;
+    }
 
-            return data.map((item: any) => ({
-                label: item.name_genre,
-                value: item.name_genre,
-            }));
-        },
-        enabled: false,
-    });
+    if (!file.type.startsWith("image/")) {
+      message.error("Vui lòng chọn tệp hình ảnh (jpg, png, jpeg).");
+      e.target.value = "";
+      return;
+    }
 
-    useEffect(() => {
-        refetchDataActors(); // Chạy API dataActors 1 lần
-        refetchDataDirectors(); // Chạy API dataDirectors 1 lần
-        refetchDataGenres(); // Chạy API DataGenres 1 lần
-    }, []);
+    if (file.size > 2 * 1024 * 1024) {
+      message.error("Kích thước ảnh không được vượt quá 2MB.");
+      e.target.value = "";
+      return;
+    }
 
-    const { mutate } = useMutation({
-        mutationFn: async (formData: FormData) => {
-            await axios.post(`${CREATE_FILM}`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-        },
-        onSuccess: () => {
-            form.resetFields();
-            messageApi.success("Thêm thành công");
-            setSelectedFile(undefined);
-            setPreview(undefined);
-            queryClient.invalidateQueries({
-                queryKey: ["filmList"],
-            });
-        },
-        onError: (error: any) => {
-            messageApi.error(
-                error?.response?.data?.message || "Có lỗi xảy ra!"
-            );
-        },
-    });
+    setSelectedFile(file);
+    setPreview(URL.createObjectURL(file));
+  };
 
-    useEffect(() => {
-        if (!selectedFile) {
-            setPreview(undefined);
-            return;
-        }
+  return (
+    <div className="container-addFilm">
+      <div className="form-addFilm">
+        {contextHolder}
+        <h1 className="title-addFilm">Thêm mới phim</h1>
+        <Skeleton loading={isLoading} active>
+          <Form
+            form={form}
+            name="add-film-form"
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
+            onFinish={onFinish}
+          >
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="Tiêu đề"
+                  name="title"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập tên phim",
+                    },
+                    {
+                      min: 3,
+                      message: "Tên phim phải có ít nhất 3 ký tự",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Nhập tên phim" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="Trailer"
+                  name="trailer"
+                >
+                  <Input placeholder="Nhập tên trailer"></Input>
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item className="input-label" label="Poster" name="poster">
+                  <Space.Compact>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="uploadFile"
+                      onChange={handleChangeImage}
+                      style={{ display: "none" }}
+                    />
+                    <label htmlFor="uploadFile" className="addImage">
+                      <VerticalAlignTopOutlined /> Thêm ảnh
+                    </label>
+                    {selectedFile && (
+                      <Image
+                        src={preview}
+                        alt="poster"
+                        style={{
+                          marginTop: "8px",
+                          objectFit: "cover",
+                        }}
+                        width={180}
+                        height={220}
+                      />
+                    )}
+                  </Space.Compact>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="Diễn viên"
+                  name="name_actor"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập diễn viên",
+                    },
+                  ]}
+                >
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: "100%" }}
+                    placeholder="Please select"
+                    onChange={(value) => handleChange(value, "name_actor")}
+                    options={dataActors}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="Trạng thái"
+                  name="movie_status"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập trạng thái",
+                    },
+                  ]}
+                >
+                  <Select placeholder="Chọn trạng thái">
+                    <Select.Option value="now_showing">
+                      Đang chiếu
+                    </Select.Option>
+                    <Select.Option value="coming_soon">Sắp chiếu</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="Đạo diễn"
+                  name="name_director"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập đạo diễn",
+                    },
+                  ]}
+                >
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: "100%" }}
+                    placeholder="Please select"
+                    onChange={(value) => handleChange(value, "name_director")}
+                    options={dataDirectors}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  name="release_date"
+                  label="Ngày phát hành"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Thêm ngày phát hành",
+                    },
+                  ]}
+                  getValueFromEvent={(e: any) => e?.format("YYYY-MM-DD")}
+                  getValueProps={(e: string) => ({
+                    value: e ? dayjs(e) : "",
+                  })}
+                >
+                  <DatePicker
+                    style={{ width: "100%" }}
+                    format="YYYY-MM-DD"
+                    allowClear
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="Thời lượng"
+                  name="running_time"
+                >
+                  <Input
+                    placeholder="Nhập Thời lượng phim"
+                    style={{ width: "100%" }}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="Giới hạn tuổi"
+                  name="rated"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập giới hạn tuổi",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Giới hạn tuổi"></Input>
+                </Form.Item>
+              </Col>
 
-        const objectUrl = URL.createObjectURL(selectedFile);
-        setPreview(objectUrl);
-
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [selectedFile]);
-
-    const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-
-        if (!file) {
-            setSelectedFile(undefined);
-            setPreview(undefined);
-            return;
-        }
-
-        if (!file.type.startsWith("image/")) {
-            message.error("Vui lòng chọn tệp hình ảnh (jpg, png, jpeg).");
-            e.target.value = "";
-            return;
-        }
-
-        if (file.size > 2 * 1024 * 1024) {
-            message.error("Kích thước ảnh không được vượt quá 2MB.");
-            e.target.value = "";
-            return;
-        }
-
-        setSelectedFile(file);
-        setPreview(URL.createObjectURL(file));
-    };
-
-    return (
-        <div className="container-addFilm">
-            <div className="form-addFilm">
-                {contextHolder}
-                <h1 className="title-addFilm">Thêm mới phim</h1>
-                <Skeleton loading={isLoading} active>
-                    <Form
-                        form={form}
-                        name="add-film-form"
-                        labelCol={{ span: 8 }}
-                        wrapperCol={{ span: 16 }}
-                        onFinish={onFinish}
-                    >
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Tiêu đề"
-                                    name="title"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Vui lòng nhập tên phim",
-                                        },
-                                        {
-                                            min: 3,
-                                            message:
-                                                "Tên phim phải có ít nhất 3 ký tự",
-                                        },
-                                    ]}
-                                >
-                                    <Input placeholder="Nhập tên phim" />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Trailer"
-                                    name="trailer"
-                                >
-                                    <Input placeholder="Nhập tên trailer"></Input>
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Poster"
-                                    name="poster"
-                                >
-                                    <Space.Compact>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            id="uploadFile"
-                                            onChange={handleChangeImage}
-                                            style={{ display: "none" }}
-                                        />
-                                        <label
-                                            htmlFor="uploadFile"
-                                            className="addImage"
-                                        >
-                                            <VerticalAlignTopOutlined /> Thêm
-                                            ảnh
-                                        </label>
-                                        {selectedFile && (
-                                            <Image
-                                                src={preview}
-                                                alt="poster"
-                                                style={{
-                                                    marginTop: "8px",
-                                                    objectFit: "cover",
-                                                }}
-                                                width={180}
-                                                height={220}
-                                            />
-                                        )}
-                                    </Space.Compact>
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Diễn viên"
-                                    name="name_actor"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Vui lòng nhập diễn viên",
-                                        },
-                                    ]}
-                                >
-                                    <Select
-                                        mode="multiple"
-                                        allowClear
-                                        style={{ width: "100%" }}
-                                        placeholder="Please select"
-                                        onChange={(value) =>
-                                            handleChange(value, "name_actor")
-                                        }
-                                        options={dataActors}
-                                    />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Trạng thái"
-                                    name="movie_status"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Vui lòng nhập trạng thái",
-                                        },
-                                    ]}
-                                >
-                                    <Select placeholder="Chọn trạng thái">
-                                        <Select.Option value="now_showing">
-                                            Đang chiếu
-                                        </Select.Option>
-                                        <Select.Option value="coming_soon">
-                                            Sắp chiếu
-                                        </Select.Option>
-                                    </Select>
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Đạo diễn"
-                                    name="name_director"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Vui lòng nhập đạo diễn",
-                                        },
-                                    ]}
-                                >
-                                    <Select
-                                        mode="multiple"
-                                        allowClear
-                                        style={{ width: "100%" }}
-                                        placeholder="Please select"
-                                        onChange={(value) =>
-                                            handleChange(value, "name_director")
-                                        }
-                                        options={dataDirectors}
-                                    />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    name="release_date"
-                                    label="Ngày phát hành"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Thêm ngày phát hành",
-                                        },
-                                    ]}
-                                    getValueFromEvent={(e: any) =>
-                                        e?.format("YYYY-MM-DD")
-                                    }
-                                    getValueProps={(e: string) => ({
-                                        value: e ? dayjs(e) : "",
-                                    })}
-                                >
-                                    <DatePicker
-                                        style={{ width: "100%" }}
-                                        format="YYYY-MM-DD"
-                                        allowClear
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Thời lượng"
-                                    name="running_time"
-                                >
-                                    <Input
-                                        placeholder="Nhập Thời lượng phim"
-                                        style={{ width: "100%" }}
-                                    />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Giới hạn tuổi"
-                                    name="rated"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                "Vui lòng nhập giới hạn tuổi",
-                                        },
-                                    ]}
-                                >
-                                    <Input placeholder="Giới hạn tuổi"></Input>
-                                </Form.Item>
-                            </Col>
-
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Ngôn ngữ"
-                                    name="language"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Vui lòng nhập ngôn ngữ",
-                                        },
-                                        {
-                                            type: "string",
-                                        },
-                                    ]}
-                                >
-                                    <Input placeholder="Loại ngôn ngữ" />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="ID"
-                                    name="genre_id"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                "Vui lòng nhập ID sản phẩm",
-                                        },
-                                    ]}
-                                >
-                                    <Input placeholder="Nhập ID sản phẩm" />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item
-                                    className="input-label"
-                                    label="Thể loại"
-                                    name="name_genres"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                "Vui lòng nhập ID sản phẩm",
-                                        },
-                                    ]}
-                                >
-                                    <Select
-                                        mode="multiple"
-                                        allowClear
-                                        style={{ width: "100%" }}
-                                        placeholder="Please select"
-                                        onChange={(value) =>
-                                            handleChange(value, "name_genre")
-                                        }
-                                        options={dataGenres}
-                                    />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={24}>
-                                <Form.Item
-                                    className="input-labell"
-                                    name="description"
-                                    label="Description:"
-                                >
-                                    <Input.TextArea rows={4} />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={24}>
-                                <Form.Item
-                                    style={{ display: "none" }}
-                                    name="director_id"
-                                    label="ID đạo diễn:"
-                                >
-                                    <Input disabled></Input>
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Button htmlType="submit" type="primary">
-                            Thêm
-                        </Button>
-                    </Form>
-                </Skeleton>
-            </div>
-            <div className="list-addFilm">
-                {moviesName?.map((film: any) => (
-                    <div key={film.key} className="list-product">
-                        <img
-                            src={film.poster}
-                            alt={film.title}
-                            className="w-full h-auto rounded-md"
-                        />
-                        <h2 className="mt-2 text-white text-lg font-semibold">
-                            {film.title}
-                        </h2>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="Ngôn ngữ"
+                  name="language"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập ngôn ngữ",
+                    },
+                    {
+                      type: "string",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Loại ngôn ngữ" />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="ID"
+                  name="genre_id"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập ID sản phẩm",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Nhập ID sản phẩm" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  className="input-label"
+                  label="Thể loại"
+                  name="name_genres"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập ID sản phẩm",
+                    },
+                  ]}
+                >
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: "100%" }}
+                    placeholder="Please select"
+                    onChange={(value) => handleChange(value, "name_genre")}
+                    options={dataGenres}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item
+                  className="input-labell"
+                  name="description"
+                  label="Description:"
+                >
+                  <Input.TextArea rows={4} />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item
+                  style={{ display: "none" }}
+                  name="director_id"
+                  label="ID đạo diễn:"
+                >
+                  <Input disabled></Input>
+                </Form.Item>
+              </Col>
+            </Row>
+            <Button htmlType="submit" type="primary">
+              Thêm
+            </Button>
+          </Form>
+        </Skeleton>
+      </div>
+      <div className="list-addFilm">
+        {moviesName?.map((film: any) => (
+          <div key={film.key} className="list-product">
+            <img
+              src={film.poster}
+              alt={film.title}
+              className="w-full h-auto rounded-md"
+            />
+            <h2 className="mt-2 text-white text-lg font-semibold">
+              {film.title}
+            </h2>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default AddFilm;

@@ -2,29 +2,22 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
-
 use App\Models\Movies;
+use App\Models\User;
 use App\Policies\MoviesPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Request;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    /**
-     * The model to policy mappings for the application.
-     *
-     * @var array<class-string, class-string>
-     */
-    protected $policies = [
-        // Đăng ký policy cho Movies model
-        Movies::class => MoviesPolicy::class,
-    ];
 
-    /**
-     * Register any authentication / authorization services.
-     */
-    public function boot(): void
+    public function boot()
     {
-        $this->registerPolicies();
+        // ✅ Gate kiểm tra xem người dùng có phải admin không
+        Gate::define('isAdmin', function (User $user) {
+            return $user->role === 'admin';
+        });
     }
 }

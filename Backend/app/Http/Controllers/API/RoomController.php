@@ -20,7 +20,7 @@ class RoomController extends Controller
         // Trả về phản hồi dạng JSON với cấu trúc dữ liệu phân trang đầy đủ
         return response()->json([
             'message' => 'Danh sách phòng',
-            'data' => $rooms->items(),
+            'rooms' => $rooms,
         ], 200);
     }
 

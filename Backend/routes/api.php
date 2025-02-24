@@ -29,10 +29,9 @@ Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'user'])
 //admin
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
 
 
-// Đảm bảo người dùng đã xác thực và có quyền admin
-// Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 //Movie
 Route::apiResource('movies', MoviesController::class);
 Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']); // API xóa vĩnh viễn 1 phim
@@ -41,7 +40,6 @@ Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceD
 Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']); // API khôi phục phim đã bị xóa mềm
 
 Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']); // API hiển thị thông tin phim đã bị xóa mềm
-// });
 
 //Room
 Route::apiResource('room', RoomController::class);

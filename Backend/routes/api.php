@@ -41,7 +41,6 @@ Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceD
 Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']); // API khôi phục phim đã bị xóa mềm
 
 Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']); // API hiển thị thông tin phim đã bị xóa mềm
-// Route::get('/movie/image/{imageName}', [MoviesController::class, 'getImageUrl']); // API lấy đường dẫn ảnh phim
 // });
 
 //Room

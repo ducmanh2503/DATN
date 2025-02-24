@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Movies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -16,8 +17,10 @@ class MoviesController extends Controller
      */
     public function index()
     {
-        // Kiểm tra quyền xem danh sách phim trong admin
-        // $this->authorize('viewAny', Movies::class);
+
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
 
         //Hiển thị tất cả phim
         $movies = Movies::query()->latest('id')->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
@@ -42,8 +45,10 @@ class MoviesController extends Controller
 
     public function store(Request $request)
     {
-        // Kiểm tra quyền thêm mới phim trong admin
-        // $this->authorize('create', Movies::class);
+
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
 
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
@@ -118,6 +123,11 @@ class MoviesController extends Controller
      */
     public function show(string $id)
     {
+
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
+
         //Tìm phim theo id và lấy thông tin liên quan (Actors, Genres, Director)
         $movie = Movies::with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->find($id);
 
@@ -137,6 +147,11 @@ class MoviesController extends Controller
 
     public function showMovieDestroy(string $id)
     {
+
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
+
         //Tìm phim theo id và lấy thông tin liên quan (Actors, Genres, Director)
         $movie = Movies::onlyTrashed()->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->find($id);
 
@@ -159,6 +174,11 @@ class MoviesController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
+
         //Tìm phim theo id
         $movie = Movies::find($id);
 
@@ -168,9 +188,6 @@ class MoviesController extends Controller
                 'message' => 'Không tìm thấy phim này',
             ], 404);
         }
-
-        // Kiểm tra quyền cập nhật phim trong admin
-        // $this->authorize('update', $movie);
 
         //Lấy dữ liệu phim hợp lệ từ request
         $validator = Validator::make($request->all(), [
@@ -240,10 +257,12 @@ class MoviesController extends Controller
      */
     public function destroyMultiple(Request $request)
     {
-        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
-        // Kiểm tra quyền xóa phim trong admin
-        // $this->authorize('delete', Movies::class);
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
+
+        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
         // Nếu không có phim nào được chọn
         if (empty($ids)) {
@@ -264,12 +283,14 @@ class MoviesController extends Controller
     //Xóa mềm 1 phim
     public function destroy($id)
     {
+
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
+
         try {
             // Tìm phim theo ID
             $movie = Movies::findOrFail($id);
-
-            // Kiểm tra quyền xóa phim trong admin
-            // $this->authorize('delete', $movie);
 
             // Xóa phim
             $movie->delete();
@@ -284,14 +305,16 @@ class MoviesController extends Controller
 
     public function restore($id)
     {
+
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
+
         $movie = Movies::onlyTrashed()->find($id);
 
         if (!$movie) {
             return response()->json(['message' => 'Không tìm thấy phim đã bị xóa'], 404);
         }
-
-        // Kiểm tra quyền khôi phục phim trong admin
-        // $this->authorize('restore', $movie);
 
         $movie->restore(); // Khôi phục phim
 
@@ -301,15 +324,18 @@ class MoviesController extends Controller
     //Xóa vĩnh viễn nhiều phim
     public function forceDeleteMultiple(Request $request)
     {
+
+
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
+
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
         // Nếu không có phim nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có phim nào được chọn'], 400);
         }
-
-        // Kiểm tra quyền xóa vĩnh viễn phim trong admin
-        // $this->authorize('forceDelete', Movies::class);
 
         //Xóa vĩnh viễn các phim được chọn
         $deleted = Movies::onlyTrashed()->whereIn('id', $ids)->forceDelete();
@@ -325,6 +351,12 @@ class MoviesController extends Controller
     //Xóa vĩnh viễn 1 phim
     public function forceDeleteSingle($id)
     {
+
+
+        // if (!Gate::allows('isAdmin')) {
+        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        // }
+
         // Tìm phim đã xóa mềm theo ID
         $movie = Movies::onlyTrashed()->find($id);
 
@@ -332,9 +364,6 @@ class MoviesController extends Controller
         if (!$movie) {
             return response()->json(['message' => 'Phim không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
         }
-
-        // Kiểm tra quyền xóa vĩnh viễn phim trong admin
-        // $this->authorize('forceDelete', $movie);
 
         // Xóa vĩnh viễn phim
         $movie->forceDelete();

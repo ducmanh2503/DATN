@@ -280,7 +280,6 @@ const EditFilm = ({ id }: any) => {
                     <label htmlFor="uploadFile" className="addImage">
                       <VerticalAlignTopOutlined /> Thêm ảnh
                     </label>
-
                     {preview ? (
                       <Image
                         src={preview}
@@ -430,7 +429,6 @@ const EditFilm = ({ id }: any) => {
                   <Input placeholder="Giới hạn tuổi"></Input>
                 </Form.Item>
               </Col>
-
               <Col span={12}>
                 <Form.Item
                   className="input-label"

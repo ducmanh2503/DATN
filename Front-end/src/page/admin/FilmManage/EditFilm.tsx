@@ -422,12 +422,14 @@ const EditFilm = ({ id }: any) => {
                                     ]}
                                 >
                                     <Select
-                                        mode="multiple"
                                         allowClear
                                         style={{ width: "100%" }}
                                         placeholder="Please select"
                                         onChange={(value) =>
-                                            handleChange(value, "name_director")
+                                            handleChange(
+                                                [value],
+                                                "name_director"
+                                            )
                                         }
                                         options={dataDirectors}
                                         value={form.getFieldValue(

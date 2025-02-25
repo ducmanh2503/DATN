@@ -1,9 +1,21 @@
 import React, { useRef, useState } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
-import { Button, Divider, Form, Input, Select, Space, Table } from "antd";
+import {
+    Button,
+    DatePicker,
+    Divider,
+    Form,
+    Input,
+    Select,
+    Space,
+    Table,
+} from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { GET_LIST_SHOWTIMES } from "../../../config/ApiConfig";
 
 interface DataType {
     key: string;
@@ -20,37 +32,11 @@ type FieldType = {
 
 type DataIndex = keyof DataType;
 
-const data: DataType[] = [
-    {
-        key: "1",
-        name: "John Brown",
-        age: 32,
-        address: "New York No. 1 Lake Park",
-    },
-    {
-        key: "2",
-        name: "Joe Black",
-        age: 42,
-        address: "London No. 1 Lake Park",
-    },
-    {
-        key: "3",
-        name: "Jim Green",
-        age: 32,
-        address: "Sydney No. 1 Lake Park",
-    },
-    {
-        key: "4",
-        name: "Jim Red",
-        age: 32,
-        address: "London No. 2 Lake Park",
-    },
-];
-
 const ShowtimesManage: React.FC = () => {
     const [searchText, setSearchText] = useState("");
     const [searchedColumn, setSearchedColumn] = useState("");
     const searchInput = useRef<InputRef>(null);
+    // const [DateShowtimes,setDateShowtimes] = useState()
 
     const handleSearch = (
         selectedKeys: string[],
@@ -168,15 +154,19 @@ const ShowtimesManage: React.FC = () => {
     const columns: TableColumnsType<DataType> = [
         {
             title: "Phim chiếu",
-            dataIndex: "name",
-            key: "name",
-            ...getColumnSearchProps("name"),
+            dataIndex: "room_id",
+            key: "room_id",
+            // ...getColumnSearchProps(""),
         },
         {
             title: "Hình thức chiếu",
-            dataIndex: "age",
-            key: "age",
+            dataIndex: "name",
+            key: "name",
             ...getColumnSearchProps("age"),
+            render: (_, record: any) => {
+                console.log("checkk", record);
+                return <span>{record.room.room_type}</span>;
+            },
         },
         {
             title: "Hình thức dịch",
@@ -186,9 +176,12 @@ const ShowtimesManage: React.FC = () => {
         },
         {
             title: "Thời gian chiếu",
-            dataIndex: "address",
-            key: "address",
+            dataIndex: "start_time",
+            key: "start_time",
             ...getColumnSearchProps("address"),
+            render: (_, time: any) => {
+                return <span>{`${time.start_time} ~ ${time.end_time}`}</span>;
+            },
         },
         {
             title: "Loại suất chiếu",
@@ -198,14 +191,28 @@ const ShowtimesManage: React.FC = () => {
         },
         {
             title: "Trạng thái",
-            dataIndex: "address",
-            key: "address",
+            dataIndex: "status",
+            key: "status",
             ...getColumnSearchProps("address"),
         },
     ];
 
+    const { data, isLoading } = useQuery({
+        queryKey: ["filmList"],
+        queryFn: async () => {
+            const { data } = await axios.get(GET_LIST_SHOWTIMES);
+            console.log("check-4", data);
+
+            return data.map((item: any) => ({
+                ...item,
+                key: item.id,
+            }));
+        },
+    });
+
     return (
         <>
+            <></>
             <Form
                 name="basic"
                 // onFinish={onFinish}
@@ -245,16 +252,7 @@ const ShowtimesManage: React.FC = () => {
                         },
                     ]}
                 >
-                    <Select
-                        placeholder={"ngày chiếu"}
-                        style={{ width: 120 }}
-                        onChange={handleChange}
-                        options={[
-                            { value: "2D", label: "2D" },
-                            { value: "3D", label: "3D" },
-                            { value: "4D", label: "4D" },
-                        ]}
-                    ></Select>
+                    <DatePicker></DatePicker>
                 </Form.Item>
                 <Form.Item>
                     <Button type="primary">Tìm kiếm</Button>

@@ -4,7 +4,12 @@ import { PlusCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { GET_FILM_LIST } from "../../../config/ApiConfig";
+import {
+    CREATE_CALENDAR,
+    GET_CALENDAR,
+    GET_FILM_LIST,
+    UPDATE_CALENDAR,
+} from "../../../config/ApiConfig";
 
 const AddCalendar: React.FC = () => {
     const [open, setOpen] = useState(false);
@@ -25,9 +30,7 @@ const AddCalendar: React.FC = () => {
         queryKey: ["filmList"],
         queryFn: async () => {
             const { data } = await axios.get(GET_FILM_LIST);
-            const { data: showtimeData } = await axios.get(
-                `http://localhost:8000/api/calendarShow`
-            );
+            const { data: showtimeData } = await axios.get(GET_CALENDAR);
 
             const showtimeMovieIds = showtimeData.map(
                 (item: any) => item.movie_id
@@ -45,17 +48,14 @@ const AddCalendar: React.FC = () => {
     });
 
     const { mutate } = useMutation({
-        mutationFn: async (formData) => {
+        mutationFn: async (formData: any) => {
             const newFormData = {
                 ...formData,
                 show_date: formData.show_date
                     ? dayjs(formData.show_date).format("YYYY/MM/DD")
                     : null,
             };
-            await axios.post(
-                `http://localhost:8000/api/calendarShow`,
-                newFormData
-            );
+            await axios.post(CREATE_CALENDAR, newFormData);
         },
         onSuccess: () => {
             formShowtime.resetFields();

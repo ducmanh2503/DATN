@@ -204,9 +204,9 @@ const ActorsManage: React.FC = () => {
                 queryKey: ["Actors"],
             });
         },
-        onError: (error: any) => {
+        onError: () => {
             messageApi.error(
-                error?.response?.data?.message || "Có lỗi xảy ra!"
+                "Không thể xóa diễn viên đang tham gia phim đang chiếu"
             );
         },
     });

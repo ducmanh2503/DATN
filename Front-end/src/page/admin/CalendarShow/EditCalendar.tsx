@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { EditOutlined } from "@ant-design/icons";
+import { DETAIL_CALENDAR, UPDATE_CALENDAR } from "../../../config/ApiConfig";
 
 const EditCalendar = ({ id }: any) => {
     const [openEdit, setOpenEdit] = useState(false);
@@ -24,9 +25,7 @@ const EditCalendar = ({ id }: any) => {
     const { data, isLoading } = useQuery({
         queryKey: ["showtimesFilm", id],
         queryFn: async () => {
-            const { data } = await axios.get(
-                `http://localhost:8000/api/calendarShow/${id}`
-            );
+            const { data } = await axios.get(DETAIL_CALENDAR(id));
 
             console.log("check", data);
 
@@ -40,10 +39,7 @@ const EditCalendar = ({ id }: any) => {
         mutationFn: async (formData) => {
             console.log("check api", formData);
 
-            const response = await axios.put(
-                `http://localhost:8000/api/calendarShow/${id}`,
-                formData
-            );
+            const response = await axios.put(UPDATE_CALENDAR(id), formData);
 
             return response.data;
         },
@@ -51,29 +47,27 @@ const EditCalendar = ({ id }: any) => {
             console.log("checkkk", data);
 
             queryClient.invalidateQueries({
-                queryKey: ["showtimesFilm"],
+                queryKey: ["showtimesFilm", id],
             });
             messageApi.success("Cập nhật thành công");
             setOpenEdit(false);
             formShowtime.resetFields();
         },
-        onError: (error) => {
-            console.error("API Error:", error?.response?.data || error.message);
+        onError: (error: any) => {
             messageApi.error(
-                error?.response?.data?.message || "Cập nhật thất bại"
+                error?.response?.data?.message || "Có lỗi xảy ra!"
             );
         },
     });
 
     useEffect(() => {
         if (data) {
-            console.log("Movie status:", data.movie?.movie_status);
             formShowtime.setFieldsValue({
                 movie_id: data.movie_id,
                 title: data.movie?.title,
                 movie_status: data.movie?.movie_status,
-                show_date: dayjs(data.show_date).format("YYYY/MM/DD"),
-                end_date: dayjs(data.end_date).format("YYYY/MM/DD"),
+                show_date: dayjs(data.show_date).format("YYYY-MM-DD"),
+                end_date: dayjs(data.end_date).format("YYYY-MM-DD"),
             });
         }
         return () => {
@@ -106,7 +100,6 @@ const EditCalendar = ({ id }: any) => {
                 open={openEdit}
                 onOk={() => formShowtime.submit()}
                 onCancel={handleCancel}
-                destroyOnClose
             >
                 {contextHolder}
                 <Skeleton loading={isLoading} active>

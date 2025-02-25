@@ -7,37 +7,39 @@ import { SelectFormProps } from "../../../types/interface";
 const SelectForm: React.FC<SelectFormProps> = ({
     queryKey,
     endpoint,
-    labelKey = "name_director",
-    dataName,
+    labelKey = "name_actor",
+    valueKey = "name_actor",
     refetchDataName,
     onChange,
     form,
+    placeholder = "Please select",
 }) => {
     const { data, refetch } = useQuery({
         queryKey: [queryKey],
         queryFn: async () => {
-            const { data } = await axios.get(endpoint ?? "");
+            const { data } = await axios.get(endpoint);
+            console.log("check-3", data);
+
             return data.map((item: any) => ({
                 label: item[labelKey],
-                value: item.id,
+                value: item[valueKey],
             }));
         },
-        enabled: false,
+
+        enabled: !!endpoint,
     });
 
-    // Ưu tiên dữ liệu từ props nếu có, nếu không dùng từ query
-    const options = dataName ?? data ?? [];
+    const options = data ?? [];
 
-    // Fetch khi endpoint thay đổi và không có dataName
     useEffect(() => {
-        if (!dataName && endpoint && refetchDataName) {
-            refetchDataName();
+        if (endpoint) {
+            refetch();
         }
-    }, [dataName, endpoint, refetch]);
+    }, [endpoint, refetch]);
 
-    // Xử lý khi thay đổi lựa chọn
-    const handleSelectChange = (value: string[], fieldName: string) => {
-        form.setFieldsValue({ [fieldName]: value });
+    const handleChange = (value: string[]) => {
+        form?.setFieldsValue({ [queryKey]: value });
+        onChange?.(value, queryKey);
     };
 
     return (
@@ -45,9 +47,10 @@ const SelectForm: React.FC<SelectFormProps> = ({
             mode="multiple"
             allowClear
             style={{ width: "100%" }}
-            placeholder="Please select"
-            onChange={handleSelectChange}
+            placeholder={placeholder}
+            onChange={handleChange}
             options={options}
+            value={form?.getFieldValue(labelKey)}
         />
     );
 };

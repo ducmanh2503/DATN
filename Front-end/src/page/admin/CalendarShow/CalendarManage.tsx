@@ -21,14 +21,10 @@ import ColumnGroup from "antd/es/table/ColumnGroup";
 import EditCalendar from "../CalendarShow/EditCalendar";
 import RefreshBtn from "../RefreshBtn";
 import "@ant-design/v5-patch-for-react-19";
+import { DataTypeGenresActorsDirectors } from "../../../types/interface";
+import { DELETE_CALENDAR, GET_CALENDAR } from "../../../config/ApiConfig";
 
-interface DataType {
-    key: string;
-    movie: string;
-    id: number;
-}
-
-type DataIndex = keyof DataType;
+type DataIndex = keyof DataTypeGenresActorsDirectors;
 
 const CalendarManage: React.FC = () => {
     const [searchText, setSearchText] = useState("");
@@ -54,7 +50,7 @@ const CalendarManage: React.FC = () => {
 
     const getColumnSearchProps = (
         dataIndex: DataIndex
-    ): TableColumnType<DataType> => ({
+    ): TableColumnType<DataTypeGenresActorsDirectors> => ({
         filterDropdown: ({
             setSelectedKeys,
             selectedKeys,
@@ -149,9 +145,7 @@ const CalendarManage: React.FC = () => {
     const { data, isLoading } = useQuery({
         queryKey: ["showtimesFilm"],
         queryFn: async () => {
-            const { data } = await axios.get(
-                `http://localhost:8000/api/calendarShow`
-            );
+            const { data } = await axios.get(GET_CALENDAR);
             console.log("showtime-data", data);
 
             return data.map((item: any) => ({
@@ -164,7 +158,7 @@ const CalendarManage: React.FC = () => {
 
     const { mutate } = useMutation({
         mutationFn: async (id: number) => {
-            await axios.delete(`http://localhost:8000/api/calendarShow/${id}`);
+            await axios.delete(DELETE_CALENDAR(id));
         },
         onSuccess: () => {
             messageApi.success("Xóa lịch chiếu thành công");
@@ -180,7 +174,7 @@ const CalendarManage: React.FC = () => {
             <RefreshBtn queryKey={["showtimesFilm"]}></RefreshBtn>
             {contextHolder}
             <Skeleton loading={isLoading} active>
-                <Table<DataType> dataSource={data}>
+                <Table<DataTypeGenresActorsDirectors> dataSource={data}>
                     <Column
                         title="Phim chiếu"
                         dataIndex="movie"
@@ -237,7 +231,10 @@ const CalendarManage: React.FC = () => {
                     <Column
                         title="Action"
                         key="action"
-                        render={(_: any, record: DataType) => (
+                        render={(
+                            _: any,
+                            record: DataTypeGenresActorsDirectors
+                        ) => (
                             <Space size="middle">
                                 <Popconfirm
                                     title="Xóa phim này?"

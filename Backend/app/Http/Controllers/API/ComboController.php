@@ -19,7 +19,7 @@ class ComboController extends Controller
 
         return response()->json([
             'message' => 'Danh Combo',
-            'data' => $combo->items(),
+            'combo' => $combo,
 
         ], 200);
     }

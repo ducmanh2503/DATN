@@ -16,12 +16,12 @@ import {
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    GET_ACTOR_LIST,
-    GET_DIRECTORS_LIST,
-    GET_FILM_DETAIL,
-    GET_GENRES,
-    UPDATE_FILM,
-    URL_IMAGE,
+  GET_ACTOR_LIST,
+  GET_DIRECTORS_LIST,
+  GET_FILM_DETAIL,
+  GET_GENRES,
+  UPDATE_FILM,
+  URL_IMAGE,
 } from "../../../config/ApiConfig";
 import { EditOutlined, VerticalAlignTopOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -37,7 +37,7 @@ const EditFilm = ({ id }: any) => {
     const [selectedFile, setSelectedFile] = useState<File | undefined>();
     const [preview, setPreview] = useState<string>();
     const [openModal, setOpenModal] = useState(false);
-
+  
     const { data: dataDirectors } = useQuery({
         queryKey: ["Directors"],
         queryFn: async () => {
@@ -150,8 +150,11 @@ const EditFilm = ({ id }: any) => {
         form.setFieldsValue({ [fieldName]: value });
     };
 
-    const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreview(undefined);
+      return;
+    }
 
         if (!file) {
             setSelectedFile(undefined);

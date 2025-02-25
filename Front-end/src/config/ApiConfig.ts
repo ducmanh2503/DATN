@@ -7,10 +7,10 @@ const CREATE_FILM = `${BASE_URL}/movies`;
 const UPDATE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const DELETE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const FORCE_DELETE_FILM = (id: number) =>
-    `${BASE_URL}/movies/force-delete/${id}`;
+  `${BASE_URL}/movies/force-delete/${id}`;
 const RESTORE_FILM = (id: number) => `${BASE_URL}/movies/restore/${id}`;
 const DETAIL_DELETE_FILM = (id: number) =>
-    `${BASE_URL}/movies/show-movie-destroy/${id}`;
+  `${BASE_URL}/movies/show-movie-destroy/${id}`;
 
 const GET_DIRECTORS_LIST = `${BASE_URL}/directors`;
 const UPDATE_DIRECTORS = (id: number) => `${BASE_URL}/directors/${id}`;

@@ -16,6 +16,7 @@
         "laravel/nexmo-notification-channel": "^3.3",
         "laravel/sanctum": "^3.3",
         "laravel/slack-notification-channel": "^3.4",
+        "laravel/socialite": "^5.18",
         "laravel/tinker": "^2.8",
         "openai-php/laravel": "^0.10.2",
         "phpmailer/phpmailer": "^6.9",

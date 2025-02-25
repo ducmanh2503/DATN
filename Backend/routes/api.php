@@ -10,7 +10,7 @@ use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\ShowTimeController;
-
+use App\Http\Controllers\SocialAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -26,10 +26,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'user']); // API lấy thông tin người dùng đã xác thực
-//admin
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout']);
+
+Route::post('/register', [AuthController::class, 'register']); // Đăng ký
+Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail']); // Gửi lại mã xác thực
+Route::post('/login', [AuthController::class, 'login']); // Đăng nhập
+
 
 
 //Movie
@@ -84,3 +85,9 @@ Route::apiResource('actors', ActorController::class);
 //Đạo diễn
 Route::apiResource('directors', DirectorController::class);
 
+//Đăng nhập bằng google và facebook
+Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle']);
+Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+
+Route::get('auth/facebook', [SocialAuthController::class, 'redirectToFacebook']);
+Route::get('auth/facebook/callback', [SocialAuthController::class, 'handleFacebookCallback']);

@@ -18,9 +18,9 @@ class MoviesController extends Controller
     public function index()
     {
 
-        // if (!Gate::allows('isAdmin')) {
-        //     return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        // }
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
 
         //Hiển thị tất cả phim
         $movies = Movies::query()->latest('id')->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();

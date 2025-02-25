@@ -15,7 +15,7 @@ class ShowTimeController extends Controller
      */
     public function index()
     {
-        $showTime = ShowTime::query()->latest('id')->with(['calendarShow', 'room'])->get();
+        $showTime = ShowTime::query()->latest('id')->with(['calendarShow.movie','calendarShow', 'room'])->get();
 
         return response()->json($showTime, 200);
     }
@@ -56,7 +56,7 @@ class ShowTimeController extends Controller
      */
     public function show(string $id)
     {
-        $showTime = ShowTime::with(['calendarShow', 'room'])->find($id);
+        $showTime = ShowTime::with(['calendarShow.movie','calendarShow', 'room'])->find($id);
 
         if (!$showTime) {
             return response()->json(['message' => 'Xuất chiếu không tồn tại'], 404);
@@ -130,7 +130,9 @@ class ShowTimeController extends Controller
     }
 
     // Lọc các showTime dựa trên các calendarShow
-    $showTimes = ShowTime::whereIn('calendar_show_id', $calendarShows->pluck('id'))->get();
+    $showTimes = ShowTime::whereIn('calendar_show_id', $calendarShows->pluck('id'))
+    ->with(['calendarShow.movie', 'calendarShow', 'room']) // Eager load movie từ calendarShow
+    ->get();
 
     return response()->json($showTimes, 200);
 }

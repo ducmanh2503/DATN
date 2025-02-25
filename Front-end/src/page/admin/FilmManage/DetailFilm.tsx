@@ -116,6 +116,7 @@ const DetailFilm = ({ id, film, apiUrl }: any) => {
                             >
                                 {poster && (
                                     <Image
+                                        className="imagePreview"
                                         src={`${URL_IMAGE}${poster}`}
                                         alt="poster"
                                         width={160}

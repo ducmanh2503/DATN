@@ -22,16 +22,24 @@ export interface DataTypeGenresActorsDirectors {
     genre: string;
     actors: string;
     directors: string;
+    movie: string;
 }
 
 export interface SelectFormProps {
-    queryKey?: string;
-    endpoint?: string;
+    queryKey: string;
+    endpoint: string;
     labelKey?: string;
-    dataName?: string;
+    valueKey?: string;
+    dataName?: { label: string; value: string | number }[];
     refetchDataName?: () => void;
-    onChange?: (value: (string | number)[]) => void;
-    form: any;
+    onChange?: (value: string[], fieldName: string) => void;
+    form?: any;
+    name: string;
+    placeholder?: string;
+}
+
+export interface RefreshBtnProps {
+    queryKey: (string | number)[];
 }
 
 // onError: (error: any) => {

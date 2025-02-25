@@ -10,6 +10,7 @@
     display: flex;
     align-items: flex-start;
     width: 100%;
+    gap: 30px;
 }
 
 .form-addFilm {
@@ -18,11 +19,11 @@
 }
 
 .list-addFilm {
+    width: 40%;
     display: flex;
     justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
-    width: 40%;
 }
 
 .list-addFilm .list-product {
@@ -35,7 +36,7 @@
 
 .addImage {
     background-color: #5cb338;
-    padding: 8px 16px;
+    padding: 6px 6px;
     border-radius: 6px;
     color: white;
     height: 38px;

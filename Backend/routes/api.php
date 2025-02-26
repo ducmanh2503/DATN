@@ -53,6 +53,7 @@ Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus'])
 //showtimes
 Route::apiResource('showTime', ShowTimeController::class);
 Route::post('show-times/filter-by-date', [ShowTimeController::class, 'filterByDate']);
+Route::post('show-times/filter-by-date-one', [ShowTimeController::class, 'filterByDateOne']);
 
 
 // CalendarShow

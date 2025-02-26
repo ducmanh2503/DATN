@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Showtimes
     Route::apiResource('showTime', ShowTimeController::class);
     Route::post('show-times/filter-by-date', [ShowTimeController::class, 'filterByDate']);
+    Route::post('show-times/filter-by-date-one', [ShowTimeController::class, 'filterByDateOne']);
 
     // CalendarShow
     Route::apiResource('calendarShow', CalendarShowController::class);
@@ -66,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('genres', GenreController::class);
     Route::apiResource('actors', ActorController::class);
     Route::apiResource('directors', DirectorController::class);
+
 
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);

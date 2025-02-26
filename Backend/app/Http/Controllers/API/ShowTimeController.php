@@ -113,31 +113,31 @@ class ShowTimeController extends Controller
     }
 
 //------------------------------------showTime-------------------------------------------------
-//     public function filterByDate(Request $request)
-// {
-//     // Validate ngày chiếu được truyền vào
-//     $validator = Validator::make($request->all(), [
-//         'show_date' => 'required|date',  // Ngày phải đúng định dạng
-//     ]);
+    public function filterByDateOne(Request $request)
+{
+    // Validate ngày chiếu được truyền vào
+    $validator = Validator::make($request->all(), [
+        'show_date' => 'required|date',  // Ngày phải đúng định dạng
+    ]);
 
-//     if ($validator->fails()) {
-//         return response()->json(['error' => $validator->errors()], 422);
-//     }
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
 
-//     // Lọc các lịch chiếu theo ngày
-//     $calendarShows = CalendarShow::where('show_date', $request->show_date)->get();
+    // Lọc các lịch chiếu theo ngày
+    $calendarShows = CalendarShow::where('show_date', $request->show_date)->get();
 
-//     if ($calendarShows->isEmpty()) {
-//         return response()->json(['message' => 'Không có lịch chiếu nào cho ngày này'], 404);
-//     }
+    if ($calendarShows->isEmpty()) {
+        return response()->json(['message' => 'Không có lịch chiếu nào cho ngày này'], 404);
+    }
 
-//     // Lọc các showTime dựa trên các calendarShow
-//     $showTimes = ShowTime::whereIn('calendar_show_id', $calendarShows->pluck('id'))
-//     ->with(['calendarShow.movie', 'calendarShow', 'room']) // Eager load movie từ calendarShow
-//     ->get();
+    // Lọc các showTime dựa trên các calendarShow
+    $showTimes = ShowTime::whereIn('calendar_show_id', $calendarShows->pluck('id'))
+    ->with(['calendarShow.movie', 'calendarShow', 'room']) // Eager load movie từ calendarShow
+    ->get();
 
-//     return response()->json($showTimes, 200);
-// }
+    return response()->json($showTimes, 200);
+}
 
 
 //------------------------------------showTime-------------------------------------------------//

@@ -13,5 +13,6 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         'http://localhost:3000/*', // Cho phép frontend React truy cập API
+        'api/*'
     ];
 }

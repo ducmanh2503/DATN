@@ -11,7 +11,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\GuzzleHttp\Client::class, function () {
+            return new \GuzzleHttp\Client([
+                'verify' => 'H:/laragon/etc/ssl/cacert.pem',
+            ]);
+        });
     }
 
     /**

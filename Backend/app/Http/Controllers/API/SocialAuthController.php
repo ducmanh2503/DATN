@@ -21,8 +21,16 @@ class SocialAuthController extends Controller
     public function handleGoogleCallback(Request $request)
     {
         try {
-            // Sử dụng stateless() để tránh lỗi session
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            // Cấu hình Guzzle cho Socialite
+            $clientOptions = [
+                'verify' => 'H:/laragon/etc/ssl/cacert.pem',
+            ];
+
+            // Áp dụng cấu hình và lấy user
+            $googleUser = Socialite::driver('google')
+                ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
+                ->stateless()
+                ->user();
 
             // Kiểm tra xem user đã tồn tại chưa
             $user = User::where('email', $googleUser->getEmail())->first();
@@ -32,10 +40,18 @@ class SocialAuthController extends Controller
                 $user = User::create([
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
+                    'phone' => null,
+                    'is_verified' => true,
                     'password' => bcrypt(Str::random(16)), // Mật khẩu ngẫu nhiên
                     'google_id' => $googleUser->getId()
                 ]);
+            } else {
+                // Nếu user đã tồn tại, cập nhật is_verified thành true (nếu chưa phải là true)
+                if ($user->is_verified != true) {
+                    $user->update(['is_verified' => true,]);
+                }
             }
+
 
             // Tạo token để ReactJS dùng
             $token = $user->createToken('auth_token')->plainTextToken;

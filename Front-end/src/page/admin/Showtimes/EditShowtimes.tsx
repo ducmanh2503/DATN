@@ -1,28 +1,27 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { EditOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import {
     Button,
     DatePicker,
     Form,
-    TimePicker,
+    Input,
     message,
     Modal,
     Select,
     Tag,
-    Input,
+    TimePicker,
 } from "antd";
+import { useEffect, useState } from "react";
+import dayjs from "dayjs";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import "../FilmManage/AddFilm.css";
 import {
     GET_CALENDAR,
+    GET_DETAIL_ONE_SHOWTIMES,
     GET_FILM_LIST,
     UPDATE_SHOWTIMES,
 } from "../../../config/ApiConfig";
-import { useEffect, useState } from "react";
-import { PlusCircleOutlined } from "@ant-design/icons";
-import "./ShowtimesRoom.css";
-import dayjs from "dayjs";
 
-const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
+const EditShowtimes = ({ id, selectedDate }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
     const [open, setOpen] = useState(false);
@@ -51,6 +50,7 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
     };
 
     const showModal = () => {
+        // form.setFieldsValue(detailShowtimes);
         setOpen(true);
     };
 
@@ -62,12 +62,25 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
     };
 
     useEffect(() => {
-        if (selectedDate) {
-            form.setFieldsValue({
-                show_time: dayjs(selectedDate),
-            });
+        if (selectedDate && dayjs(selectedDate).isValid()) {
+            form.setFieldsValue({ show_time: dayjs(selectedDate) });
+        } else {
+            console.error("Invalid date:", selectedDate);
         }
     }, [selectedDate, form, open]);
+
+    const { data: detailShowtimes } = useQuery({
+        queryKey: ["showtimes", id],
+        queryFn: async () => {
+            const { data } = await axios.get(GET_DETAIL_ONE_SHOWTIMES(id));
+            console.log("check show-time", data);
+
+            return {
+                ...data,
+                show_time: data.show_time ? dayjs(data.show_time) : undefined, // Chỉ chuyển đổi nếu có giá trị
+            };
+        },
+    });
 
     const { data: filmList } = useQuery({
         queryKey: ["filmList"],
@@ -100,12 +113,11 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
             return response.data;
         },
     });
-
     return (
-        <>
+        <div>
             {contextHolder}
             <Button type="primary" onClick={showModal} className="addShowtimes">
-                <PlusCircleOutlined /> Thêm lịch chiếu
+                <EditOutlined /> Cập nhật
             </Button>
             <Modal
                 title="Thêm mới suất chiếu"
@@ -119,6 +131,7 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
                     labelCol={{ span: 8 }}
                     wrapperCol={{ span: 16 }}
                     onFinish={onFinish}
+                    initialValues={detailShowtimes}
                 >
                     <Form.Item
                         className="input-label"
@@ -200,8 +213,12 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
                     >
                         <DatePicker
                             style={{ width: "100%" }}
-                            disabled
-                        ></DatePicker>
+                            value={
+                                form.getFieldValue("show_time")
+                                    ? dayjs(form.getFieldValue("show_time"))
+                                    : undefined
+                            }
+                        />
                     </Form.Item>
                     <Form.Item
                         className="input-label"
@@ -221,39 +238,38 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
                         </Select>
                     </Form.Item>
                     {/* <Form.Item
-                        className="input-label"
-                        label="Hình thức dịch"
-                        name="id3"
-                        rules={[
-                            {
-                                required: true,
-                                message: "hình thức dịch",
-                            },
-                        ]}
-                    >
-                        <Select placeholder="Nhập hình thức dịch">
-                            <Select.Option value="phiên dịch">
-                                phiên dịch
-                            </Select.Option>
-                            <Select.Option value="phụ đề">phụ đề</Select.Option>
-                        </Select>
-                    </Form.Item> */}
-                    <Form.Item
-                        className="input-label"
-                        label="Thời gian bắt đầu"
-                        name="start_time"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Nhập thời gian chiếu",
-                            },
-                        ]}
-                    >
+                className="input-label"
+                label="Hình thức dịch"
+                name="id3"
+                rules={[
+                    {
+                        required: true,
+                        message: "hình thức dịch",
+                    },
+                ]}
+            >
+                <Select placeholder="Nhập hình thức dịch">
+                    <Select.Option value="phiên dịch">
+                        phiên dịch
+                    </Select.Option>
+                    <Select.Option value="phụ đề">phụ đề</Select.Option>
+                </Select>
+            </Form.Item> */}
+                    <Form.Item label="Thời gian bắt đầu" name="start_time">
                         <TimePicker
                             format="HH:mm"
                             style={{ width: "100%" }}
-                        ></TimePicker>
+                            value={
+                                form.getFieldValue("start_time")
+                                    ? dayjs(
+                                          form.getFieldValue("start_time"),
+                                          "HH:mm"
+                                      )
+                                    : undefined
+                            }
+                        />
                     </Form.Item>
+
                     <Form.Item
                         className="input-label"
                         label="Thời gian kết thúc"
@@ -329,8 +345,8 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
                     </Form.Item>
                 </Form>
             </Modal>
-        </>
+        </div>
     );
 };
 
-export default AddShowtimes;
+export default EditShowtimes;

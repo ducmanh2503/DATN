@@ -33,6 +33,8 @@ const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/filter-by-date-one`;
 const GET_ALL_SHOWTIMES = (date: string) =>
     `${BASE_URL}/show-times/filter-by-date/${date}`;
 const UPDATE_SHOWTIMES = `${BASE_URL}/showTime`;
+const DELETE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`;
+const GET_DETAIL_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`;
 
 export {
     GET_FILM_LIST,
@@ -60,4 +62,6 @@ export {
     DETAIL_CALENDAR,
     GET_ALL_SHOWTIMES,
     UPDATE_SHOWTIMES,
+    DELETE_SHOWTIMES,
+    GET_DETAIL_ONE_SHOWTIMES,
 };

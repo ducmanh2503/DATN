@@ -32,12 +32,13 @@ const DetailFilm = ({ id, film, apiUrl }: any) => {
         queryKey: ["film", id],
         queryFn: async () => {
             const { data } = await axios.get(apiUrl);
-            console.log("re-render-detail-film");
-            console.log("checkk-data", data);
+            console.log("check-data-detail", data);
 
             return data.data;
         },
         enabled: open && !!id,
+        staleTime: 1000 * 60 * 10,
+        cacheTime: 1000 * 60 * 30,
     });
     useEffect(() => {
         if (data && open) {

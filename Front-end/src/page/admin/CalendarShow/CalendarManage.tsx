@@ -153,7 +153,7 @@ const CalendarManage: React.FC = () => {
                 key: item.id,
             }));
         },
-        staleTime: 0,
+        // staleTime: 0,
     });
 
     const { mutate } = useMutation({

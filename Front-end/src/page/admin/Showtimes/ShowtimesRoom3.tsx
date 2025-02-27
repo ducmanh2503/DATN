@@ -1,29 +1,30 @@
-import { Button, Input, message, Popconfirm, Space, Table } from "antd";
+import { Space, Table, Tag } from "antd";
 import { RoomSHowtimesType } from "../../../types/interface";
 import "./ShowtimesRoom.css";
-import { DeleteOutlined } from "@ant-design/icons";
 import EditCalendar from "../CalendarShow/EditCalendar";
-import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
+import DeleteShowtimes from "./DeleteShowtimes";
+import EditShowtimes from "./EditShowtimes";
 
-const ShowtimesRoom3 = ({ data }: any) => {
-    const [messageApi, contextHolder] = message.useMessage();
-    // const { mutate } = useMutation({
-    //     mutationFn: async (id: number) => {
-    //         await axios.delete(DELETE_CALENDAR(id));
-    //     },
-    //     onSuccess: () => {
-    //         messageApi.success("Xóa lịch chiếu thành công");
-    //     },
-    // });
-
+const ShowtimesRoom3 = ({ data, selectedDate }: any) => {
     const columns = [
         {
             title: "Phim chiếu",
             dataIndex: "calendar_show",
             key: "calendar_show",
             render: (_: any, recordTitle: any) => {
-                return <span>{recordTitle.calendar_show.movie.title}</span>;
+                const title =
+                    recordTitle?.calendar_show?.movie?.title || "Không có";
+
+                return (
+                    <span
+                        style={{
+                            color: "var(--border-color)",
+                            fontWeight: 500,
+                        }}
+                    >
+                        {title}
+                    </span>
+                );
             },
         },
         {
@@ -31,44 +32,73 @@ const ShowtimesRoom3 = ({ data }: any) => {
             dataIndex: "room_type",
             key: "room_type",
             render: (_: any, recordRoom: any) => {
-                return <span>{recordRoom.room.room_type}</span>;
+                return <Tag color="volcano">{recordRoom.room.room_type}</Tag>;
             },
         },
         {
             title: "Hình thức dịch",
             dataIndex: "address",
             key: "address",
+            render: (record: any) => {
+                return record === "lồng tiếng" ? (
+                    <Tag color="gold">Lồng tiếng</Tag>
+                ) : (
+                    <Tag color="green">Thuyết minh</Tag>
+                );
+            },
         },
         {
             title: "Thời gian chiếu",
             dataIndex: "start_time",
             key: "start_time",
             render: (_: any, time: any) => {
-                return <span>{`${time.start_time} ~ ${time.end_time}`}</span>;
+                return (
+                    <>
+                        <Tag color="magenta">{time.start_time}</Tag>
+                        <Tag color="geekblue">{time.end_time}</Tag>
+                    </>
+                );
             },
         },
         {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
+            render: (status: string) => {
+                let color = "";
+                let text = "";
+
+                switch (status) {
+                    case "coming_soon":
+                        color = "blue";
+                        text = "Sắp chiếu";
+                        break;
+                    case "now_showing":
+                        color = "orange";
+                        text = "Đang chiếu";
+                        break;
+                    case "referenced":
+                        color = "purple";
+                        text = "Đã chiếu";
+                        break;
+                    default:
+                        color = "gray";
+                        text = "Không xác định";
+                }
+
+                return <Tag color={color}>{text}</Tag>;
+            },
         },
         {
             title: "Action",
             key: "action",
             render: (_: any, record: RoomSHowtimesType) => (
                 <Space size="middle">
-                    <Popconfirm
-                        title="Xóa phim này?"
-                        description="Bạn có chắc chắn muốn xóa không?"
-                        okText="Yes"
-                        onConfirm={() => mutate(record.id)}
-                        cancelText="No"
-                    >
-                        <Button type="primary" danger>
-                            <DeleteOutlined /> Xóa
-                        </Button>
-                    </Popconfirm>
-                    <EditCalendar id={record.id}></EditCalendar>
+                    <DeleteShowtimes id={record.id}></DeleteShowtimes>
+                    <EditShowtimes
+                        id={record.id}
+                        selectedDate={selectedDate}
+                    ></EditShowtimes>
                 </Space>
             ),
         },

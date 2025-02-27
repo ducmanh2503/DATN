@@ -25,6 +25,7 @@ const ShowtimesManage: React.FC = () => {
     const [showtimesData, setShowtimesData] = useState<any[]>([]);
     const [isSearched, setIsSearched] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [searchedDate, setSearchedDate] = useState<string | null>(null);
 
     const handleRoomChange = (value: string) => {
         setSelectedRoom(value);
@@ -41,6 +42,7 @@ const ShowtimesManage: React.FC = () => {
 
     const onFinish = (formData: any) => {
         setIsSearched(true);
+        setSearchedDate(selectedDate);
         mutate(formData);
     };
 
@@ -135,17 +137,29 @@ const ShowtimesManage: React.FC = () => {
                 ></AddShowtimes>
             </div>
             <Divider variant="solid" style={{ borderColor: "#7cb305" }}>
-                Lịch chiếu ngày: {selectedDate || "Chưa chọn"}
+                {isSearched
+                    ? `Lịch chiếu ngày: ${searchedDate}`
+                    : "Lịch chiếu ngày: "}
             </Divider>
+
             {isLoading ? (
                 <Spin tip="Loading">{content}</Spin>
             ) : showtimesData.length > 0 ? (
                 selectedRoom === "1" ? (
-                    <ShowtimesRoom1 data={showtimesData} />
+                    <ShowtimesRoom1
+                        data={showtimesData}
+                        selectedDate={selectedDate}
+                    />
                 ) : selectedRoom === "2" ? (
-                    <ShowtimesRoom2 data={showtimesData} />
+                    <ShowtimesRoom2
+                        data={showtimesData}
+                        selectedDate={selectedDate}
+                    />
                 ) : selectedRoom === "3" ? (
-                    <ShowtimesRoom3 data={showtimesData} />
+                    <ShowtimesRoom3
+                        data={showtimesData}
+                        selectedDate={selectedDate}
+                    />
                 ) : null
             ) : isSearched ? (
                 <p
@@ -155,9 +169,10 @@ const ShowtimesManage: React.FC = () => {
                         borderRadius: "6px",
                         textAlign: "center",
                         color: "red",
+                        fontWeight: 500,
                     }}
                 >
-                    Không có dữ liệu
+                    {`Chưa có suất chiếu nào ngày ${selectedDate} phòng chiếu ${selectedRoom}`}
                 </p>
             ) : null}
         </>

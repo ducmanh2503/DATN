@@ -67,7 +67,7 @@ const AddFilm = () => {
                 value: item.id,
             }));
         },
-        enabled: false,
+        staleTime: 1000 * 60 * 20,
     });
 
     const handleChangeSelect = (value: string[], fieldName: string) => {

@@ -25,4 +25,9 @@ class CalendarShow extends Model
     {
         return $this->hasMany(ShowTime::class, 'calendar_show_id');
     }
+
+    public function showTimeDates()
+    {
+        return $this->hasManyThrough(ShowTimeDate::class, ShowTime::class);
+    }
 }

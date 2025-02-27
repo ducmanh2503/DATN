@@ -24,4 +24,9 @@ class ShowTime extends Model
     {
         return $this->belongsTo(CalendarShow::class, 'calendar_show_id');
     }
+
+    public function showTimeDate()
+    {
+        return $this->hasMany(ShowTimeDate::class, 'show_time_id');
+    }
 }

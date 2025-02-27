@@ -57,7 +57,6 @@ const DetailFilm = ({ id, film, apiUrl }: any) => {
             });
 
             setPoster(data.poster || "");
-            console.log("checkk", `${URL_IMAGE}${data.poster}`);
         }
     }, [data, open]);
 

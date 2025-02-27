@@ -1,268 +1,165 @@
-import React, { useRef, useState } from "react";
-import { SearchOutlined } from "@ant-design/icons";
-import type { InputRef, TableColumnsType, TableColumnType } from "antd";
-import {
-    Button,
-    DatePicker,
-    Divider,
-    Form,
-    Input,
-    Select,
-    Space,
-    Table,
-} from "antd";
-import type { FilterDropdownProps } from "antd/es/table/interface";
-import Highlighter from "react-highlight-words";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { Button, DatePicker, Form, Select, Divider, message, Spin } from "antd";
+import { FieldType } from "../../../types/interface";
+import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { GET_LIST_SHOWTIMES } from "../../../config/ApiConfig";
+import { GET_ONE_SHOWTIMES } from "../../../config/ApiConfig";
+import ShowtimesRoom1 from "./ShowtimesRoom1";
+import ShowtimesRoom2 from "./ShowtimesRoom2";
+import ShowtimesRoom3 from "./ShowtimesRoom3";
+import dayjs from "dayjs";
+import { useForm } from "antd/es/form/Form";
+import AddShowtimes from "./AddShowtimes";
 
-interface DataType {
-    key: string;
-    name: string;
-    age: number;
-    address: string;
-}
-
-type FieldType = {
-    username?: string;
-    password?: string;
-    remember?: string;
+const contentStyle: React.CSSProperties = {
+    paddingTop: 100,
 };
 
-type DataIndex = keyof DataType;
+const content = <div style={contentStyle} />;
 
 const ShowtimesManage: React.FC = () => {
-    const [searchText, setSearchText] = useState("");
-    const [searchedColumn, setSearchedColumn] = useState("");
-    const searchInput = useRef<InputRef>(null);
-    // const [DateShowtimes,setDateShowtimes] = useState()
+    const [form] = useForm();
+    const [messageApi, contextHolder] = message.useMessage();
+    const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const [showtimesData, setShowtimesData] = useState<any[]>([]);
+    const [isSearched, setIsSearched] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSearch = (
-        selectedKeys: string[],
-        confirm: FilterDropdownProps["confirm"],
-        dataIndex: DataIndex
-    ) => {
-        confirm();
-        setSearchText(selectedKeys[0]);
-        setSearchedColumn(dataIndex);
+    const handleRoomChange = (value: string) => {
+        setSelectedRoom(value);
     };
 
-    const handleReset = (clearFilters: () => void) => {
-        clearFilters();
-        setSearchText("");
+    const handleDateChange = (date: dayjs.Dayjs | null) => {
+        if (date) {
+            const formattedDate = date.format("YYYY-MM-DD");
+            setSelectedDate(formattedDate);
+        } else {
+            setSelectedDate(null);
+        }
     };
 
-    const getColumnSearchProps = (
-        dataIndex: DataIndex
-    ): TableColumnType<DataType> => ({
-        filterDropdown: ({
-            setSelectedKeys,
-            selectedKeys,
-            confirm,
-            clearFilters,
-            close,
-        }) => (
-            <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-                <Input
-                    ref={searchInput}
-                    placeholder={`Search ${dataIndex}`}
-                    value={selectedKeys[0]}
-                    onChange={(e) =>
-                        setSelectedKeys(e.target.value ? [e.target.value] : [])
-                    }
-                    onPressEnter={() =>
-                        handleSearch(
-                            selectedKeys as string[],
-                            confirm,
-                            dataIndex
-                        )
-                    }
-                    style={{ marginBottom: 8, display: "block" }}
-                />
-                <Space>
-                    <Button
-                        type="primary"
-                        onClick={() =>
-                            handleSearch(
-                                selectedKeys as string[],
-                                confirm,
-                                dataIndex
-                            )
-                        }
-                        icon={<SearchOutlined />}
-                        size="small"
-                        style={{ width: 90 }}
-                    >
-                        Search
-                    </Button>
-                    <Button
-                        onClick={() =>
-                            clearFilters && handleReset(clearFilters)
-                        }
-                        size="small"
-                        style={{ width: 90 }}
-                    >
-                        Reset
-                    </Button>
-                    <Button
-                        type="link"
-                        size="small"
-                        onClick={() => {
-                            close();
-                        }}
-                    >
-                        close
-                    </Button>
-                </Space>
-            </div>
-        ),
-        filterIcon: (filtered: boolean) => (
-            <SearchOutlined
-                style={{ color: filtered ? "#1677ff" : undefined }}
-            />
-        ),
-        onFilter: (value, record) =>
-            record[dataIndex]
-                .toString()
-                .toLowerCase()
-                .includes((value as string).toLowerCase()),
-        filterDropdownProps: {
-            onOpenChange(open) {
-                if (open) {
-                    setTimeout(() => searchInput.current?.select(), 100);
-                }
-            },
-        },
-        render: (text) =>
-            searchedColumn === dataIndex ? (
-                <Highlighter
-                    highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-                    searchWords={[searchText]}
-                    autoEscape
-                    textToHighlight={text ? text.toString() : ""}
-                />
-            ) : (
-                text
-            ),
-    });
-
-    const handleChange = (value: string) => {
-        console.log(`selected ${value}`);
+    const onFinish = (formData: any) => {
+        setIsSearched(true);
+        mutate(formData);
     };
 
-    const columns: TableColumnsType<DataType> = [
-        {
-            title: "Phim chiếu",
-            dataIndex: "room_id",
-            key: "room_id",
-            // ...getColumnSearchProps(""),
-        },
-        {
-            title: "Hình thức chiếu",
-            dataIndex: "name",
-            key: "name",
-            ...getColumnSearchProps("age"),
-            render: (_, record: any) => {
-                console.log("checkk", record);
-                return <span>{record.room.room_type}</span>;
-            },
-        },
-        {
-            title: "Hình thức dịch",
-            dataIndex: "address",
-            key: "address",
-            ...getColumnSearchProps("address"),
-        },
-        {
-            title: "Thời gian chiếu",
-            dataIndex: "start_time",
-            key: "start_time",
-            ...getColumnSearchProps("address"),
-            render: (_, time: any) => {
-                return <span>{`${time.start_time} ~ ${time.end_time}`}</span>;
-            },
-        },
-        {
-            title: "Loại suất chiếu",
-            dataIndex: "address",
-            key: "address",
-            ...getColumnSearchProps("address"),
-        },
-        {
-            title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
-            ...getColumnSearchProps("address"),
-        },
-    ];
+    const { mutate } = useMutation({
+        mutationFn: async (formData: any) => {
+            setIsLoading(true);
+            const newFormData = {
+                ...formData,
+                show_date: formData.show_date
+                    ? dayjs(formData.show_date).format("YYYY/MM/DD")
+                    : null,
+            };
 
-    const { data, isLoading } = useQuery({
-        queryKey: ["filmList"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_LIST_SHOWTIMES);
-            console.log("check-4", data);
+            try {
+                const response = await axios.post(
+                    GET_ONE_SHOWTIMES,
+                    newFormData
+                );
+                console.log(response.data);
 
-            return data.map((item: any) => ({
-                ...item,
-                key: item.id,
-            }));
+                setShowtimesData(response.data || []);
+            } catch (error: any) {
+                messageApi.error(
+                    error?.response?.data?.message || "Có lỗi xảy ra!"
+                );
+                setShowtimesData([]);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        onError: (error: any) => {
+            setIsLoading(false);
+            messageApi.error(
+                error?.response?.data?.message || "Có lỗi xảy ra!"
+            );
         },
     });
 
     return (
         <>
-            <></>
-            <Form
-                name="basic"
-                // onFinish={onFinish}
-                // onFinishFailed={onFinishFailed}
-                autoComplete="off"
-                layout="inline"
-            >
-                <Form.Item<FieldType>
-                    label="Phòng chiếu:"
-                    name="username"
-                    rules={[
-                        {
-                            required: true,
-                            message: "Please input your username!",
-                        },
-                    ]}
+            <div className="flex mb-4">
+                <Form
+                    name="basic"
+                    onFinish={onFinish}
+                    autoComplete="off"
+                    layout="inline"
+                    form={form}
                 >
-                    <Select
-                        placeholder={"phòng chiếu"}
-                        style={{ width: 120 }}
-                        onChange={handleChange}
-                        options={[
-                            { value: "2D", label: "2D" },
-                            { value: "3D", label: "3D" },
-                            { value: "4D", label: "4D" },
+                    <Form.Item<FieldType>
+                        label="Phòng chiếu:"
+                        name="room_id"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Thêm phòng chiếu",
+                            },
                         ]}
-                    ></Select>
-                </Form.Item>
+                    >
+                        <Select
+                            placeholder={"phòng chiếu"}
+                            style={{ width: 120 }}
+                            onChange={handleRoomChange}
+                            options={[
+                                { value: "1", label: "Phòng số 1" },
+                                { value: "2", label: "Phòng số 2" },
+                                { value: "3", label: "Phòng số 3" },
+                            ]}
+                        ></Select>
+                    </Form.Item>
 
-                <Form.Item<FieldType>
-                    label="Ngày chiếu:"
-                    name="password"
-                    rules={[
-                        {
-                            required: true,
-                            message: "Please input your password!",
-                        },
-                    ]}
-                >
-                    <DatePicker></DatePicker>
-                </Form.Item>
-                <Form.Item>
-                    <Button type="primary">Tìm kiếm</Button>
-                </Form.Item>
-            </Form>
+                    <Form.Item<FieldType>
+                        label="Ngày chiếu:"
+                        name="show_date"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Thêm ngày chiếu",
+                            },
+                        ]}
+                    >
+                        <DatePicker onChange={handleDateChange}></DatePicker>
+                    </Form.Item>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Tìm kiếm
+                        </Button>
+                    </Form.Item>
+                </Form>
+                <AddShowtimes
+                    selectedDate={selectedDate}
+                    setShowtimesData={setShowtimesData}
+                ></AddShowtimes>
+            </div>
             <Divider variant="solid" style={{ borderColor: "#7cb305" }}>
-                Lịch chiếu ngày:
+                Lịch chiếu ngày: {selectedDate || "Chưa chọn"}
             </Divider>
-            <h1>Phòng chiếu</h1>
-            <Table<DataType> columns={columns} dataSource={data} />;
+            {isLoading ? (
+                <Spin tip="Loading">{content}</Spin>
+            ) : showtimesData.length > 0 ? (
+                selectedRoom === "1" ? (
+                    <ShowtimesRoom1 data={showtimesData} />
+                ) : selectedRoom === "2" ? (
+                    <ShowtimesRoom2 data={showtimesData} />
+                ) : selectedRoom === "3" ? (
+                    <ShowtimesRoom3 data={showtimesData} />
+                ) : null
+            ) : isSearched ? (
+                <p
+                    style={{
+                        padding: "8px",
+                        border: "1px solid red",
+                        borderRadius: "6px",
+                        textAlign: "center",
+                        color: "red",
+                    }}
+                >
+                    Không có dữ liệu
+                </p>
+            ) : null}
         </>
     );
 };

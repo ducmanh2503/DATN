@@ -64,7 +64,7 @@
 
 .list-addFilm .moviesNameOfImage {
     width: 140px;
-    height: 170px;
+    height: 200px;
     object-fit: cover;
     margin-bottom: 5px;
 }

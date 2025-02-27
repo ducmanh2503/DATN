@@ -12,3 +12,7 @@
 .input-label {
     font-weight: 500;
 }
+
+.imagePreview {
+    object-fit: cover;
+}

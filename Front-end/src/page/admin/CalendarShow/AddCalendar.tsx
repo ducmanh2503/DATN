@@ -2,14 +2,16 @@ import React, { useState } from "react";
 import { Button, DatePicker, Form, Input, message, Modal, Select } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
     CREATE_CALENDAR,
     GET_CALENDAR,
     GET_FILM_LIST,
-    UPDATE_CALENDAR,
 } from "../../../config/ApiConfig";
+
+dayjs.extend(isSameOrBefore);
 
 const AddCalendar: React.FC = () => {
     const [open, setOpen] = useState(false);
@@ -188,6 +190,13 @@ const AddCalendar: React.FC = () => {
                             style={{ width: "100%" }}
                             format="YYYY-MM-DD"
                             allowClear
+                            disabledDate={(current) => {
+                                const startDate =
+                                    formShowtime.getFieldValue("show_date");
+                                return startDate
+                                    ? current.isSameOrBefore(startDate, "day")
+                                    : false;
+                            }}
                         />
                     </Form.Item>
                     <Form.Item

@@ -94,7 +94,9 @@ class AuthController extends Controller
             'is_verified' => true,
         ]);
 
-        return response()->json(['message' => 'Tài khoản đã được xác thực và đăng ký thành công.', 'user' => $user]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json(['message' => 'Tài khoản đã được xác thực và đăng ký thành công.', 'token' => $token]);
     }
 
     public function resendVerificationEmail(Request $request)
@@ -153,8 +155,20 @@ class AuthController extends Controller
 
         // Đăng nhập thành công, tạo API token
         $token = $user->createToken('auth_token')->plainTextToken;
-        $redirectUrl = $user->role === 'admin' ? '/admin' : '/home';
+        $redirectUrl = $user->role === 'admin' ? '/admin' : '/';
 
         return response()->json(['message' => 'Đăng nhập thành công', 'token' => $token, 'redirect_url' => $redirectUrl]);
+    }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user) {
+            // Xóa tất cả token của user
+            $user->tokens()->delete();
+        }
+
+        return response()->json(['message' => 'Đăng xuất thành công'], 200);
     }
 }

@@ -219,8 +219,11 @@ const CalendarManage: React.FC = () => {
                                 ) // So sánh chuỗi
                         }
                         render={(_, record: any) => {
-                            const status = record.movie.movie_status;
-                            return status === "now_showing" ? (
+                            if (!record.movie) {
+                                return <Tag color="gray">Không có dữ liệu</Tag>; // ✅ Fix crash
+                            }
+                            return record.movie.movie_status ===
+                                "now_showing" ? (
                                 <Tag color="green">Đang chiếu</Tag>
                             ) : (
                                 <Tag color="red">Sắp chiếu</Tag>

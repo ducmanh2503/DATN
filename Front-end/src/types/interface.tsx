@@ -42,6 +42,19 @@ export interface RefreshBtnProps {
     queryKey: (string | number)[];
 }
 
+export interface FieldType {
+    room_id: string;
+    show_date: string;
+}
+
+export interface RoomSHowtimesType {
+    key: string;
+    id: number;
+    name: string;
+    age: number;
+    address: string;
+}
+
 // onError: (error: any) => {
 //     messageApi.error(
 //         error?.response?.data?.message || "Có lỗi xảy ra!"

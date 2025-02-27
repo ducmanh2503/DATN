@@ -7,10 +7,10 @@ const CREATE_FILM = `${BASE_URL}/movies`;
 const UPDATE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const DELETE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const FORCE_DELETE_FILM = (id: number) =>
-  `${BASE_URL}/movies/force-delete/${id}`;
+    `${BASE_URL}/movies/force-delete/${id}`;
 const RESTORE_FILM = (id: number) => `${BASE_URL}/movies/restore/${id}`;
 const DETAIL_DELETE_FILM = (id: number) =>
-  `${BASE_URL}/movies/show-movie-destroy/${id}`;
+    `${BASE_URL}/movies/show-movie-destroy/${id}`;
 
 const GET_DIRECTORS_LIST = `${BASE_URL}/directors`;
 const UPDATE_DIRECTORS = (id: number) => `${BASE_URL}/directors/${id}`;
@@ -29,7 +29,10 @@ const DELETE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const UPDATE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const DETAIL_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 
-const GET_LIST_SHOWTIMES = `${BASE_URL}/showTime`;
+const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/filter-by-date-one`;
+const GET_ALL_SHOWTIMES = (date: string) =>
+    `${BASE_URL}/show-times/filter-by-date/${date}`;
+const UPDATE_SHOWTIMES = `${BASE_URL}/showTime`;
 
 export {
     GET_FILM_LIST,
@@ -49,10 +52,12 @@ export {
     GET_GENRES,
     DELETE_GENRES,
     URL_IMAGE,
-    GET_LIST_SHOWTIMES,
+    GET_ONE_SHOWTIMES,
     GET_CALENDAR,
     DELETE_CALENDAR,
     CREATE_CALENDAR,
     UPDATE_CALENDAR,
     DETAIL_CALENDAR,
+    GET_ALL_SHOWTIMES,
+    UPDATE_SHOWTIMES,
 };

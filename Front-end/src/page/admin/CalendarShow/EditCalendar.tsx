@@ -11,10 +11,13 @@ import {
     Skeleton,
 } from "antd";
 import dayjs from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { EditOutlined } from "@ant-design/icons";
 import { DETAIL_CALENDAR, UPDATE_CALENDAR } from "../../../config/ApiConfig";
+
+dayjs.extend(isSameOrBefore);
 
 const EditCalendar = ({ id }: any) => {
     const [openEdit, setOpenEdit] = useState(false);
@@ -162,6 +165,16 @@ const EditCalendar = ({ id }: any) => {
                                 style={{ width: "100%" }}
                                 format="YYYY-MM-DD"
                                 allowClear
+                                disabledDate={(current) => {
+                                    const startDate =
+                                        formShowtime.getFieldValue("show_date");
+                                    return startDate
+                                        ? current.isSameOrBefore(
+                                              startDate,
+                                              "day"
+                                          )
+                                        : false;
+                                }}
                             />
                         </Form.Item>
 

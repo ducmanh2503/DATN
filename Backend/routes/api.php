@@ -11,6 +11,7 @@ use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
+use App\Http\Controllers\API\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -68,9 +69,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);
 
     // Thể loại phim, Diễn viên, Đạo diễn
-    Route::apiResource('genres', GenreController::class);
-    Route::apiResource('actors', ActorController::class);
-    Route::apiResource('directors', DirectorController::class);
+    Route::apiResource('/genres', GenreController::class);
+    Route::apiResource('/actors', ActorController::class);
+    Route::apiResource('/directors', DirectorController::class);
+
+    //người dùng
+    Route::apiResource('/user-management', UserController::class);
+    Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
+    Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
 
 
     // Đăng xuất
@@ -78,9 +84,18 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
+Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);
 Route::post('/verify-code', [AuthController::class, 'verifyCode']);
 Route::post('/login', [AuthController::class, 'login']);
+
+//lấy lại mật khẩu
+
+// Quên mật khẩu - gửi mã OTP
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
+// Đặt lại mật khẩu bằng OTP
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
 
 // Đăng nhập bằng Google & Facebook
 Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle']);

@@ -10,98 +10,155 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    // API Đăng ký tài khoản (Gửi OTP qua email)
     public function register(Request $request)
     {
-        // Validate dữ liệu nhập vào
+        // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|confirmed',
-            'phone' => 'required|string|max:13|unique:users',
+            'password' => 'required|string|confirmed|min:6',
+            'phone' => 'required|string|min:10|max:15|unique:users',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        // Kiểm tra nếu đăng ký tài khoản admin mà hệ thống đã có admin rồi
+        // Chỉ cho phép 1 tài khoản admin
         if ($request->has('role') && $request->role === 'admin') {
-            $existingAdmin = User::where('role', 'admin')->first();
-            if ($existingAdmin) {
-                return response()->json(['message' => 'Chỉ 1 tài khoản quản trị'], 403);
+            if (User::where('role', 'admin')->exists()) {
+                return response()->json(['message' => 'Chỉ một tài khoản quản trị được phép tồn tại.'], 403);
             }
         }
 
-        // Mặc định user là customer
+        // Xác định vai trò (mặc định là "customer")
         $role = $request->role === 'admin' ? 'admin' : 'customer';
 
-        // Tạo mã OTP (6 số)
-        $verificationCode = Str::random(6);
+        // Tạo mã OTP ngẫu nhiên (6 số)
+        $verificationCode = random_int(100000, 999999);
 
-        // Lưu OTP vào cache (TTL: 10 phút)
+        // Lưu OTP vào cache (10 phút)
         Cache::put('verify_code:' . $request->email, [
             'code' => $verificationCode,
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => $request->password, // Chưa mã hóa, mã hóa sau khi xác thực
             'phone' => $request->phone,
             'role' => $role,
         ], now()->addMinutes(10));
 
-        // Gửi email chứa mã OTP
-        Mail::to($request->email)->send(new VerifyEmail($verificationCode));
+        // Gửi email
+        Mail::to($request->email)->send(new VerifyEmail($verificationCode, 'verify'));
 
-        return response()->json(['message' => 'Mã xác thực đã gửi. Vui lòng kiểm tra email và nhập mã để hoàn tất.']);
+        return response()->json(['message' => 'Mã xác thực đã gửi đến email. Vui lòng kiểm tra và nhập mã để hoàn tất.']);
     }
 
+    // API Xác thực OTP để hoàn tất đăng ký
     public function verifyCode(Request $request)
     {
-        // Validate mã xác thực
+        // Validate
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'code' => 'required|string|size:6',
+            'code' => 'required|digits:6',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        // Lấy dữ liệu từ cache
+        // Lấy dữ liệu OTP từ cache
         $cachedData = Cache::get('verify_code:' . $request->email);
 
-        if (!$cachedData) {
-            return response()->json(['message' => 'Mã xác thực hết hạn hoặc không tồn tại.'], 400);
+        if (!$cachedData || $request->code != $cachedData['code']) {
+            return response()->json(['message' => 'Mã xác thực không đúng hoặc đã hết hạn.'], 400);
         }
 
-        if ($request->code !== $cachedData['code']) {
-            return response()->json(['message' => 'Mã xác thực không chính xác.'], 401);
-        }
-
-        // Xóa OTP sau khi xác thực thành công
+        // Xóa OTP sau khi xác thực
         Cache::forget('verify_code:' . $request->email);
 
         // Lưu user vào database
         $user = User::create([
             'name' => $cachedData['name'],
             'email' => $cachedData['email'],
-            'password' => $cachedData['password'],
+            'password' => Hash::make($cachedData['password']), // Mã hóa mật khẩu
             'phone' => $cachedData['phone'],
             'role' => $cachedData['role'],
             'is_verified' => true,
         ]);
 
+        // Tạo token đăng nhập
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['message' => 'Tài khoản đã được xác thực và đăng ký thành công.', 'token' => $token]);
+        return response()->json([
+            'message' => 'Tài khoản đã được xác thực và đăng ký thành công.',
+            'token' => $token,
+        ]);
     }
 
+    // API Quên mật khẩu (Gửi OTP đặt lại mật khẩu)
+    public function forgotPassword(Request $request)
+    {
+        // Validate
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Tạo OTP mới (6 số)
+        $otp = random_int(100000, 999999);
+
+        // Lưu OTP vào cache (10 phút)
+        Cache::put('reset_password:' . $request->email, $otp, now()->addMinutes(10));
+
+        // Gửi email
+        Mail::to($request->email)->send(new VerifyEmail($otp, 'reset'));
+
+        return response()->json(['message' => 'Mã OTP đặt lại mật khẩu đã được gửi.']);
+    }
+
+    // API Xác nhận OTP và đặt lại mật khẩu mới
+    public function resetPassword(Request $request)
+    {
+        // Validate
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|digits:6',
+            'new_password' => 'required|string|confirmed|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Lấy OTP từ cache
+        $cachedOtp = Cache::get('reset_password:' . $request->email);
+
+        if (!$cachedOtp || $request->otp != $cachedOtp) {
+            return response()->json(['message' => 'Mã OTP không đúng hoặc đã hết hạn.'], 400);
+        }
+
+        // Xóa OTP sau khi xác thực thành công
+        Cache::forget('reset_password:' . $request->email);
+
+        // Cập nhật mật khẩu mới
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Mật khẩu đã được đặt lại thành công.']);
+    }
+
+    // API Gửi lại mã xác thực email (OTP mới)
     public function resendVerificationEmail(Request $request)
     {
-        // Validate email
+        // Validate
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
         ]);
@@ -118,14 +175,14 @@ class AuthController extends Controller
         }
 
         // Tạo mã xác thực mới
-        $verificationCode = Str::random(6);
+        $verificationCode = random_int(100000, 999999);
         $cachedData['code'] = $verificationCode;
 
         // Lưu lại cache với TTL mới
         Cache::put('verify_code:' . $request->email, $cachedData, now()->addMinutes(10));
 
         // Gửi email mới
-        Mail::to($request->email)->send(new VerifyEmail($verificationCode));
+        Mail::to($request->email)->send(new VerifyEmail($verificationCode, 'verify'));
 
         return response()->json(['message' => 'Mã xác thực đã được gửi lại.']);
     }
@@ -133,10 +190,13 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         // Validate request
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:6|max:100',
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'email' => 'required|string|email|max:255',
+                'password' => 'required|string|min:6|max:100',
+            ]
+        );
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);

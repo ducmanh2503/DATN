@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -28,7 +29,7 @@ class SocialAuthController extends Controller
 
             // Áp dụng cấu hình và lấy user
             $googleUser = Socialite::driver('google')
-                ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
+                ->setHttpClient(new Client(['verify' => false]))
                 ->stateless()
                 ->user();
 

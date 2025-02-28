@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Actor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class ActorController extends Controller
@@ -14,6 +15,11 @@ class ActorController extends Controller
      */
     public function index()
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         //Danh sách diễn viên
         $actors = Actor::query()->latest('id')->get();
 
@@ -25,6 +31,10 @@ class ActorController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'name_actor' => 'required|string|max:255'
@@ -49,6 +59,11 @@ class ActorController extends Controller
      */
     public function show(string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Tìm diễn viên theo id
         $actor = Actor::find($id);
 
@@ -65,6 +80,11 @@ class ActorController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Tìm diễn viên theo id
         $actor = Actor::find($id);
 
@@ -96,6 +116,11 @@ class ActorController extends Controller
      */
     public function destroy(string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Tìm diễn viên theo id
         $actor = Actor::find($id);
 

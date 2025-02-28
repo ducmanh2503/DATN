@@ -8,6 +8,7 @@ use App\Models\ShowTime;
 use App\Models\ShowTimeDate;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -18,6 +19,11 @@ class ShowTimeController extends Controller
      */
     public function index()
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $showTime = ShowTime::query()->latest('id')->with(['calendarShow.movie', 'calendarShow', 'room'])->get();
 
         return response()->json($showTime, 200);
@@ -28,6 +34,11 @@ class ShowTimeController extends Controller
 
     public function getDateRangeByCalendarShow(Request $request)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'calendar_show_id' => 'required|exists:calendar_show,id',
         ]);
@@ -52,6 +63,11 @@ class ShowTimeController extends Controller
      */
     public function store(Request $request)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'calendar_show_id' => 'required|exists:calendar_show,id',
@@ -127,6 +143,11 @@ class ShowTimeController extends Controller
      */
     public function show(string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $showTime = ShowTime::with(['calendarShow.movie', 'calendarShow', 'room'])->find($id);
 
         if (!$showTime) {
@@ -141,6 +162,11 @@ class ShowTimeController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Bước 1: Xác thực dữ liệu đầu vào
         $validated = $request->validate([
             'calendar_show_id' => 'required|exists:calendar_show,id',
@@ -209,6 +235,11 @@ class ShowTimeController extends Controller
      */
     public function destroy(string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $showTime = ShowTime::find($id);
 
         if (!$showTime) {
@@ -224,6 +255,11 @@ class ShowTimeController extends Controller
 
     public function destroyByDate(string $id, string $selected_date)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Tìm suất chiếu theo ID
         $showTime = ShowTime::find($id);
 
@@ -250,6 +286,11 @@ class ShowTimeController extends Controller
     //------------------------------------showTime-------------------------------------------------
     public function getShowTimesByDate(Request $request)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Validate dữ liệu đầu vào
         $validator = Validator::make($request->all(), [
             'date' => 'required|date',
@@ -286,6 +327,11 @@ class ShowTimeController extends Controller
 
     public function generateDateRange($startDate, $endDate)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Tạo một mảng chứa tất cả các ngày trong khoảng từ show_date đến end_date
         $dates = [];
         $currentDate = Carbon::parse($startDate);
@@ -307,6 +353,11 @@ class ShowTimeController extends Controller
      */
     public function getShowTimesInDateRange(Request $request)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Validate dữ liệu đầu vào
         $validator = Validator::make($request->all(), [
             'show_date' => 'required|date',

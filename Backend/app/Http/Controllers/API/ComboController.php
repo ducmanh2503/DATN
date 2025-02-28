@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Combo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class ComboController extends Controller
@@ -14,6 +15,11 @@ class ComboController extends Controller
      */
     public function index(Request $request)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Lấy danh sách phòng và phân trang
         $combo = Combo::query()->latest('id')->get();
 
@@ -29,6 +35,11 @@ class ComboController extends Controller
      */
     public function store(Request $request)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         try {
             $validated = $request->validate([
                 'name' => 'required|string|unique:combos,name',
@@ -55,6 +66,11 @@ class ComboController extends Controller
      */
     public function show(string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $combo = Combo::findOrFail($id);
         return response()->json($combo);
     }
@@ -64,6 +80,11 @@ class ComboController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $combo = Combo::findOrFail($id);
 
         try {
@@ -94,6 +115,10 @@ class ComboController extends Controller
     //Xóa mềm nhiều Combo
     public function destroyMultiple(Request $request)
     {
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
         // Nếu không có phim nào được chọn
@@ -117,6 +142,11 @@ class ComboController extends Controller
     //Xóa mềm 1 Combo
     public function destroy($id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         try {
             // Tìm combo theo ID
             $combo = Combo::findOrFail($id);
@@ -135,6 +165,11 @@ class ComboController extends Controller
     // Xóa vĩnh viễn nhiều Combo
     public function forceDeleteMultiple(Request $request)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $ids = $request->input('ids'); // Lấy danh sách ID combo cần xóa vĩnh viễn
 
         // Nếu không có combo nào được chọn
@@ -162,6 +197,11 @@ class ComboController extends Controller
     // Xóa vĩnh viễn 1 Combo 
     public function forceDeleteSingle($id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         // Tìm combo đã xóa mềm theo ID
         $combo = Combo::onlyTrashed()->find($id);
 
@@ -181,6 +221,11 @@ class ComboController extends Controller
     // Khôi phục 1 Combo
     public function restore($id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $combo = Combo::onlyTrashed()->find($id);
 
         if (!$combo) {
@@ -195,6 +240,11 @@ class ComboController extends Controller
     //Khôi phục nhiều Combo
     public function restoreMultiple(Request $request)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $ids = $request->input('ids'); // Lấy danh sách id combo cần khôi phục
 
         // Nếu không có combo nào được chọn

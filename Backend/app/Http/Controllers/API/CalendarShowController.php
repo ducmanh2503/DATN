@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class CalendarShowController extends Controller
@@ -14,6 +15,11 @@ class CalendarShowController extends Controller
      */
     public function index()
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $calendarShows = CalendarShow::query()->latest('id')->with(['movie'])->get();
 
         return response()->json($calendarShows, 200);
@@ -24,6 +30,11 @@ class CalendarShowController extends Controller
      */
     public function store(Request $request)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'movie_id' => 'required|exists:movies,id',
             'show_date' => 'required|date',
@@ -49,6 +60,11 @@ class CalendarShowController extends Controller
      */
     public function show(string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $calendarShows = CalendarShow::with(['movie'])->find($id);
 
         if (!$calendarShows) {
@@ -63,6 +79,11 @@ class CalendarShowController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $validated = $request->validate([
             'movie_id' => 'required|exists:movies,id',
             'show_date' => 'required|date',
@@ -88,6 +109,11 @@ class CalendarShowController extends Controller
      */
     public function destroy(string $id)
     {
+
+        if (!Gate::allows('isAdmin')) {
+            return response()->json(['message' => 'Không có quyền truy cập'], 403);
+        }
+
         $calendarShows = CalendarShow::find($id);
 
         if (!$calendarShows) {
@@ -100,6 +126,4 @@ class CalendarShowController extends Controller
             'message' => 'Lịch chiếu đã được gỡ'
         ]);
     }
-
-    
 }

@@ -17,10 +17,6 @@ class SeatController extends Controller
     public function updateSeatStatus(Request $request)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
-
         // Kiểm tra yêu cầu có chứa 'seats' không (danh sách ghế)
         if (!$request->has('seats') || !is_array($request->seats)) {
             return response()->json(['error' => 'Thiếu thông tin ghế hoặc dữ liệu ghế không hợp lệ'], 400);
@@ -74,10 +70,6 @@ class SeatController extends Controller
     public function getSeats($room_id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
-
         // Lấy tất cả ghế trong phòng cụ thể
         $seats = Seat::where('room_id', $room_id)->with('seatType')->get();
 
@@ -115,10 +107,6 @@ class SeatController extends Controller
     private function getSeatTypeByRow($row)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
-
         //gán loại ghế dựa theo hàng
         if (in_array($row, ['A', 'B', 'C'])) {
             return SeatType::where('name', 'Thường')->first();
@@ -136,10 +124,6 @@ class SeatController extends Controller
      */
     public function store(Request $request)
     {
-
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         // Xác thực dữ liệu
         $validator = Validator::make($request->all(), [

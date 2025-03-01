@@ -15,9 +15,6 @@ class UserController extends Controller
      */
     public function index()
     {
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         //Danh sách người dùng
         $users = User::query()->latest('id')->get();
@@ -36,9 +33,6 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         // Tìm người dùng theo id
         $user = User::find($id);
@@ -54,9 +48,6 @@ class UserController extends Controller
     public function showUserDestroy(string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         //Tìm người dùng theo id
         $user = User::onlyTrashed()->find($id);
@@ -80,9 +71,6 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         // Tìm người dùng theo id
         $user = User::find($id);
@@ -118,9 +106,6 @@ class UserController extends Controller
     public function destroy($id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         try {
             // Tìm người dùng theo ID
@@ -139,9 +124,6 @@ class UserController extends Controller
     public function restore($id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $user = User::onlyTrashed()->find($id);
 

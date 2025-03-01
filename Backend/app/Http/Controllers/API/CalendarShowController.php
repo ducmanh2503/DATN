@@ -16,10 +16,6 @@ class CalendarShowController extends Controller
     public function index()
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
-
         $calendarShows = CalendarShow::query()->latest('id')->with(['movie'])->get();
 
         return response()->json($calendarShows, 200);
@@ -30,10 +26,6 @@ class CalendarShowController extends Controller
      */
     public function store(Request $request)
     {
-
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $validator = Validator::make($request->all(), [
             'movie_id' => 'required|exists:movies,id',
@@ -61,10 +53,6 @@ class CalendarShowController extends Controller
     public function show(string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
-
         $calendarShows = CalendarShow::with(['movie'])->find($id);
 
         if (!$calendarShows) {
@@ -79,10 +67,6 @@ class CalendarShowController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $validated = $request->validate([
             'movie_id' => 'required|exists:movies,id',
@@ -109,10 +93,6 @@ class CalendarShowController extends Controller
      */
     public function destroy(string $id)
     {
-
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $calendarShows = CalendarShow::find($id);
 

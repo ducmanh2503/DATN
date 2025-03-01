@@ -16,9 +16,6 @@ class ComboController extends Controller
     public function index(Request $request)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         // Lấy danh sách phòng và phân trang
         $combo = Combo::query()->latest('id')->get();
@@ -36,9 +33,6 @@ class ComboController extends Controller
     public function store(Request $request)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         try {
             $validated = $request->validate([
@@ -67,9 +61,6 @@ class ComboController extends Controller
     public function show(string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $combo = Combo::findOrFail($id);
         return response()->json($combo);
@@ -81,9 +72,6 @@ class ComboController extends Controller
     public function update(Request $request, string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $combo = Combo::findOrFail($id);
 
@@ -115,9 +103,6 @@ class ComboController extends Controller
     //Xóa mềm nhiều Combo
     public function destroyMultiple(Request $request)
     {
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
@@ -143,9 +128,6 @@ class ComboController extends Controller
     public function destroy($id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         try {
             // Tìm combo theo ID
@@ -166,9 +148,6 @@ class ComboController extends Controller
     public function forceDeleteMultiple(Request $request)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $ids = $request->input('ids'); // Lấy danh sách ID combo cần xóa vĩnh viễn
 
@@ -198,9 +177,6 @@ class ComboController extends Controller
     public function forceDeleteSingle($id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         // Tìm combo đã xóa mềm theo ID
         $combo = Combo::onlyTrashed()->find($id);
@@ -222,9 +198,6 @@ class ComboController extends Controller
     public function restore($id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $combo = Combo::onlyTrashed()->find($id);
 
@@ -241,9 +214,6 @@ class ComboController extends Controller
     public function restoreMultiple(Request $request)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $ids = $request->input('ids'); // Lấy danh sách id combo cần khôi phục
 

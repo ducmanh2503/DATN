@@ -18,9 +18,6 @@ class MoviesController extends Controller
     public function index(Request $request)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         //Hiển thị tất cả phim
         $movies = Movies::query()->latest('id')->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
@@ -46,9 +43,6 @@ class MoviesController extends Controller
     public function store(Request $request)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
@@ -124,9 +118,6 @@ class MoviesController extends Controller
     public function show(string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         //Tìm phim theo id và lấy thông tin liên quan (Actors, Genres, Director)
         $movie = Movies::with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->find($id);
@@ -148,9 +139,6 @@ class MoviesController extends Controller
     public function showMovieDestroy(string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         //Tìm phim theo id và lấy thông tin liên quan (Actors, Genres, Director)
         $movie = Movies::onlyTrashed()->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->find($id);
@@ -175,9 +163,6 @@ class MoviesController extends Controller
     public function update(Request $request, string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         //Tìm phim theo id
         $movie = Movies::find($id);
@@ -258,9 +243,6 @@ class MoviesController extends Controller
     public function destroyMultiple(Request $request)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
@@ -284,9 +266,6 @@ class MoviesController extends Controller
     public function destroy($id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         try {
             // Tìm phim theo ID
@@ -306,9 +285,6 @@ class MoviesController extends Controller
     public function restore($id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $movie = Movies::onlyTrashed()->find($id);
 
@@ -326,9 +302,6 @@ class MoviesController extends Controller
     {
 
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
@@ -353,9 +326,6 @@ class MoviesController extends Controller
     {
 
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         // Tìm phim đã xóa mềm theo ID
         $movie = Movies::onlyTrashed()->find($id);

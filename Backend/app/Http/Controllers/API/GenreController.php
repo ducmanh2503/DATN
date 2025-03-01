@@ -16,9 +16,6 @@ class GenreController extends Controller
     public function index()
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $genres = Genre::query()->latest('id')->get();
 
@@ -31,9 +28,6 @@ class GenreController extends Controller
     public function store(Request $request)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
@@ -59,9 +53,6 @@ class GenreController extends Controller
     public function show(string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $genre = Genre::find($id);
 
@@ -78,9 +69,6 @@ class GenreController extends Controller
     public function update(Request $request, string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         $genre = Genre::find($id);
 
@@ -112,9 +100,6 @@ class GenreController extends Controller
     public function destroy(string $id)
     {
 
-        if (!Gate::allows('isAdmin')) {
-            return response()->json(['message' => 'Không có quyền truy cập'], 403);
-        }
 
         // Tìm thể loại phim theo id
         $genre = Genre::find($id);

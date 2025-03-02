@@ -1,120 +1,89 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PlayingProduct from "../PlayingProduct/PlayingProduct";
 import "./PlayingMain.css";
-const PlayingMain = ({ showChill }: any) => {
-    const [showMore, setShowMore] = useState(false);
-    // const [products, setProducts] = useState([]);
-    // Fetch data call api
+import { fetchMovies } from "../../services/movie.service";
+import { useNavigate } from "react-router-dom";
 
-    //fake data
-    const products = [
-        {
-            id: 1,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 2,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 3,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 4,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 5,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 6,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 7,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 8,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 9,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 10,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 11,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-        {
-            id: 12,
-            image: "https://naidecor.vn/wp-content/uploads/2023/09/landscape_photography_tips_featured_image_1024x1024.webp",
-            category: "Hành động",
-            date: "17/01/2025",
-            name: "Bộ tử báo thủ",
-        },
-    ];
+interface Movie {
+    id: number;
+    title: string;
+    poster: string | null;
+    genres: { id: number; name_genre: string }[];
+    release_date: string;
+    trailer: string | null;
+}
+
+interface PlayingMainProps {
+    showChill?: (movieId: number) => void;
+}
+
+const PlayingMain: React.FC<PlayingMainProps> = ({ showChill }) => {
+    const [showMore, setShowMore] = useState(false);
+    const [movies, setMovies] = useState<Movie[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const loadMovies = async () => {
+            try {
+                setLoading(true);
+                const data = await fetchMovies();
+                const formattedMovies = data.now_showing.map((movie: any) => ({
+                    id: movie.id,
+                    title: movie.title,
+                    poster: movie.poster || 'https://picsum.photos/300/450',
+                    genres: movie.genres,
+                    release_date: movie.release_date,
+                    trailer: movie.trailer,
+                }));
+                setMovies(formattedMovies);
+            } catch (err) {
+                setError("Không thể tải danh sách phim");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadMovies();
+    }, []);
+
+    const handleMovieClick = (movieId: number) => {
+        if (showChill) {
+            showChill(movieId);
+        } else {
+            navigate(`/filmDetail/${movieId}`);
+        }
+    };
+
+    if (loading) return <div>Đang tải...</div>;
+    if (error) return <div>{error}</div>;
 
     return (
-        <div className="playingMain  main-base ">
-            {products.map((product, index) => (
+        <div className="playingMain main-base">
+            {movies.map((movie, index) => (
                 <PlayingProduct
-                    key={product.id}
+                    key={movie.id}
                     className={`item-main ${
-                        index >= 8 && !showMore ? "hidden" : ""
+                        index >= 4 && !showMore ? "hidden" : ""
                     }`}
-                    image={product.image}
-                    category={product.category}
-                    date={product.date}
-                    name={product.name}
-                    showChill={showChill}
-                ></PlayingProduct>
+                    image={movie.poster || 'https://picsum.photos/300/450'}
+                    category={movie.genres[0]?.name_genre || "Khác"}
+                    date={new Date(movie.release_date).toLocaleDateString("vi-VN")}
+                    startDay={new Date(movie.release_date).toLocaleDateString("vi-VN")}
+                    name={movie.title}
+                    movieId={movie.id}
+                    showChill={() => handleMovieClick(movie.id)}
+                />
             ))}
-            <button
-                className="show-more-btn"
-                onClick={() => setShowMore(!showMore)}
-            >
-                {showMore ? "Ẩn bớt " : "Xem thêm..."}
-            </button>
+            {movies.length > 4 && (
+                <button
+                    className="show-more-btn"
+                    onClick={() => setShowMore(!showMore)}
+                >
+                    {showMore ? "Ẩn bớt" : "Xem thêm..."}
+                </button>
+            )}
         </div>
     );
 };

@@ -30,6 +30,8 @@
         "react-dom": "^19.0.0",
         "react-highlight-words": "^0.21.0",
         "react-router-dom": "^7.1.5",
+        "react-slick": "^0.30.3",
+        "slick-carousel": "^1.8.1",
         "swiper": "^11.2.2",
         "tailwind": "^4.0.0"
     },
@@ -38,6 +40,7 @@
         "@fortawesome/fontawesome-free": "^6.7.2",
         "@types/react": "^19.0.8",
         "@types/react-dom": "^19.0.3",
+        "@types/react-slick": "^0.23.13",
         "@vitejs/plugin-react": "^4.3.4",
         "concurrently": "^9.1.2",
         "eslint": "^9.19.0",

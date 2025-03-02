@@ -14,6 +14,7 @@ import GenresManage from "./page/admin/Genres/GenresManage";
 import DirectorsManage from "./page/admin/Directors/DirectorsManage";
 import Check from "./page/admin/FilmManage/Check";
 import SeatPage from "./page/admin/Seat/SeatPage";
+import RoomPage from "./page/admin/RoomPage/RoomPage";
 
 export const router = createBrowserRouter([
     { path: "/", element: <Home></Home> },
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
             { path: "genre", element: <GenresManage></GenresManage> },
             { path: "check", element: <Check></Check> },
             { path: "seats", element: <SeatPage/> },
+            {path: "rooms", element: <RoomPage/>}
         ],
     },
 ]);

@@ -132,15 +132,12 @@ class RoomController extends Controller
     {
         $ids = $request->input('ids');
 
-        // Nếu không có phòng nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có phòng nào được chọn'], 400);
         }
 
-        //Xóa mềm các phòng được chọn
         $deleted = Room::whereIn('id', $ids)->delete();
 
-        //Kiểm tra xem có phòng nào được xóa không
         if ($deleted) {
             return response()->json(['message' => 'Phòng đang bảo trì'], 200);
         }
@@ -150,13 +147,13 @@ class RoomController extends Controller
 
     public function restore($id)
     {
-        $movie = Room::onlyTrashed()->find($id);
+        $room = Room::onlyTrashed()->find($id); // Sửa từ $movie thành $room
 
-        if (!$movie) {
+        if (!$room) {
             return response()->json(['message' => 'Không tìm thấy phòng đang bảo trì'], 404);
         }
 
-        $movie->restore(); // Khôi phục phim
+        $room->restore(); // Khôi phục phòng
 
         return response()->json(['message' => 'Phòng đã bảo trì thành công'], 200);
     }

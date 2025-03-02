@@ -44,11 +44,13 @@ const SiderAdmin = () => {
         getItem("Quản lý suất chiếu", "sub7", <SnippetsOutlined />, [
             getItem(<Link to="showtimes">Danh sách suất chiếu</Link>, "sub7-1"),
         ]),
+
+
         getItem("Phòng chiếu", "sub3", <DesktopOutlined />, [
-            getItem("Tự tạo", "sub3-1"),
-            getItem("Tự tạo", "sub3-2"),
-            getItem("Tự tạo", "sub3-3"),
+            getItem(<Link to="rooms">Danh sách phòng chiếu</Link>, "sub3-1"),
         ]),
+
+        
         getItem("Ghế ngồi", "sub4", <BuildOutlined />, [
             getItem(<Link to="seats">Quản lý Ghế ngồi</Link>, "sub4-1"),
         ]),        

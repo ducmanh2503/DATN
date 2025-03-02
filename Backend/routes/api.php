@@ -43,7 +43,8 @@ Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'show
 
 //Room
 Route::apiResource('room', RoomController::class);
-
+Route::apiResource('room', RoomController::class);
+Route::delete('/room', [RoomController::class, 'destroy']);
 //Seats
 Route::post('/seats', [SeatController::class, 'store']);
 Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);

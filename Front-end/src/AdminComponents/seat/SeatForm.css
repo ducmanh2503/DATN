@@ -1,0 +1,36 @@
+.ant-form {
+    background-color: var(--mainBase-color);
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+}
+
+.ant-form-item-label {
+    color: var(--normal-rank);
+}
+
+.ant-input, .ant-select-selector {
+    border: 1px solid var(--border-color) !important;
+    background-color: var(--word-color) !important;
+}
+
+.ant-btn-primary {
+    background-color: var(--backgroud-product) !important;
+    border-color: var(--border-color) !important;
+    color: var(--word-color) !important;
+}
+
+.ant-btn-primary:hover {
+    background-color: var(--primary-color) !important;
+    border-color: var(--border-color) !important;
+}
+.ant-btn-danger {
+    background-color: #ff4d4f !important; /* Màu đỏ cho nút Xóa Tất Cả Ghế */
+    border-color: #ff4d4f !important;
+    color: var(--word-color) !important;
+}
+
+.ant-btn-danger:hover {
+    background-color: #ff7875 !important; /* Màu hover cho nút Xóa Tất Cả Ghế */
+    border-color: #ff7875 !important;
+}

@@ -10,7 +10,7 @@ use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\ShowTimeController;
-
+use App\Http\Controllers\API\SeatTypeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +48,9 @@ Route::apiResource('room', RoomController::class);
 Route::post('/seats', [SeatController::class, 'store']);
 Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
 Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
+Route::get('/seat-types', [SeatTypeController::class, 'index']);
+Route::delete('/seats/{seat}', [SeatController::class, 'destroy']);
+Route::delete('/seats/room/{room_id}/delete-all', [SeatController::class, 'deleteAll']);
 
 //showtimes
 Route::apiResource('showTime', ShowTimeController::class);
@@ -69,10 +72,10 @@ Route::delete('/combos/force-delete-multiple', [ComboController::class, 'forceDe
 // Xóa vĩnh viễn 1 combo
 Route::delete('/combo/force/{combo}', [ComboController::class, 'forceDeleteSingle']);
 
-// Khôi phục 1 combo 
+// Khôi phục 1 combo
 Route::post('/combo/restore/{combo}', [ComboController::class, 'restore']);
 
-// Khôi phục nhiều combo 
+// Khôi phục nhiều combo
 Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);
 
 // Thể loại phim

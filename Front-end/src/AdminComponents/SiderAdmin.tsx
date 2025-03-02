@@ -50,9 +50,8 @@ const SiderAdmin = () => {
             getItem("Tự tạo", "sub3-3"),
         ]),
         getItem("Ghế ngồi", "sub4", <BuildOutlined />, [
-            getItem("Tự tạo", "sub4-1"),
-            getItem("Tự tạo", "sub4-2"),
-        ]),
+            getItem(<Link to="seats">Quản lý Ghế ngồi</Link>, "sub4-1"),
+        ]),        
         getItem("Người dùng", "sub5", <TeamOutlined />, [
             getItem("Tự tạo", "sub5-1"),
         ]),

@@ -180,6 +180,23 @@ class SeatController extends Controller
         // Trả về kết quả thành công
         return response()->json(['message' => 'Thêm ghế thành công', 'data' => $seatsToInsert], 201);
     }
+    public function destroy($seat)
+    {
+        $seat = Seat::findOrFail($seat);
+        $seat->delete();
+        return response()->json(['message' => 'Ghế đã được xóa thành công'], 200);
+    }
+
+    public function deleteAll($room_id)
+    {
+        $seats = Seat::where('room_id', $room_id)->get();
+        foreach ($seats as $seat) {
+            $seat->delete(); // Xóa mềm hoặc xóa vĩnh viễn tùy cấu hình
+        }
+        return response()->json(['message' => 'Đã xóa tất cả ghế trong phòng thành công'], 200);
+    }
+
+
 
     /**
      * Lấy tất cả ghế ngồi trong phòng cụ thể (Trang booking)

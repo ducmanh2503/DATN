@@ -13,6 +13,7 @@ import ActorsManage from "./page/admin/Actors/ActorsManage";
 import GenresManage from "./page/admin/Genres/GenresManage";
 import DirectorsManage from "./page/admin/Directors/DirectorsManage";
 import Check from "./page/admin/FilmManage/Check";
+import SeatPage from "./page/admin/Seat/SeatPage";
 
 export const router = createBrowserRouter([
     { path: "/", element: <Home></Home> },
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
             { path: "directors", element: <DirectorsManage></DirectorsManage> },
             { path: "genre", element: <GenresManage></GenresManage> },
             { path: "check", element: <Check></Check> },
+            { path: "seats", element: <SeatPage/> },
         ],
     },
 ]);

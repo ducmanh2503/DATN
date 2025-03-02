@@ -52,7 +52,7 @@ Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus'])
 Route::get('/seat-types', [SeatTypeController::class, 'index']);
 Route::delete('/seats/{seat}', [SeatController::class, 'destroy']);
 Route::delete('/seats/room/{room_id}/delete-all', [SeatController::class, 'deleteAll']);
-
+Route::put('/seats/{seat}', [SeatController::class, 'update']);
 //showtimes
 Route::apiResource('showTime', ShowTimeController::class);
 Route::post('show-times/filter-by-date', [ShowTimeController::class, 'filterByDate']);

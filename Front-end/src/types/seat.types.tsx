@@ -10,15 +10,15 @@ export interface SeatType {
 // Định nghĩa type cho Seat (Ghế ngồi) từ database/model
 export interface Seat {
     id: number;
-    room_id: number; // ID của phòng chiếu
-    row: string; // Hàng ghế (A, B, C, ...)
-    column: string; // Cột ghế (1, 2, 3, ...)
-    seat_type_id: number; // ID của loại ghế
-    seat_status: 'available' | 'booked'; // Trạng thái ghế
-    seatType?: SeatType; // Thông tin loại ghế (từ quan hệ belongsTo)
-    price?: number; // Giá ghế (lấy từ getPriceAttribute)
-    created_at?: string; // Thời gian tạo
-    updated_at?: string; // Thời gian cập nhật
+    room_id: number;
+    row: string;
+    column: string;
+    seat_type_id: number;
+    seat_status: 'available' | 'booked';
+    seatType?: SeatType;
+    price?: number;
+    created_at?: string;
+    updated_at?: string;
 }
 
 // Định nghĩa type cho dữ liệu ghế trong ma trận (dùng trong getSeats API)

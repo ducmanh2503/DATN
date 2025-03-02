@@ -6,7 +6,8 @@ import {
     SeatUpdateRequest, 
     SeatUpdateResponse, 
     SeatingMatrix, 
-    ApiError 
+    ApiError, 
+    Seat
 } from '../types/seat.types';
 
 // Định nghĩa BASE_URL dựa trên config bạn cung cấp
@@ -23,6 +24,16 @@ const DELETE_ALL_SEATS_IN_ROOM = (roomId: number) => `${BASE_URL}/seats/room/${r
 export const getSeatsByRoom = async (roomId: number): Promise<SeatingMatrix> => {
     try {
         const response = await axios.get<SeatingMatrix>(GET_SEATS_BY_ROOM(roomId));
+        return response.data;
+    } catch (error) {
+        throw handleApiError(error);
+    }
+};
+
+
+export const updateSeat = async (seatId: number, seatData: Partial<Seat>): Promise<Seat> => {
+    try {
+        const response = await axios.put<Seat>(`${BASE_URL}/seats/${seatId}`, seatData);
         return response.data;
     } catch (error) {
         throw handleApiError(error);
@@ -96,6 +107,7 @@ const handleApiError = (error: any): ApiError => {
 // Export các hàm dịch vụ
 export default {
     getSeatsByRoom,
+    updateSeat,
     updateSeatStatus,
     createSeats,
     deleteSeat,

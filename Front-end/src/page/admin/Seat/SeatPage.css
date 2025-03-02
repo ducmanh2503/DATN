@@ -1,18 +1,18 @@
 /* src/page/admin/SeatPage/SeatPage.css */
 .full-page-layout {
-    min-height: 100%; /* Đảm bảo chiều cao tối thiểu là toàn bộ viewport */
-    min-width: 100%; 
+    min-height: 100vh;
+    min-width: 100vw;
     background-color: var(--mainBase-color);
-    overflow: hidden; /* Ngăn cuộn toàn bộ layout nếu không cần thiết */
+    overflow: hidden;
 }
 
 .full-page-content {
     padding: 24px;
-    height: 100%; /* Sử dụng toàn bộ chiều cao của layout */
-    width: 100%; /* Sử dụng toàn bộ chiều rộng của layout */
-    overflow-y: auto; /* Cho phép cuộn theo chiều dọc nếu nội dung vượt quá */
-    overflow-x: hidden; /* Ngăn cuộn theo chiều ngang */
-    background-color: var(--word-color); /* Nền trắng cho nội dung */
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: auto; /* Cho phép cuộn ngang nếu cần */
+    background-color: var(--word-color);
     border: 1px solid var(--border-color);
 }
 
@@ -21,99 +21,107 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    padding: 10px;
+    padding: 15px;
     background-color: var(--mainBase-color);
     border: 1px solid var(--border-color);
-    border-radius: 5px;
-    width: 100%; /* Đảm bảo header full width */
+    border-radius: 8px;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .seat-page-header h2 {
     color: var(--normal-rank);
     font-size: 24px;
     margin: 0;
-}
-
-.full-page-table {
-    margin-top: 20px;
-    width: 100%; /* Đảm bảo bảng full width */
-    background-color: var(--mainBase-color);
-    border: 1px solid var(--border-color);
-}
-
-.full-page-table .ant-table {
-    width: 100%; /* Đảm bảo bảng Ant Design full width */
-    background-color: var(--mainBase-color);
-}
-
-.full-page-table .ant-table-thead > tr > th {
-    background-color: var(--backgroud-product);
-    color: var(--word-color);
     font-weight: bold;
 }
 
-.full-page-table .ant-table-tbody > tr > td {
-    border-bottom: 1px solid var(--border-color);
+.seat-matrix {
+    display: flex;
+    flex-direction: column; /* Sắp xếp các hàng theo cột */
+    gap: 20px; /* Tăng khoảng cách giữa các hàng */
+    padding: 20px;
+    background-color: var(--mainBase-color);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.seat-row {
+    display: flex; /* Hiển thị các ghế trong cùng một hàng theo chiều ngang */
+    align-items: center;
+    gap: 10px; /* Khoảng cách giữa các ghế trong cùng hàng */
+    width: 100%; /* Đảm bảo hàng chiếm toàn bộ chiều rộng */
+}
+
+.seat-row-label {
+    width: 50px;
+    font-weight: bold;
+    color: var(--normal-rank);
+    text-align: right;
+    margin-right: 15px;
+    font-size: 16px;
+}
+
+.seat-item {
+    width: 60px; /* Giảm kích thước ghế để phù hợp với hình oval */
+    height: 40px; /* Chiều cao nhỏ hơn để tạo hình oval */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 20px; /* Tạo hình oval bằng cách tăng border-radius */
+    font-size: 14px;
+    color: var(--word-color);
+    transition: transform 0.3s, background-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--border-color);
+}
+
+.seat-item:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.seat-active {
+    opacity: 1;
+    font-weight: bold;
+}
+
+.seat-empty {
+    display: none; /* Ẩn ghế trống để chỉ hiển thị đúng số ghế hiện có */
 }
 
 .ant-btn-primary {
     background-color: var(--primary-color) !important;
     border-color: var(--border-color) !important;
     color: var(--word-color) !important;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: background-color 0.3s, transform 0.3s;
 }
 
 .ant-btn-primary:hover {
     background-color: var(--backgroud-product) !important;
     border-color: var(--border-color) !important;
+    transform: scale(1.05);
 }
 
 .ant-btn-danger {
-    background-color: var(--normal-rank) !important; /* Màu nền cho nút Xóa */
-    border-color: var(--border-color) !important;
-    color: var(--word-color) !important;
-}
-
-.ant-btn-danger:hover {
-    background-color: #5a3d14 !important; /* Màu hover cho nút Xóa, biến thể của var(--normal-rank) */
-    border-color: var(--border-color) !important;
-}
-
-.ant-btn-danger {
-    background-color: #ff4d4f !important; /* Màu đỏ cho nút Xóa Tất Cả Ghế */
+    background-color: #ff4d4f !important;
     border-color: #ff4d4f !important;
     color: var(--word-color) !important;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: background-color 0.3s, transform 0.3s;
 }
 
 .ant-btn-danger:hover {
-    background-color: #ff7875 !important; /* Màu hover cho nút Xóa Tất Cả Ghế */
+    background-color: #ff7875 !important;
     border-color: #ff7875 !important;
-}
-
-.ant-form {
-    background-color: var(--mainBase-color);
-    padding: 20px;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-}
-
-.ant-form-item-label {
-    color: var(--normal-rank);
-}
-
-.ant-input, .ant-select-selector {
-    border: 1px solid var(--border-color) !important;
-    background-color: var(--word-color) !important;
-}
-
-.ant-btn-primary {
-    background-color: var(--backgroud-product) !important;
-    border-color: var(--border-color) !important;
-    color: var(--word-color) !important;
-}
-
-.ant-btn-primary:hover, .ant-btn-primary:focus {
-    background-color: var(--primary-color) !important;
-    border-color: var(--border-color) !important;
+    transform: scale(1.05);
 }
 
 .ant-spin {

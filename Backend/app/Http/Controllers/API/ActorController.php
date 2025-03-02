@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Actor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class ActorController extends Controller
@@ -14,6 +15,7 @@ class ActorController extends Controller
      */
     public function index()
     {
+
         //Danh sách diễn viên
         $actors = Actor::query()->latest('id')->get();
 
@@ -25,6 +27,7 @@ class ActorController extends Controller
      */
     public function store(Request $request)
     {
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'name_actor' => 'required|string|max:255'
@@ -49,6 +52,8 @@ class ActorController extends Controller
      */
     public function show(string $id)
     {
+
+
         // Tìm diễn viên theo id
         $actor = Actor::find($id);
 
@@ -65,6 +70,8 @@ class ActorController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+
         // Tìm diễn viên theo id
         $actor = Actor::find($id);
 
@@ -96,6 +103,8 @@ class ActorController extends Controller
      */
     public function destroy(string $id)
     {
+
+
         // Tìm diễn viên theo id
         $actor = Actor::find($id);
 

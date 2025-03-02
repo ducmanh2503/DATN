@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Seat;
 use App\Models\SeatType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class SeatController extends Controller
@@ -15,6 +16,7 @@ class SeatController extends Controller
      */
     public function updateSeatStatus(Request $request)
     {
+
         // Kiểm tra yêu cầu có chứa 'seats' không (danh sách ghế)
         if (!$request->has('seats') || !is_array($request->seats)) {
             return response()->json(['error' => 'Thiếu thông tin ghế hoặc dữ liệu ghế không hợp lệ'], 400);
@@ -67,6 +69,7 @@ class SeatController extends Controller
 
     public function getSeats($room_id)
     {
+
         // Lấy tất cả ghế trong phòng cụ thể
         $seats = Seat::where('room_id', $room_id)->with('seatType')->get();
 
@@ -103,6 +106,7 @@ class SeatController extends Controller
 
     private function getSeatTypeByRow($row)
     {
+
         //gán loại ghế dựa theo hàng
         if (in_array($row, ['A', 'B', 'C'])) {
             return SeatType::where('name', 'Thường')->first();
@@ -120,6 +124,7 @@ class SeatController extends Controller
      */
     public function store(Request $request)
     {
+
         // Xác thực dữ liệu
         $validator = Validator::make($request->all(), [
             '*.room_id' => 'required|exists:rooms,id',

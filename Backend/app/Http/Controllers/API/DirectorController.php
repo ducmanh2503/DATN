@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Director;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class DirectorController extends Controller
@@ -14,6 +15,8 @@ class DirectorController extends Controller
      */
     public function index()
     {
+
+
         // Danh sách đạo diễn
         $directors = Director::query()->latest('id')->get();
 
@@ -28,6 +31,8 @@ class DirectorController extends Controller
      */
     public function store(Request $request)
     {
+
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'name_director' => 'required|string|max:255'
@@ -54,6 +59,8 @@ class DirectorController extends Controller
      */
     public function show(string $id)
     {
+
+
         // Tìm đạo diễn theo id
         $director = Director::find($id);
 
@@ -70,6 +77,8 @@ class DirectorController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+
         // Tìm đạo diễn theo id
         $director = Director::find($id);
 
@@ -101,6 +110,8 @@ class DirectorController extends Controller
      */
     public function destroy(string $id)
     {
+
+
         // Tìm đạo diễn theo id
         $director = Director::find($id);
 

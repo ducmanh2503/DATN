@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class RoomController extends Controller
@@ -14,6 +15,8 @@ class RoomController extends Controller
      */
     public function index(Request $request)
     {
+
+
         // Lấy danh sách phòng và phân trang
         $rooms = Room::query()->latest('id')->get();
 
@@ -30,6 +33,8 @@ class RoomController extends Controller
      */
     public function store(Request $request)
     {
+
+
         try {
             // Lấy dữ liệu JSON từ request
             $data = $request->json()->all();
@@ -69,6 +74,8 @@ class RoomController extends Controller
      */
     public function show(string $id)
     {
+
+
         $room = Room::find($id);
 
         // Nếu không tìm thấy phòng
@@ -83,6 +90,8 @@ class RoomController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+
         try {
             // Tìm phòng theo id
             $room = Room::find($id);
@@ -130,6 +139,8 @@ class RoomController extends Controller
      */
     public function destroy(Request $request)
     {
+
+
         $ids = $request->input('ids');
 
         // Nếu không có phòng nào được chọn
@@ -150,6 +161,8 @@ class RoomController extends Controller
 
     public function restore($id)
     {
+
+
         $movie = Room::onlyTrashed()->find($id);
 
         if (!$movie) {

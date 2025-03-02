@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
     Button,
     DatePicker,
@@ -14,6 +14,7 @@ import axios from "axios";
 import "../FilmManage/AddFilm.css";
 import {
     GET_CALENDAR,
+    GET_DATES_BY_CALENDAR,
     GET_FILM_LIST,
     UPDATE_SHOWTIMES,
 } from "../../../config/ApiConfig";
@@ -22,23 +23,32 @@ import { PlusCircleOutlined } from "@ant-design/icons";
 import "./ShowtimesRoom.css";
 import dayjs from "dayjs";
 
-const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
+const AddShowtimes = ({ setShowtimesData }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
     const [open, setOpen] = useState(false);
+    const [selectedCalendarShowId, setSelectedCalendarShowId] = useState<
+        number | null
+    >(null);
 
     const onFinish = (formData: any) => {
         const formattedData = {
             ...formData,
             start_time: dayjs(formData.start_time).format("HH:mm"),
             end_time: dayjs(formData.end_time).format("HH:mm"),
+            selected_date: dayjs(formData.selected_date).format("YYYY-MM-DD"),
             calendar_show_id: Number(formData.calendar_show_id),
         };
 
         mutate(formattedData, {
             onSuccess: () => {
                 messageApi.success("Thêm thành công");
-                setShowtimesData(formData);
+                setShowtimesData((prevData: any) => [
+                    ...prevData,
+                    formattedData,
+                ]);
+                console.log(setShowtimesData);
+
                 form.resetFields();
                 setOpen(false);
             },
@@ -61,14 +71,6 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
         setOpen(false);
     };
 
-    useEffect(() => {
-        if (selectedDate) {
-            form.setFieldsValue({
-                show_time: dayjs(selectedDate),
-            });
-        }
-    }, [selectedDate, form, open]);
-
     const { data: filmList } = useQuery({
         queryKey: ["filmList"],
         queryFn: async () => {
@@ -85,13 +87,38 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
         queryKey: ["showtimesFilm"],
         queryFn: async () => {
             const { data } = await axios.get(GET_CALENDAR);
-            console.log("showtime-data", data);
-
             return data.map((item: any) => ({
                 ...item,
                 key: item.id,
             }));
         },
+    });
+
+    // Khi chọn phim, cập nhật `calendar_show_id`
+    const handleFilmChange = (value: number) => {
+        const selectedShow = idCalendarShow?.find(
+            (show: any) => show.movie_id === value
+        );
+        const calendarShowId = selectedShow ? selectedShow.id : null;
+
+        setSelectedCalendarShowId(calendarShowId);
+        form.setFieldsValue({
+            calendar_show_id: calendarShowId || "",
+        });
+    };
+
+    const { data: datesByCalendar } = useQuery({
+        queryKey: ["datesByCalendar", selectedCalendarShowId],
+        queryFn: async () => {
+            if (!selectedCalendarShowId) return [];
+            const { data } = await axios.post(GET_DATES_BY_CALENDAR, {
+                calendar_show_id: selectedCalendarShowId,
+            });
+            console.log("days-by-calendar", data);
+            // const datesByCalendar = data.dates;
+            return data.dates;
+        },
+        enabled: !!selectedCalendarShowId, // Chỉ gọi API nếu đã có calendar_show_id
     });
 
     const { mutate } = useMutation({
@@ -118,6 +145,7 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
                     name="add-showtimes-form"
                     labelCol={{ span: 8 }}
                     wrapperCol={{ span: 16 }}
+                    initialValues={{ room_type: "" }}
                     onFinish={onFinish}
                 >
                     <Form.Item
@@ -147,50 +175,39 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
                     >
                         <Select
                             placeholder="Chọn phim"
-                            onChange={(value) => {
-                                console.log("Phim được chọn:", value);
-                                console.log(
-                                    "Dữ liệu idCalendarShow:",
-                                    idCalendarShow
-                                );
-
-                                // Tìm ID lịch chiếu theo ID phim
-                                const selectedShow = idCalendarShow?.find(
-                                    (show: any) => show.movie_id === value // Đổi thành `movie_id` nếu dữ liệu API trả về dạng này
-                                );
-
-                                console.log(
-                                    "Lịch chiếu tương ứng:",
-                                    selectedShow
-                                );
-
-                                // Cập nhật ID vào form
-                                form.setFieldsValue({
-                                    calendar_show_id: selectedShow
-                                        ? selectedShow.id
-                                        : "",
-                                });
-                            }}
+                            onChange={handleFilmChange}
                         >
-                            {filmList?.map((film: any) => (
-                                <Select.Option key={film.id} value={film.id}>
-                                    {film.title}{" "}
-                                    <span>
-                                        {film.movie_status === "now_showing" ? (
-                                            <Tag color="green">Đang chiếu</Tag>
-                                        ) : (
-                                            <Tag color="red">Sắp chiếu</Tag>
-                                        )}
-                                    </span>
-                                </Select.Option>
-                            ))}
+                            {filmList
+                                ?.filter((film: any) =>
+                                    idCalendarShow?.some(
+                                        (show: any) => show.movie_id === film.id
+                                    )
+                                )
+                                .map((film: any) => (
+                                    <Select.Option
+                                        key={film.id}
+                                        value={film.id}
+                                    >
+                                        {film.title}{" "}
+                                        <span>
+                                            {film.movie_status ===
+                                            "now_showing" ? (
+                                                <Tag color="green">
+                                                    Đang chiếu
+                                                </Tag>
+                                            ) : (
+                                                <Tag color="red">Sắp chiếu</Tag>
+                                            )}
+                                        </span>
+                                    </Select.Option>
+                                ))}
                         </Select>
                     </Form.Item>
 
                     <Form.Item
                         className="input-label"
                         label="Ngày chiếu"
-                        name="show_time"
+                        name="selected_date"
                         rules={[
                             {
                                 required: true,
@@ -200,8 +217,22 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
                     >
                         <DatePicker
                             style={{ width: "100%" }}
-                            disabled
-                        ></DatePicker>
+                            disabledDate={(current) => {
+                                if (
+                                    !datesByCalendar ||
+                                    !Array.isArray(datesByCalendar)
+                                )
+                                    return true;
+
+                                return !datesByCalendar.some((date: string) =>
+                                    dayjs(date, "YYYY-MM-DD").isSame(
+                                        current,
+                                        "day"
+                                    )
+                                );
+                            }}
+                            placeholder="Nhập phim chiếu trước"
+                        />
                     </Form.Item>
                     <Form.Item
                         className="input-label"
@@ -214,7 +245,12 @@ const AddShowtimes = ({ selectedDate, setShowtimesData }: any) => {
                             },
                         ]}
                     >
-                        <Select placeholder="Hình thức chiếu">
+                        <Select
+                            placeholder="Hình thức chiếu"
+                            onChange={(value) =>
+                                console.log("Room type selected:", value)
+                            }
+                        >
                             <Select.Option value="2D">2D</Select.Option>
                             <Select.Option value="3D">3D</Select.Option>
                             <Select.Option value="4D">4D</Select.Option>

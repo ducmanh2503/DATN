@@ -45,6 +45,7 @@ export interface RefreshBtnProps {
 export interface FieldType {
     room_id: string;
     show_date: string;
+    date: string;
 }
 
 export interface RoomSHowtimesType {

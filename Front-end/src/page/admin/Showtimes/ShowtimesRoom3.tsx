@@ -1,9 +1,9 @@
 import { Space, Table, Tag } from "antd";
 import { RoomSHowtimesType } from "../../../types/interface";
 import "./ShowtimesRoom.css";
-import EditCalendar from "../CalendarShow/EditCalendar";
 import DeleteShowtimes from "./DeleteShowtimes";
 import EditShowtimes from "./EditShowtimes";
+import dayjs from "dayjs";
 
 const ShowtimesRoom3 = ({ data, selectedDate }: any) => {
     const columns = [
@@ -51,11 +51,15 @@ const ShowtimesRoom3 = ({ data, selectedDate }: any) => {
             title: "Thời gian chiếu",
             dataIndex: "start_time",
             key: "start_time",
-            render: (_: any, time: any) => {
+            render: (_: any, record: any) => {
                 return (
                     <>
-                        <Tag color="magenta">{time.start_time}</Tag>
-                        <Tag color="geekblue">{time.end_time}</Tag>
+                        <Tag color="magenta">
+                            {dayjs(record.start_time, "HH:mm").format("HH:mm")}
+                        </Tag>
+                        <Tag color="geekblue">
+                            {dayjs(record.end_time, "HH:mm").format("HH:mm")}
+                        </Tag>
                     </>
                 );
             },
@@ -92,21 +96,35 @@ const ShowtimesRoom3 = ({ data, selectedDate }: any) => {
         {
             title: "Action",
             key: "action",
-            render: (_: any, record: RoomSHowtimesType) => (
-                <Space size="middle">
-                    <DeleteShowtimes id={record.id}></DeleteShowtimes>
-                    <EditShowtimes
-                        id={record.id}
-                        selectedDate={selectedDate}
-                    ></EditShowtimes>
-                </Space>
-            ),
+            render: (_: any, record: RoomSHowtimesType) => {
+                return (
+                    <Space size="middle">
+                        <DeleteShowtimes
+                            id={record.id}
+                            selectedDate={selectedDate}
+                        ></DeleteShowtimes>
+                        <EditShowtimes
+                            id={record.id}
+                            selectedDate={selectedDate}
+                        ></EditShowtimes>
+                    </Space>
+                );
+            },
         },
     ];
     return (
         <div className="roomBox">
             <h1 className="roomName">Phòng chiếu số 3</h1>
-            <Table columns={columns} dataSource={data} />
+            <Table
+                columns={columns}
+                dataSource={[...data].sort((a, b) =>
+                    dayjs(a.start_time, "HH:mm").isBefore(
+                        dayjs(b.start_time, "HH:mm")
+                    )
+                        ? -1
+                        : 1
+                )}
+            />
         </div>
     );
 };

@@ -2,14 +2,14 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { useMutation } from "@tanstack/react-query";
 import { Button, message, Popconfirm } from "antd";
 import axios from "axios";
-import { DELETE_SHOWTIMES } from "../../../config/ApiConfig";
+import { DELETE_ONE_SHOWTIMES } from "../../../config/ApiConfig";
 
-const DeleteShowtimes = ({ id }: { id: number }) => {
+const DeleteShowtimes = ({ id, selectedDate }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
 
     const { mutate } = useMutation({
-        mutationFn: async (id: number) => {
-            await axios.delete(DELETE_SHOWTIMES(id));
+        mutationFn: async (form: any) => {
+            await axios.delete(DELETE_ONE_SHOWTIMES(id, selectedDate));
         },
         onSuccess: () => {
             messageApi.success("Xóa lịch chiếu thành công");

@@ -1,176 +1,132 @@
-import { useRef, useState } from "react";
-import { SearchOutlined } from "@ant-design/icons";
-import type { InputRef, TableColumnsType, TableColumnType } from "antd";
-import { Button, Input, Space, Table } from "antd";
-import type { FilterDropdownProps } from "antd/es/table/interface";
-import Highlighter from "react-highlight-words";
-import AddShowtimes from "./AddShowtimes";
+import { Space, Table, Tag } from "antd";
 import { RoomSHowtimesType } from "../../../types/interface";
 import "./ShowtimesRoom.css";
+import DeleteShowtimes from "./DeleteShowtimes";
+import EditShowtimes from "./EditShowtimes";
+import dayjs from "dayjs";
 
-type DataIndex = keyof RoomSHowtimesType;
-
-const ShowtimesRoom1 = ({ data }: any) => {
-    const [searchText, setSearchText] = useState("");
-    const [searchedColumn, setSearchedColumn] = useState("");
-    const searchInput = useRef<InputRef>(null);
-
-    const handleSearch = (
-        selectedKeys: string[],
-        confirm: FilterDropdownProps["confirm"],
-        dataIndex: DataIndex
-    ) => {
-        confirm();
-        setSearchText(selectedKeys[0]);
-        setSearchedColumn(dataIndex);
-    };
-
-    const handleReset = (clearFilters: () => void) => {
-        clearFilters();
-        setSearchText("");
-    };
-
-    const getColumnSearchProps = (
-        dataIndex: DataIndex
-    ): TableColumnType<RoomSHowtimesType> => ({
-        filterDropdown: ({
-            setSelectedKeys,
-            selectedKeys,
-            confirm,
-            clearFilters,
-            close,
-        }) => (
-            <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-                <Input
-                    ref={searchInput}
-                    placeholder={`Search ${dataIndex}`}
-                    value={selectedKeys[0]}
-                    onChange={(e) =>
-                        setSelectedKeys(e.target.value ? [e.target.value] : [])
-                    }
-                    onPressEnter={() =>
-                        handleSearch(
-                            selectedKeys as string[],
-                            confirm,
-                            dataIndex
-                        )
-                    }
-                    style={{ marginBottom: 8, display: "block" }}
-                />
-                <Space>
-                    <Button
-                        type="primary"
-                        onClick={() =>
-                            handleSearch(
-                                selectedKeys as string[],
-                                confirm,
-                                dataIndex
-                            )
-                        }
-                        icon={<SearchOutlined />}
-                        size="small"
-                        style={{ width: 90 }}
-                    >
-                        Search
-                    </Button>
-                    <Button
-                        onClick={() =>
-                            clearFilters && handleReset(clearFilters)
-                        }
-                        size="small"
-                        style={{ width: 90 }}
-                    >
-                        Reset
-                    </Button>
-                    <Button
-                        type="link"
-                        size="small"
-                        onClick={() => {
-                            close();
-                        }}
-                    >
-                        close
-                    </Button>
-                </Space>
-            </div>
-        ),
-        filterIcon: (filtered: boolean) => (
-            <SearchOutlined
-                style={{ color: filtered ? "#1677ff" : undefined }}
-            />
-        ),
-        onFilter: (value, record) =>
-            record[dataIndex]
-                .toString()
-                .toLowerCase()
-                .includes((value as string).toLowerCase()),
-        filterDropdownProps: {
-            onOpenChange(open) {
-                if (open) {
-                    setTimeout(() => searchInput.current?.select(), 100);
-                }
-            },
-        },
-        render: (text) =>
-            searchedColumn === dataIndex ? (
-                <Highlighter
-                    highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-                    searchWords={[searchText]}
-                    autoEscape
-                    textToHighlight={text ? text.toString() : ""}
-                />
-            ) : (
-                text
-            ),
-    });
-
-    const columns: TableColumnsType<RoomSHowtimesType> = [
+const ShowtimesRoom1 = ({ data, selectedDate }: any) => {
+    const columns = [
         {
             title: "Phim chiếu",
-            dataIndex: "room_id",
-            key: "room_id",
-            // ...getColumnSearchProps(""),
+            dataIndex: "calendar_show",
+            key: "calendar_show",
+            render: (_: any, recordTitle: any) => {
+                const title =
+                    recordTitle?.calendar_show?.movie?.title || "Không có";
+
+                return (
+                    <span
+                        style={{
+                            color: "var(--border-color)",
+                            fontWeight: 500,
+                        }}
+                    >
+                        {title}
+                    </span>
+                );
+            },
         },
         {
             title: "Hình thức chiếu",
-            dataIndex: "name",
-            key: "name",
-            // render: (_, recordRoom: any) => {
-            //     console.log("checkk", recordRoom);
-            //     return <span>{recordRoom.room.room_type}</span>;
-            // },
+            dataIndex: "room_type",
+            key: "room_type",
+            render: (_: any, recordRoom: any) => {
+                return <Tag color="volcano">{recordRoom.room.room_type}</Tag>;
+            },
         },
         {
             title: "Hình thức dịch",
             dataIndex: "address",
             key: "address",
-            ...getColumnSearchProps("address"),
+            render: (record: any) => {
+                return record === "lồng tiếng" ? (
+                    <Tag color="gold">Lồng tiếng</Tag>
+                ) : (
+                    <Tag color="green">Thuyết minh</Tag>
+                );
+            },
         },
         {
             title: "Thời gian chiếu",
             dataIndex: "start_time",
             key: "start_time",
-            render: (_, time: any) => {
-                return <span>{`${time.start_time} ~ ${time.end_time}`}</span>;
+            render: (_: any, record: any) => {
+                return (
+                    <>
+                        <Tag color="magenta">
+                            {dayjs(record.start_time, "HH:mm").format("HH:mm")}
+                        </Tag>
+                        <Tag color="geekblue">
+                            {dayjs(record.end_time, "HH:mm").format("HH:mm")}
+                        </Tag>
+                    </>
+                );
             },
-        },
-        {
-            title: "Loại suất chiếu",
-            dataIndex: "address",
-            key: "address",
-            ...getColumnSearchProps("address"),
         },
         {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
-            ...getColumnSearchProps("address"),
+            render: (status: string) => {
+                let color = "";
+                let text = "";
+
+                switch (status) {
+                    case "coming_soon":
+                        color = "blue";
+                        text = "Sắp chiếu";
+                        break;
+                    case "now_showing":
+                        color = "orange";
+                        text = "Đang chiếu";
+                        break;
+                    case "referenced":
+                        color = "purple";
+                        text = "Đã chiếu";
+                        break;
+                    default:
+                        color = "gray";
+                        text = "Không xác định";
+                }
+
+                return <Tag color={color}>{text}</Tag>;
+            },
+        },
+        {
+            title: "Action",
+            key: "action",
+            render: (_: any, record: RoomSHowtimesType) => {
+                console.log(record.id);
+
+                return (
+                    <Space size="middle">
+                        <DeleteShowtimes
+                            id={record.id}
+                            selectedDate={selectedDate}
+                        ></DeleteShowtimes>
+                        <EditShowtimes
+                            id={record.id}
+                            selectedDate={selectedDate}
+                        ></EditShowtimes>
+                    </Space>
+                );
+            },
         },
     ];
     return (
         <div className="roomBox">
             <h1 className="roomName">Phòng chiếu số 1</h1>
-            <Table<RoomSHowtimesType> columns={columns} dataSource={data} />
+            <Table
+                columns={columns}
+                dataSource={[...data].sort((a, b) =>
+                    dayjs(a.start_time, "HH:mm").isBefore(
+                        dayjs(b.start_time, "HH:mm")
+                    )
+                        ? -1
+                        : 1
+                )}
+            />
         </div>
     );
 };

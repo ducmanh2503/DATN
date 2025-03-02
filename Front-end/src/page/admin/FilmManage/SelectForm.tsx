@@ -25,7 +25,9 @@ const SelectForm: React.FC<SelectFormProps> = React.memo(
                     value: item[valueKey],
                 }));
             },
-            enabled: !!endpoint,
+            staleTime: 1000 * 60 * 15,
+            // cacheTime: 1000 * 60 * 20,
+            // enabled: !!endpoint,
         });
 
         // Memo hóa options để tránh render lại khi không cần thiết

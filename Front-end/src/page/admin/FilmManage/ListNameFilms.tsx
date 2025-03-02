@@ -1,10 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { GET_FILM_LIST, URL_IMAGE } from "../../../config/ApiConfig";
-import { useEffect } from "react";
+import { Spin } from "antd";
+
+const contentStyle: React.CSSProperties = {
+    padding: 50,
+};
+
+const content = <div style={contentStyle} />;
 
 const ListNameFilms = () => {
-    const { data: moviesName, refetch: refetchMovieName } = useQuery({
+    const { data: moviesName, isLoading } = useQuery({
         queryKey: ["filmList"],
         queryFn: async () => {
             const { data } = await axios.get(GET_FILM_LIST);
@@ -15,11 +21,15 @@ const ListNameFilms = () => {
                 key: item.id,
             }));
         },
-        enabled: false,
+        staleTime: 1000 * 60 * 10,
     });
-    useEffect(() => {
-        refetchMovieName();
-    }, []);
+
+    if (isLoading)
+        return (
+            <Spin tip="Loading" size="large">
+                {content}
+            </Spin>
+        );
     return (
         <>
             {moviesName?.map((film: any) => (

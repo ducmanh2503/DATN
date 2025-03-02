@@ -18,7 +18,6 @@ class MoviesController extends Controller
     public function index(Request $request)
     {
 
-
         //Hiển thị tất cả phim
         $movies = Movies::query()->latest('id')->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director'])->get();
 
@@ -42,7 +41,6 @@ class MoviesController extends Controller
 
     public function store(Request $request)
     {
-
 
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [

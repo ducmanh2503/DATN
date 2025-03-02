@@ -10,6 +10,9 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
+//new
+use Illuminate\Support\Facades\Log;
+
 
 
 class ShowTimeController extends Controller
@@ -179,39 +182,81 @@ class ShowTimeController extends Controller
         }
 
         // Bước 4: Kiểm tra xem phòng chiếu có bị trùng lịch không (có thể thay đổi điều kiện tùy theo yêu cầu)
-        $conflictingShowTimes = ShowTime::where('room_id', $validated['room_id'])
-            ->where(function ($query) use ($validated) {
-                $query->where('start_time', '<', $validated['end_time'])
-                    ->where('end_time', '>', $validated['start_time']);
-            })
-            ->whereHas('showTimeDate', function ($query) use ($selectedDate) {
-                $query->whereDate('show_date', $selectedDate);
-            })
-            ->count();
+        // $conflictingShowTimes = ShowTime::where('room_id', $validated['room_id'])
+        //     ->where(function ($query) use ($validated) {
+        //         $query->where('start_time', '<', $validated['end_time'])
+        //             ->where('end_time', '>', $validated['start_time']);
+        //     })
+        //     ->whereHas('showTimeDate', function ($query) use ($selectedDate) {
+        //         $query->whereDate('show_date', $selectedDate);
+        //     })
+        //     ->count();
 
-        if ($conflictingShowTimes > 0) {
+        // if ($conflictingShowTimes > 0) {
+        //     return response()->json(['error' => 'Phòng chiếu đã có suất chiếu trùng giờ'], 422);
+        // }
+
+        //new 
+        try {
+            //code...
+            $conflictingShowTimes = ShowTime::where('room_id', $validated['room_id'])
+                ->where(function ($query) use ($validated, $id) {
+                    $query->where('id', '!=', $id) // Loại trừ suất chiếu đang cập nhật
+                        ->where('start_time', '<', $validated['end_time'])
+                        ->where('end_time', '>', $validated['start_time']);
+                })
+                ->whereHas('showTimeDate', function ($query) use ($selectedDate) {
+                    $query->whereDate('show_date', $selectedDate);
+                })
+                ->exists();
+        } catch (\Throwable $th) {
+            // throw $th;
+            return response()->json(['error' => throw $th], 422);
+        }
+
+
+        // ->toSql();
+
+
+        if ($conflictingShowTimes) {
+            Log::info("showtime befor: " . $showTime);
+            Log::info($conflictingShowTimes);
+            Log::info("data update: ", $validated);
+            Log::info($selectedDate);
+
+
+
             return response()->json(['error' => 'Phòng chiếu đã có suất chiếu trùng giờ'], 422);
         }
 
-        // Bước 5: Cập nhật thông tin ShowTime
-        $showTime->calendar_show_id = $validated['calendar_show_id'];
-        $showTime->room_id = $validated['room_id'];
-        $showTime->start_time = $validated['start_time'];
-        $showTime->end_time = $validated['end_time'];
-        $showTime->status = $validated['status'];
+
+        // // Bước 5: Cập nhật thông tin ShowTime
+        // $showTime->calendar_show_id = $validated['calendar_show_id'];
+        // $showTime->room_id = $validated['room_id'];
+        // $showTime->start_time = $validated['start_time'];
+        // $showTime->end_time = $validated['end_time'];
+        // $showTime->status = $validated['status'];
 
         // Bước 6: Lưu lại thay đổi
-        try {
-            $showTime->save();
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Cập nhật thất bại: ' . $e->getMessage()], 500);
-        }
+        // try {
+        $showTime->update($validated);
 
-        // Bước 7: Trả về kết quả thành công
+        // $showTime->save();
+        //new
         return response()->json([
             'message' => 'Cập nhật xuất chiếu thành công',
             'data' => $showTime
         ]);
+        // } catch (\Exception $e) {
+        return response()->json(['error' => 'Cập nhật thất bại: ' . $e->getMessage()], 500);
+        // }
+
+        // Bước 7: Trả về kết quả thành công
+        // old
+        // return response()->json([
+        //     'message' => 'Cập nhật xuất chiếu thành công',
+        //     'data' => $showTime
+        // ]);
     }
 
 

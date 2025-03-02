@@ -20,11 +20,13 @@ const content = <div style={contentStyle} />;
 const ShowtimesManage: React.FC = () => {
     const [form] = useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const [isLoading, setIsLoading] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const [searchedDate, setSearchedDate] = useState<string | null>(null);
+    const [searchedRoom, setSearchedRoom] = useState<string | null>(null);
     const [showtimesData, setShowtimesData] = useState<any[]>([]);
     const [isSearched, setIsSearched] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
 
     const handleRoomChange = (value: string) => {
         setSelectedRoom(value);
@@ -41,6 +43,8 @@ const ShowtimesManage: React.FC = () => {
 
     const onFinish = (formData: any) => {
         setIsSearched(true);
+        setSearchedDate(selectedDate);
+        setSearchedRoom(selectedRoom);
         mutate(formData);
     };
 
@@ -49,8 +53,8 @@ const ShowtimesManage: React.FC = () => {
             setIsLoading(true);
             const newFormData = {
                 ...formData,
-                show_date: formData.show_date
-                    ? dayjs(formData.show_date).format("YYYY/MM/DD")
+                date: formData.date
+                    ? dayjs(formData.date).format("YYYY/MM/DD")
                     : null,
             };
 
@@ -113,7 +117,7 @@ const ShowtimesManage: React.FC = () => {
 
                     <Form.Item<FieldType>
                         label="Ngày chiếu:"
-                        name="show_date"
+                        name="date"
                         rules={[
                             {
                                 required: true,
@@ -130,22 +134,33 @@ const ShowtimesManage: React.FC = () => {
                     </Form.Item>
                 </Form>
                 <AddShowtimes
-                    selectedDate={selectedDate}
                     setShowtimesData={setShowtimesData}
                 ></AddShowtimes>
             </div>
             <Divider variant="solid" style={{ borderColor: "#7cb305" }}>
-                Lịch chiếu ngày: {selectedDate || "Chưa chọn"}
+                {isSearched
+                    ? `Lịch chiếu ngày: ${searchedDate}`
+                    : "Lịch chiếu ngày: "}
             </Divider>
+
             {isLoading ? (
                 <Spin tip="Loading">{content}</Spin>
             ) : showtimesData.length > 0 ? (
-                selectedRoom === "1" ? (
-                    <ShowtimesRoom1 data={showtimesData} />
-                ) : selectedRoom === "2" ? (
-                    <ShowtimesRoom2 data={showtimesData} />
-                ) : selectedRoom === "3" ? (
-                    <ShowtimesRoom3 data={showtimesData} />
+                searchedRoom === "1" ? (
+                    <ShowtimesRoom1
+                        data={showtimesData}
+                        selectedDate={selectedDate}
+                    />
+                ) : searchedRoom === "2" ? (
+                    <ShowtimesRoom2
+                        data={showtimesData}
+                        selectedDate={selectedDate}
+                    />
+                ) : searchedRoom === "3" ? (
+                    <ShowtimesRoom3
+                        data={showtimesData}
+                        selectedDate={selectedDate}
+                    />
                 ) : null
             ) : isSearched ? (
                 <p
@@ -155,9 +170,10 @@ const ShowtimesManage: React.FC = () => {
                         borderRadius: "6px",
                         textAlign: "center",
                         color: "red",
+                        fontWeight: 500,
                     }}
                 >
-                    Không có dữ liệu
+                    {`Chưa có suất chiếu nào ngày ${searchedDate} phòng chiếu ${searchedRoom}`}
                 </p>
             ) : null}
         </>

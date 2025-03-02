@@ -29,10 +29,17 @@ const DELETE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const UPDATE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const DETAIL_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 
-const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/filter-by-date-one`;
-const GET_ALL_SHOWTIMES = (date: string) =>
-    `${BASE_URL}/show-times/filter-by-date/${date}`;
+const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/by-date`;
+// const GET_ALL_SHOWTIMES = (date: string) =>
+//     `${BASE_URL}/show-times/filter-by-date/${date}`;
 const UPDATE_SHOWTIMES = `${BASE_URL}/showTime`;
+const DELETE_ONE_SHOWTIMES = (id: number, selected_date: string) =>
+    `${BASE_URL}/showtimes/${id}/destroy-by-date/${selected_date}`;
+const GET_DETAIL_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`;
+const UPDATE_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`;
+const GET_DATES_BY_CALENDAR = `${BASE_URL}/show-times/get-date-range-by-calendar`;
+
+const GET_ROOMS = `${BASE_URL}/room`;
 
 export {
     GET_FILM_LIST,
@@ -58,6 +65,11 @@ export {
     CREATE_CALENDAR,
     UPDATE_CALENDAR,
     DETAIL_CALENDAR,
-    GET_ALL_SHOWTIMES,
+    // GET_ALL_SHOWTIMES,
     UPDATE_SHOWTIMES,
+    DELETE_ONE_SHOWTIMES,
+    GET_DETAIL_ONE_SHOWTIMES,
+    GET_DATES_BY_CALENDAR,
+    UPDATE_ONE_SHOWTIMES,
+    GET_ROOMS,
 };

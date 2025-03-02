@@ -49,7 +49,7 @@ const EditFilm = ({ id }: any) => {
                 value: item.id,
             }));
         },
-        enabled: true,
+        staleTime: 1000 * 60 * 20,
     });
 
     const { data, isLoading } = useQuery({

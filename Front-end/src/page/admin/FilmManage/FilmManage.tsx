@@ -316,6 +316,7 @@ const FilmManage: React.FC = () => {
                 key: item.id,
             }));
         },
+        staleTime: 1000 * 60 * 10,
     });
 
     const dataSource = React.useMemo(() => data, [data]);

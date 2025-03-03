@@ -6,6 +6,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalendarShowController;
 use App\Http\Controllers\API\ComboController;
 use App\Http\Controllers\API\DirectorController;
+use App\Http\Controllers\API\DiscountCodeController;
 use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
@@ -28,65 +29,71 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Route::middleware('auth:sanctum')->group(function () {
-//     // Lấy thông tin user đã đăng nhập
-//     Route::get('/user', function (Request $request) {
-//         return response()->json($request->user());
-//     });
 
-    // Chỉ admin mới truy cập được
-    // Route::middleware(['role:admin'])->group(function () {
-        // Movies
-        Route::apiResource('movies', MoviesController::class);
-        Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
-        Route::delete('/movies', [MoviesController::class, 'destroyMultiple']);
-        Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']);
-        Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']);
-        Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
+// Lấy thông tin user đã đăng nhập
+Route::apiResource('/user', UserController::class);
+Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
+Route::post('/restore-user', [UserController::class, 'restore']);
+Route::put('/update-profile', [UserController::class, 'updateProfile']);
 
-        // Room
-        Route::apiResource('room', RoomController::class);
 
-        // Seats
-        Route::post('/seats', [SeatController::class, 'store']);
-        Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
-        Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
+// Chỉ admin mới truy cập được
+// Route::middleware(['role:admin'])->group(function () {
+// Movies
+Route::apiResource('movies', MoviesController::class);
+Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
+Route::delete('/movies', [MoviesController::class, 'destroyMultiple']);
+Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']);
+Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']);
+Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
 
-        // Showtimes
-        Route::apiResource('showTime', ShowTimeController::class);
-        Route::post('show-times/in-range', [ShowTimeController::class, 'getShowTimesInDateRange']); //danh sách ngày
-        Route::post('show-times/by-date', [ShowTimeController::class, 'getShowTimesByDate']); //lọc theo ngày cụ thể
-        // lọc theo khoảng ngày
-        Route::post('show-times/get-date-range-by-calendar', [ShowTimeController::class, 'getDateRangeByCalendarShow']);
-        //xóa theo ngày cụ thể
-        Route::delete('/showtimes/{id}/destroy-by-date/{selected_date}', [ShowTimeController::class, 'destroyByDate']);
+// Room
+Route::apiResource('room', RoomController::class);
 
-        // CalendarShow
-        Route::apiResource('calendarShow', CalendarShowController::class);
+// Seats
+Route::post('/seats', [SeatController::class, 'store']);
+Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
+Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
 
-        // Combo
-        Route::apiResource('combo', ComboController::class);
-        Route::delete('/combo', [ComboController::class, 'destroyMultiple']);
-        Route::delete('/combos/force-delete-multiple', [ComboController::class, 'forceDeleteMultiple']);
-        Route::delete('/combo/force/{combo}', [ComboController::class, 'forceDeleteSingle']);
-        Route::post('/combo/restore/{combo}', [ComboController::class, 'restore']);
-        Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);
+// Showtimes
+Route::apiResource('showTime', ShowTimeController::class);
+Route::post('show-times/in-range', [ShowTimeController::class, 'getShowTimesInDateRange']); //danh sách ngày
+Route::post('show-times/by-date', [ShowTimeController::class, 'getShowTimesByDate']); //lọc theo ngày cụ thể
+// lọc theo khoảng ngày
+Route::post('show-times/get-date-range-by-calendar', [ShowTimeController::class, 'getDateRangeByCalendarShow']);
+//xóa theo ngày cụ thể
+Route::delete('/showtimes/{id}/destroy-by-date/{selected_date}', [ShowTimeController::class, 'destroyByDate']);
 
-        // Thể loại phim, Diễn viên, Đạo diễn
-        Route::apiResource('/genres', GenreController::class);
-        Route::apiResource('/actors', ActorController::class);
-        Route::apiResource('/directors', DirectorController::class);
+// CalendarShow
+Route::apiResource('calendarShow', CalendarShowController::class);
 
-        //Bài viết
-        Route::apiResource('article', ArticleController::class);
+// Combo
+Route::apiResource('combo', ComboController::class);
+Route::delete('/combo', [ComboController::class, 'destroyMultiple']);
+Route::delete('/combos/force-delete-multiple', [ComboController::class, 'forceDeleteMultiple']);
+Route::delete('/combo/force/{combo}', [ComboController::class, 'forceDeleteSingle']);
+Route::post('/combo/restore/{combo}', [ComboController::class, 'restore']);
+Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);
 
-        //người dùng
-        Route::apiResource('/user-management', UserController::class);
-        Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
-        Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
-    // });
+// Thể loại phim, Diễn viên, Đạo diễn
+Route::apiResource('/genres', GenreController::class);
+Route::apiResource('/actors', ActorController::class);
+Route::apiResource('/directors', DirectorController::class);
 
-    // Đăng xuất
-    Route::post('/logout', [AuthController::class, 'logout']);
+//Mã khuyến mãi
+Route::apiResource('/discount-code', DiscountCodeController::class);
+  //Bài viết
+   Route::apiResource('article', ArticleController::class);
+
+//người dùng
+Route::apiResource('/user-management', UserController::class);
+Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
+Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
+// });
+
+// Đăng xuất
+Route::post('/logout', [AuthController::class, 'logout']);
+
 // });
 
 Route::post('/register', [AuthController::class, 'register']);

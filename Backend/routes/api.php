@@ -29,9 +29,11 @@ use Illuminate\Support\Facades\Route;
 
 // Route::middleware('auth:sanctum')->group(function () {
 // Lấy thông tin user đã đăng nhập
-Route::get('/user', function (Request $request) {
-    return response()->json($request->user());
-});
+Route::apiResource('/user', UserController::class);
+Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
+Route::post('/restore-user', [UserController::class, 'restore']);
+Route::put('/update-profile', [UserController::class, 'updateProfile']);
+
 
 // Chỉ admin mới truy cập được
 // Route::middleware(['role:admin'])->group(function () {

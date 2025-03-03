@@ -11,6 +11,7 @@ use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
+use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
 use App\Http\Controllers\API\UserController;
@@ -33,9 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 // Lấy thông tin user đã đăng nhập
-Route::apiResource('/user', UserController::class);
 Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
-Route::post('/restore-user', [UserController::class, 'restore']);
 Route::put('/update-profile', [UserController::class, 'updateProfile']);
 
 
@@ -53,10 +52,17 @@ Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'show
 // Room
 Route::apiResource('room', RoomController::class);
 
-// Seats
+//Seats
 Route::post('/seats', [SeatController::class, 'store']);
 Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
 Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
+Route::get('/seat-types', [SeatTypeController::class, 'index']);
+Route::delete('/seats/{seat}', [SeatController::class, 'destroy']);
+Route::delete('/seats/room/{room_id}/delete-all', [SeatController::class, 'deleteAll']);
+Route::put('/seats/{seat}', [SeatController::class, 'update']);
+
+//Seat-type
+Route::get('/seat-types', [SeatTypeController::class, 'index']);
 
 // Showtimes
 Route::apiResource('showTime', ShowTimeController::class);
@@ -75,7 +81,11 @@ Route::apiResource('combo', ComboController::class);
 Route::delete('/combo', [ComboController::class, 'destroyMultiple']);
 Route::delete('/combos/force-delete-multiple', [ComboController::class, 'forceDeleteMultiple']);
 Route::delete('/combo/force/{combo}', [ComboController::class, 'forceDeleteSingle']);
+
+// Khôi phục 1 combo 
 Route::post('/combo/restore/{combo}', [ComboController::class, 'restore']);
+
+// Khôi phục nhiều combo 
 Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);
 
 // Thể loại phim, Diễn viên, Đạo diễn

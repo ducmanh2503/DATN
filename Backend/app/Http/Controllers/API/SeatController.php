@@ -76,27 +76,20 @@ class SeatController extends Controller
         // Tạo ma trận ghế ngồi theo hàng và cột
         $seatingMatrix = [];
         foreach ($seats as $seat) {
-            // Kiểm tra nếu chưa có hàng này trong ma trận, tạo mới hàng
             if (!isset($seatingMatrix[$seat->row])) {
                 $seatingMatrix[$seat->row] = [];
             }
 
-            // Xác định loại ghế dựa trên hàng
-            $seatType = $this->getSeatTypeByRow($seat->row);
-
-            // Gán lại loại ghế cho ghế
-            $seat->seat_type_id = $seatType->id;
-
             // Tạo mã ghế từ hàng và cột
-            $seatCode = $seat->row . $seat->column; //Ví dụ: A1, A2, A3, ...
+            $seatCode = $seat->row . $seat->column;
 
-            // Thêm ghế vào ma trận của hàng và cột
+            // Sử dụng loại ghế thực tế từ seatType thay vì gán lại
             $seatingMatrix[$seat->row][$seat->column] = [
                 'id' => $seat->id,
-                'seatCode' => $seatCode, //Mã ghế
-                'type' => $seatType->name, //Loại ghế
-                'status' => $seat->seat_status, //Trạng thái ghế (available, booked, ...)
-                'price' => $seat->getPriceAttribute(), //Giá ghế
+                'seatCode' => $seatCode,
+                'type' => $seat->seatType->name, // Lấy từ mối quan hệ seatType
+                'status' => $seat->seat_status,
+                'price' => $seat->getPriceAttribute(),
             ];
         }
 
@@ -184,6 +177,44 @@ class SeatController extends Controller
 
         // Trả về kết quả thành công
         return response()->json(['message' => 'Thêm ghế thành công', 'data' => $seatsToInsert], 201);
+    }
+    public function destroy($seat)
+    {
+        $seat = Seat::findOrFail($seat);
+        $seat->delete();
+        return response()->json(['message' => 'Ghế đã được xóa thành công'], 200);
+    }
+
+    public function deleteAll($room_id)
+    {
+        $seats = Seat::where('room_id', $room_id)->get();
+        foreach ($seats as $seat) {
+            $seat->delete(); // Xóa mềm hoặc xóa vĩnh viễn tùy cấu hình
+        }
+        return response()->json(['message' => 'Đã xóa tất cả ghế trong phòng thành công'], 200);
+    }
+
+
+    public function update($seatId, Request $request)
+    {
+        $seat = Seat::findOrFail($seatId);
+
+        // Xác thực dữ liệu
+        $validator = Validator::make($request->all(), [
+            'row' => 'sometimes|max:20',
+            'column' => 'sometimes|max:10',
+            'seat_type_id' => 'sometimes|exists:seat_types,id',
+            'seat_status' => 'sometimes|in:available,booked',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Cập nhật các trường được gửi
+        $seat->update($request->only(['row', 'column', 'seat_type_id', 'seat_status']));
+
+        return response()->json(['message' => 'Cập nhật ghế thành công', 'data' => $seat->load('seatType')], 200);
     }
 
     /**

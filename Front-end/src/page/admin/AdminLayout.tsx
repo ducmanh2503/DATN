@@ -5,6 +5,7 @@ import SiderAdmin from "../../AdminComponents/SiderAdmin";
 import HeaderAdmin from "../../AdminComponents/HeaderAdmin";
 import BreadcrumbAdmin from "../../AdminComponents/BreadcrumbAdmin";
 
+
 const { Footer } = Layout;
 
 const AdminLayout: React.FC = () => {
@@ -14,7 +15,6 @@ const AdminLayout: React.FC = () => {
             <Layout>
                 <HeaderAdmin></HeaderAdmin>
                 <BreadcrumbAdmin></BreadcrumbAdmin>
-
                 <Footer style={{ textAlign: "center" }}>
                     ©2/2025 Created by Forest Cinema
                 </Footer>

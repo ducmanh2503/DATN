@@ -3,31 +3,54 @@ import "./PlayingProduct.css";
 import { Link } from "react-router-dom";
 import { Modal } from "antd";
 
-const PlayingProduct = ({
+interface PlayingProductProps {
+    className?: string;
+    image: string;
+    category: string;
+    date: string;
+    startDay?: string;
+    name: string;
+    trailer?: string;
+    movieId: number;
+    showChill?: (movieId: number) => void;
+}
+
+const PlayingProduct: React.FC<PlayingProductProps> = ({
     className,
     image,
     category,
     date,
     startDay,
     name,
+    trailer,
+    movieId,
     showChill,
-}: any) => {
+}) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+
     const showModal = () => {
         setIsModalOpen(true);
     };
+
     const handleCancel = () => {
         setIsModalOpen(false);
     };
+
+    const handleDetailClick = () => {
+        if (showChill) {
+            showChill(movieId);
+        }
+    };
+
     return (
         <div className={`playingProduct ${className}`}>
-            <div className="product-img">
-                <img className="img" src={image} alt="" />
+            <div className="product-img" onClick={handleDetailClick}>
+                <img className="img" src={image} alt={name} />
                 <div className="hover-btn">
-                    <Link className="btn" to={"...."}>
+                    <Link className="btn" to={`/booking/${movieId}`}>
                         Đặt vé
                     </Link>
-                    <button className="btn" onClick={showModal}>
+                    <button className="btn" onClick={(e) => { e.stopPropagation(); showModal(); }}>
                         Trailer
                     </button>
                     <Modal
@@ -40,8 +63,8 @@ const PlayingProduct = ({
                         <iframe
                             width="670"
                             height="375"
-                            src="https://www.youtube.com/embed/lxFmeBhoA1Y?si=vAHx_2eC9bovJvMh"
-                            title="YouTube video player"
+                            src={trailer || "https://www.youtube.com/embed/lxFmeBhoA1Y?si=vAHx_2eC9bovJvMh"}
+                            title={`${name} trailer`}
                             style={{ border: "none" }}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             referrerPolicy="strict-origin-when-cross-origin"
@@ -54,10 +77,10 @@ const PlayingProduct = ({
                 <h4 className="category cliptextTitle">{category}</h4>
                 <span className="date">{date}</span>
             </div>
-            {showChill && (
+            {startDay && (
                 <h4 className="start-day">
                     Ngày khởi chiếu:{" "}
-                    <span className="word-render">12/3/2025{startDay}</span>
+                    <span className="word-render">{startDay}</span>
                 </h4>
             )}
             <h2 className="product-title cliptextTitle">{name}</h2>

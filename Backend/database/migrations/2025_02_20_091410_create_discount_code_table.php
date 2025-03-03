@@ -13,14 +13,12 @@ return new class extends Migration
     {
         Schema::create('discount_code', function (Blueprint $table) {
             $table->id();
-            
             $table->string('name_code')->unique();
             $table->decimal('percent', 5, 2);
             $table->unsignedBigInteger('quantity');
-            $table->enum('status', ['active', 'inactive']);  
-            $table->date('start_date');  // Ngày bắt đầu
-            $table->date('end_date');  // Ngày kết thúc
-
+            $table->enum('status', ['active', 'inactive']);
+            $table->date('start_date');
+            $table->date('end_date');
             $table->timestamps();
         });
     }

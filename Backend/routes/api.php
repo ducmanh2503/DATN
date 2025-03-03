@@ -28,7 +28,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::middleware('auth:sanctum')->group(function () {
+
+Route::middleware('auth:sanctum')->group(function () {
+
 
 // Lấy thông tin user đã đăng nhập
 Route::apiResource('/user', UserController::class);
@@ -37,8 +39,9 @@ Route::post('/restore-user', [UserController::class, 'restore']);
 Route::put('/update-profile', [UserController::class, 'updateProfile']);
 
 
+
 // Chỉ admin mới truy cập được
-// Route::middleware(['role:admin'])->group(function () {
+Route::middleware(['role:admin'])->group(function () {
 // Movies
 Route::apiResource('movies', MoviesController::class);
 Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
@@ -89,12 +92,13 @@ Route::apiResource('/discount-code', DiscountCodeController::class);
 Route::apiResource('/user-management', UserController::class);
 Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
 Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
-// });
+});
 
 // Đăng xuất
 Route::post('/logout', [AuthController::class, 'logout']);
 
-// });
+});
+
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);

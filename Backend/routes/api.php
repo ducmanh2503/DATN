@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\ActorController;
+use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalendarShowController;
 use App\Http\Controllers\API\ComboController;
@@ -26,14 +27,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->group(function () {
-    // Lấy thông tin user đã đăng nhập
-    Route::get('/user', function (Request $request) {
-        return response()->json($request->user());
-    });
+// Route::middleware('auth:sanctum')->group(function () {
+//     // Lấy thông tin user đã đăng nhập
+//     Route::get('/user', function (Request $request) {
+//         return response()->json($request->user());
+//     });
 
     // Chỉ admin mới truy cập được
-    Route::middleware(['role:admin'])->group(function () {
+    // Route::middleware(['role:admin'])->group(function () {
         // Movies
         Route::apiResource('movies', MoviesController::class);
         Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
@@ -75,15 +76,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/actors', ActorController::class);
         Route::apiResource('/directors', DirectorController::class);
 
+        //Bài viết
+        Route::apiResource('article', ArticleController::class);
+
         //người dùng
         Route::apiResource('/user-management', UserController::class);
         Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
         Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
-    });
+    // });
 
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
-});
+// });
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);

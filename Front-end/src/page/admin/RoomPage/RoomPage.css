@@ -1,110 +1,112 @@
 .full-page-layout {
-    min-height: 100%; /* Đảm bảo chiều cao tối thiểu là toàn bộ viewport */
-    min-width: 100%;
-    background-color: var(--mainBase-color);
-    overflow: hidden; /* Ngăn cuộn toàn bộ layout nếu không cần thiết */
+  min-height: 100%; /* Đảm bảo chiều cao tối thiểu là toàn bộ viewport */
+  min-width: 100%;
+  background-color: var(--mainBase-color);
+  overflow: hidden; /* Ngăn cuộn toàn bộ layout nếu không cần thiết */
 }
 
 .full-page-content {
-    padding: 24px;
-    height: 100%; /* Sử dụng toàn bộ chiều cao của layout */
-    width: 100%; /* Sử dụng toàn bộ chiều rộng của layout */
-    overflow-y: auto; /* Cho phép cuộn theo chiều dọc nếu nội dung vượt quá */
-    overflow-x: hidden; /* Ngăn cuộn theo chiều ngang */
-    background-color: var(--word-color); /* Nền trắng cho nội dung */
-    border: 1px solid var(--border-color);
+  padding: 24px;
+  height: 100%; /* Sử dụng toàn bộ chiều cao của layout */
+  width: 100%; /* Sử dụng toàn bộ chiều rộng của layout */
+  overflow-y: auto; /* Cho phép cuộn theo chiều dọc nếu nội dung vượt quá */
+  overflow-x: hidden; /* Ngăn cuộn theo chiều ngang */
+  background-color: var(--word-color); /* Nền trắng cho nội dung */
+  border: 1px solid var(--border-color);
 }
 
 .room-page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: var(--mainBase-color);
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    width: 100%; /* Đảm bảo header full width */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: var(--mainBase-color);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  width: 100%; /* Đảm bảo header full width */
 }
 
 .room-page-header h2 {
-    color: var(--normal-rank);
-    font-size: 24px;
-    margin: 0;
+  color: var(--normal-rank);
+  font-size: 24px;
+  margin: 0;
 }
 
 .full-page-table {
-    margin-top: 20px;
-    width: 100%; /* Đảm bảo bảng full width */
-    background-color: var(--mainBase-color);
-    border: 1px solid var(--border-color);
+  margin-top: 20px;
+  width: 100%; /* Đảm bảo bảng full width */
+  background-color: var(--mainBase-color);
+  border: 1px solid var(--border-color);
 }
 
 .full-page-table .ant-table {
-    width: 100%; /* Đảm bảo bảng Ant Design full width */
-    background-color: var(--mainBase-color);
+  width: 100%; /* Đảm bảo bảng Ant Design full width */
+  background-color: var(--mainBase-color);
 }
 
 .full-page-table .ant-table-thead > tr > th {
-    background-color: var(--backgroud-product);
-    color: var(--word-color);
-    font-weight: bold;
+  background-color: var(--backgroud-product);
+  color: var(--word-color);
+  font-weight: bold;
 }
 
 .full-page-table .ant-table-tbody > tr > td {
-    border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .ant-btn-primary {
-    background-color: var(--primary-color) !important;
-    border-color: var(--border-color) !important;
-    color: var(--word-color) !important;
+  background-color: var(--primary-color) !important;
+  border-color: var(--border-color) !important;
+  color: var(--word-color) !important;
 }
 
 .ant-btn-primary:hover {
-    background-color: var(--backgroud-product) !important;
-    border-color: var(--border-color) !important;
+  background-color: var(--backgroud-product) !important;
+  border-color: var(--border-color) !important;
 }
 
 .ant-btn-danger {
-    background-color: var(--normal-rank) !important; /* Màu nền cho nút Xóa */
-    border-color: var(--border-color) !important;
-    color: var(--word-color) !important;
+  background-color: var(--normal-rank) !important; /* Màu nền cho nút Xóa */
+  border-color: var(--border-color) !important;
+  color: var(--word-color) !important;
 }
 
 .ant-btn-danger:hover {
-    background-color: #5a3d14 !important; /* Màu hover cho nút Xóa, biến thể của var(--normal-rank) */
-    border-color: var(--border-color) !important;
+  background-color: #5a3d14 !important; /* Màu hover cho nút Xóa, biến thể của var(--normal-rank) */
+  border-color: var(--border-color) !important;
 }
 
 .ant-form {
-    background-color: var(--mainBase-color);
-    padding: 20px;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
+  background-color: var(--mainBase-color);
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
 }
 
 .ant-form-item-label {
-    color: var(--normal-rank);
+  color: var(--normal-rank);
 }
 
-.ant-input, .ant-select-selector {
-    border: 1px solid var(--border-color) !important;
-    background-color: var(--word-color) !important;
+.ant-input,
+.ant-select-selector {
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--word-color) !important;
 }
 
 .ant-btn-primary {
-    background-color: var(--backgroud-product) !important;
-    border-color: var(--border-color) !important;
-    color: var(--word-color) !important;
+  background-color: var(--backgroud-product) !important;
+  border-color: var(--border-color) !important;
+  color: var(--word-color) !important;
 }
 
-.ant-btn-primary:hover, .ant-btn-primary:focus {
-    background-color: var(--primary-color) !important;
-    border-color: var(--border-color) !important;
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  background-color: var(--primary-color) !important;
+  border-color: var(--border-color) !important;
 }
 
 .ant-spin {
-    display: block;
-    margin: 0 auto;
+  display: block;
+  margin: 0 auto;
 }

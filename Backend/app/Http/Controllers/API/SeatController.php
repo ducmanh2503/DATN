@@ -2,15 +2,80 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Events\SeatHeldEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Seat;
 use App\Models\SeatType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class SeatController extends Controller
 {
+    /**
+     * Giữ ghế
+     */
+    public function holdSeat(Request $request)
+    {
+        $seat = $request->seat;
+        $userId = auth()->id();
+
+        // Kiểm tra ghế đã bị giữ chưa
+        if (Cache::has("seat_$seat")) {
+            return response()->json(['message' => 'Ghế đã được giữ bởi người khác!'], 409);
+        }
+
+        // Giữ ghế trong 5 phút
+        $expiresAt = now()->addMinutes(5);
+        Cache::put("seat_$seat", ['user_id' => $userId, 'expires_at' => $expiresAt], $expiresAt);
+
+        // Lưu danh sách ghế đang giữ
+        $heldSeats = Cache::get('held_seats', []);
+        $heldSeats[$seat] = ['user_id' => $userId, 'expires_at' => $expiresAt];
+        Cache::put('held_seats', $heldSeats, $expiresAt);
+
+        // Phát sự kiện giữ ghế
+        broadcast(new SeatHeldEvent($seat, $userId));
+
+        return response()->json([
+            'message' => 'Ghế đã được giữ thành công!',
+            'seat' => $seat,
+            'expires_at' => $expiresAt
+        ]);
+    }
+
+
+
+    /**
+     * Giải phóng ghế nếu người dùng không đặt vé sau 5 phút
+     */
+    public function releaseSeat(Request $request)
+    {
+        $request->validate([
+            'seat' => 'required|string'
+        ]);
+
+        $seat = $request->seat;
+
+        // Kiểm tra ghế có tồn tại trong cache không
+        if (!Cache::has("seat_$seat")) {
+            return response()->json(['message' => 'Ghế chưa được giữ hoặc đã được giải phóng trước đó!'], 404);
+        }
+
+        // Xóa ghế khỏi Redis
+        Cache::forget("seat_$seat");
+
+        // Phát sự kiện giải phóng ghế
+        broadcast(new SeatHeldEvent($seat, null));
+
+        return response()->json([
+            'message' => 'Ghế đã được giải phóng!',
+            'seat' => $seat
+        ]);
+    }
+
+
     /**
      * Cập nhật trạng thái ghế
      */

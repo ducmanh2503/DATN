@@ -43,7 +43,6 @@ Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'show
 
 //Room
 Route::apiResource('room', RoomController::class);
-Route::apiResource('room', RoomController::class);
 Route::delete('/room', [RoomController::class, 'destroy']);
 //Seats
 Route::post('/seats', [SeatController::class, 'store']);
@@ -53,6 +52,10 @@ Route::get('/seat-types', [SeatTypeController::class, 'index']);
 Route::delete('/seats/{seat}', [SeatController::class, 'destroy']);
 Route::delete('/seats/room/{room_id}/delete-all', [SeatController::class, 'deleteAll']);
 Route::put('/seats/{seat}', [SeatController::class, 'update']);
+
+//Seat-type
+Route::get('/seat-types', [SeatTypeController::class, 'index']);
+
 //showtimes
 Route::apiResource('showTime', ShowTimeController::class);
 Route::post('show-times/filter-by-date', [ShowTimeController::class, 'filterByDate']);

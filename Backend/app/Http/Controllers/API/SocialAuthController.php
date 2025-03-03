@@ -29,7 +29,7 @@ class SocialAuthController extends Controller
 
             // Áp dụng cấu hình và lấy user
             $googleUser = Socialite::driver('google')
-                ->setHttpClient(new Client(['verify' => false]))
+                ->setHttpClient(new Client([$clientOptions]))
                 ->stateless()
                 ->user();
 

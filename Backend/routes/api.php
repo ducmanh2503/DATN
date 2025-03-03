@@ -28,13 +28,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
 Route::middleware('auth:sanctum')->group(function () {
+
 
 // Lấy thông tin user đã đăng nhập
 Route::apiResource('/user', UserController::class);
 Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
 Route::post('/restore-user', [UserController::class, 'restore']);
 Route::put('/update-profile', [UserController::class, 'updateProfile']);
+
+
 
 // Chỉ admin mới truy cập được
 Route::middleware(['role:admin'])->group(function () {
@@ -81,9 +85,8 @@ Route::apiResource('/directors', DirectorController::class);
 
 //Mã khuyến mãi
 Route::apiResource('/discount-code', DiscountCodeController::class);
-
-//Bài viết
- Route::apiResource('article', ArticleController::class);
+  //Bài viết
+   Route::apiResource('article', ArticleController::class);
 
 //người dùng
 Route::apiResource('/user-management', UserController::class);
@@ -95,6 +98,7 @@ Route::get('/user-management/show-user-destroy/{user_management}', [UserControll
 Route::post('/logout', [AuthController::class, 'logout']);
 
 });
+
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);

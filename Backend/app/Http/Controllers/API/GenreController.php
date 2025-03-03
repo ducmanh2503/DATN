@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Genre;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class GenreController extends Controller
@@ -14,6 +15,8 @@ class GenreController extends Controller
      */
     public function index()
     {
+
+
         $genres = Genre::query()->latest('id')->get();
 
         return response()->json($genres, 200);
@@ -24,6 +27,8 @@ class GenreController extends Controller
      */
     public function store(Request $request)
     {
+
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'name_genre' => 'required|string|max:255|unique:genres,name_genre',
@@ -47,6 +52,8 @@ class GenreController extends Controller
      */
     public function show(string $id)
     {
+
+
         $genre = Genre::find($id);
 
         if (!$genre) {
@@ -61,6 +68,8 @@ class GenreController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+
         $genre = Genre::find($id);
 
         if (!$genre) {
@@ -90,6 +99,8 @@ class GenreController extends Controller
      */
     public function destroy(string $id)
     {
+
+
         // Tìm thể loại phim theo id
         $genre = Genre::find($id);
 

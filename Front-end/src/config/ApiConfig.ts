@@ -7,10 +7,10 @@ const CREATE_FILM = `${BASE_URL}/movies`;
 const UPDATE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const DELETE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const FORCE_DELETE_FILM = (id: number) =>
-  `${BASE_URL}/movies/force-delete/${id}`;
+    `${BASE_URL}/movies/force-delete/${id}`;
 const RESTORE_FILM = (id: number) => `${BASE_URL}/movies/restore/${id}`;
 const DETAIL_DELETE_FILM = (id: number) =>
-  `${BASE_URL}/movies/show-movie-destroy/${id}`;
+    `${BASE_URL}/movies/show-movie-destroy/${id}`;
 
 const GET_DIRECTORS_LIST = `${BASE_URL}/directors`;
 const UPDATE_DIRECTORS = (id: number) => `${BASE_URL}/directors/${id}`;
@@ -29,7 +29,17 @@ const DELETE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const UPDATE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const DETAIL_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 
-const GET_LIST_SHOWTIMES = `${BASE_URL}/showTime`;
+const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/by-date`;
+// const GET_ALL_SHOWTIMES = (date: string) =>
+//     `${BASE_URL}/show-times/filter-by-date/${date}`;
+const UPDATE_SHOWTIMES = `${BASE_URL}/showTime`;
+const DELETE_ONE_SHOWTIMES = (id: number, selected_date: string) =>
+    `${BASE_URL}/showtimes/${id}/destroy-by-date/${selected_date}`;
+const GET_DETAIL_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`;
+const UPDATE_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`;
+const GET_DATES_BY_CALENDAR = `${BASE_URL}/show-times/get-date-range-by-calendar`;
+
+const GET_ROOMS = `${BASE_URL}/room`;
 
 export {
     GET_FILM_LIST,
@@ -49,10 +59,17 @@ export {
     GET_GENRES,
     DELETE_GENRES,
     URL_IMAGE,
-    GET_LIST_SHOWTIMES,
+    GET_ONE_SHOWTIMES,
     GET_CALENDAR,
     DELETE_CALENDAR,
     CREATE_CALENDAR,
     UPDATE_CALENDAR,
     DETAIL_CALENDAR,
+    // GET_ALL_SHOWTIMES,
+    UPDATE_SHOWTIMES,
+    DELETE_ONE_SHOWTIMES,
+    GET_DETAIL_ONE_SHOWTIMES,
+    GET_DATES_BY_CALENDAR,
+    UPDATE_ONE_SHOWTIMES,
+    GET_ROOMS,
 };

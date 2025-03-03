@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class CalendarShowController extends Controller
@@ -14,6 +15,7 @@ class CalendarShowController extends Controller
      */
     public function index()
     {
+
         $calendarShows = CalendarShow::query()->latest('id')->with(['movie'])->get();
 
         return response()->json($calendarShows, 200);
@@ -24,6 +26,7 @@ class CalendarShowController extends Controller
      */
     public function store(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'movie_id' => 'required|exists:movies,id',
             'show_date' => 'required|date',
@@ -49,6 +52,7 @@ class CalendarShowController extends Controller
      */
     public function show(string $id)
     {
+
         $calendarShows = CalendarShow::with(['movie'])->find($id);
 
         if (!$calendarShows) {
@@ -63,6 +67,7 @@ class CalendarShowController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
         $validated = $request->validate([
             'movie_id' => 'required|exists:movies,id',
             'show_date' => 'required|date',
@@ -88,6 +93,7 @@ class CalendarShowController extends Controller
      */
     public function destroy(string $id)
     {
+
         $calendarShows = CalendarShow::find($id);
 
         if (!$calendarShows) {
@@ -100,6 +106,4 @@ class CalendarShowController extends Controller
             'message' => 'Lịch chiếu đã được gỡ'
         ]);
     }
-
-    
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\ActorController;
+use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalendarShowController;
 use App\Http\Controllers\API\ComboController;
@@ -28,6 +29,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Route::middleware('auth:sanctum')->group(function () {
+
 // Lấy thông tin user đã đăng nhập
 Route::apiResource('/user', UserController::class);
 Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
@@ -80,6 +82,8 @@ Route::apiResource('/directors', DirectorController::class);
 
 //Mã khuyến mãi
 Route::apiResource('/discount-code', DiscountCodeController::class);
+  //Bài viết
+   Route::apiResource('article', ArticleController::class);
 
 //người dùng
 Route::apiResource('/user-management', UserController::class);
@@ -89,6 +93,7 @@ Route::get('/user-management/show-user-destroy/{user_management}', [UserControll
 
 // Đăng xuất
 Route::post('/logout', [AuthController::class, 'logout']);
+
 // });
 
 Route::post('/register', [AuthController::class, 'register']);

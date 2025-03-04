@@ -9,7 +9,7 @@ import {
   SeatType,
 } from "../../../types/seat.types";
 import SeatForm from "../../../AdminComponents/seat/SeatForm";
-// import './SeatPage.css';
+// import "./SeatPage.css";
 
 const { Content } = Layout;
 

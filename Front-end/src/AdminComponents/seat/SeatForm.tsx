@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Input, Select, Button, message, Spin, Modal } from "antd";
 import { SeatCreateRequest, Seat, SeatingMatrix } from "../../types/seat.types";
-// import './SeatForm.css';
+// import "./SeatForm.css";
 
 const { Option } = Select;
 
@@ -179,7 +179,7 @@ const SeatForm: React.FC<SeatFormProps> = ({
         <Form.Item
           name="seat_type_id"
           label="Loại Ghế"
-          rules={[{ required: true, message: "Vui lòng chọn loại ghế!" }]}
+          // rules={[{ required: true, message: "Vui lòng chọn loại ghế!" }]}
         >
           <Select>
             {seatTypes.map((type) => (

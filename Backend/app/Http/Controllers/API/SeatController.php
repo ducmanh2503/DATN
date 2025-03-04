@@ -182,14 +182,13 @@ class SeatController extends Controller
      */
     public function store(Request $request)
     {
-
         // Xác thực dữ liệu
         $validator = Validator::make($request->all(), [
-            '*.room_id' => 'required|exists:rooms,id',
-            '*.row' => 'required|max:20',
-            '*.column' => 'required|max:10',
-            '*.seat_type_id' => 'required|exists:seat_types,id',
-            '*.seat_status' => 'required|in:available,booked',
+            'room_id' => 'required|exists:rooms,id',
+            'row' => 'required|max:20',
+            'column' => 'required|max:10',
+            'seat_type_id' => 'required|exists:seat_types,id',
+            'seat_status' => 'required|in:available,booked',
         ]);
 
         // Kiểm tra nếu có lỗi xác thực
@@ -197,52 +196,26 @@ class SeatController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        // Lấy danh sách ghế hợp lệ
-        $seatsData = $request->all();
+        // Kiểm tra ghế có tồn tại trong phòng chưa
+        $existingSeat = Seat::where('room_id', $request->room_id)
+            ->where('row', $request->row)
+            ->where('column', $request->column)
+            ->first();
 
-        // Nếu chỉ có 1 ghế, đảm bảo dữ liệu là mảng của mảng
-        if (!isset($seatsData[0])) {
-            $seatsData = [$seatsData];
+        if ($existingSeat) {
+            return response()->json(['message' => 'Ghế đã tồn tại'], 400);
         }
 
-        // Kiểm tra dữ liệu ghế có đúng kiểu mảng không
-        if (!is_array($seatsData)) {
-            return response()->json(['error' => 'Dữ liệu không đúng định dạng'], 400);
-        }
+        //Lấy dữ liệu 
+        $data = $request->all();
 
-        //Kiểm tra duy nhất của ghế trong phòng (room_id, row, column)
-        foreach ($seatsData as $data) {
-            $existingSeat = Seat::where('room_id', $data['room_id'])
-                ->where('row', $data['row'])
-                ->where('column', $data['column'])
-                ->first();
+        // Tạo ghế mới
+        $seat = Seat::query()->create($data);
 
-            if ($existingSeat) {
-                return response()->json(['message' => 'Ghế đã tồn tại'], 400);
-            }
-        }
-
-        // Mảng chứa dữ liệu ghế để chèn vào database
-        $seatsToInsert = [];
-        foreach ($seatsData as $data) {
-            // Chuẩn bị dữ liệu để chèn vào database
-            $seatsToInsert[] = [
-                'room_id' => $data['room_id'],
-                'row' => $data['row'],
-                'column' => $data['column'],
-                'seat_type_id' => $data['seat_type_id'],
-                'seat_status' => $data['seat_status'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
-
-        // Thêm ghế vào database
-        Seat::insert($seatsToInsert);
-
-        // Trả về kết quả thành công
-        return response()->json(['message' => 'Thêm ghế thành công', 'data' => $seatsToInsert], 201);
+        // Trả về phản hồi thành công
+        return response()->json(['message' => 'Thêm ghế thành công', 'data' => $seat], 201);
     }
+
     public function destroy($seat)
     {
         $seat = Seat::findOrFail($seat);
@@ -311,4 +284,70 @@ class SeatController extends Controller
 
     //     return response()->json($seatingMatrix);
     // }
+
+    //hiển thị ghế theo thời gian thực
+    public function getSeatsForBooking($room_id)
+    {
+        // Lấy tất cả ghế trong phòng
+        $seats = Seat::where('room_id', $room_id)->with('seatType')->get();
+
+        // Lấy danh sách ghế đang được giữ từ cache
+        $heldSeats = Cache::get('held_seats', []);
+
+        // Tạo ma trận ghế ngồi theo hàng và cột
+        $seatingMatrix = [];
+        foreach ($seats as $seat) {
+            if (!isset($seatingMatrix[$seat->row])) {
+                $seatingMatrix[$seat->row] = [];
+            }
+
+            // Kiểm tra nếu ghế đang bị giữ
+            $isHeld = isset($heldSeats[$seat->id]) ? true : false;
+            $heldByUser = $isHeld && $heldSeats[$seat->id]['user_id'] == auth()->id();
+
+            $seatingMatrix[$seat->row][$seat->column] = [
+                'id' => $seat->id,
+                'seatCode' => $seat->row . $seat->column,
+                'type' => $seat->seatType->name,
+                'status' => $seat->seat_status,
+                'isHeld' => $isHeld,
+                'heldByUser' => $heldByUser,
+                'price' => $seat->getPriceAttribute(),
+            ];
+        }
+
+        return response()->json($seatingMatrix);
+    }
+
+    //Cập nhật trạng thái ghế theo thời gian thực khi chọn ghế
+    public function holdSelectedSeats(Request $request)
+    {
+        $request->validate([
+            'seats' => 'required|array',
+            'seats.*' => 'exists:seats,id'
+        ]);
+
+        $userId = auth()->id();
+        $expiresAt = now()->addMinutes(5);
+
+        $heldSeats = Cache::get('held_seats', []);
+
+        foreach ($request->seats as $seat) {
+            // Kiểm tra ghế đã bị giữ chưa
+            if (isset($heldSeats[$seat]) && $heldSeats[$seat]['user_id'] !== $userId) {
+                return response()->json(['message' => 'Một hoặc nhiều ghế đã được giữ bởi người khác!'], 409);
+            }
+
+            // Giữ ghế
+            $heldSeats[$seat] = ['user_id' => $userId, 'expires_at' => $expiresAt];
+            Cache::put("seat_$seat", ['user_id' => $userId, 'expires_at' => $expiresAt], $expiresAt);
+        }
+
+        Cache::put('held_seats', $heldSeats, $expiresAt);
+
+        // Phát sự kiện cập nhật realtime
+        broadcast(new SeatHeldEvent($request->seats, $userId));
+
+        return response()->json(['message' => 'Ghế đã được giữ!', 'held_seats' => $heldSeats]);
+    }
 }

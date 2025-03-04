@@ -50,17 +50,17 @@ class CalendarShowController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $movie_id)
     {
+        $calendarShows = CalendarShow::with(['movie'])->where('movie_id', $movie_id)->get();
 
-        $calendarShows = CalendarShow::with(['movie'])->find($id);
-
-        if (!$calendarShows) {
-            return response()->json(['message' => 'Lịch chiếu không tồn tại'], 404);
+        if ($calendarShows->isEmpty()) {
+            return response()->json(['message' => 'Không tìm thấy lịch chiếu cho phim này'], 404);
         }
 
         return response()->json($calendarShows);
     }
+
 
     /**
      * Update the specified resource in storage.

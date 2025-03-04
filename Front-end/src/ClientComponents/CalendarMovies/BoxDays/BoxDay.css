@@ -1,0 +1,14 @@
+.box-days {
+    display: inline-block;
+    width: 100px;
+    background-color: var(--backgroud-product);
+    text-align: center;
+}
+
+.active-btn {
+    background-color: var(--border-color);
+}
+
+.box-days .title-days {
+    font-size: 20px;
+}

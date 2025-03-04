@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-
-import PlayingMain from "../../../ClientComponents/PlayingMain/PlayingMain";
 import ClientLayout from "../Layout";
+import ComingMain from "../../../ClientComponents/ComingMain/ComingMain";
 
 const ComingFilm = () => {
     const [showChill, setShowChill] = useState(true);
     return (
         <div>
             <ClientLayout>
-                <PlayingMain showChill={true}></PlayingMain>
+                <ComingMain showChill={true}></ComingMain>
             </ClientLayout>
         </div>
     );

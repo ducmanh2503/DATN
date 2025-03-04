@@ -166,6 +166,9 @@ const CalendarManage: React.FC = () => {
                 queryKey: ["showtimesFilm"],
             });
         },
+        onError: () => {
+            messageApi.error("Phim đã có suất chiếu, không thể xóa");
+        },
     });
 
     return (

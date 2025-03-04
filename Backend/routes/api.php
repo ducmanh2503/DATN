@@ -29,12 +29,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
 // Route::middleware('auth:sanctum')->group(function () {
 
 
 // Lấy thông tin user đã đăng nhập
-Route::apiResource('/user', UserController::class);
+Route::get('/user', function (Request $request) {
+    return response()->json($request->user());
+});
 Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
 Route::post('/restore-user', [UserController::class, 'restore']);
 Route::put('/update-profile', [UserController::class, 'updateProfile']);
@@ -114,7 +115,6 @@ Route::get('/user-management/show-user-destroy/{user_management}', [UserControll
 // Đăng xuất
 Route::post('/logout', [AuthController::class, 'logout']);
 // });
-
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);

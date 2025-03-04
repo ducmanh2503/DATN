@@ -1,0 +1,13 @@
+.calendar-days,
+.calendar-numbers {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.film-room {
+    margin-top: 20px;
+}
+
+.calendar-numbers {
+    margin-top: 30px;
+}

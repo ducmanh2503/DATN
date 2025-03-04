@@ -13,6 +13,8 @@ import ActorsManage from "./page/admin/Actors/ActorsManage";
 import GenresManage from "./page/admin/Genres/GenresManage";
 import DirectorsManage from "./page/admin/Directors/DirectorsManage";
 import Booking from "./page/client/Booking/Booking";
+import SeatPage from "./page/admin/Seat/SeatPage";
+import RoomPage from "./page/admin/RoomPage/RoomPage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Home></Home> },
@@ -38,17 +40,15 @@ export const router = createBrowserRouter([
       { path: "genre", element: <GenresManage></GenresManage> },
       // { path: "check", element: <Check></Check> },
 
-//       { path: "film", element: <FilmManage /> },
-//       { path: "addFilm", element: <AddFilm /> },
-//       { path: "stoppedMovie", element: <StoppedMovies /> },
-//       { path: "actors", element: <ActorsManage /> },
-//       { path: "directors", element: <DirectorsManage /> },
-//       { path: "genre", element: <GenresManage /> },
-//       //   { path: "check", element: <Check /> },
-//       // { path: "seats", element: <SeatPage /> },
-//       // { path: "rooms", element: <RoomPage /> },
-
-
+      { path: "film", element: <FilmManage /> },
+      { path: "addFilm", element: <AddFilm /> },
+      { path: "stoppedMovie", element: <StoppedMovies /> },
+      { path: "actors", element: <ActorsManage /> },
+      { path: "directors", element: <DirectorsManage /> },
+      { path: "genre", element: <GenresManage /> },
+      //   { path: "check", element: <Check /> },
+      { path: "seats", element: <SeatPage /> },
+      { path: "rooms", element: <RoomPage /> },
     ],
   },
 ]);

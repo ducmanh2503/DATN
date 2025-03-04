@@ -16,9 +16,10 @@ import {
     GET_CALENDAR,
     GET_DATES_BY_CALENDAR,
     GET_FILM_LIST,
+    GET_ROOMS,
     UPDATE_SHOWTIMES,
 } from "../../../config/ApiConfig";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import "./ShowtimesRoom.css";
 import dayjs from "dayjs";
@@ -75,23 +76,29 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
         queryKey: ["filmList"],
         queryFn: async () => {
             const { data } = await axios.get(GET_FILM_LIST);
+            console.log("list-film", data.movies);
+
             return data.movies.map((item: any) => ({
                 ...item,
                 key: item.id,
             }));
         },
         enabled: open,
+        staleTime: 1000 * 60 * 10,
     });
 
     const { data: idCalendarShow } = useQuery({
         queryKey: ["showtimesFilm"],
         queryFn: async () => {
             const { data } = await axios.get(GET_CALENDAR);
+            // console.log("calendar", data);
             return data.map((item: any) => ({
                 ...item,
                 key: item.id,
             }));
         },
+        enabled: open,
+        staleTime: 1000 * 60 * 10,
     });
 
     // Khi chọn phim, cập nhật `calendar_show_id`
@@ -119,7 +126,39 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
             return data.dates;
         },
         enabled: !!selectedCalendarShowId, // Chỉ gọi API nếu đã có calendar_show_id
+        refetchOnWindowFocus: false,
     });
+
+    const { data: rooms } = useQuery({
+        queryKey: ["Rooms"],
+        queryFn: async () => {
+            const { data } = await axios.get(GET_ROOMS);
+            console.log("lisst - room", data.rooms);
+            return data.rooms.map((item: any) => ({
+                label: item.name,
+                value: item.id,
+                type: item.room_type,
+            }));
+        },
+        enabled: open,
+        staleTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
+    });
+
+    const handleChangeSelect = useCallback(
+        (value: string[], fieldName: string) => {
+            form.setFieldsValue({ [fieldName]: value });
+        },
+        [form]
+    );
+
+    const handleRoomChange = (value: string) => {
+        const selectedRoom = rooms?.find((room: any) => room.value === value);
+        form.setFieldsValue({
+            room_id: value,
+            room_type: selectedRoom?.type || undefined,
+        });
+    };
 
     const { mutate } = useMutation({
         mutationFn: async (formData) => {
@@ -156,11 +195,12 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
                             { required: true, message: "Thêm phòng chiếu" },
                         ]}
                     >
-                        <Select placeholder={"phòng chiếu"}>
-                            <Select.Option value="1">phòng số 1</Select.Option>
-                            <Select.Option value="2">phòng số 2</Select.Option>
-                            <Select.Option value="3">phòng số 3</Select.Option>
-                        </Select>
+                        <Select
+                            placeholder="Chọn phòng"
+                            onChange={handleRoomChange}
+                            options={rooms}
+                            value={form.getFieldValue("room_id")}
+                        />
                     </Form.Item>
                     <Form.Item
                         className="input-label"
@@ -246,15 +286,16 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
                         ]}
                     >
                         <Select
-                            placeholder="Hình thức chiếu"
+                            allowClear
+                            style={{ width: "100%" }}
+                            placeholder="Please select"
                             onChange={(value) =>
-                                console.log("Room type selected:", value)
+                                handleChangeSelect([value], "room_type")
                             }
-                        >
-                            <Select.Option value="2D">2D</Select.Option>
-                            <Select.Option value="3D">3D</Select.Option>
-                            <Select.Option value="4D">4D</Select.Option>
-                        </Select>
+                            options={rooms}
+                            value={form.getFieldValue("room_type")}
+                            disabled
+                        />
                     </Form.Item>
                     {/* <Form.Item
                         className="input-label"
@@ -354,12 +395,6 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
                         className="input-label"
                         label="ID"
                         name="calendar_show_id"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Nhập ID lịch chiếu",
-                            },
-                        ]}
                     >
                         <Input />
                     </Form.Item>

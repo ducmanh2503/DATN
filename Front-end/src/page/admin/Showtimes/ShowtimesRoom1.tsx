@@ -5,7 +5,11 @@ import DeleteShowtimes from "./DeleteShowtimes";
 import EditShowtimes from "./EditShowtimes";
 import dayjs from "dayjs";
 
-const ShowtimesRoom1 = ({ data, selectedDate }: any) => {
+const ShowtimesRoom1 = ({
+    setShowtimesData,
+    selectedDate,
+    showtimesData,
+}: any) => {
     const columns = [
         {
             title: "Phim chiếu",
@@ -97,17 +101,17 @@ const ShowtimesRoom1 = ({ data, selectedDate }: any) => {
             title: "Action",
             key: "action",
             render: (_: any, record: RoomSHowtimesType) => {
-                console.log(record.id);
-
                 return (
                     <Space size="middle">
                         <DeleteShowtimes
                             id={record.id}
                             selectedDate={selectedDate}
+                            setShowtimesData={setShowtimesData}
                         ></DeleteShowtimes>
                         <EditShowtimes
                             id={record.id}
                             selectedDate={selectedDate}
+                            setShowtimesData={setShowtimesData}
                         ></EditShowtimes>
                     </Space>
                 );
@@ -119,7 +123,7 @@ const ShowtimesRoom1 = ({ data, selectedDate }: any) => {
             <h1 className="roomName">Phòng chiếu số 1</h1>
             <Table
                 columns={columns}
-                dataSource={[...data].sort((a, b) =>
+                dataSource={[...showtimesData].sort((a, b) =>
                     dayjs(a.start_time, "HH:mm").isBefore(
                         dayjs(b.start_time, "HH:mm")
                     )

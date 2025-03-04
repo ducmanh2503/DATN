@@ -5,7 +5,11 @@ import DeleteShowtimes from "./DeleteShowtimes";
 import EditShowtimes from "./EditShowtimes";
 import dayjs from "dayjs";
 
-const ShowtimesRoom3 = ({ data, selectedDate }: any) => {
+const ShowtimesRoom3 = ({
+    setShowtimesData,
+    selectedDate,
+    showtimesData,
+}: any) => {
     const columns = [
         {
             title: "Phim chiếu",
@@ -32,9 +36,13 @@ const ShowtimesRoom3 = ({ data, selectedDate }: any) => {
             dataIndex: "room_type",
             key: "room_type",
             render: (_: any, recordRoom: any) => {
+                if (!recordRoom.room) {
+                    return <Tag color="gray">Không có dữ liệu</Tag>;
+                }
                 return <Tag color="volcano">{recordRoom.room.room_type}</Tag>;
             },
         },
+
         {
             title: "Hình thức dịch",
             dataIndex: "address",
@@ -102,10 +110,12 @@ const ShowtimesRoom3 = ({ data, selectedDate }: any) => {
                         <DeleteShowtimes
                             id={record.id}
                             selectedDate={selectedDate}
+                            setShowtimesData={setShowtimesData}
                         ></DeleteShowtimes>
                         <EditShowtimes
                             id={record.id}
                             selectedDate={selectedDate}
+                            setShowtimesData={setShowtimesData}
                         ></EditShowtimes>
                     </Space>
                 );
@@ -117,7 +127,7 @@ const ShowtimesRoom3 = ({ data, selectedDate }: any) => {
             <h1 className="roomName">Phòng chiếu số 3</h1>
             <Table
                 columns={columns}
-                dataSource={[...data].sort((a, b) =>
+                dataSource={[...showtimesData].sort((a, b) =>
                     dayjs(a.start_time, "HH:mm").isBefore(
                         dayjs(b.start_time, "HH:mm")
                     )

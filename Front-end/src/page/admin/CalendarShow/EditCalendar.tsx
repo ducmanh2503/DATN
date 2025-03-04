@@ -46,11 +46,9 @@ const EditCalendar = ({ id }: any) => {
 
             return response.data;
         },
-        onSuccess: (data) => {
-            console.log("checkkk", data);
-
+        onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["showtimesFilm", id],
+                queryKey: ["showtimesFilm"],
             });
             messageApi.success("Cập nhật thành công");
             setOpenEdit(false);
@@ -79,18 +77,17 @@ const EditCalendar = ({ id }: any) => {
     }, [data, formShowtime, openEdit]);
 
     const onFinish = (formData: any) => {
-        console.log("re-render-addShowtimes", formData);
         mutate(formData);
-        formShowtime.resetFields();
         setOpenEdit(false);
+        formShowtime.resetFields();
     };
     const showModal = () => {
         setOpenEdit(true);
     };
 
     const handleCancel = () => {
-        formShowtime.resetFields();
         setOpenEdit(false);
+        formShowtime.resetFields();
     };
 
     return (

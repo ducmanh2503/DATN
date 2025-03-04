@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import PlayingProduct from "../PlayingProduct/PlayingProduct";
-import "./PlayingMain.css";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { GET_FILM_LIST, URL_IMAGE } from "../../config/ApiConfig";
-const PlayingMain = ({ showChill }: any) => {
+import "../PlayingMain/PlayingMain.css";
+const ComingMain = ({ showChill }: any) => {
     const [showMore, setShowMore] = useState(false);
 
-    const { data: playingfilm } = useQuery({
-        queryKey: ["playingfilms"],
+    const { data: comingfilms } = useQuery({
+        queryKey: ["comingfilms"],
         queryFn: async () => {
             const { data } = await axios.get(GET_FILM_LIST);
-            return data.now_showing.map((film: any) => ({
+            return data.coming_soon.map((film: any) => ({
                 ...film,
                 key: film.id,
             }));
@@ -21,20 +21,19 @@ const PlayingMain = ({ showChill }: any) => {
 
     return (
         <div className="playingMain main-base">
-            {playingfilm?.map((film: any, index: number) => (
+            {comingfilms?.map((film: any, index: number) => (
                 <PlayingProduct
                     className={`item-main ${
                         index >= 8 && !showMore ? "hidden" : ""
                     }`}
-                    id={film.id}
                     key={film.id}
+                    id={film.id}
+                    title={film.title}
                     trailer={film.trailer}
                     poster={`${URL_IMAGE}${film.poster}`}
                     genres={film.genres
                         .map((genre: any) => genre.name_genre)
                         .join(", ")}
-                    date={film.date}
-                    title={film.title}
                     release_date={film.release_date}
                     showChill={showChill}
                 />
@@ -49,4 +48,4 @@ const PlayingMain = ({ showChill }: any) => {
     );
 };
 
-export default PlayingMain;
+export default ComingMain;

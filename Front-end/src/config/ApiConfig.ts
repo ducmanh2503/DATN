@@ -29,15 +29,16 @@ const DELETE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const UPDATE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const DETAIL_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 
-const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/by-date`;
+const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/by-date`; // tìm kiếm suất chiếu qua ngày và phòng chiếu
 // const GET_ALL_SHOWTIMES = (date: string) =>
 //     `${BASE_URL}/show-times/filter-by-date/${date}`;
 const UPDATE_SHOWTIMES = `${BASE_URL}/showTime`;
 const DELETE_ONE_SHOWTIMES = (id: number, selected_date: string) =>
-    `${BASE_URL}/showtimes/${id}/destroy-by-date/${selected_date}`;
-const GET_DETAIL_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`;
-const UPDATE_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`;
-const GET_DATES_BY_CALENDAR = `${BASE_URL}/show-times/get-date-range-by-calendar`;
+    `${BASE_URL}/showtimes/${id}/destroy-by-date/${selected_date}`; // xóa suất chiếu
+const GET_DETAIL_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // chi tiết suất chiếu
+const UPDATE_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // cập nhật suất chiếu
+const GET_DATES_BY_CALENDAR = `${BASE_URL}/show-times/get-date-range-by-calendar`; // lấy những ngày trong lịch chiếu
+const GET_RANGE = `${BASE_URL}/show-times/in-range`;
 
 const GET_ROOMS = `${BASE_URL}/room`;
 

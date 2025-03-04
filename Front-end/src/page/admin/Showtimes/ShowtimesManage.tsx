@@ -135,6 +135,7 @@ const ShowtimesManage: React.FC = () => {
                 </Form>
                 <AddShowtimes
                     setShowtimesData={setShowtimesData}
+                    showtimesData={showtimesData}
                 ></AddShowtimes>
             </div>
             <Divider variant="solid" style={{ borderColor: "#7cb305" }}>
@@ -148,17 +149,20 @@ const ShowtimesManage: React.FC = () => {
             ) : showtimesData.length > 0 ? (
                 searchedRoom === "1" ? (
                     <ShowtimesRoom1
-                        data={showtimesData}
+                        setShowtimesData={setShowtimesData}
+                        showtimesData={showtimesData}
                         selectedDate={selectedDate}
                     />
                 ) : searchedRoom === "2" ? (
                     <ShowtimesRoom2
-                        data={showtimesData}
+                        setShowtimesData={setShowtimesData}
+                        showtimesData={showtimesData}
                         selectedDate={selectedDate}
                     />
                 ) : searchedRoom === "3" ? (
                     <ShowtimesRoom3
-                        data={showtimesData}
+                        setShowtimesData={setShowtimesData}
+                        showtimesData={showtimesData}
                         selectedDate={selectedDate}
                     />
                 ) : null

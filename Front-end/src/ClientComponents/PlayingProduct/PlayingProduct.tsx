@@ -13,19 +13,30 @@ const PlayingProduct = ({
   trailer,
   showChill,
 }: any) => {
+  const [trailerSrc, setTrailerSrc] = useState("");
   const [isModalOpen1, setIsModalOpen1] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
+  const showModal1 = () => {
+    setTrailerSrc(`${trailer}&autoplay=1`);
+    setIsModalOpen1(true);
+  };
 
-  const showModal1 = () => setIsModalOpen1(true);
-  const handleCancel1 = () => setIsModalOpen1(false);
+  const handleCancel1 = () => {
+    setTrailerSrc("");
+    setIsModalOpen1(false);
+  };
 
-  const showModal2 = () => setIsModalOpen2(true);
-  const handleCancel2 = () => setIsModalOpen2(false);
-
+  const showModal2 = () => {
+    setIsModalOpen2(true);
+  };
+  const handleCancel2 = () => {
+    setIsModalOpen2(false);
+  };
   return (
     <div className={`playingProduct ${className}`}>
       <div className="product-img">
-        <img className="img" src={poster} alt={title} />
+        <img className="img" src={poster} alt="" />
+
         <div className="hover-btn">
           <button className="btn" onClick={showModal2}>
             Đặt vé
@@ -35,13 +46,18 @@ const PlayingProduct = ({
           </button>
 
           <Modal
-            title="Lịch chiếu phim"
+            title={`Lịch chiếu phim`}
+
             width={760}
             open={isModalOpen2}
             onCancel={handleCancel2}
             footer={null}
           >
-            <CalendarMovies id={id} setIsModalOpen2={setIsModalOpen2} />
+
+            <CalendarMovies
+              id={id}
+              setIsModalOpen2={setIsModalOpen2}
+            ></CalendarMovies>
           </Modal>
 
           <Modal
@@ -54,7 +70,9 @@ const PlayingProduct = ({
             <iframe
               width="670"
               height="375"
-              src={trailer}
+
+              src={trailerSrc}
+
               title="YouTube video player"
               style={{ border: "none" }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -67,7 +85,8 @@ const PlayingProduct = ({
 
       <div className="product-sub">
         <h4 className="category cliptextTitle">{genres}</h4>
-        {!showChill && <span className="date">{release_date}</span>}
+
+        {showChill || <span className="date">{release_date}</span>}
       </div>
 
       {showChill && (

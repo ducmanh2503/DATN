@@ -15,11 +15,11 @@ import DirectorsManage from "./page/admin/Directors/DirectorsManage";
 import Booking from "./page/client/Booking/Booking";
 
 export const router = createBrowserRouter([
-    { path: "/", element: <Home></Home> },
-    { path: "/playingFilm", element: <PlayingFilm></PlayingFilm> },
-    { path: "/comingFilm", element: <ComingFilm></ComingFilm> },
-    { path: "/cinemaFilm", element: <CinemaForest></CinemaForest> },
-    { path: "/booking", element: <Booking></Booking> },
+  { path: "/", element: <Home></Home> },
+  { path: "/playingFilm", element: <PlayingFilm></PlayingFilm> },
+  { path: "/comingFilm", element: <ComingFilm></ComingFilm> },
+  { path: "/cinemaFilm", element: <CinemaForest></CinemaForest> },
+  { path: "/booking", element: <Booking></Booking> },
 
   {
     path: "/admin",
@@ -44,8 +44,8 @@ export const router = createBrowserRouter([
       { path: "directors", element: <DirectorsManage /> },
       { path: "genre", element: <GenresManage /> },
       //   { path: "check", element: <Check /> },
-      { path: "seats", element: <SeatPage /> },
-      { path: "rooms", element: <RoomPage /> },
+      // { path: "seats", element: <SeatPage /> },
+      // { path: "rooms", element: <RoomPage /> },
     ],
   },
 ]);

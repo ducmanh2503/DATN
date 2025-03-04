@@ -22,32 +22,7 @@ import Payment from './ClientComponents/Payment/Payment';
 import Login from './page/auth/Login';
 import Register from './page/auth/Register';
 import authService from './services/auth.service';
-import axios from 'axios';
 
-// Hàm kiểm tra vai trò từ token
-const getUserRole = async (): Promise<string | null> => {
-  const token = authService.getToken();
-  if (!token) {
-    console.log('No token found');
-    return null;
-  }
-
-  try {
-    const response = await axios.get('http://localhost:8000/api/user', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    console.log('API /user response:', response.data);
-    // Lấy role từ users[0] thay vì trực tiếp từ response.data
-    const userRole = response.data.users && response.data.users.length > 0 ? response.data.users[0].role : null;
-    return userRole;
-  } catch (error) {
-    console.error('Error fetching user role:', error);
-    localStorage.removeItem('auth_token');
-    return null;
-  }
-};
-
-// Component bảo vệ route với useEffect
 const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,7 +40,7 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
         return;
       }
 
-      const userRole = await getUserRole();
+      const userRole = authService.getRole();
       console.log('User role fetched:', userRole);
 
       setRole(userRole);
@@ -91,7 +66,6 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
 };
 
 export const router = createBrowserRouter([
-  // Route công khai
   { path: '/', element: <Home /> },
   { path: '/playingFilm', element: <PlayingFilm /> },
   { path: '/comingFilm', element: <ComingFilm /> },
@@ -103,7 +77,6 @@ export const router = createBrowserRouter([
   { path: '/auth/login', element: <Login /> },
   { path: '/auth/register', element: <Register /> },
 
-  // Route admin
   {
     path: '/admin',
     element: <ProtectedRoute requiredRole="admin" />,
@@ -111,7 +84,6 @@ export const router = createBrowserRouter([
       {
         element: <AdminLayout />,
         children: [
-          { index: true, element: <FilmManage /> }, // Trang mặc định khi vào /admin
           { path: 'film', element: <FilmManage /> },
           { path: 'addFilm', element: <AddFilm /> },
           { path: 'stoppedMovie', element: <StoppedMovies /> },

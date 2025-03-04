@@ -1,3 +1,4 @@
+// auth.service.ts
 import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8000/api';
@@ -34,7 +35,7 @@ interface ResetPasswordRequest {
 
 interface AuthResponse {
   message: string;
-  token?: string;
+  token: string;
   redirect_url?: string;
   expires_at?: string;
 }
@@ -97,6 +98,7 @@ const authService = {
       console.log('Verify code response:', response.data);
       if (response.data.token) {
         localStorage.setItem('auth_token', response.data.token);
+        // Lưu role nếu có (giả định backend trả về role trong tương lai)
       }
       return response.data;
     } catch (error) {
@@ -111,6 +113,8 @@ const authService = {
       console.log('Login response:', response.data);
       if (response.data.token) {
         localStorage.setItem('auth_token', response.data.token);
+        // Lưu redirect_url để xác định role gián tiếp
+        localStorage.setItem('user_role', response.data.redirect_url === '/admin' ? 'admin' : 'customer');
       }
       return response.data;
     } catch (error) {
@@ -145,6 +149,7 @@ const authService = {
         headers: { Authorization: `Bearer ${token}` },
       });
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_role'); // Xóa role khi logout
       return response.data;
     } catch (error) {
       throw handleAuthError(error);
@@ -161,6 +166,12 @@ const authService = {
     const token = localStorage.getItem('auth_token');
     console.log('Current token:', token);
     return token;
+  },
+
+  getRole(): string | null {
+    const role = localStorage.getItem('user_role');
+    console.log('Current role:', role);
+    return role;
   },
 
   async createDefaultAdmin(): Promise<AuthResponse> {

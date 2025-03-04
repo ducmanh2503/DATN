@@ -1,14 +1,17 @@
 <?php
 
 use App\Http\Controllers\API\ActorController;
+use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalendarShowController;
 use App\Http\Controllers\API\ComboController;
 use App\Http\Controllers\API\DirectorController;
+use App\Http\Controllers\API\DiscountCodeController;
 use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
+use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
 use App\Http\Controllers\API\UserController;
@@ -27,10 +30,23 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Route::middleware('auth:sanctum')->group(function () {
+
+
 // Lấy thông tin user đã đăng nhập
 Route::get('/user', function (Request $request) {
     return response()->json($request->user());
 });
+Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
+Route::post('/restore-user', [UserController::class, 'restore']);
+Route::put('/update-profile', [UserController::class, 'updateProfile']);
+
+//Giữ ghế
+Route::post('/hold-seat', [SeatController::class, 'holdSeat']);
+
+//giải phóng ghế sau 5 phút
+Route::post('/release-seat', [SeatController::class, 'releaseSeat']);
+
+
 
 // Chỉ admin mới truy cập được
 // Route::middleware(['role:admin'])->group(function () {
@@ -44,11 +60,21 @@ Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'show
 
 // Room
 Route::apiResource('room', RoomController::class);
+Route::post('restore-room', [RoomController::class, 'restore']);
+Route::delete('destroy-single-room', [RoomController::class, 'destroySingle']);
 
-// Seats
+
+//Seats
 Route::post('/seats', [SeatController::class, 'store']);
 Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
 Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
+Route::get('/seat-types', [SeatTypeController::class, 'index']);
+Route::delete('/seats/{seat}', [SeatController::class, 'destroy']);
+Route::delete('/seats/room/{room_id}/delete-all', [SeatController::class, 'deleteAll']);
+Route::put('/seats/{seat}', [SeatController::class, 'update']);
+
+//Seat-type
+Route::get('/seat-types', [SeatTypeController::class, 'index']);
 
 // Showtimes
 Route::apiResource('showTime', ShowTimeController::class);
@@ -56,7 +82,6 @@ Route::post('show-times/in-range', [ShowTimeController::class, 'getShowTimesInDa
 Route::post('show-times/by-date', [ShowTimeController::class, 'getShowTimesByDate']); //lọc theo ngày cụ thể
 // lọc theo khoảng ngày
 Route::post('show-times/get-date-range-by-calendar', [ShowTimeController::class, 'getDateRangeByCalendarShow']);
-
 //xóa theo ngày cụ thể
 Route::delete('/showtimes/{id}/destroy-by-date/{selected_date}', [ShowTimeController::class, 'destroyByDate']);
 
@@ -75,6 +100,11 @@ Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple
 Route::apiResource('/genres', GenreController::class);
 Route::apiResource('/actors', ActorController::class);
 Route::apiResource('/directors', DirectorController::class);
+
+//Mã khuyến mãi
+Route::apiResource('/discount-code', DiscountCodeController::class);
+//Bài viết
+Route::apiResource('article', ArticleController::class);
 
 //người dùng
 Route::apiResource('/user-management', UserController::class);

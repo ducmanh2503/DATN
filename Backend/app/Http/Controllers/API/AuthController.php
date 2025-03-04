@@ -54,7 +54,7 @@ class AuthController extends Controller
         // Gửi email
         Mail::to($request->email)->send(new VerifyEmail($verificationCode, 'verify'));
 
-        return response()->json(['message' => 'Mã xác thực đã gửi đến email. Vui lòng kiểm tra và nhập mã để hoàn tất.']);
+        return response()->json(['message' => 'Mã xác thực đã gửi đến email. Vui lòng kiểm tra và nhập mã để hoàn tất.', 'expires_at' => now()->addMinutes(10)]);
     }
 
     // API Xác thực OTP để hoàn tất đăng ký
@@ -211,6 +211,11 @@ class AuthController extends Controller
 
         if (!$user->is_verified) {
             return response()->json(['message' => 'Tài khoản chưa xác thực. Vui lòng kiểm tra email.'], 403);
+        }
+
+        // Kiểm tra nếu user đã có token hợp lệ (đã đăng nhập)
+        if ($user->tokens()->count() > 0) {
+            return response()->json(['message' => 'Tài khoản này đang đăng nhập trên một thiết bị khác.'], 409);
         }
 
         // Đăng nhập thành công, tạo API token

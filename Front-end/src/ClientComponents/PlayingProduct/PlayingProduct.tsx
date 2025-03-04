@@ -83,7 +83,19 @@ const PlayingProduct = ({
             )}
             <h2 className="product-title cliptextTitle">{title}</h2>
         </div>
-    );
+      </div>
+      <div className="product-sub">
+        <h4 className="category cliptextTitle">{category}</h4>
+        <span className="date">{date}</span>
+      </div>
+      {startDay && (
+        <h4 className="start-day">
+          Ngày khởi chiếu: <span className="word-render">{startDay}</span>
+        </h4>
+      )}
+      <h2 className="product-title cliptextTitle">{name}</h2>
+    </div>
+  );
 };
 
 export default PlayingProduct;

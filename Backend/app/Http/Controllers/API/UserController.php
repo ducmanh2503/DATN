@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -134,5 +136,43 @@ class UserController extends Controller
         $user->restore(); // Khôi phục người dùng
 
         return response()->json(['message' => 'Khôi phục lại người dùng thành công'], 200);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = User::user(); // Lấy thông tin người dùng hiện tại
+
+        // Kiểm tra nếu chưa đăng nhập
+        if (!$user) {
+            return response()->json(['error' => 'Bạn chưa đăng nhập!'], 401);
+        }
+
+        // Validate dữ liệu
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|string|max:255',
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'phone' => 'nullable|string|max:15',
+            'password' => 'nullable|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Lấy dữ liệu cần cập nhật
+        $data = $request->only(['name', 'email', 'phone']);
+
+        // Nếu có mật khẩu mới, mã hóa và cập nhật
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        // Cập nhật thông tin người dùng
+        $user->update($data);
+
+        return response()->json([
+            'message' => 'Thông tin tài khoản đã được cập nhật thành công!',
+            'user' => $user
+        ], 200);
     }
 }

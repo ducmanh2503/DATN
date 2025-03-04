@@ -102,7 +102,9 @@ Route::delete('/showtimes/{id}/destroy-by-date/{selected_date}', [ShowTimeContro
 
 
 // CalendarShow
-Route::apiResource('calendarShow', CalendarShowController::class);
+Route::apiResource('/calendarShow', CalendarShowController::class);
+Route::get('/calendar-show/movie/{movie_id}', [CalendarShowController::class, 'showClient']);
+
 
 
 // Combo
@@ -164,4 +166,3 @@ Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCa
 
 // Route::get('auth/facebook', [SocialAuthController::class, 'redirectToFacebook']);
 // Route::get('auth/facebook/callback', [SocialAuthController::class, 'handleFacebookCallback']);
-

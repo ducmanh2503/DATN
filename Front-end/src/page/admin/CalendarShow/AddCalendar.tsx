@@ -47,6 +47,7 @@ const AddCalendar: React.FC = () => {
             }));
         },
         enabled: open,
+        staleTime: 1000 * 60,
     });
 
     const { mutate } = useMutation({

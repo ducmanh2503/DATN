@@ -12,19 +12,25 @@ use Illuminate\Queue\SerializesModels;
 
 class SeatHeldEvent implements ShouldBroadcast
 {
-    use Dispatchable, SerializesModels, InteractsWithSockets;
+    use SerializesModels, InteractsWithSockets;
 
-    public $seat;
+    public $seats;
     public $userId;
 
-    public function __construct($seat, $userId)
+    public function __construct($seats, $userId)
     {
-        $this->seat = $seat;
+        $this->seats = $seats;
         $this->userId = $userId;
     }
 
     public function broadcastOn()
     {
         return new Channel('seats');
+    }
+
+    //định nghĩa tên sự kiện phát đi
+    public function broadcastAs()
+    {
+        return 'seat-held';
     }
 }

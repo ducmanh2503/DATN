@@ -52,17 +52,20 @@ const EditFilm = ({ id }: any) => {
         staleTime: 1000 * 60 * 20,
     });
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, refetch } = useQuery({
         queryKey: ["filmList", id],
         queryFn: async () => {
             const { data } = await axios.get(`${GET_FILM_DETAIL(id)}`);
+            console.log("check re-render", data);
+
             return data.data;
         },
-        enabled: openModal,
+        enabled: false,
         onSuccess: (data: any) => {
             form.setFieldsValue(data);
             setPoster(data.poster ?? "");
         },
+        refetchOnWindowFocus: false,
     });
 
     const { mutate } = useMutation({
@@ -89,7 +92,7 @@ const EditFilm = ({ id }: any) => {
 
     useEffect(() => {
         if (data) {
-            console.log("test", data);
+            form.resetFields();
             form.setFieldsValue({
                 ...data,
                 name_director: data.directors ? [data.directors.id] : [],
@@ -100,7 +103,7 @@ const EditFilm = ({ id }: any) => {
             });
             setPoster(data.poster ?? "");
         }
-    }, [data]);
+    }, [data, form, openModal]);
 
     const onFinish = (formData: FormData) => {
         console.log("Form submitted:", formData);
@@ -132,6 +135,7 @@ const EditFilm = ({ id }: any) => {
     };
     const showDrawer = () => {
         setOpenModal(true);
+        refetch();
     };
 
     useEffect(() => {

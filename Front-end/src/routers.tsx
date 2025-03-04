@@ -12,27 +12,14 @@ import ShowtimesManage from "./page/admin/Showtimes/ShowtimesManage";
 import ActorsManage from "./page/admin/Actors/ActorsManage";
 import GenresManage from "./page/admin/Genres/GenresManage";
 import DirectorsManage from "./page/admin/Directors/DirectorsManage";
-// import Check from "./page/admin/FilmManage/Check";
-import SeatPage from "./page/admin/Seat/SeatPage";
-import RoomPage from "./page/admin/RoomPage/RoomPage";
-import FilmDetail from "./ClientComponents/FilmDetail/FilmDetail";
-import Showtimes from "./ClientComponents/Showtimes/Showtimes";
-import Booking from "./ClientComponents/Booking/Booking";
-import Payment from "./ClientComponents/Payment/Payment";
+import Booking from "./page/client/Booking/Booking";
 
 export const router = createBrowserRouter([
-  { path: "/", element: <Home></Home> },
-  { path: "/playingFilm", element: <PlayingFilm></PlayingFilm> },
-  { path: "/comingFilm", element: <ComingFilm></ComingFilm> },
-  { path: "/cinemaFilm", element: <CinemaForest></CinemaForest> },
-  { path: "/", element: <Home /> },
-  { path: "/playingFilm", element: <PlayingFilm /> },
-  { path: "/comingFilm", element: <ComingFilm /> },
-  { path: "/cinemaFilm", element: <CinemaForest /> },
-  { path: "/filmDetail/:id", element: <FilmDetail /> },
-  { path: "/showtimes/:movieId", element: <Showtimes /> },
-  { path: "/booking/:showtimeId/:roomId", element: <Booking /> },
-  { path: "/payment/:showtimeId", element: <Payment /> },
+    { path: "/", element: <Home></Home> },
+    { path: "/playingFilm", element: <PlayingFilm></PlayingFilm> },
+    { path: "/comingFilm", element: <ComingFilm></ComingFilm> },
+    { path: "/cinemaFilm", element: <CinemaForest></CinemaForest> },
+    { path: "/booking", element: <Booking></Booking> },
 
   {
     path: "/admin",

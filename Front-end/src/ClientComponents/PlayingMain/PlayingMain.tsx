@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PlayingProduct from "../PlayingProduct/PlayingProduct";
 import "./PlayingMain.css";
 import { useQuery } from "@tanstack/react-query";
@@ -24,7 +24,7 @@ const PlayingMain = ({ showChill }: any) => {
             {playingfilm?.map((film: any, index: number) => (
                 <PlayingProduct
                     className={`item-main ${
-                        index >= 8 && !showMore ? "hidden" : ""
+                        index >= 4 && !showMore ? "hidden" : ""
                     }`}
                     id={film.id}
                     key={film.id}
@@ -39,12 +39,14 @@ const PlayingMain = ({ showChill }: any) => {
                     showChill={showChill}
                 />
             ))}
-            <button
-                className="show-more-btn"
-                onClick={() => setShowMore(!showMore)}
-            >
-                {showMore ? "Ẩn bớt " : "Xem thêm..."}
-            </button>
+            {movies.length > 4 && (
+                <button
+                    className="show-more-btn"
+                    onClick={() => setShowMore(!showMore)}
+                >
+                    {showMore ? "Ẩn bớt" : "Xem thêm..."}
+                </button>
+            )}
         </div>
     );
 };

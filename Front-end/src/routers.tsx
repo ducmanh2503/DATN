@@ -15,12 +15,6 @@ import DirectorsManage from "./page/admin/Directors/DirectorsManage";
 import Booking from "./page/client/Booking/Booking";
 import SeatPage from "./page/admin/Seat/SeatPage";
 import RoomPage from "./page/admin/RoomPage/RoomPage";
-import FilmDetail from "./ClientComponents/FilmDetail/FilmDetail";
-import Showtimes from "./ClientComponents/Showtimes/Showtimes";
-import Payment from "./ClientComponents/Payment/Payment";
-import Login from "./page/auth/Login";
-import Register from "./page/auth/Register";
-import authService from "./services/auth.service";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Home></Home> },
@@ -28,36 +22,38 @@ export const router = createBrowserRouter([
   { path: "/comingFilm", element: <ComingFilm></ComingFilm> },
   { path: "/cinemaFilm", element: <CinemaForest></CinemaForest> },
   { path: "/booking", element: <Booking></Booking> },
-  { path: "/payment/:showtimeId", element: <Payment /> },
-  { path: "/auth/login", element: <Login /> },
-  { path: "/auth/register", element: <Register /> },
 
   {
     path: "/admin",
     element: <AdminLayout></AdminLayout>,
     children: [
-      { path: "film", element: <FilmManage></FilmManage> },
-      { path: "addFilm", element: <AddFilm></AddFilm> },
-      { path: "stoppedMovie", element: <StoppedMovies></StoppedMovies> },
       {
-        path: "calendarShow",
-        element: <CalendarManage></CalendarManage>,
-      },
-      { path: "showtimes", element: <ShowtimesManage></ShowtimesManage> },
-      { path: "actors", element: <ActorsManage></ActorsManage> },
-      { path: "directors", element: <DirectorsManage></DirectorsManage> },
-      { path: "genre", element: <GenresManage></GenresManage> },
-      // { path: "check", element: <Check></Check> },
+        element: <AdminLayout />,
+        children: [
+          { path: "film", element: <FilmManage></FilmManage> },
+          { path: "addFilm", element: <AddFilm></AddFilm> },
+          { path: "stoppedMovie", element: <StoppedMovies></StoppedMovies> },
+          {
+            path: "calendarShow",
+            element: <CalendarManage></CalendarManage>,
+          },
+          { path: "showtimes", element: <ShowtimesManage></ShowtimesManage> },
+          { path: "actors", element: <ActorsManage></ActorsManage> },
+          { path: "directors", element: <DirectorsManage></DirectorsManage> },
+          { path: "genre", element: <GenresManage></GenresManage> },
+          // { path: "check", element: <Check></Check> },
 
-      { path: "film", element: <FilmManage /> },
-      { path: "addFilm", element: <AddFilm /> },
-      { path: "stoppedMovie", element: <StoppedMovies /> },
-      { path: "actors", element: <ActorsManage /> },
-      { path: "directors", element: <DirectorsManage /> },
-      { path: "genre", element: <GenresManage /> },
-      //   { path: "check", element: <Check /> },
-      { path: "seats", element: <SeatPage /> },
-      { path: "rooms", element: <RoomPage /> },
+          { path: "film", element: <FilmManage /> },
+          { path: "addFilm", element: <AddFilm /> },
+          { path: "stoppedMovie", element: <StoppedMovies /> },
+          { path: "actors", element: <ActorsManage /> },
+          { path: "directors", element: <DirectorsManage /> },
+          { path: "genre", element: <GenresManage /> },
+          //   { path: "check", element: <Check /> },
+          { path: "seats", element: <SeatPage /> },
+          { path: "rooms", element: <RoomPage /> },
+        ],
+      },
     ],
   },
 ]);

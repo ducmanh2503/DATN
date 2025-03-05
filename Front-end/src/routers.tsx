@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import axios from 'axios'; // Import axios để chỉnh sửa mặc định
 import Home from './page/client/Home/home';
 import PlayingFilm from './page/client/PlayingFilm/PlayingFilm';
 import ComingFilm from './page/client/ComingFilm/ComingFilm';
@@ -23,34 +24,64 @@ import Login from './page/auth/Login';
 import Register from './page/auth/Register';
 import authService from './services/auth.service';
 
+// Route bảo vệ cho các trang yêu cầu đăng nhập (như admin)
 const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
   const [role, setRole] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const isAuthenticated = authService.isAuthenticated();
-      console.log('Checking authentication:', { isAuthenticated, requiredRole });
+      try {
+        const authStatus = authService.isAuthenticated();
+        console.log('Kiểm tra xác thực:', { authStatus, requiredRole });
 
-      if (!isAuthenticated) {
-        console.log('Not authenticated, redirecting to /auth/login');
-        navigate('/auth/login', { replace: true });
+        if (!authStatus) {
+          console.log('Chưa đăng nhập, chuyển hướng tới /auth/login');
+          navigate('/auth/login', { replace: true });
+          setLoading(false);
+          return;
+        }
+
+        const userRole = authService.getRole();
+        console.log('Vai trò người dùng:', userRole);
+
+        setIsAuthenticated(true);
+        setRole(userRole);
         setLoading(false);
-        return;
-      }
 
-      const userRole = authService.getRole();
-      console.log('User role fetched:', userRole);
+        if (requiredRole && userRole !== requiredRole) {
+          console.log(`Vai trò không khớp: ${userRole} !== ${requiredRole}, chuyển hướng tới /`);
+          navigate('/', { replace: true });
+          return;
+        }
 
-      setRole(userRole);
-      setLoading(false);
+        console.log('Vai trò khớp hoặc không yêu cầu vai trò, thiết lập interceptor Axios');
 
-      if (requiredRole && userRole !== requiredRole) {
-        console.log(`Role mismatch: ${userRole} !== ${requiredRole}, redirecting to /`);
-        navigate('/', { replace: true });
-      } else {
-        console.log('Role matched or no role required, rendering Outlet');
+        const interceptor = axios.interceptors.request.use(
+          (config) => {
+            const token = authService.getToken();
+            if (token) {
+              config.headers.Authorization = `Bearer ${token}`;
+              console.log('[ProtectedRoute] Gắn token vào request:', token);
+            } else {
+              console.log('[ProtectedRoute] Không tìm thấy token cho request');
+            }
+            return config;
+          },
+          (error) => Promise.reject(error)
+        );
+
+        return () => {
+          axios.interceptors.request.eject(interceptor);
+          console.log('[ProtectedRoute] Đã dọn dẹp interceptor Axios');
+        };
+      } catch (error) {
+        console.error('Lỗi khi kiểm tra xác thực:', error);
+        setIsAuthenticated(false);
+        setLoading(false);
+        navigate('/auth/login', { replace: true });
       }
     };
 
@@ -58,11 +89,54 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
   }, [navigate, requiredRole]);
 
   if (loading) {
-    console.log('Loading state active');
-    return <div>Loading...</div>;
+    console.log('Trạng thái đang tải');
+    return <div>Đang tải...</div>;
   }
 
-  return role === requiredRole || !requiredRole ? <Outlet /> : null;
+  return isAuthenticated && (role === requiredRole || !requiredRole) ? (
+    <Outlet />
+  ) : (
+    <Navigate to="/auth/login" replace />
+  );
+};
+
+// Route công khai cho các trang auth (ngăn truy cập khi đã đăng nhập)
+const PublicRoute = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const authStatus = authService.isAuthenticated();
+        console.log('Kiểm tra xác thực cho PublicRoute:', { authStatus });
+
+        setIsAuthenticated(authStatus);
+        setLoading(false);
+
+        if (authStatus) {
+          const userRole = authService.getRole();
+          const redirectUrl = userRole === 'admin' ? '/admin' : '/';
+          console.log('Đã đăng nhập, chuyển hướng tới:', redirectUrl);
+          navigate(redirectUrl, { replace: true });
+        }
+      } catch (error) {
+        console.error('Lỗi khi kiểm tra xác thực trong PublicRoute:', error);
+        setIsAuthenticated(false);
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  if (loading) {
+    console.log('Trạng thái đang tải trong PublicRoute');
+    return <div>Đang tải...</div>;
+  }
+
+  return !isAuthenticated ? <Outlet /> : null;
 };
 
 export const router = createBrowserRouter([
@@ -74,8 +148,14 @@ export const router = createBrowserRouter([
   { path: '/showtimes/:movieId', element: <Showtimes /> },
   { path: '/booking/:showtimeId/:roomId', element: <Booking /> },
   { path: '/payment/:showtimeId', element: <Payment /> },
-  { path: '/auth/login', element: <Login /> },
-  { path: '/auth/register', element: <Register /> },
+
+  {
+    element: <PublicRoute />,
+    children: [
+      { path: '/auth/login', element: <Login /> },
+      { path: '/auth/register', element: <Register /> },
+    ],
+  },
 
   {
     path: "/admin",

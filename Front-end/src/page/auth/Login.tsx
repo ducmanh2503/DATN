@@ -1,24 +1,24 @@
+import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Divider, message } from 'antd';
 import { Facebook, Mail, Lock, LogIn } from 'lucide-react';
-import { useState } from 'react';
 import authService from '../../services/auth.service';
 import './Login.css';
 
+type LoginFormData = {
+  email: string;
+  password: string;
+};
+
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>();
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      console.log('Login attempt with:', { email, password });
-      const response = await authService.login({ email, password });
-      console.log('Login API response:', response);
+      console.log('Thử đăng nhập với:', data);
+      const response = await authService.login(data);
+      console.log('Phản hồi API đăng nhập:', response);
 
       if (!response.token) {
         throw new Error('Token không được trả về từ API');
@@ -26,18 +26,16 @@ const Login = () => {
       localStorage.setItem('auth_token', response.token);
       message.success('Đăng nhập thành công!');
 
-      // Chuyển hướng dựa trên role từ localStorage
+      // Chuyển hướng dựa trên vai trò từ localStorage
       const userRole = authService.getRole();
-      let redirectUrl = userRole === 'admin' ? '/admin/film' : '/';
-      console.log('Navigating to:', redirectUrl);
+      const redirectUrl = userRole === 'admin' ? '/admin' : '/'; // Chuyển đến /admin thay vì /admin/film
+      console.log('Chuyển hướng tới:', redirectUrl);
       navigate(redirectUrl);
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('Lỗi đăng nhập:', error);
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_role');
       message.error(error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -45,7 +43,7 @@ const Login = () => {
     <div className="login-container">
       <h2 className="login-title">Đăng nhập</h2>
 
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <label className="form-label" htmlFor="email">
             Email
@@ -57,10 +55,15 @@ const Login = () => {
               type="email"
               id="email"
               placeholder="Nhập email của bạn"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              {...register('email', {
+                required: 'Email là bắt buộc',
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Email không hợp lệ',
+                },
+              })}
             />
+            {errors.email && <p className="error-message">{errors.email.message}</p>}
           </div>
         </div>
 
@@ -80,10 +83,15 @@ const Login = () => {
               type="password"
               id="password"
               placeholder="Nhập mật khẩu"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              {...register('password', {
+                required: 'Mật khẩu là bắt buộc',
+                minLength: {
+                  value: 6,
+                  message: 'Mật khẩu phải có ít nhất 6 ký tự',
+                },
+              })}
             />
+            {errors.password && <p className="error-message">{errors.password.message}</p>}
           </div>
         </div>
 
@@ -91,7 +99,7 @@ const Login = () => {
           className="login-button"
           type="primary"
           htmlType="submit"
-          loading={loading}
+          loading={isSubmitting}
           size="large"
         >
           <LogIn size={20} className="button-icon" />
@@ -99,7 +107,7 @@ const Login = () => {
         </Button>
       </form>
 
-      <Divider className="auth-divider" plain>Hoặc đăng nhập với email</Divider>
+      <Divider className="auth-divider" plain>Hoặc đăng nhập với</Divider>
 
       <div className="social-login-section">
         <Button className="social-button google-button" type="default" size="large">

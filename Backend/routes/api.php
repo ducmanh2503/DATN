@@ -11,7 +11,6 @@ use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
-use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
 use App\Http\Controllers\API\UserController;
@@ -29,22 +28,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
 // Route::middleware('auth:sanctum')->group(function () {
 
 
 // Lấy thông tin user đã đăng nhập
-Route::get('/user', function (Request $request) {
-    return response()->json($request->user());
-});
+Route::apiResource('/user', UserController::class);
 Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
 Route::post('/restore-user', [UserController::class, 'restore']);
 Route::put('/update-profile', [UserController::class, 'updateProfile']);
-
-//Giữ ghế
-Route::post('/hold-seat', [SeatController::class, 'holdSeat']);
-
-//giải phóng ghế sau 5 phút
-Route::post('/release-seat', [SeatController::class, 'releaseSeat']);
 
 
 
@@ -60,21 +52,11 @@ Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'show
 
 // Room
 Route::apiResource('room', RoomController::class);
-Route::post('restore-room', [RoomController::class, 'restore']);
-Route::delete('destroy-single-room', [RoomController::class, 'destroySingle']);
 
-
-//Seats
+// Seats
 Route::post('/seats', [SeatController::class, 'store']);
 Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
 Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
-Route::get('/seat-types', [SeatTypeController::class, 'index']);
-Route::delete('/seats/{seat}', [SeatController::class, 'destroy']);
-Route::delete('/seats/room/{room_id}/delete-all', [SeatController::class, 'deleteAll']);
-Route::put('/seats/{seat}', [SeatController::class, 'update']);
-
-//Seat-type
-Route::get('/seat-types', [SeatTypeController::class, 'index']);
 
 // Showtimes
 Route::apiResource('showTime', ShowTimeController::class);
@@ -86,7 +68,9 @@ Route::post('show-times/get-date-range-by-calendar', [ShowTimeController::class,
 Route::delete('/showtimes/{id}/destroy-by-date/{selected_date}', [ShowTimeController::class, 'destroyByDate']);
 
 // CalendarShow
-Route::apiResource('calendarShow', CalendarShowController::class);
+Route::apiResource('/calendarShow', CalendarShowController::class);
+Route::get('/calendar-show/movie/{movie_id}', [CalendarShowController::class, 'showClient']);
+
 
 // Combo
 Route::apiResource('combo', ComboController::class);
@@ -116,6 +100,7 @@ Route::get('/user-management/show-user-destroy/{user_management}', [UserControll
 Route::post('/logout', [AuthController::class, 'logout']);
 // });
 
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);
 Route::post('/verify-code', [AuthController::class, 'verifyCode']);
@@ -135,4 +120,5 @@ Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 
 // Route::get('auth/facebook', [SocialAuthController::class, 'redirectToFacebook']);
+
 // Route::get('auth/facebook/callback', [SocialAuthController::class, 'handleFacebookCallback']);

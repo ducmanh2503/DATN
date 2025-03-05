@@ -1,0 +1,66 @@
+.payment-gate-container .promotion-section {
+    background-color: white;
+    padding: 15px 25px;
+}
+
+.promotion-section .promotion-title {
+    font-size: 18px;
+    color: #4a4a04;
+}
+
+.promotion-section .promotion-input {
+    margin-top: 20px;
+}
+
+.promotion-section .promotion-input h3 {
+    margin-bottom: 5px;
+}
+
+.promotion-section .promotion-panel {
+    margin-left: -18px;
+    margin-top: 18px;
+}
+
+.promotion-section .promotion-panel .promotion-note {
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.promotion-section .promotion-panel .promotion-info {
+    margin-top: 10px;
+}
+
+.promotion-section .promotion-panel .promotion-rate {
+    font-weight: 500;
+    margin-left: 15px;
+}
+
+.promotion-section .promotion-panel .promotion-member {
+    margin-left: 15px;
+}
+.payment-gate-container .payment-method {
+    background-color: white;
+    padding: 15px 25px;
+    margin-top: 20px;
+}
+
+.payment-method .method-title {
+    font-size: 18px;
+    color: #4a4a04;
+}
+
+.payment-method .payment-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 18px;
+}
+.payment-method .more-info {
+    font-size: 12px;
+    margin-top: 15px;
+}
+
+.payment-method .more-info .danger {
+    color: red;
+}

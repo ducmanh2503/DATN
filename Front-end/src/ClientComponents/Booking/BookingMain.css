@@ -1,0 +1,17 @@
+.steps-booking {
+    margin-top: 60px;
+    margin-bottom: 40px;
+}
+
+.booking-main {
+    display: flex;
+    gap: 10px;
+}
+
+.booking-main .booking-left {
+    width: 65%;
+}
+
+.booking-main .booking-right {
+    width: 35%;
+}

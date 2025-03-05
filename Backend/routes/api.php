@@ -11,7 +11,6 @@ use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
-use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
 use App\Http\Controllers\API\UserController;
@@ -30,17 +29,19 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-Route::middleware('auth:sanctum')->group(function () {
+// Route::middleware('auth:sanctum')->group(function () {
 
 
 // Lấy thông tin user đã đăng nhập
+Route::apiResource('/user', UserController::class);
 Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
+Route::post('/restore-user', [UserController::class, 'restore']);
 Route::put('/update-profile', [UserController::class, 'updateProfile']);
 
 
 
 // Chỉ admin mới truy cập được
-Route::middleware(['role:admin'])->group(function () {
+// Route::middleware(['role:admin'])->group(function () {
 // Movies
 Route::apiResource('movies', MoviesController::class);
 Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
@@ -52,17 +53,10 @@ Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'show
 // Room
 Route::apiResource('room', RoomController::class);
 
-//Seats
+// Seats
 Route::post('/seats', [SeatController::class, 'store']);
 Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
 Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
-Route::get('/seat-types', [SeatTypeController::class, 'index']);
-Route::delete('/seats/{seat}', [SeatController::class, 'destroy']);
-Route::delete('/seats/room/{room_id}/delete-all', [SeatController::class, 'deleteAll']);
-Route::put('/seats/{seat}', [SeatController::class, 'update']);
-
-//Seat-type
-Route::get('/seat-types', [SeatTypeController::class, 'index']);
 
 // Showtimes
 Route::apiResource('showTime', ShowTimeController::class);
@@ -74,18 +68,16 @@ Route::post('show-times/get-date-range-by-calendar', [ShowTimeController::class,
 Route::delete('/showtimes/{id}/destroy-by-date/{selected_date}', [ShowTimeController::class, 'destroyByDate']);
 
 // CalendarShow
-Route::apiResource('calendarShow', CalendarShowController::class);
+Route::apiResource('/calendarShow', CalendarShowController::class);
+Route::get('/calendar-show/movie/{movie_id}', [CalendarShowController::class, 'showClient']);
+
 
 // Combo
 Route::apiResource('combo', ComboController::class);
 Route::delete('/combo', [ComboController::class, 'destroyMultiple']);
 Route::delete('/combos/force-delete-multiple', [ComboController::class, 'forceDeleteMultiple']);
 Route::delete('/combo/force/{combo}', [ComboController::class, 'forceDeleteSingle']);
-
-// Khôi phục 1 combo 
 Route::post('/combo/restore/{combo}', [ComboController::class, 'restore']);
-
-// Khôi phục nhiều combo 
 Route::post('/combo/multiple/restore', [ComboController::class, 'restoreMultiple']);
 
 // Thể loại phim, Diễn viên, Đạo diễn
@@ -102,12 +94,12 @@ Route::apiResource('/discount-code', DiscountCodeController::class);
 Route::apiResource('/user-management', UserController::class);
 Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
 Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
-});
+// });
 
 // Đăng xuất
 Route::post('/logout', [AuthController::class, 'logout']);
 
-});
+// });
 
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -129,4 +121,6 @@ Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 
 // Route::get('auth/facebook', [SocialAuthController::class, 'redirectToFacebook']);
+
 // Route::get('auth/facebook/callback', [SocialAuthController::class, 'handleFacebookCallback']);
+

@@ -1,91 +1,103 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./PlayingProduct.css";
-import { Link } from "react-router-dom";
 import { Modal } from "antd";
+import CalendarMovies from "../CalendarMovies/CalendarMovies";
 
-interface PlayingProductProps {
-    className?: string;
-    image: string;
-    category: string;
-    date: string;
-    startDay?: string;
-    name: string;
-    trailer?: string;
-    movieId: number;
-    showChill?: (movieId: number) => void;
-}
+const PlayingProduct = ({
+  id,
+  title,
+  className,
+  genres,
+  release_date,
+  poster,
+  trailer,
+  showChill,
+}: any) => {
+  const [trailerSrc, setTrailerSrc] = useState("");
+  const [isModalOpen1, setIsModalOpen1] = useState(false);
+  const [isModalOpen2, setIsModalOpen2] = useState(false);
+  const showModal1 = () => {
+    setTrailerSrc(`${trailer}&autoplay=1`);
+    setIsModalOpen1(true);
+  };
 
-const PlayingProduct: React.FC<PlayingProductProps> = ({
-    className,
-    image,
-    category,
-    date,
-    startDay,
-    name,
-    trailer,
-    movieId,
-    showChill,
-}) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+  const handleCancel1 = () => {
+    setTrailerSrc("");
+    setIsModalOpen1(false);
+  };
 
-    const showModal = () => {
-        setIsModalOpen(true);
-    };
+  const showModal2 = () => {
+    setIsModalOpen2(true);
+  };
+  const handleCancel2 = () => {
+    setIsModalOpen2(false);
+  };
+  return (
+    <div className={`playingProduct ${className}`}>
+      <div className="product-img">
+        <img className="img" src={poster} alt="" />
 
-    const handleCancel = () => {
-        setIsModalOpen(false);
-    };
+        <div className="hover-btn">
+          <button className="btn" onClick={showModal2}>
+            Đặt vé
+          </button>
+          <button className="btn" onClick={showModal1}>
+            Trailer
+          </button>
 
-    const handleDetailClick = () => {
-        if (showChill) {
-            showChill(movieId);
-        }
-    };
+          <Modal
+            title={`Lịch chiếu phim`}
 
-    return (
-        <div className={`playingProduct ${className}`}>
-            <div className="product-img" onClick={handleDetailClick}>
-                <img className="img" src={image} alt={name} />
-                <div className="hover-btn">
-                    <Link className="btn" to={`/booking/${movieId}`}>
-                        Đặt vé
-                    </Link>
-                    <button className="btn" onClick={(e) => { e.stopPropagation(); showModal(); }}>
-                        Trailer
-                    </button>
-                    <Modal
-                        width={720}
-                        open={isModalOpen}
-                        onCancel={handleCancel}
-                        footer={null}
-                        closable={false}
-                    >
-                        <iframe
-                            width="670"
-                            height="375"
-                            src={trailer || "https://www.youtube.com/embed/lxFmeBhoA1Y?si=vAHx_2eC9bovJvMh"}
-                            title={`${name} trailer`}
-                            style={{ border: "none" }}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            referrerPolicy="strict-origin-when-cross-origin"
-                            allowFullScreen
-                        ></iframe>
-                    </Modal>
-                </div>
-            </div>
-            <div className="product-sub">
-                <h4 className="category cliptextTitle">{category}</h4>
-                <span className="date">{date}</span>
-            </div>
-            {startDay && (
-                <h4 className="start-day">
-                    Ngày khởi chiếu:{" "}
-                    <span className="word-render">{startDay}</span>
-                </h4>
-            )}
-            <h2 className="product-title cliptextTitle">{name}</h2>
+            width={760}
+            open={isModalOpen2}
+            onCancel={handleCancel2}
+            footer={null}
+          >
+
+            <CalendarMovies
+              id={id}
+              setIsModalOpen2={setIsModalOpen2}
+            ></CalendarMovies>
+          </Modal>
+
+          <Modal
+            width={720}
+            open={isModalOpen1}
+            onCancel={handleCancel1}
+            footer={null}
+            closable={false}
+          >
+            <iframe
+              width="670"
+              height="375"
+
+              src={trailerSrc}
+
+              title="YouTube video player"
+              style={{ border: "none" }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            ></iframe>
+          </Modal>
         </div>
-    );
+      </div>
+
+      <div className="product-sub">
+        <h4 className="category cliptextTitle">{genres}</h4>
+
+        {showChill || <span className="date">{release_date}</span>}
+      </div>
+
+      {showChill && (
+        <h4 className="start-day">
+          Ngày khởi chiếu: <span className="word-render">{release_date}</span>
+        </h4>
+      )}
+
+      <h2 className="product-title cliptextTitle">{title}</h2>
+    </div>
+  );
 };
 
 export default PlayingProduct;

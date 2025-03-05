@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     Button,
     DatePicker,
@@ -33,8 +33,10 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
         number | null
     >(null);
     const [filteredFilms, setFilteredFilms] = useState<any[]>([]);
+    const queryClient = useQueryClient();
+    const [calendarShowId, setCalendarShowId] = useState<number | null>(null);
 
-    const onFinish = (formData: any) => {
+    const onFinish = async (formData: any) => {
         const formatTimeField = (value: any, format: string) =>
             value ? dayjs(value).format(format) : null;
 
@@ -47,35 +49,28 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                 "YYYY-MM-DD"
             ),
         };
+
         mutate(formattedData, {
-            onSuccess: () => {
-                messageApi.success("cập nhật thành công");
-                setShowtimesData((prevData: any) => [
-                    ...prevData,
-                    formattedData,
-                ]);
-                // console.log("Cập nhật thành công", setShowtimesData);
+            onSuccess: async () => {
+                messageApi.success("Cập nhật thành công");
+                setShowtimesData((prevData: any) =>
+                    prevData.map((item: any) =>
+                        item.id === id ? { ...item, ...formattedData } : item
+                    )
+                );
+
+                await queryClient.invalidateQueries({
+                    queryKey: ["showtimes", id],
+                });
 
                 form.resetFields();
                 setOpen(false);
             },
             onError: (error: any) => {
                 const errorMessage =
-                    error.response?.data?.error || "Có lỗi xảy ra!";
+                    JSON.parse(error.request.responseText) || "Có lỗi xảy ra";
                 messageApi.error(errorMessage);
             },
-
-            // onError: (error: any) => {
-            //     messageApi.error(JSON.parse(error.request.responseText));
-            // console.log("Lỗi chi tiết:1", error?.response?.data?.message);
-            // console.log("Lỗi chi tiết:2", error?.response?.data);
-            // console.log("Lỗi chi tiết:3", error?.response);
-
-            // console.log("Lỗi chi tiết:5", error.request.response);
-            // messageApi.error(
-            //     error?.response?.data?.message || "Thêm thất bại"
-            // );
-            // },
         });
     };
 
@@ -83,7 +78,10 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
         setOpen(true);
     };
 
-    const handleOk = () => form.submit();
+    const handleOk = () => {
+        form.submit();
+        setOpen(false);
+    };
 
     const handleCancel = () => {
         form.resetFields();
@@ -102,7 +100,8 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                 key: item.id,
             }));
         },
-        enabled: true, // Luôn luôn tải danh sách phim
+        enabled: open,
+        staleTime: 1000 * 60 * 10,
     });
 
     const { data: idCalendarShow } = useQuery({
@@ -115,37 +114,35 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                 key: item.id,
             }));
         },
-        enabled: true, // Luôn tải dữ liệu
+        enabled: open,
+        staleTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
     });
 
-    const handleFilmChange = (value: number) => {
-        const selectedShow = idCalendarShow?.find(
-            (show: any) => show.movie_id === value
-        );
-        // console.log("check selectedShow", selectedShow);
-
-        const calendarShowId = selectedShow ? selectedShow.id : null;
-        // console.log("check calendarShowId", calendarShowId);
-
-        setSelectedCalendarShowId(calendarShowId);
-        form.setFieldsValue({
-            calendar_show_id: calendarShowId || "",
-        });
-    };
-
-    const { data: datesByCalendar } = useQuery({
-        queryKey: ["datesByCalendar", selectedCalendarShowId],
+    // danh sách thể loại chiếu
+    const { data: rooms } = useQuery({
+        queryKey: ["Rooms"],
         queryFn: async () => {
-            if (!selectedCalendarShowId) return [];
-            const { data } = await axios.post(GET_DATES_BY_CALENDAR, {
-                calendar_show_id: selectedCalendarShowId,
-            });
-            console.log("days-by-calendar", data.dates);
-            // const datesByCalendar = data.dates;
-            return data.dates;
+            const { data } = await axios.get(GET_ROOMS);
+            console.log("lisst - room", data.rooms);
+            return data.rooms.map((item: any) => ({
+                label: item.room_type,
+                value: item.room_type,
+            }));
         },
-        enabled: !!selectedCalendarShowId, // Chỉ gọi API nếu đã có calendar_show_id
+        enabled: open,
+        staleTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
     });
+
+    const handleChangeSelect = useCallback(
+        (value: string[], fieldName: string) => {
+            form.setFieldsValue({ [fieldName]: value });
+        },
+        [form]
+    );
+
+    const handleFilmChange = (value: number) => {};
 
     const { mutate } = useMutation({
         mutationFn: async (formData) => {
@@ -171,6 +168,7 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
             };
         },
         staleTime: 1000 * 60 * 10,
+        enabled: open,
     });
 
     useEffect(() => {
@@ -192,55 +190,42 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                 calendar_show_id: detailShowtimes.calendar_show_id,
             });
         }
+
+        if (detailShowtimes?.calendar_show_id) {
+            setCalendarShowId(detailShowtimes.calendar_show_id);
+        }
     }, [detailShowtimes, selectedDate, form, open]);
 
-    useEffect(() => {
-        if (!selectedDate || !idCalendarShow) {
-            setFilteredFilms([]);
-            return;
-        }
-
-        // Chuyển đổi selectedDate thành chuỗi YYYY-MM-DD
-        const selectedDateString = dayjs(selectedDate).format("YYYY-MM-DD");
-
-        // Lọc các lịch chiếu có ngày chiếu trùng với selectedDate
-        const availableShows = idCalendarShow.filter(
-            (show: any) =>
-                Array.isArray(show.dates) &&
-                show.dates.includes(selectedDateString)
-        );
-
-        // Lấy danh sách movie_id từ các lịch chiếu hợp lệ
-        const availableMovieIds = availableShows.map(
-            (show: any) => show.movie_id
-        );
-
-        // Cập nhật danh sách phim dựa trên các movie_id hợp lệ
-        setFilteredFilms(
-            filmList?.filter((film: any) =>
-                availableMovieIds.includes(film.id)
-            ) || []
-        );
-    }, [selectedDate, idCalendarShow, filmList]);
-
-    const handleChangeSelect = useCallback(
-        (value: string[], fieldName: string) => {
-            form.setFieldsValue({ [fieldName]: value });
-        },
-        [form]
-    );
-
-    const { data: rooms } = useQuery({
-        queryKey: ["Rooms"],
+    const { data: datesByCalendar } = useQuery({
+        queryKey: ["datesByCalendar", calendarShowId],
         queryFn: async () => {
-            const { data } = await axios.get(GET_ROOMS);
-            console.log("lisst - room", data);
-            return data.rooms.map((item: any) => ({
-                label: item.room_type,
-                value: item.id,
-            }));
+            if (!calendarShowId) return [];
+            const { data } = await axios.post(GET_DATES_BY_CALENDAR, {
+                calendar_show_id: calendarShowId,
+            });
+            console.log("days-by-calendar", data);
+            return data.dates;
         },
+        enabled: !!calendarShowId, // Chỉ chạy khi có calendarShowId
     });
+
+    // useEffect(() => {
+    //     if (!selectedDate || !filmList || !datesByCalendar) return;
+
+    //     // Lọc ra các lịch chiếu có ngày trùng với selectedDate
+    //     const filteredDates = datesByCalendar.filter(
+    //         (item: any) =>
+    //             item.dates === dayjs(selectedDate).format("YYYY-MM-DD")
+    //     );
+
+    //     // Lọc danh sách phim dựa trên lịch chiếu đã lọc
+
+    //     const filteredFilms = filmList.filter((film: any) =>
+    //         filteredDates.some((calendar: any) => calendar.movie_id === film.id)
+    //     );
+
+    //     setFilteredFilms(filteredFilms);
+    // }, [selectedDate, filmList, datesByCalendar]);
 
     return (
         <>
@@ -270,16 +255,11 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                             { required: true, message: "Thêm phòng chiếu" },
                         ]}
                     >
-                        <Select
-                            allowClear
-                            style={{ width: "100%" }}
-                            placeholder="Please select"
-                            onChange={(value) =>
-                                handleChangeSelect([value], "room_type")
-                            }
-                            options={rooms}
-                            value={form.getFieldValue("room_type")}
-                        />
+                        <Select placeholder={"phòng chiếu"}>
+                            <Select.Option value="1">phòng số 1</Select.Option>
+                            <Select.Option value="2">phòng số 2</Select.Option>
+                            <Select.Option value="3">phòng số 3</Select.Option>
+                        </Select>
                     </Form.Item>
                     <Form.Item
                         className="input-label"
@@ -288,7 +268,7 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                         rules={[
                             {
                                 required: true,
-                                message: "Vui lòng nhập tên phim",
+                                message: "Vui lòng chọn phim",
                             },
                         ]}
                     >
@@ -321,7 +301,7 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                             },
                         ]}
                     >
-                        <DatePicker format="YYYY-MM-DD" />
+                        <DatePicker format="YYYY-MM-DD" disabled />
                     </Form.Item>
 
                     <Form.Item
@@ -336,15 +316,16 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                         ]}
                     >
                         <Select
-                            placeholder="Hình thức chiếu"
+                            disabled
+                            allowClear
+                            style={{ width: "100%" }}
+                            placeholder="Please select"
                             onChange={(value) =>
-                                console.log("Room type selected:", value)
+                                handleChangeSelect([value], "room_type")
                             }
-                        >
-                            <Select.Option value="2D">2D</Select.Option>
-                            <Select.Option value="3D">3D</Select.Option>
-                            <Select.Option value="4D">4D</Select.Option>
-                        </Select>
+                            options={rooms}
+                            value={form.getFieldValue("room_type")}
+                        />
                     </Form.Item>
                     {/* <Form.Item
                         className="input-label"
@@ -440,7 +421,7 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                         </Select>
                     </Form.Item>
                     <Form.Item
-                        style={{ display: "none" }}
+                        // style={{ display: "none" }}
                         className="input-label"
                         label="ID"
                         name="calendar_show_id"

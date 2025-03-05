@@ -431,4 +431,30 @@ class ShowTimeController extends Controller
 
         return response()->json($filteredShowTimes->values(), 200);
     }
+
+    public function getShowTimesByDateClient(Request $request)
+    {
+        // Lấy ngày từ query string
+        $date = $request->query('date');
+
+        // Kiểm tra nếu không có date hoặc không đúng định dạng
+        if (!$date || !strtotime($date)) {
+            return response()->json(['error' => 'Ngày không hợp lệ'], 400);
+        }
+
+        // Lấy danh sách show_time_id theo ngày
+        $showTimeIds = ShowTimeDate::where('show_date', $date)
+            ->pluck('show_time_id');
+
+        if ($showTimeIds->isEmpty()) {
+            return response()->json(['message' => 'Không có suất chiếu nào cho ngày này'], 404);
+        }
+
+        // Lấy danh sách suất chiếu
+        $showTimes = ShowTime::whereIn('id', $showTimeIds)
+            ->with(['calendarShow.movie', 'calendarShow'])
+            ->get();
+
+        return response()->json($showTimes, 200);
+    }
 }

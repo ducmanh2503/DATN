@@ -3,6 +3,8 @@ import { Button, Divider, message } from "antd";
 import { Facebook, Mail, Lock, LogIn } from "lucide-react";
 import { useState } from "react";
 import authService from "../../services/auth.service";
+import axios from "axios";
+import { AuthResponse } from "../../types/interface";
 import "./Login.css";
 
 const Login = () => {
@@ -17,21 +19,29 @@ const Login = () => {
 
     try {
       console.log("Login attempt with:", { email, password });
-      const response = await authService.login({ email, password });
+      const response: AuthResponse = await authService.login({
+        email,
+        password,
+      });
+
       console.log("Login API response:", response);
 
       if (!response.token) {
         throw new Error("Token không được trả về từ API");
       }
-      localStorage.setItem("auth_token", response.token);
-      message.success("Đăng nhập thành công!");
-      console.log("Saved token:", localStorage.getItem("auth_token"));
 
-      // Chuyển hướng dựa trên role từ localStorage
-      const userRole = authService.getRole();
-      let redirectUrl = userRole === "admin" ? "/admin/film" : "/";
-      console.log("Navigating to:", redirectUrl);
-      navigate(redirectUrl);
+      // Lưu token và role vào localStorage
+      localStorage.setItem("auth_token", response.token);
+      localStorage.setItem("user_role", response.role || "customer");
+
+      message.success("Đăng nhập thành công!");
+
+      // ✅ Kiểm tra role để chuyển hướng đúng
+      if (response.role === "admin") {
+        navigate("/admin/film");
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       localStorage.removeItem("auth_token");

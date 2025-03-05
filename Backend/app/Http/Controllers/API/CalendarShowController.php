@@ -64,14 +64,15 @@ class CalendarShowController extends Controller
 
     public function showClient(string $movie_id)
     {
-        $calendarShows = CalendarShow::with(['movie'])->where('movie_id', $movie_id)->get();
+        $calendarShow = CalendarShow::with(['movie'])->where('movie_id', $movie_id)->first();
 
-        if ($calendarShows->isEmpty()) {
+        if (!$calendarShow) {
             return response()->json(['message' => 'Không tìm thấy lịch chiếu cho phim này'], 404);
         }
 
-        return response()->json($calendarShows);
+        return response()->json($calendarShow);
     }
+
 
 
     /**

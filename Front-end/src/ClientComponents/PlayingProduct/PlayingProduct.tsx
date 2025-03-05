@@ -13,11 +13,14 @@ const PlayingProduct = ({
     trailer,
     showChill,
 }: any) => {
+    const [videoKey, setVideoKey] = useState(0);
     const [isModalOpen1, setIsModalOpen1] = useState(false);
     const [isModalOpen2, setIsModalOpen2] = useState(false);
     const showModal1 = () => {
+        setVideoKey((prevKey) => prevKey + 1);
         setIsModalOpen1(true);
     };
+
     const handleCancel1 = () => {
         setIsModalOpen1(false);
     };
@@ -57,17 +60,21 @@ const PlayingProduct = ({
                         onCancel={handleCancel1}
                         footer={null}
                         closable={false}
+                        destroyOnClose={true}
                     >
-                        <iframe
-                            width="670"
-                            height="375"
-                            src={trailer}
-                            title="YouTube video player"
-                            style={{ border: "none" }}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            referrerPolicy="strict-origin-when-cross-origin"
-                            allowFullScreen
-                        ></iframe>
+                        {isModalOpen1 && (
+                            <iframe
+                                key={videoKey}
+                                width="670"
+                                height="375"
+                                src={`${trailer}?autoplay=1`}
+                                title="YouTube video player"
+                                style={{ border: "none" }}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerPolicy="strict-origin-when-cross-origin"
+                                allowFullScreen
+                            ></iframe>
+                        )}
                     </Modal>
                 </div>
             </div>

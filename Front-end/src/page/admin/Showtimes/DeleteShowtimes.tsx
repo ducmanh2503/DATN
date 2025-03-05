@@ -15,10 +15,10 @@ const DeleteShowtimes = ({ id, selectedDate, setShowtimesData }: any) => {
             setShowtimesData((prevData: any) =>
                 prevData.filter((item: any) => item.id !== id)
             );
-            messageApi.success("Xóa lịch chiếu thành công");
+            messageApi.success("Xóa suất chiếu thành công");
         },
         onError: () => {
-            messageApi.error("Lỗi: Không thể xóa lịch chiếu");
+            messageApi.error("Lỗi: Không thể xóa suất chiếu");
         },
     });
     return (

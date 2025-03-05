@@ -15,6 +15,12 @@ import DirectorsManage from "./page/admin/Directors/DirectorsManage";
 import Booking from "./page/client/Booking/Booking";
 import SeatPage from "./page/admin/Seat/SeatPage";
 import RoomPage from "./page/admin/RoomPage/RoomPage";
+import FilmDetail from "./ClientComponents/FilmDetail/FilmDetail";
+import Showtimes from "./ClientComponents/Showtimes/Showtimes";
+import Payment from "./ClientComponents/Payment/Payment";
+import Login from "./page/auth/Login";
+import Register from "./page/auth/Register";
+import authService from "./services/auth.service";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Home></Home> },
@@ -22,6 +28,9 @@ export const router = createBrowserRouter([
   { path: "/comingFilm", element: <ComingFilm></ComingFilm> },
   { path: "/cinemaFilm", element: <CinemaForest></CinemaForest> },
   { path: "/booking", element: <Booking></Booking> },
+  { path: "/payment/:showtimeId", element: <Payment /> },
+  { path: "/auth/login", element: <Login /> },
+  { path: "/auth/register", element: <Register /> },
 
   {
     path: "/admin",

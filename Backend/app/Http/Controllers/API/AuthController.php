@@ -222,7 +222,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
         $redirectUrl = $user->role === 'admin' ? '/admin' : '/';
 
-        return response()->json(['message' => 'Đăng nhập thành công', 'token' => $token, 'redirect_url' => $redirectUrl]);
+        return response()->json(['message' => 'Đăng nhập thành công', 'token' => $token, 'redirect_url' => $redirectUrl, 'role' => $user->role]);
     }
 
     public function logout(Request $request)

@@ -87,8 +87,8 @@ Route::apiResource('/directors', DirectorController::class);
 
 //Mã khuyến mãi
 Route::apiResource('/discount-code', DiscountCodeController::class);
-  //Bài viết
-   Route::apiResource('article', ArticleController::class);
+//Bài viết
+Route::apiResource('article', ArticleController::class);
 
 //người dùng
 Route::apiResource('/user-management', UserController::class);
@@ -98,7 +98,6 @@ Route::get('/user-management/show-user-destroy/{user_management}', [UserControll
 
 // Đăng xuất
 Route::post('/logout', [AuthController::class, 'logout']);
-
 // });
 
 
@@ -123,4 +122,3 @@ Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCa
 // Route::get('auth/facebook', [SocialAuthController::class, 'redirectToFacebook']);
 
 // Route::get('auth/facebook/callback', [SocialAuthController::class, 'handleFacebookCallback']);
-

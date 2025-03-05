@@ -16,6 +16,7 @@ import {
     GET_CALENDAR,
     GET_DATES_BY_CALENDAR,
     GET_FILM_LIST,
+    GET_ONE_SHOWTIMES,
     GET_ROOMS,
     UPDATE_SHOWTIMES,
 } from "../../../config/ApiConfig";
@@ -40,19 +41,29 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
             selected_date: dayjs(formData.selected_date).format("YYYY-MM-DD"),
             calendar_show_id: Number(formData.calendar_show_id),
         };
+        console.log("check-data", formattedData);
 
         mutate(formattedData, {
             onSuccess: () => {
-                messageApi.success("Thêm thành công");
-                setShowtimesData((prevData: any) => [
-                    ...prevData,
-                    formattedData,
-                ]);
-                console.log(setShowtimesData);
-
+                messageApi.success(
+                    `Thêm thành công vào phòng chiếu số ${formData.room_id}`
+                );
+                mutateGetOneShowtimes({
+                    room_id: formattedData.room_id,
+                    date: formattedData.selected_date
+                        ? dayjs(formattedData.selected_date).format(
+                              "YYYY/MM/DD"
+                          )
+                        : null,
+                });
+                // setShowtimesData((prevData: any) => [
+                //     ...prevData,
+                //     formattedData,
+                // ]);
                 form.resetFields();
                 setOpen(false);
             },
+
             onError: (error: any) => {
                 messageApi.error(
                     error?.response?.data?.message || "Thêm thất bại"
@@ -60,6 +71,12 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
             },
         });
     };
+
+    const { mutate: mutateGetOneShowtimes } = useMutation({
+        mutationFn: async (formData: any) => {
+            return await axios.post(GET_ONE_SHOWTIMES, formData);
+        },
+    });
 
     const showModal = () => {
         setOpen(true);

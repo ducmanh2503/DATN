@@ -1,13 +1,13 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, Divider, message } from 'antd';
-import { Facebook, Mail, Lock, LogIn } from 'lucide-react';
-import { useState } from 'react';
-import authService from '../../services/auth.service';
-import './Login.css';
+import { Link, useNavigate } from "react-router-dom";
+import { Button, Divider, message } from "antd";
+import { Facebook, Mail, Lock, LogIn } from "lucide-react";
+import { useState } from "react";
+import authService from "../../services/auth.service";
+import "./Login.css";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -16,26 +16,29 @@ const Login = () => {
     setLoading(true);
 
     try {
-      console.log('Login attempt with:', { email, password });
+      console.log("Login attempt with:", { email, password });
       const response = await authService.login({ email, password });
-      console.log('Login API response:', response);
+      console.log("Login API response:", response);
 
       if (!response.token) {
-        throw new Error('Token không được trả về từ API');
+        throw new Error("Token không được trả về từ API");
       }
-      localStorage.setItem('auth_token', response.token);
-      message.success('Đăng nhập thành công!');
+      localStorage.setItem("auth_token", response.token);
+      message.success("Đăng nhập thành công!");
+      console.log("Saved token:", localStorage.getItem("auth_token"));
 
       // Chuyển hướng dựa trên role từ localStorage
       const userRole = authService.getRole();
-      let redirectUrl = userRole === 'admin' ? '/admin/film' : '/';
-      console.log('Navigating to:', redirectUrl);
+      let redirectUrl = userRole === "admin" ? "/admin/film" : "/";
+      console.log("Navigating to:", redirectUrl);
       navigate(redirectUrl);
     } catch (error: any) {
-      console.error('Login error:', error);
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_role');
-      message.error(error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');
+      console.error("Login error:", error);
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_role");
+      message.error(
+        error.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại."
+      );
     } finally {
       setLoading(false);
     }
@@ -99,12 +102,23 @@ const Login = () => {
         </Button>
       </form>
 
-      <Divider className="auth-divider" plain>Hoặc đăng nhập với email</Divider>
+      <Divider className="auth-divider" plain>
+        Hoặc đăng nhập với email
+      </Divider>
 
       <div className="social-login-section">
-        <Button className="social-button google-button" type="default" size="large">
+        <Button
+          className="social-button google-button"
+          type="default"
+          size="large"
+        >
           <div className="button-content">
-            <svg className="google-icon" viewBox="0 0 24 24" width="24" height="24">
+            <svg
+              className="google-icon"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
@@ -126,7 +140,11 @@ const Login = () => {
           </div>
         </Button>
 
-        <Button className="social-button facebook-button" type="primary" size="large">
+        <Button
+          className="social-button facebook-button"
+          type="primary"
+          size="large"
+        >
           <div className="button-content">
             <Facebook size={24} />
             <span>Đăng nhập với Facebook</span>
@@ -135,7 +153,7 @@ const Login = () => {
       </div>
 
       <p className="register-link-container">
-        Chưa có tài khoản?{' '}
+        Chưa có tài khoản?{" "}
         <Link to="/auth/register" className="register-link">
           Đăng ký
         </Link>

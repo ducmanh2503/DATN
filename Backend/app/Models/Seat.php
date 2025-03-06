@@ -31,7 +31,7 @@ class Seat extends Model
     }
 
     //quan hệ với show_time_seats
-    public function showTimeSeats()
+    public function showTimeSeat()
     {
         return $this->hasMany(ShowTimeSeat::class);
     }

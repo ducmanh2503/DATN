@@ -27,7 +27,7 @@ class SocialAuthController extends Controller
                 'verify' => 'H:/laragon/etc/ssl/cacert.pem',
             ];
 
-            // Áp dụng cấu hình và lấy user
+            // Lấy thông tin user từ Google
             $googleUser = Socialite::driver('google')
                 ->setHttpClient(new Client([$clientOptions]))
                 ->stateless()
@@ -47,25 +47,22 @@ class SocialAuthController extends Controller
                     'google_id' => $googleUser->getId()
                 ]);
             } else {
-                // Nếu user đã tồn tại, cập nhật is_verified thành true (nếu chưa phải là true)
-                if ($user->is_verified != true) {
-                    $user->update(['is_verified' => true,]);
+                // Nếu user đã tồn tại, cập nhật is_verified thành true nếu cần
+                if (!$user->is_verified) {
+                    $user->update(['is_verified' => true]);
                 }
             }
-
 
             // Tạo token để ReactJS dùng
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            return response()->json([
-                'message' => 'Đăng nhập thành công',
-                'user' => $user,
-                'token' => $token
-            ]);
+            // Chuyển hướng về frontend với token và role
+            return redirect()->to("http://localhost:3000/auth/google/success?token={$token}&role={$user->role}");
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Đăng nhập thất bại', 'error' => $e->getMessage()], 500);
+            return redirect()->to("http://localhost:3000/auth/google/failure?error=" . urlencode($e->getMessage()));
         }
     }
+
 
     // Redirect to Facebook
     // public function redirectToFacebook()

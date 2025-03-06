@@ -22,13 +22,13 @@ import Booking from './ClientComponents/Booking/Booking';
 import Payment from './ClientComponents/Payment/Payment';
 import Login from './page/auth/Login';
 import Register from './page/auth/Register';
+import GoogleCallback from './page/auth/GoogleCallback';
 import authService from './services/auth.service';
 
-// Cấu hình mặc định cho axios
-axios.defaults.baseURL = 'http://your-api-url'; // Thay bằng URL API của bạn
+axios.defaults.baseURL = 'http://localhost:8000/api';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
-// Middleware xử lý lỗi token
+// Hàm thiết lập interceptors cho axios
 const setupAxiosInterceptors = (navigate: ReturnType<typeof useNavigate>) => {
   const requestInterceptor = axios.interceptors.request.use(
     (config) => {
@@ -54,7 +54,8 @@ const setupAxiosInterceptors = (navigate: ReturnType<typeof useNavigate>) => {
       if (response) {
         if (response.status === 401) {
           console.error('Token hết hạn hoặc không hợp lệ');
-          authService.logout();
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_role');
           navigate('/auth/login', { 
             state: { message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' },
             replace: true 
@@ -77,7 +78,27 @@ const setupAxiosInterceptors = (navigate: ReturnType<typeof useNavigate>) => {
   };
 };
 
-// Route bảo vệ
+// Component hiển thị khi đang tải
+const LoadingComponent = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: '100vh',
+    flexDirection: 'column'
+  }}>
+    <div style={{ fontSize: '20px', marginBottom: '10px' }}>Đang tải...</div>
+    <div style={{ width: '50px', height: '50px', border: '5px solid #f3f3f3', borderTop: '5px solid #3498db', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+    <style>{`
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `}</style>
+  </div>
+);
+
+// Route bảo vệ cho các trang yêu cầu đăng nhập
 const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
   const [role, setRole] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -127,7 +148,7 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
   }, [navigate, requiredRole]);
 
   if (loading) {
-    return <div>Đang tải...</div>;
+    return <LoadingComponent />;
   }
 
   return isAuthenticated && (role === requiredRole || !requiredRole) ? (
@@ -137,7 +158,7 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
   );
 };
 
-// Route công khai
+// Route công khai cho các trang không yêu cầu đăng nhập
 const PublicRoute = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
@@ -151,7 +172,8 @@ const PublicRoute = () => {
 
         if (authStatus) {
           const userRole = authService.getRole();
-          navigate(userRole === 'admin' ? '/admin' : '/', { replace: true });
+          const redirectUrl = userRole === 'admin' ? '/admin' : '/';
+          navigate(redirectUrl, { replace: true });
         }
       } catch (error) {
         console.error('Lỗi kiểm tra auth:', error);
@@ -165,41 +187,64 @@ const PublicRoute = () => {
   }, [navigate]);
 
   if (loading) {
-    return <div>Đang tải...</div>;
+    return <LoadingComponent />;
   }
 
   return !isAuthenticated ? <Outlet /> : null;
 };
 
-// Cấu hình router chính
+// Cấu hình router
 export const router = createBrowserRouter([
-  // Routes công khai không cần auth
-  { path: '/', element: <Home /> },
-  { path: '/playingFilm', element: <PlayingFilm /> },
-  { path: '/comingFilm', element: <ComingFilm /> },
-  { path: '/cinemaFilm', element: <CinemaForest /> },
-  { path: '/filmDetail/:id', element: <FilmDetail /> },
-  { path: '/showtimes/:movieId', element: <Showtimes /> },
-
-  // Routes yêu cầu đăng nhập (nhưng không cần role admin)
+  {
+    path: '/',
+    element: <Home />,
+  },
+  {
+    path: '/playingFilm',
+    element: <PlayingFilm />,
+  },
+  {
+    path: '/comingFilm',
+    element: <ComingFilm />,
+  },
+  {
+    path: '/cinemaFilm',
+    element: <CinemaForest />,
+  },
+  {
+    path: '/filmDetail/:id',
+    element: <FilmDetail />,
+  },
+  {
+    path: '/showtimes/:movieId',
+    element: <Showtimes />,
+  },
   {
     element: <ProtectedRoute />,
     children: [
-      { path: '/booking/:showtimeId/:roomId', element: <Booking /> },
-      { path: '/payment/:showtimeId', element: <Payment /> },
+      {
+        path: '/booking/:showtimeId/:roomId',
+        element: <Booking />,
+      },
+      {
+        path: '/payment/:showtimeId',
+        element: <Payment />,
+      },
     ],
   },
-
-  // Routes auth (login/register)
   {
     element: <PublicRoute />,
     children: [
-      { path: '/auth/login', element: <Login /> },
-      { path: '/auth/register', element: <Register /> },
+      {
+        path: '/auth/login',
+        element: <Login />,
+      },
+      {
+        path: '/auth/register',
+        element: <Register />,
+      },
     ],
   },
-
-  // Routes admin (yêu cầu role admin)
   {
     element: <ProtectedRoute requiredRole="admin" />,
     children: [
@@ -207,18 +252,63 @@ export const router = createBrowserRouter([
         path: '/admin',
         element: <AdminLayout />,
         children: [
-          { path: 'film', element: <FilmManage /> },
-          { path: 'addFilm', element: <AddFilm /> },
-          { path: 'stoppedMovie', element: <StoppedMovies /> },
-          { path: 'calendarShow', element: <CalendarManage /> },
-          { path: 'showtimes', element: <ShowtimesManage /> },
-          { path: 'actors', element: <ActorsManage /> },
-          { path: 'directors', element: <DirectorsManage /> },
-          { path: 'genre', element: <GenresManage /> },
-          { path: 'seats', element: <SeatPage /> },
-          { path: 'rooms', element: <RoomPage /> },
+          {
+            index: true,
+            element: <FilmManage />,
+          },
+          {
+            path: 'film',
+            element: <FilmManage />,
+          },
+          {
+            path: 'addFilm',
+            element: <AddFilm />,
+          },
+          {
+            path: 'stoppedMovie',
+            element: <StoppedMovies />,
+          },
+          {
+            path: 'calendarShow',
+            element: <CalendarManage />,
+          },
+          {
+            path: 'showtimes',
+            element: <ShowtimesManage />,
+          },
+          {
+            path: 'actors',
+            element: <ActorsManage />,
+          },
+          {
+            path: 'directors',
+            element: <DirectorsManage />,
+          },
+          {
+            path: 'genre',
+            element: <GenresManage />,
+          },
+          {
+            path: 'seats',
+            element: <SeatPage />,
+          },
+          {
+            path: 'rooms',
+            element: <RoomPage />,
+          },
         ],
       },
     ],
   },
+  // Route cho Google callback đã được cập nhật
+  {
+    path: '/auth/google/callback',
+    element: <GoogleCallback />,
+  },
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
+  },
 ]);
+
+export default router;

@@ -20,7 +20,7 @@ class SeatController extends Controller
     {
         // Lấy tất cả ghế trong phòng và liên kết với loại ghế
         $seats = Seat::where('room_id', $room_id)
-            ->with(['seatType', 'showTimeSeats' => function ($query) use ($show_time_id) {
+            ->with(['seatType', 'showTimeSeat' => function ($query) use ($show_time_id) {
                 $query->where('show_time_id', $show_time_id);
             }])
             ->get();
@@ -35,7 +35,7 @@ class SeatController extends Controller
             }
 
             // Lấy status từ bảng show_time_seat
-            $showTimeSeat = $seat->showTimeSeats->first();
+            $showTimeSeat = $seat->showTimeSeat->first();
             $status = $showTimeSeat ? $showTimeSeat->seat_status : 'available';
 
             // Kiểm tra nếu ghế đang bị giữ trong cache
@@ -117,7 +117,7 @@ class SeatController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $seat = $request->all();
+        $seat = $request->input('seat');
 
         // Kiểm tra ghế có tồn tại trong cache không
         if (!Cache::has("seat_$seat")) {
@@ -135,8 +135,6 @@ class SeatController extends Controller
             'seat' => $seat
         ]);
     }
-
-
 
     /**
      * Cập nhật trạng thái ghế

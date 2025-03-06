@@ -14,7 +14,7 @@ class Room extends Model
     protected $fillable = [
         'name',
         'capacity',
-        'room_type',
+        'room_type_id',
     ];
 
     public function seat()
@@ -25,6 +25,10 @@ class Room extends Model
     public function showTime()
     {
         return $this->hasMany(ShowTime::class);  // Một phòng có nhiều lịch chiếu
+    }
+
+    public function roomType(){
+        return $this->belongsTo(RoomType::class);
     }
 
     protected static function boot()

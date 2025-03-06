@@ -16,7 +16,6 @@ class Seat extends Model
         'row',
         'column',
         'seat_type_id',
-        'seat_status',
     ];
 
     //Quan hệ với phòng chiếu
@@ -31,9 +30,11 @@ class Seat extends Model
         return $this->belongsTo(SeatType::class);
     }
 
-    //Lấy giá của loại ghế
-    public function getPriceAttribute()
+    //quan hệ với show_time_seats
+    public function showTimeSeats()
     {
-        return $this->seatType ? $this->seatType->price : 0;
+        return $this->hasMany(ShowTimeSeat::class);
     }
+
+
 }

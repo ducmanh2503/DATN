@@ -35,6 +35,4 @@ class Seat extends Model
     {
         return $this->hasMany(ShowTimeSeat::class);
     }
-
-
 }

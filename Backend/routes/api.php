@@ -43,8 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Sơ đồ ghế, giữ ghế, giải phóng ghế
     Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
-    Route::get('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
-    Route::get('/release-seats', [SeatController::class, 'releaseSeat']);
+    Route::post('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
+    Route::post('/release-seats', [SeatController::class, 'releaseSeat']);
 
 
 

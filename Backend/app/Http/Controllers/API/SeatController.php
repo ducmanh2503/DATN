@@ -136,8 +136,6 @@ class SeatController extends Controller
         ]);
     }
 
-
-
     /**
      * Cập nhật trạng thái ghế
      */

@@ -1,4 +1,3 @@
-// auth.service.ts
 import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8000/api';
@@ -35,9 +34,8 @@ interface ResetPasswordRequest {
 
 interface AuthResponse {
   message: string;
-  token: string;
+  token?: string;
   redirect_url?: string;
-  expires_at?: string;
 }
 
 interface AuthError {
@@ -46,6 +44,7 @@ interface AuthError {
   status?: number;
 }
 
+// Create a custom Axios instance
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -54,16 +53,54 @@ const api = axios.create({
   },
 });
 
+// Request interceptor for the custom api instance (optional, can be removed if relying solely on router.tsx)
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('[Auth Service] Attaching token to api request:', token);
+    } else {
+      console.log('[Auth Service] No token found for api request');
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor for the custom api instance
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      console.error('[Auth Service] Unauthorized (api instance) - Redirecting to login');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_role');
+      window.location.href = '/auth/login'; // Redirect to login page
+    }
+    return Promise.reject(error);
+  }
+);
+
 const handleAuthError = (error: unknown): AuthError => {
   if (axios.isAxiosError(error) && error.response) {
     const { data, status } = error.response;
-    console.error('API Error:', data, 'Status:', status);
+    console.error('[Auth Service] API Error:', {
+      status,
+      responseData: data,
+      errorMessage: data.message || 'No message provided',
+      errorDetails: data.error || 'No error details',
+    });
     return {
-      error: data.error || 'An error occurred',
+      error: data.error || data.message || 'An error occurred',
       message: data.message,
       status,
     };
   }
+  console.error('[Auth Service] Unexpected Error:', {
+    errorMessage: String(error),
+    errorStack: error instanceof Error ? error.stack : 'No stack trace',
+  });
   return {
     error: 'Unexpected error occurred',
     message: String(error),
@@ -73,9 +110,15 @@ const handleAuthError = (error: unknown): AuthError => {
 const authService = {
   async register(data: RegisterRequest): Promise<AuthResponse> {
     try {
-      console.log('Register request:', data);
+      console.log('[Auth Service] Register Request:', {
+        endpoint: `${BASE_URL}/register`,
+        data,
+      });
       const response = await api.post<AuthResponse>('/register', data);
-      console.log('Register response:', response.data);
+      console.log('[Auth Service] Register Response:', {
+        status: response.status,
+        data: response.data,
+      });
       return response.data;
     } catch (error) {
       throw handleAuthError(error);
@@ -84,7 +127,9 @@ const authService = {
 
   async resendVerificationEmail(email: string): Promise<AuthResponse> {
     try {
+      console.log('[Auth Service] Resend Verification Request:', { email });
       const response = await api.post<AuthResponse>('/resend-verification', { email });
+      console.log('[Auth Service] Resend Verification Response:', response.data);
       return response.data;
     } catch (error) {
       throw handleAuthError(error);
@@ -93,12 +138,11 @@ const authService = {
 
   async verifyCode(data: VerifyCodeRequest): Promise<AuthResponse> {
     try {
-      console.log('Verify code request:', data);
+      console.log('[Auth Service] Verify Code Request:', data);
       const response = await api.post<AuthResponse>('/verify-code', data);
-      console.log('Verify code response:', response.data);
+      console.log('[Auth Service] Verify Code Response:', response.data);
       if (response.data.token) {
         localStorage.setItem('auth_token', response.data.token);
-        // Lưu role nếu có (giả định backend trả về role trong tương lai)
       }
       return response.data;
     } catch (error) {
@@ -108,12 +152,11 @@ const authService = {
 
   async login(data: LoginRequest): Promise<AuthResponse> {
     try {
-      console.log('Login request:', data);
+      console.log('[Auth Service] Login Request:', data);
       const response = await api.post<AuthResponse>('/login', data);
-      console.log('Login response:', response.data);
+      console.log('[Auth Service] Login Response:', response.data);
       if (response.data.token) {
         localStorage.setItem('auth_token', response.data.token);
-        // Lưu redirect_url để xác định role gián tiếp
         localStorage.setItem('user_role', response.data.redirect_url === '/admin' ? 'admin' : 'customer');
       }
       return response.data;
@@ -124,7 +167,9 @@ const authService = {
 
   async forgotPassword(data: ForgotPasswordRequest): Promise<AuthResponse> {
     try {
+      console.log('[Auth Service] Forgot Password Request:', data);
       const response = await api.post<AuthResponse>('/forgot-password', data);
+      console.log('[Auth Service] Forgot Password Response:', response.data);
       return response.data;
     } catch (error) {
       throw handleAuthError(error);
@@ -133,7 +178,9 @@ const authService = {
 
   async resetPassword(data: ResetPasswordRequest): Promise<AuthResponse> {
     try {
+      console.log('[Auth Service] Reset Password Request:', data);
       const response = await api.post<AuthResponse>('/reset-password', data);
+      console.log('[Auth Service] Reset Password Response:', response.data);
       return response.data;
     } catch (error) {
       throw handleAuthError(error);
@@ -144,12 +191,11 @@ const authService = {
     try {
       const token = localStorage.getItem('auth_token');
       if (!token) throw new Error('No token found');
-
-      const response = await api.post<AuthResponse>('/logout', {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      console.log('[Auth Service] Logout Request:', { token });
+      const response = await api.post<AuthResponse>('/logout', {});
+      console.log('[Auth Service] Logout Response:', response.data);
       localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_role'); // Xóa role khi logout
+      localStorage.removeItem('user_role');
       return response.data;
     } catch (error) {
       throw handleAuthError(error);
@@ -158,19 +204,19 @@ const authService = {
 
   isAuthenticated(): boolean {
     const isAuth = !!localStorage.getItem('auth_token');
-    console.log('Is authenticated:', isAuth);
+    console.log('[Auth Service] Is Authenticated:', isAuth);
     return isAuth;
   },
 
   getToken(): string | null {
     const token = localStorage.getItem('auth_token');
-    console.log('Current token:', token);
+    console.log('[Auth Service] Get Token:', token);
     return token;
   },
 
   getRole(): string | null {
     const role = localStorage.getItem('user_role');
-    console.log('Current role:', role);
+    console.log('[Auth Service] Get Role:', role);
     return role;
   },
 
@@ -183,13 +229,11 @@ const authService = {
       phone: '1234567890',
       role: 'admin',
     };
-
     try {
+      console.log('[Auth Service] Create Default Admin Request:', defaultAdminData);
       const response = await this.register(defaultAdminData);
-      return {
-        ...response,
-        message: `${response.message} Vui lòng nhập OTP từ email để hoàn tất.`,
-      };
+      console.log('[Auth Service] Create Default Admin Response:', response);
+      return response;
     } catch (error) {
       throw handleAuthError(error);
     }
@@ -200,9 +244,10 @@ const authService = {
       email: 'admin@example.com',
       code: otp,
     };
-
     try {
+      console.log('[Auth Service] Verify Default Admin Request:', verifyData);
       const response = await this.verifyCode(verifyData);
+      console.log('[Auth Service] Verify Default Admin Response:', response);
       return response;
     } catch (error) {
       throw handleAuthError(error);
@@ -211,3 +256,4 @@ const authService = {
 };
 
 export default authService;
+export { api }; // Export the configured Axios instance for optional use

@@ -29,4 +29,9 @@ class ShowTime extends Model
     {
         return $this->hasMany(ShowTimeDate::class, 'show_time_id');
     }
+
+    public function showTimeSeats()
+    {
+        return $this->hasMany(ShowTimeSeat::class);
+    }
 }

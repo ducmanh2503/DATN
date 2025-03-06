@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('rooms', function (Blueprint $table) {
+        Schema::create('seat_type_price', function (Blueprint $table) {
             $table->id();
 
-            $table->string('name')->unique();
-            $table->integer('capacity');
-            $table->foreignId('room_type_id')->constrained('room_types');
-            $table->softDeletes();
+            $table->foreignId('seat_type_id')->constrained('seat_types');
+            $table->decimal('price', 8, 2);
+            $table->enum('day_type', ['weekday', 'weekend', 'holiday'])->default('weekday');
+            
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('rooms');
+        Schema::dropIfExists('seat_type_price');
     }
 };

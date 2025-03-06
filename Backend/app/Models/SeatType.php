@@ -19,4 +19,9 @@ class SeatType extends Model
     {
         return $this->hasMany(Seat::class);
     }
+
+    public function seatTypePrices()
+    {
+        return $this->hasMany(SeatTypePrice::class);
+    }
 }

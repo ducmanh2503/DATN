@@ -117,7 +117,7 @@ class SeatController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $seat = $request->all();
+        $seat = $request->input('seat');
 
         // Kiểm tra ghế có tồn tại trong cache không
         if (!Cache::has("seat_$seat")) {

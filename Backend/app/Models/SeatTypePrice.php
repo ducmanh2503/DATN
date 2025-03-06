@@ -10,13 +10,16 @@ class SeatTypePrice extends Model
 {
     use HasFactory;
 
+    protected $table = 'seat_type_price';
+
+
     protected $fillable = [
         'seat_type_id',
         'price',
         'day_type',
     ];
 
-    public function seatType()
+    public function seatTypes()
     {
         return $this->belongsTo(SeatType::class);
     }

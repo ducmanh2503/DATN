@@ -9,6 +9,9 @@ class ShowTimeSeat extends Model
 {
     use HasFactory;
 
+    protected $table = 'show_time_seat';
+
+
     protected $fillable = [
         'show_time_id',
         'seat_id',
@@ -29,6 +32,6 @@ class ShowTimeSeat extends Model
     // Lấy tình trạng ghế (seat_status) nếu cần
     public function getSeatStatusAttribute($value)
     {
-        return ucfirst($value);  
+        return ucfirst($value);
     }
 }

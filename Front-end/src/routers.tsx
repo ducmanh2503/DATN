@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import axios from 'axios'; // Import axios để chỉnh sửa mặc định
+import axios from 'axios';
 import Home from './page/client/Home/home';
 import PlayingFilm from './page/client/PlayingFilm/PlayingFilm';
 import ComingFilm from './page/client/ComingFilm/ComingFilm';
@@ -24,7 +24,60 @@ import Login from './page/auth/Login';
 import Register from './page/auth/Register';
 import authService from './services/auth.service';
 
-// Route bảo vệ cho các trang yêu cầu đăng nhập (như admin)
+// Cấu hình mặc định cho axios
+axios.defaults.baseURL = 'http://your-api-url'; // Thay bằng URL API của bạn
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+
+// Middleware xử lý lỗi token
+const setupAxiosInterceptors = (navigate: ReturnType<typeof useNavigate>) => {
+  const requestInterceptor = axios.interceptors.request.use(
+    (config) => {
+      const token = authService.getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('[Axios] Token đã được gắn:', token);
+      } else {
+        console.warn('[Axios] Không tìm thấy token trong request');
+      }
+      return config;
+    },
+    (error) => {
+      console.error('[Axios Request Error]:', error);
+      return Promise.reject(error);
+    }
+  );
+
+  const responseInterceptor = axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      const { response } = error;
+      if (response) {
+        if (response.status === 401) {
+          console.error('Token hết hạn hoặc không hợp lệ');
+          authService.logout();
+          navigate('/auth/login', { 
+            state: { message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' },
+            replace: true 
+          });
+        } else if (response.status === 403) {
+          console.error('Không có quyền truy cập');
+          navigate('/', { 
+            state: { message: 'Bạn không có quyền truy cập trang này.' },
+            replace: true 
+          });
+        }
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  return () => {
+    axios.interceptors.request.eject(requestInterceptor);
+    axios.interceptors.response.eject(responseInterceptor);
+  };
+};
+
+// Route bảo vệ
 const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
   const [role, setRole] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -35,53 +88,38 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
     const checkAuth = async () => {
       try {
         const authStatus = authService.isAuthenticated();
-        console.log('Kiểm tra xác thực:', { authStatus, requiredRole });
-
         if (!authStatus) {
-          console.log('Chưa đăng nhập, chuyển hướng tới /auth/login');
-          navigate('/auth/login', { replace: true });
-          setLoading(false);
+          console.log('Chưa đăng nhập hoặc không có token');
+          navigate('/auth/login', { 
+            state: { message: 'Vui lòng đăng nhập để tiếp tục.' },
+            replace: true 
+          });
           return;
         }
 
         const userRole = authService.getRole();
-        console.log('Vai trò người dùng:', userRole);
-
         setIsAuthenticated(true);
         setRole(userRole);
-        setLoading(false);
-
+        
         if (requiredRole && userRole !== requiredRole) {
-          console.log(`Vai trò không khớp: ${userRole} !== ${requiredRole}, chuyển hướng tới /`);
-          navigate('/', { replace: true });
+          console.log(`Vai trò không khớp: ${userRole} !== ${requiredRole}`);
+          navigate('/', { 
+            state: { message: 'Bạn không có quyền truy cập trang này.' },
+            replace: true 
+          });
           return;
         }
 
-        console.log('Vai trò khớp hoặc không yêu cầu vai trò, thiết lập interceptor Axios');
-
-        const interceptor = axios.interceptors.request.use(
-          (config) => {
-            const token = authService.getToken();
-            if (token) {
-              config.headers.Authorization = `Bearer ${token}`;
-              console.log('[ProtectedRoute] Gắn token vào request:', token);
-            } else {
-              console.log('[ProtectedRoute] Không tìm thấy token cho request');
-            }
-            return config;
-          },
-          (error) => Promise.reject(error)
-        );
-
-        return () => {
-          axios.interceptors.request.eject(interceptor);
-          console.log('[ProtectedRoute] Đã dọn dẹp interceptor Axios');
-        };
-      } catch (error) {
-        console.error('Lỗi khi kiểm tra xác thực:', error);
-        setIsAuthenticated(false);
+        const cleanup = setupAxiosInterceptors(navigate);
         setLoading(false);
+
+        return cleanup;
+      } catch (error) {
+        console.error('Lỗi xác thực:', error);
+        setIsAuthenticated(false);
         navigate('/auth/login', { replace: true });
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -89,7 +127,6 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
   }, [navigate, requiredRole]);
 
   if (loading) {
-    console.log('Trạng thái đang tải');
     return <div>Đang tải...</div>;
   }
 
@@ -100,7 +137,7 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
   );
 };
 
-// Route công khai cho các trang auth (ngăn truy cập khi đã đăng nhập)
+// Route công khai
 const PublicRoute = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,20 +147,16 @@ const PublicRoute = () => {
     const checkAuth = async () => {
       try {
         const authStatus = authService.isAuthenticated();
-        console.log('Kiểm tra xác thực cho PublicRoute:', { authStatus });
-
         setIsAuthenticated(authStatus);
-        setLoading(false);
 
         if (authStatus) {
           const userRole = authService.getRole();
-          const redirectUrl = userRole === 'admin' ? '/admin' : '/';
-          console.log('Đã đăng nhập, chuyển hướng tới:', redirectUrl);
-          navigate(redirectUrl, { replace: true });
+          navigate(userRole === 'admin' ? '/admin' : '/', { replace: true });
         }
       } catch (error) {
-        console.error('Lỗi khi kiểm tra xác thực trong PublicRoute:', error);
+        console.error('Lỗi kiểm tra auth:', error);
         setIsAuthenticated(false);
+      } finally {
         setLoading(false);
       }
     };
@@ -132,23 +165,32 @@ const PublicRoute = () => {
   }, [navigate]);
 
   if (loading) {
-    console.log('Trạng thái đang tải trong PublicRoute');
     return <div>Đang tải...</div>;
   }
 
   return !isAuthenticated ? <Outlet /> : null;
 };
 
+// Cấu hình router chính
 export const router = createBrowserRouter([
+  // Routes công khai không cần auth
   { path: '/', element: <Home /> },
   { path: '/playingFilm', element: <PlayingFilm /> },
   { path: '/comingFilm', element: <ComingFilm /> },
   { path: '/cinemaFilm', element: <CinemaForest /> },
   { path: '/filmDetail/:id', element: <FilmDetail /> },
   { path: '/showtimes/:movieId', element: <Showtimes /> },
-  { path: '/booking/:showtimeId/:roomId', element: <Booking /> },
-  { path: '/payment/:showtimeId', element: <Payment /> },
 
+  // Routes yêu cầu đăng nhập (nhưng không cần role admin)
+  {
+    element: <ProtectedRoute />,
+    children: [
+      { path: '/booking/:showtimeId/:roomId', element: <Booking /> },
+      { path: '/payment/:showtimeId', element: <Payment /> },
+    ],
+  },
+
+  // Routes auth (login/register)
   {
     element: <PublicRoute />,
     children: [
@@ -157,20 +199,26 @@ export const router = createBrowserRouter([
     ],
   },
 
+  // Routes admin (yêu cầu role admin)
   {
-    path: "/admin",
-    element: <AdminLayout />,
+    element: <ProtectedRoute requiredRole="admin" />,
     children: [
-      { path: "film", element: <FilmManage /> },
-      { path: "addFilm", element: <AddFilm /> },
-      { path: "stoppedMovie", element: <StoppedMovies /> },
-      { path: "calendarShow", element: <CalendarManage /> },
-      { path: "showtimes", element: <ShowtimesManage /> },
-      { path: "actors", element: <ActorsManage /> },
-      { path: "directors", element: <DirectorsManage /> },
-      { path: "genre", element: <GenresManage /> },
-      { path: "seats", element: <SeatPage /> },
-      { path: "rooms", element: <RoomPage /> },
+      {
+        path: '/admin',
+        element: <AdminLayout />,
+        children: [
+          { path: 'film', element: <FilmManage /> },
+          { path: 'addFilm', element: <AddFilm /> },
+          { path: 'stoppedMovie', element: <StoppedMovies /> },
+          { path: 'calendarShow', element: <CalendarManage /> },
+          { path: 'showtimes', element: <ShowtimesManage /> },
+          { path: 'actors', element: <ActorsManage /> },
+          { path: 'directors', element: <DirectorsManage /> },
+          { path: 'genre', element: <GenresManage /> },
+          { path: 'seats', element: <SeatPage /> },
+          { path: 'rooms', element: <RoomPage /> },
+        ],
+      },
     ],
   },
 ]);

@@ -20,8 +20,8 @@ const Login = () => {
       const response = await authService.login(data);
       console.log('Phản hồi API đăng nhập:', response);
 
-      if (!response.token) {
-        throw new Error('Token không được trả về từ API');
+      if (!response?.token) {
+        throw new Error("API không trả về token. Vui lòng thử lại!");
       }
       localStorage.setItem('auth_token', response.token);
       message.success('Đăng nhập thành công!');
@@ -110,9 +110,18 @@ const Login = () => {
       <Divider className="auth-divider" plain>Hoặc đăng nhập với</Divider>
 
       <div className="social-login-section">
-        <Button className="social-button google-button" type="default" size="large">
+        <Button
+          className="social-button google-button"
+          type="default"
+          size="large"
+        >
           <div className="button-content">
-            <svg className="google-icon" viewBox="0 0 24 24" width="24" height="24">
+            <svg
+              className="google-icon"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
@@ -134,7 +143,11 @@ const Login = () => {
           </div>
         </Button>
 
-        <Button className="social-button facebook-button" type="primary" size="large">
+        <Button
+          className="social-button facebook-button"
+          type="primary"
+          size="large"
+        >
           <div className="button-content">
             <Facebook size={24} />
             <span>Đăng nhập với Facebook</span>
@@ -143,7 +156,7 @@ const Login = () => {
       </div>
 
       <p className="register-link-container">
-        Chưa có tài khoản?{' '}
+        Chưa có tài khoản?{" "}
         <Link to="/auth/register" className="register-link">
           Đăng ký
         </Link>

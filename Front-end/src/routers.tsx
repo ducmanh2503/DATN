@@ -159,35 +159,18 @@ export const router = createBrowserRouter([
 
   {
     path: "/admin",
-    element: <AdminLayout></AdminLayout>,
+    element: <AdminLayout />,
     children: [
-      {
-        element: <AdminLayout />,
-        children: [
-          { path: "film", element: <FilmManage></FilmManage> },
-      { path: "addFilm", element: <AddFilm></AddFilm> },
-      { path: "stoppedMovie", element: <StoppedMovies></StoppedMovies> },
-      {
-        path: "calendarShow",
-        element: <CalendarManage></CalendarManage>,
-      },
-      { path: "showtimes", element: <ShowtimesManage></ShowtimesManage> },
-      { path: "actors", element: <ActorsManage></ActorsManage> },
-      { path: "directors", element: <DirectorsManage></DirectorsManage> },
-      { path: "genre", element: <GenresManage></GenresManage> },
-      // { path: "check", element: <Check></Check> },
-
       { path: "film", element: <FilmManage /> },
       { path: "addFilm", element: <AddFilm /> },
       { path: "stoppedMovie", element: <StoppedMovies /> },
+      { path: "calendarShow", element: <CalendarManage /> },
+      { path: "showtimes", element: <ShowtimesManage /> },
       { path: "actors", element: <ActorsManage /> },
       { path: "directors", element: <DirectorsManage /> },
       { path: "genre", element: <GenresManage /> },
-      //   { path: "check", element: <Check /> },
       { path: "seats", element: <SeatPage /> },
       { path: "rooms", element: <RoomPage /> },
-        ],
-      },
     ],
   },
 ]);

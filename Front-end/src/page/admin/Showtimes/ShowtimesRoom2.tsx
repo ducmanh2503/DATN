@@ -36,6 +36,9 @@ const ShowtimesRoom2 = ({
             dataIndex: "room_type",
             key: "room_type",
             render: (_: any, recordRoom: any) => {
+                if (!recordRoom.room) {
+                    return <Tag color="gray">Không có dữ liệu</Tag>;
+                }
                 return <Tag color="volcano">{recordRoom.room.room_type}</Tag>;
             },
         },

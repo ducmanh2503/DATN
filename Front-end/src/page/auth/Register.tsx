@@ -1,9 +1,9 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, Divider, Modal, Input, message } from 'antd';
-import { Facebook, Mail, Lock, User, UserPlus } from 'lucide-react';
-import { useState } from 'react';
-import authService from '../../services/auth.service';
-import './Register.css';
+import { Link, useNavigate } from "react-router-dom";
+import { Button, Divider, Modal, Input, message } from "antd";
+import { Facebook, Mail, Lock, User, UserPlus } from "lucide-react";
+import { useState } from "react";
+import authService from "../../services/auth.service";
+import "./Register.css";
 
 interface RegisterRequest {
   name: string;
@@ -26,7 +26,7 @@ const Register = () => {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [isOtpModalVisible, setIsOtpModalVisible] = useState(false);
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
   const logError = (action: string, error: any, requestData?: any) => {
@@ -44,8 +44,10 @@ const Register = () => {
     setLoading(true);
 
     if (password !== confirmPassword) {
-      message.error('Mật khẩu và xác nhận mật khẩu không khớp!');
-      logError('Register - Password Mismatch', { message: 'Passwords do not match' });
+      message.error("Mật khẩu và xác nhận mật khẩu không khớp!");
+      logError("Register - Password Mismatch", {
+        message: "Passwords do not match",
+      });
       setLoading(false);
       return;
     }
@@ -68,7 +70,7 @@ const Register = () => {
       message.success(response.message);
       setIsOtpModalVisible(true);
     } catch (error: any) {
-      logError('Register - API Call', error, registerData);
+      logError("Register - API Call", error, registerData);
 
       let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
       if (error.status === 422 && error.error) {
@@ -114,8 +116,8 @@ const Register = () => {
         throw new Error('Không nhận được token từ phản hồi xác thực OTP');
       }
     } catch (error: any) {
-      logError('OTP Submit - API Call', error, { email, otp });
-      message.error(error.message || 'Xác thực OTP thất bại.');
+      logError("OTP Submit - API Call", error, { email, otp });
+      message.error(error.message || "Xác thực OTP thất bại.");
     }
   };
 
@@ -136,7 +138,11 @@ const Register = () => {
       <h2 className="register-title">Đăng ký</h2>
 
       <div className="social-login-section">
-        <Button className="social-button google-button" type="default" size="large">
+        <Button
+          className="social-button google-button"
+          type="default"
+          size="large"
+        >
           <div className="button-content">
             <svg className="google-icon" viewBox="0 0 24 24" width="24" height="24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -147,7 +153,11 @@ const Register = () => {
             <span>Đăng ký với Google</span>
           </div>
         </Button>
-        <Button className="social-button facebook-button" type="primary" size="large">
+        <Button
+          className="social-button facebook-button"
+          type="primary"
+          size="large"
+        >
           <div className="button-content">
             <Facebook size={24} />
             <span>Đăng ký với Facebook</span>
@@ -155,11 +165,15 @@ const Register = () => {
         </Button>
       </div>
 
-      <Divider className="auth-divider" plain>Hoặc đăng ký với email</Divider>
+      <Divider className="auth-divider" plain>
+        Hoặc đăng ký với email
+      </Divider>
 
       <form onSubmit={handleRegister}>
         <div className="form-group">
-          <label className="form-label" htmlFor="name">Họ và tên</label>
+          <label className="form-label" htmlFor="name">
+            Họ và tên
+          </label>
           <div className="input-container">
             <User className="input-icon" size={20} />
             <input
@@ -175,7 +189,9 @@ const Register = () => {
         </div>
 
         <div className="form-group">
-          <label className="form-label" htmlFor="email">Email</label>
+          <label className="form-label" htmlFor="email">
+            Email
+          </label>
           <div className="input-container">
             <Mail className="input-icon" size={20} />
             <input
@@ -191,7 +207,9 @@ const Register = () => {
         </div>
 
         <div className="form-group">
-          <label className="form-label" htmlFor="password">Mật khẩu</label>
+          <label className="form-label" htmlFor="password">
+            Mật khẩu
+          </label>
           <div className="input-container">
             <Lock className="input-icon" size={20} />
             <input
@@ -207,7 +225,9 @@ const Register = () => {
         </div>
 
         <div className="form-group">
-          <label className="form-label" htmlFor="confirmPassword">Xác nhận mật khẩu</label>
+          <label className="form-label" htmlFor="confirmPassword">
+            Xác nhận mật khẩu
+          </label>
           <div className="input-container">
             <Lock className="input-icon" size={20} />
             <input
@@ -223,7 +243,9 @@ const Register = () => {
         </div>
 
         <div className="form-group">
-          <label className="form-label" htmlFor="phone">Số điện thoại</label>
+          <label className="form-label" htmlFor="phone">
+            Số điện thoại
+          </label>
           <div className="input-container">
             <User className="input-icon" size={20} />
             <input
@@ -251,7 +273,10 @@ const Register = () => {
       </form>
 
       <p className="login-link-container">
-        Đã có tài khoản? <Link to="/auth/login" className="login-link">Đăng nhập</Link>
+        Đã có tài khoản?{" "}
+        <Link to="/auth/login" className="login-link">
+          Đăng nhập
+        </Link>
       </p>
 
       <Modal

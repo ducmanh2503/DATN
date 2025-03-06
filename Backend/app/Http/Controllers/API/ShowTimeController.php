@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
+use App\Models\Room;
 use App\Models\ShowTime;
 use App\Models\ShowTimeDate;
 use Carbon\Carbon;
@@ -24,7 +25,7 @@ class ShowTimeController extends Controller
     {
 
 
-        $showTime = ShowTime::query()->latest('id')->with(['calendarShow.movie', 'calendarShow', 'room'])->get();
+        $showTime = ShowTime::query()->latest('id')->with(['calendarShow.movie', 'calendarShow', 'room.roomType'])->get();
 
         return response()->json($showTime, 200);
     }
@@ -72,6 +73,13 @@ class ShowTimeController extends Controller
             'selected_date' => 'required|date', // Thêm trường này để chọn một ngày cụ thể
         ]);
 
+        $room = Room::find($request->room_id);
+        if ($room && !$room->roomType) {
+            return response()->json(['error' => 'Phòng chiếu không có loại phòng hợp lệ.'], 422);
+        }
+
+        $roomTypeId = $room ? $room->roomType->id : null;
+
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
@@ -115,6 +123,7 @@ class ShowTimeController extends Controller
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'status' => $request->status,
+            'room_type_id' => $roomTypeId, // thêm room_tyoe nếu cần
         ]);
 
         // Tạo bản ghi trong bảng show_time_date
@@ -127,7 +136,8 @@ class ShowTimeController extends Controller
             'message' => 'Xuất chiếu đã được thêm thành công',
             'data' => [
                 'show_time' => $showTime,
-                'show_date' => $showTimeDate
+                'show_date' => $showTimeDate,
+                'room_type' => $roomTypeId ? $room->roomType->name : null,
             ]
         ], 201);
     }
@@ -139,7 +149,7 @@ class ShowTimeController extends Controller
     {
 
 
-        $showTime = ShowTime::with(['calendarShow.movie', 'calendarShow', 'room'])->find($id);
+        $showTime = ShowTime::with(['calendarShow.movie', 'calendarShow', 'room.roomType'])->find($id);
 
         if (!$showTime) {
             return response()->json(['message' => 'Xuất chiếu không tồn tại'], 404);
@@ -229,6 +239,10 @@ class ShowTimeController extends Controller
             return response()->json(['error' => 'Phòng chiếu đã có suất chiếu trùng giờ'], 422);
         }
 
+        $room = Room::find($validated['room_id']);
+        $roomType = $room ? $room->roomType : null;
+        $roomTypeId = $roomType ? $roomType->id : null;
+
 
         // // Bước 5: Cập nhật thông tin ShowTime
         // $showTime->calendar_show_id = $validated['calendar_show_id'];
@@ -238,18 +252,28 @@ class ShowTimeController extends Controller
         // $showTime->status = $validated['status'];
 
         // Bước 6: Lưu lại thay đổi
-        // try {
-        $showTime->update($validated);
+        try {
+            $showTime->update([
+                'calendar_show_id' => $validated['calendar_show_id'],
+                'room_id' => $validated['room_id'],
+                'start_time' => $validated['start_time'],
+                'end_time' => $validated['end_time'],
+                'status' => $validated['status'],
+                'room_type_id' => $roomTypeId,
+            ]);
 
-        // $showTime->save();
-        //new
-        return response()->json([
-            'message' => 'Cập nhật xuất chiếu thành công',
-            'data' => $showTime
-        ]);
-        // } catch (\Exception $e) {
-        return response()->json(['error' => 'Cập nhật thất bại: ' . $e->getMessage()], 500);
-        // }
+            // $showTime->save();
+            //new
+            return response()->json([
+                'message' => 'Cập nhật xuất chiếu thành công',
+                'data' => [
+                    'show_time' => $showTime,
+                    'room_type' => $roomType ? $roomType->name : null,  // Trả về tên loại phòng nếu có
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Cập nhật thất bại: ' . $e->getMessage()], 500);
+        }
 
         // Bước 7: Trả về kết quả thành công
         // old
@@ -280,6 +304,7 @@ class ShowTimeController extends Controller
         ]);
     }
 
+    //xóa theo ngày
     public function destroyByDate(string $id, string $selected_date)
     {
 
@@ -315,7 +340,8 @@ class ShowTimeController extends Controller
         // Validate dữ liệu đầu vào
         $validator = Validator::make($request->all(), [
             'date' => 'required|date',
-            'room_id' => 'nullable|exists:rooms,id'
+            'room_id' => 'nullable|exists:rooms,id',
+            'room_type_id' => 'nullable|exists:room_types,id'
         ]);
 
         if ($validator->fails()) {
@@ -339,6 +365,13 @@ class ShowTimeController extends Controller
             $query->where('room_id', $request->room_id);
         }
 
+        //lọc theo room_type
+        if ($request->has('room_type_id')) {
+            $query->whereHas('room', function ($query) use ($request) {
+                $query->where('room_type_id', $request->room_type_id);
+            });
+        }
+
         $showTimes = $query->get();
 
         return response()->json($showTimes, 200);
@@ -348,7 +381,6 @@ class ShowTimeController extends Controller
 
     public function generateDateRange($startDate, $endDate)
     {
-
 
         // Tạo một mảng chứa tất cả các ngày trong khoảng từ show_date đến end_date
         $dates = [];
@@ -428,6 +460,15 @@ class ShowTimeController extends Controller
         if ($filteredShowTimes->isEmpty()) {
             return response()->json(['message' => 'Không có suất chiếu nào được đặt trong khoảng ngày này'], 404);
         }
+
+        $filteredShowTimes->transform(function ($showTime) {
+            $room = $showTime->room;
+            $roomType = $room ? $room->roomType : null;
+
+            // Thêm thông tin về loại phòng vào mỗi suất chiếu
+            $showTime->room_type = $roomType ? $roomType->name : null;
+            return $showTime;
+        });
 
         return response()->json($filteredShowTimes->values(), 200);
     }

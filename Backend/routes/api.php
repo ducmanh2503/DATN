@@ -49,15 +49,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-// Chỉ admin mới truy cập được
-// Route::middleware(['role:admin'])->group(function () {
-// Movies
-Route::apiResource('movies', MoviesController::class);
-Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
-Route::delete('/movies', [MoviesController::class, 'destroyMultiple']);
-Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']);
-Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']);
-Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
+    // Chỉ admin mới truy cập được
+    Route::middleware(['role:admin'])->group(function () {
+        // Movies
+        Route::apiResource('movies', MoviesController::class);
+        Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
+        Route::delete('/movies', [MoviesController::class, 'destroyMultiple']);
+        Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']);
+        Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']);
+        Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
 
         // Room
         Route::apiResource('room', RoomController::class);
@@ -99,16 +99,16 @@ Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'show
         //Bài viết
         Route::apiResource('article', ArticleController::class);
 
-//người dùng
-Route::apiResource('/user-management', UserController::class);
-Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
-Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
-Route::post('/restore-user', [UserController::class, 'restore']);
-// });
+        //người dùng
+        Route::apiResource('/user-management', UserController::class);
+        Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
+        Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
+        Route::post('/restore-user', [UserController::class, 'restore']);
+    });
 
-// Đăng xuất
-Route::post('/logout', [AuthController::class, 'logout']);
-// });
+    // Đăng xuất
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
 //customer
 
 //movie, calendar_show, showTime

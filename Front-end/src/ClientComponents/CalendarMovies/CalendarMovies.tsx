@@ -24,12 +24,12 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                 const { data } = await axios.get(
                     `http://localhost:8000/api/calendar-show/date-range/${id}`
                 );
-                console.log("check-calendar", data.show_dates);
+                console.log("check-calendar", data);
 
-                return data.show_dates;
+                return data;
             },
             staleTime: 1000 * 60 * 10,
-            enabled: setIsModalOpen2,
+            // enabled: setIsModalOpen2,
         }
     );
 

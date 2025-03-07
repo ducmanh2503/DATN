@@ -60,9 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     //Sơ đồ ghế, giữ ghế, giải phóng ghế
-    // Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
-    // Route::post('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
-    // Route::post('/release-seats', [SeatController::class, 'releaseSeat']);
+    Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
+    Route::post('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
+    Route::post('/release-seats', [SeatController::class, 'releaseSeat']);
 
     // Chỉ admin mới truy cập được
     Route::middleware(['role:admin'])->group(function () {
@@ -140,7 +140,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
         Route::post('/restore-user', [UserController::class, 'restore']);
     });
-
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
 });
@@ -157,9 +156,9 @@ Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::clas
 Route::get('/movie-details-booking/{movie}', [MoviesController::class, 'show']);
 
 //check
-Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
-Route::post('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
-Route::post('/release-seats', [SeatController::class, 'releaseSeat']);
+// Route::middleware('auth:sanctum')->get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
+// Route::middleware('auth:sanctum')->post('/hold-seats', [SeatController::class, 'holdSeat']);
+// Route::middleware('auth:sanctum')->post('/release-seats', [SeatController::class, 'releaseSeat']);
 
 
 
@@ -170,7 +169,7 @@ Route::get('/combos', [ComboController::class, 'showCombosForClient']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);
 Route::post('/verify-code', [AuthController::class, 'verifyCode']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 
 
 //cart

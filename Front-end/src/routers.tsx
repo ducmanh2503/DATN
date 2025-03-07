@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Home from "./page/client/Home/home";
 import PlayingFilm from "./page/client/PlayingFilm/PlayingFilm";

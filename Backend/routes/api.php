@@ -62,7 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('showTime', ShowTimeController::class);
         Route::post('show-times/in-range', [ShowTimeController::class, 'getShowTimesInDateRange']); //danh sách ngày
         Route::post('show-times/by-date', [ShowTimeController::class, 'getShowTimesByDate']); //lọc theo ngày cụ thể
-        Route::get('/showtimes/by-date', [ShowTimeController::class, 'getShowTimesByDateClient']);
+        // Route::get('/showtimes/by-date', [ShowTimeController::class, 'getShowTimesByDateClient']);
 
         // lọc theo khoảng ngày
         Route::post('show-times/get-date-range-by-calendar', [ShowTimeController::class, 'getDateRangeByCalendarShow']);
@@ -71,7 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // CalendarShow
         Route::apiResource('/calendarShow', CalendarShowController::class);
-        Route::get('/calendar-show/movie/{movie_id}', [CalendarShowController::class, 'showClient']);
+        // Route::get('/calendar-show/movie/{movie_id}', [CalendarShowController::class, 'showClient']);
 
 
         // Combo
@@ -102,7 +102,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
+//check
+Route::get('/movies-index', [MoviesController::class, 'index']);
+Route::get('/showtimes/by-date', [ShowTimeController::class, 'getShowTimesByDateClient']);
+Route::get('/calendar-show/movie/{movie_id}', [CalendarShowController::class, 'showClient']);
+Route::post('show-times/get-date-by-calendar', [ShowTimeController::class, 'getDateRangeByCalendarShow']);
 
+//check
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);
 Route::post('/verify-code', [AuthController::class, 'verifyCode']);

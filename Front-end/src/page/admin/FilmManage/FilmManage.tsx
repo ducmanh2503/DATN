@@ -20,11 +20,7 @@ import {
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
 import axios from "axios";
-import {
-    DELETE_FILM,
-    GET_FILM_DETAIL,
-    GET_FILM_LIST,
-} from "../../../config/ApiConfig";
+import { DELETE_FILM, GET_FILM_LIST } from "../../../config/ApiConfig";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DetailFilm from "../FilmManage/DetailFilm";
 import EditFilm from "../FilmManage/EditFilm";
@@ -39,6 +35,7 @@ const FilmManage: React.FC = () => {
     const searchInput = useRef<InputRef>(null);
     const [messageApi, holderMessageApi] = message.useMessage();
     const queryClient = useQueryClient();
+
     const [selectionType, setSelectionType] = useState<"checkbox" | "radio">(
         "checkbox"
     );
@@ -172,11 +169,7 @@ const FilmManage: React.FC = () => {
 
     const renderDetailFilm = React.useCallback(
         (text: string, item: any) => (
-            <DetailFilm
-                id={item.id}
-                film={text}
-                apiUrl={`${GET_FILM_DETAIL(item.id)}`}
-            ></DetailFilm>
+            <DetailFilm id={item.id} film={text}></DetailFilm>
         ),
         []
     );

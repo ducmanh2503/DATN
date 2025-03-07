@@ -12,6 +12,7 @@ const PlayingProduct = ({
     poster,
     trailer,
     showChill,
+    onClick,
 }: any) => {
     const [videoKey, setVideoKey] = useState(0);
     const [isModalOpen1, setIsModalOpen1] = useState(false);
@@ -32,7 +33,10 @@ const PlayingProduct = ({
         setIsModalOpen2(false);
     };
     return (
-        <div className={`playingProduct ${className}`}>
+        <div
+            className={`playingProduct ${className}`}
+            onClick={() => onClick()}
+        >
             <div className="product-img">
                 <img className="img" src={poster} alt="" />
                 <div className="hover-btn">
@@ -44,7 +48,7 @@ const PlayingProduct = ({
                     </button>
                     <Modal
                         title={`Lịch chiếu phim`}
-                        width={760}
+                        width={700}
                         open={isModalOpen2}
                         onCancel={handleCancel2}
                         footer={null}

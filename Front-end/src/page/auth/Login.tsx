@@ -1,75 +1,86 @@
-import { Link, useNavigate } from "react-router-dom";
-import { Button, Divider, message } from "antd";
-import { Facebook, Mail, Lock, LogIn } from "lucide-react";
-import { useState } from "react";
-import authService from "../../services/auth.service";
-import axios from "axios";
-import { AuthResponse } from "../../types/interface";
-import "./Login.css";
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Button, Divider, message, Spin } from 'antd';
+import { Facebook, Mail, Lock, LogIn } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import authService from '../../services/auth.service';
+import './Login.css';
+
+type LoginFormData = {
+  email: string;
+  password: string;
+};
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [googleAuthLoading, setGoogleAuthLoading] = useState(false);
+  const [facebookAuthLoading, setFacebookAuthLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  // Chỉ kiểm tra thông báo lỗi hoặc state, không xử lý callback ở đây
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const errorMsg = params.get('error');
 
-    if (!email || !password) {
-      message.warning("Vui lòng nhập email và mật khẩu!");
-      setLoading(false);
-      return;
+    if (errorMsg === 'google-auth-failed') {
+      message.error('Đăng nhập với Google thất bại. Vui lòng thử lại.');
     }
 
+    if (location.state && location.state.message) {
+      message.info(location.state.message);
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
+
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      console.log("Đang đăng nhập với:", { email, password });
-
-      // Gửi request đăng nhập
-      const response: AuthResponse = await authService.login({
-        email,
-        password,
-      });
-
-      console.log("📡 Phản hồi từ API:", response);
+      console.log('Thử đăng nhập với:', data);
+      const response = await authService.login(data);
+      console.log('Phản hồi API đăng nhập:', response);
 
       if (!response?.token) {
         throw new Error("API không trả về token. Vui lòng thử lại!");
       }
 
-      // Lưu token & role vào localStorage
-      localStorage.setItem("auth_token", response.token);
-      localStorage.setItem("user_role", response.role || "customer");
-
-      // Cấu hình axios để gửi token tự động
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${response.token}`;
-
-      message.success("Đăng nhập thành công!");
-
-      // Chuyển hướng dựa trên quyền
-      response.role === "admin" ? navigate("/admin/film") : navigate("/");
+      message.success('Đăng nhập thành công!');
+      const redirectUrl = authService.getRedirectUrl();
+      console.log('Chuyển hướng tới:', redirectUrl);
+      navigate(redirectUrl);
     } catch (error: any) {
-      console.error("Lỗi đăng nhập:", error);
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("user_role");
-
-      message.error(
-        error.response?.data?.message ||
-          "Đăng nhập thất bại. Vui lòng kiểm tra lại."
-      );
-    } finally {
-      setLoading(false);
+      console.error('Lỗi đăng nhập:', error);
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_role');
+      message.error(error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');
     }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setGoogleAuthLoading(true);
+      const authUrl = await authService.getGoogleAuthUrl();
+      console.log('Đang chuyển hướng đến URL đăng nhập Google:', authUrl);
+      const urlWithSource = new URL(authUrl);
+      urlWithSource.searchParams.append('source', 'google-auth');
+      window.location.href = urlWithSource.toString();
+    } catch (error: any) {
+      console.error('Lỗi khi lấy URL đăng nhập Google:', error);
+      message.error('Không thể kết nối với Google. Vui lòng thử lại sau.');
+      setGoogleAuthLoading(false);
+    }
+  };
+
+  const handleFacebookLogin = () => {
+    setFacebookAuthLoading(true);
+    message.info('Tính năng đăng nhập với Facebook đang được phát triển.');
+    setFacebookAuthLoading(false);
   };
 
   return (
     <div className="login-container">
       <h2 className="login-title">Đăng nhập</h2>
 
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <label className="form-label" htmlFor="email">
             Email
@@ -81,10 +92,15 @@ const Login = () => {
               type="email"
               id="email"
               placeholder="Nhập email của bạn"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              {...register('email', {
+                required: 'Email là bắt buộc',
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Email không hợp lệ',
+                },
+              })}
             />
+            {errors.email && <p className="error-message">{errors.email.message}</p>}
           </div>
         </div>
 
@@ -104,10 +120,15 @@ const Login = () => {
               type="password"
               id="password"
               placeholder="Nhập mật khẩu"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              {...register('password', {
+                required: 'Mật khẩu là bắt buộc',
+                minLength: {
+                  value: 6,
+                  message: 'Mật khẩu phải có ít nhất 6 ký tự',
+                },
+              })}
             />
+            {errors.password && <p className="error-message">{errors.password.message}</p>}
           </div>
         </div>
 
@@ -115,7 +136,7 @@ const Login = () => {
           className="login-button"
           type="primary"
           htmlType="submit"
-          loading={loading}
+          loading={isSubmitting}
           size="large"
         >
           <LogIn size={20} className="button-icon" />
@@ -123,40 +144,26 @@ const Login = () => {
         </Button>
       </form>
 
-      <Divider className="auth-divider" plain>
-        Hoặc đăng nhập với email
-      </Divider>
+      <Divider className="auth-divider" plain>Hoặc đăng nhập với</Divider>
 
       <div className="social-login-section">
         <Button
           className="social-button google-button"
           type="default"
           size="large"
+          onClick={handleGoogleLogin}
+          loading={googleAuthLoading}
+          disabled={googleAuthLoading || facebookAuthLoading}
         >
           <div className="button-content">
-            <svg
-              className="google-icon"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                fill="#4285F4"
-              />
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#34A853"
-              />
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                fill="#FBBC05"
-              />
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.60 3.30-4.53 6.16-4.53z"
-                fill="#EA4335"
-              />
-            </svg>
+            {!googleAuthLoading && (
+              <svg className="google-icon" viewBox="0 0 24 24" width="24" height="24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.60 3.30-4.53 6.16-4.53z" fill="#EA4335" />
+              </svg>
+            )}
             <span>Đăng nhập với Google</span>
           </div>
         </Button>
@@ -165,9 +172,12 @@ const Login = () => {
           className="social-button facebook-button"
           type="primary"
           size="large"
+          onClick={handleFacebookLogin}
+          loading={facebookAuthLoading}
+          disabled={googleAuthLoading || facebookAuthLoading}
         >
           <div className="button-content">
-            <Facebook size={24} />
+            {!facebookAuthLoading && <Facebook size={24} />}
             <span>Đăng nhập với Facebook</span>
           </div>
         </Button>

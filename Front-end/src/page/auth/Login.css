@@ -3,10 +3,12 @@
     max-width: 400px; /* Giới hạn chiều rộng */
     width: 100%;
     margin: 5rem auto; /* Căn giữa */
-    padding: 100px 20px; /* Thêm padding để thoáng hơn */
+    padding: 60px 20px 100px 20px; /* Điều chỉnh padding để chứa hoa anh đào */
     background-color: #fff; /* Nền trắng */
     border-radius: 15px; /* Bo góc nhẹ */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
+    position: relative; /* Để định vị bông hoa anh đào */
+    overflow: hidden; /* Tránh tràn nội dung */
 }
 
 /* Tiêu đề nổi bật và căn giữa */
@@ -155,7 +157,7 @@
 @media (max-width: 480px) {
     .login-container {
         max-width: 100%;
-        padding: 20px 15px;
+        padding: 20px 15px 80px 15px;
         margin: 20px;
     }
 
@@ -178,7 +180,7 @@
     }
 }
 
-/* Tùy chỉnh cho các nút social nếu cần */
+/* Tùy chỉnh cho các nút social */
 .social-login-section {
     display: flex;
     flex-direction: column;
@@ -234,4 +236,36 @@
     margin: 20px 0;
     color: #777;
     font-size: 14px;
+}
+
+/* Thông báo lỗi */
+.error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* Bông hoa anh đào */
+.cherry-blossom {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.cherry-blossom-icon {
+    width: 80px;
+    height: 80px;
+    animation: spin 4s linear infinite; /* Animation xoay */
+}
+
+/* Keyframes cho animation xoay */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

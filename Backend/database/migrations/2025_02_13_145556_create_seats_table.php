@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('row');
             $table->string('column');
             $table->foreignId('seat_type_id')->constrained('seat_types');
-            $table->enum('seat_status', ['available', 'booked'])->default('available');
+
             $table->timestamps();
         });
     }

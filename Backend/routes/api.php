@@ -60,9 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     //Sơ đồ ghế, giữ ghế, giải phóng ghế
-    Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
-    Route::post('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
-    Route::post('/release-seats', [SeatController::class, 'releaseSeat']);
+    // Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
+    // Route::post('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
+    // Route::post('/release-seats', [SeatController::class, 'releaseSeat']);
 
     // Chỉ admin mới truy cập được
     Route::middleware(['role:admin'])->group(function () {
@@ -155,6 +155,12 @@ Route::get('/showtimes/by-date/{movie_id}/{date}', [ShowTimeController::class, '
 Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient']);
 Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::class, 'getShowDates']);
 Route::get('/movie-details-booking/{movie}', [MoviesController::class, 'show']);
+
+//check
+Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
+Route::post('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
+Route::post('/release-seats', [SeatController::class, 'releaseSeat']);
+
 
 
 //combo

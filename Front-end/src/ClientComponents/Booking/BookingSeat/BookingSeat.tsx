@@ -2,8 +2,13 @@ import { useEffect, useState } from "react";
 import "./BookingSeat.css";
 import { Card, Tooltip } from "antd";
 import { useMessageContext } from "../../UseContext/ContextState";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import pusher from "../../../utils/pusher";
+
 interface SeatType {
     id: string;
+    seatCode: string;
     type: "normal" | "vip" | "sweatbox" | "empty";
     seatNumber: string;
     price: number;
@@ -17,54 +22,40 @@ const BookingSeat = ({ className }: any) => {
         setTotalSeatPrice,
         totalSeatPrice,
         setTotalPrice,
+        roomIdFromShowtimes,
+        showtimeIdFromBooking,
     } = useMessageContext();
 
-    const [matrix, setMatrix] = useState<SeatType[][]>(
-        Array(matrixSize.rows)
-            .fill(null)
-            .map((_, rowIndex) =>
-                Array(matrixSize.cols)
-                    .fill(null)
-                    .map((_, colIndex) => {
-                        const rowLetter = String.fromCharCode(65 + rowIndex);
-                        let seatType: SeatType["type"] = "normal";
-                        let price = 100000; // Giá mặc định
+    // test api sơ đồ ghế
+    const { data: matrixSeats } = useQuery({
+        queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
+        queryFn: async () => {
+            const { data } = await axios.get(
+                `http://localhost:8000/api/get-seats-for-booking/${roomIdFromShowtimes}/${showtimeIdFromBooking}`
+            );
+            console.log("check-matrix", data);
 
-                        if (["E", "F", "G"].includes(rowLetter)) {
-                            seatType = "vip";
-                            price = 150000;
-                        } else if (["H", "I", "J"].includes(rowLetter)) {
-                            seatType = "sweatbox";
-                            price = 200000;
-                        }
+            return data;
+        },
+    });
 
-                        return {
-                            id: `${rowLetter}${(colIndex + 1)
-                                .toString()
-                                .padStart(2, "0")}`,
-                            type: seatType,
-                            seatNumber: `${rowLetter}${(colIndex + 1)
-                                .toString()
-                                .padStart(2, "0")}`,
-                            price,
-                        };
-                    })
-            )
-    );
     const handleSeatClick = (seat: SeatType) => {
         setNameSeats((prevSeats: any) => {
-            let updatedSeats;
-            let updatedTotalPrice = totalSeatPrice;
-            if (prevSeats.includes(seat.id)) {
-                updatedSeats = prevSeats.filter((id: any) => id !== seat.id);
-                updatedTotalPrice -= seat.price;
+            let updatedSeats: string[];
+            let updatedTotalPrice: number = Number(totalSeatPrice); // Đảm bảo là số
+
+            if (prevSeats.includes(seat.seatCode)) {
+                updatedSeats = prevSeats.filter(
+                    (seatCode: string) => seatCode !== seat.seatCode
+                );
+                updatedTotalPrice -= Number(seat.price); // Giữ nguyên số thực
             } else {
-                updatedSeats = [...prevSeats, seat.id];
-                updatedTotalPrice += seat.price;
+                updatedSeats = [...prevSeats, seat.seatCode];
+                updatedTotalPrice += Number(seat.price);
             }
 
-            setQuantitySeats(updatedSeats.length); // số lượng ghế
-            setTotalSeatPrice(updatedTotalPrice); // tổng tiền ghế
+            setQuantitySeats(updatedSeats.length); // Không cần parseInt vì đã là number
+            setTotalSeatPrice(updatedTotalPrice); // Cập nhật tổng tiền
             return updatedSeats;
         });
     };
@@ -72,6 +63,47 @@ const BookingSeat = ({ className }: any) => {
     useEffect(() => {
         setTotalPrice(totalSeatPrice);
     }, [totalSeatPrice, setTotalPrice]);
+
+    // lấy ID của user
+    const { data: getUserId } = useQuery({
+        queryKey: ["getUserId"],
+        queryFn: async () => {
+            let token = localStorage.getItem("access_token");
+            const { data } = await axios.get(`http://localhost:8000/api/user`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            console.log("check- user-id", data);
+        },
+    });
+
+    //hold time
+    const [seats, setSeats] = useState({});
+
+    // useEffect(() => {
+    //     // Kết nối đến kênh Pusher
+    //     const channel = pusher.subscribe("seats");
+
+    //     // Lắng nghe sự kiện cập nhật ghế
+    //     channel.bind("SeatHeldEvent", (data: any) => {
+    //         console.log("Cập nhật ghế:", data);
+
+    //         // Cập nhật danh sách ghế theo thời gian thực
+    //         setSeats((prevSeats) => ({
+    //             ...prevSeats,
+    //             [data.seat]: {
+    //                 ...prevSeats[data.seat],
+    //                 status: data.user_id ? "held" : "available",
+    //                 isHeld: !!data.user_id,
+    //                 heldByUser: data.user_id === YOUR_USER_ID,
+    //             },
+    //         }));
+    //     });
+
+    //     return () => {
+    //         channel.unbind_all();
+    //         channel.unsubscribe();
+    //     };
+    // }, []);
 
     return (
         <>
@@ -81,48 +113,65 @@ const BookingSeat = ({ className }: any) => {
                         <div className="screen">MÀN HÌNH</div>
 
                         <div className="matrix-seat">
-                            {matrix.map((row, rowIndex) => (
-                                <div key={rowIndex} className="row-seats">
-                                    <div className="col-seats">
-                                        {String.fromCharCode(65 + rowIndex)}
-                                    </div>
-                                    {row.map((seat, colIndex) => {
-                                        const isSelected = nameSeats.includes(
-                                            seat.id
-                                        );
-                                        return (
-                                            <button
-                                                className="seat-name"
-                                                key={seat.id}
-                                                onClick={() =>
-                                                    handleSeatClick(seat)
+                            {matrixSeats &&
+                                Object.entries(matrixSeats).map(
+                                    ([rowLabel, rowData]: any, rowIndex) => (
+                                        <div
+                                            key={rowLabel}
+                                            className="row-seats"
+                                        >
+                                            {/* Hiển thị ký tự hàng (A, B, C, ...) */}
+                                            <div className="col-seats">
+                                                {rowLabel}
+                                            </div>
+
+                                            {/* Duyệt qua từng ghế trong hàng */}
+                                            {Object.values(rowData).map(
+                                                (seat: any) => {
+                                                    const isSelected =
+                                                        nameSeats.includes(
+                                                            seat.seatCode
+                                                        );
+                                                    return (
+                                                        <button
+                                                            className="seat-name"
+                                                            key={seat.id}
+                                                            onClick={() =>
+                                                                handleSeatClick(
+                                                                    seat
+                                                                )
+                                                            }
+                                                            style={{
+                                                                background:
+                                                                    isSelected
+                                                                        ? "#52c41a"
+                                                                        : "transparent",
+                                                                border:
+                                                                    seat.type ===
+                                                                    "VIP"
+                                                                        ? "1px solid #1890ff"
+                                                                        : seat.type ===
+                                                                          "Sweetbox"
+                                                                        ? "1px solid #f5222d"
+                                                                        : "1px solid #8c8c8c",
+                                                                color:
+                                                                    seat.type ===
+                                                                    "VIP"
+                                                                        ? "#1890ff"
+                                                                        : seat.type ===
+                                                                          "Sweetbox"
+                                                                        ? "#f5222d"
+                                                                        : "black",
+                                                            }}
+                                                        >
+                                                            {seat.seatCode}
+                                                        </button>
+                                                    );
                                                 }
-                                                style={{
-                                                    background: isSelected
-                                                        ? "#52c41a" // Màu xanh lá khi được chọn
-                                                        : "transparent", // Màu mặc định
-                                                    border:
-                                                        seat.type === "vip"
-                                                            ? "1px solid #1890ff" // Màu xanh dương cho ghế VIP
-                                                            : seat.type ===
-                                                              "sweatbox"
-                                                            ? "1px solid #f5222d" // Màu đỏ cho ghế sweatbox
-                                                            : "1px solid #8c8c8c",
-                                                    color:
-                                                        seat.type === "vip"
-                                                            ? "#1890ff"
-                                                            : seat.type ===
-                                                              "sweatbox"
-                                                            ? "#f5222d"
-                                                            : "black",
-                                                }}
-                                            >
-                                                {colIndex + 1}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            ))}
+                                            )}
+                                        </div>
+                                    )
+                                )}
                         </div>
 
                         <div className="booking-seats-info">
@@ -135,7 +184,7 @@ const BookingSeat = ({ className }: any) => {
                                             border: "2px solid rgb(166, 21, 210)",
                                         }}
                                     />
-                                    <span>Ghế đã bán</span>
+                                    <span>Ghế đã đặt</span>
                                 </div>
                                 <div className="seats-info">
                                     <div
@@ -146,6 +195,16 @@ const BookingSeat = ({ className }: any) => {
                                         }}
                                     />
                                     <span>Ghế đang chọn</span>
+                                </div>
+                                <div className="seats-info">
+                                    <div
+                                        className="booking-seats "
+                                        style={{
+                                            background: "rgb(241, 153, 2)",
+                                            border: "2px solid rgb(241, 153, 2)",
+                                        }}
+                                    />
+                                    <span>Ghế đang được giữ</span>
                                 </div>
                             </div>
                             <div className="flex-booking">
@@ -180,6 +239,7 @@ const BookingSeat = ({ className }: any) => {
                         </div>
                     </Card>
                 </div>
+                <pre>{JSON.stringify(seats, null, 2)}</pre>
             </div>
         </>
     );

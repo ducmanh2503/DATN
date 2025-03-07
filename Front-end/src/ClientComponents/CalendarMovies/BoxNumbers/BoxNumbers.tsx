@@ -1,9 +1,10 @@
 import React from "react";
 import "./BoxNumbers.css";
 import { Link } from "react-router-dom";
-const BoxNumbers = ({ time, onclick }: any) => {
+import { Button } from "antd";
+const BoxNumbers = ({ time, onClick }: any) => {
     return (
-        <Link to="/booking" className="box-numbers" onClick={() => onclick()}>
+        <Link to="/booking" className="box-numbers" onClick={() => onClick()}>
             {time}
         </Link>
     );

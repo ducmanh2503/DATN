@@ -27,7 +27,9 @@ const SeatInfo = () => {
                             </span>
                         </span>
                     </div>
-                    <div className="seat-price">{totalSeatPrice}đ</div>
+                    <div className="seat-price">
+                        {parseInt(totalSeatPrice)}đ
+                    </div>
                 </div>
             </div>
         </div>

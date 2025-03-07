@@ -14,7 +14,12 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
     const [searchDateFormatted, setSearchDateFormatted] = useState<
         string | null
     >(null);
-    const { setShowtimesTime, setShowtimesDate } = useMessageContext();
+    const {
+        setShowtimesTime,
+        setShowtimesDate,
+        setRoomIdFromShowtimes,
+        setShowtimeIdFromBooking,
+    } = useMessageContext();
 
     //lấy các ngày trong lịch chiếu của phim
     const { data: calendarMovie, isLoading: isLoadingCalendarMovie } = useQuery(
@@ -26,7 +31,7 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                 );
                 console.log("check-calendar", data);
 
-                return data;
+                return data.show_dates;
             },
             staleTime: 1000 * 60 * 10,
             // enabled: setIsModalOpen2,
@@ -46,13 +51,15 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
     // tìm suất chiếu với ngày trong lịch chiếu
     const { data: LoadShowByFilmAndDate, isLoading: isLoadingFilmAndDate } =
         useQuery({
-            queryKey: ["LoadShowByFilmAndDate", searchDateRaw],
+            queryKey: ["LoadShowByFilmAndDate", searchDateRaw, id],
             queryFn: async () => {
                 if (!searchDateRaw) return null;
                 const { data } = await axios.get(
-                    `${GET_SHOW_BY_FILM_DATE}?date=${searchDateRaw}`
+                    `${GET_SHOW_BY_FILM_DATE}/${id}/${searchDateRaw}`
                 );
-                return data;
+                console.log("test-data", data);
+
+                return data.show_times;
             },
             enabled: !!searchDateRaw, // Chỉ gọi API khi có ngày hợp lệ
             staleTime: 1000 * 60,
@@ -77,19 +84,6 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
         }
     }, [LoadShowByFilmAndDate]);
 
-    // lấy room
-    // const { data: getNameRooms } = useQuery({
-    //     queryKey: ["getNameRooms"],
-    //     queryFn: async () => {
-    //         const { data } = await axios.get(GET_ROOMS);
-    //         console.log(data.rooms);
-
-    //         return data.rooms.map((item: any) => ({
-    //             ...item,
-    //             key: item.id,
-    //         }));
-    //     },
-    // });
     return (
         <div>
             {isLoadingCalendarMovie ? (
@@ -97,7 +91,7 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
             ) : (
                 <>
                     <div className="calendar-days">
-                        {console.log("check array", calendarMovie)}
+                        {/* {console.log("check array", calendarMovie)} */}
                         {calendarMovie?.map((item: any, index: any) => {
                             const dayIndex = new Date(item).getDay();
                             const formatted = dayjs(item).format("DD/MM");
@@ -137,11 +131,25 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                                             <BoxNumbers
                                                 key={index}
                                                 time={formattedTime}
-                                                onClick={() =>
+                                                onClick={() => {
+                                                    if (!item.room_id) {
+                                                        console.error(
+                                                            "room_id is invalid!",
+                                                            item
+                                                        );
+                                                        return;
+                                                    }
+
+                                                    setRoomIdFromShowtimes(
+                                                        item.room_id
+                                                    );
+                                                    setShowtimeIdFromBooking(
+                                                        item.id
+                                                    );
                                                     setShowtimesTime(
-                                                        formattedTime
-                                                    )
-                                                }
+                                                        item.start_time
+                                                    );
+                                                }}
                                             />
                                         );
                                     }

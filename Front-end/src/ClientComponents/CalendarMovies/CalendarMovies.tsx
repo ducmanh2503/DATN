@@ -19,6 +19,7 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
     >(null);
     const { setShowtimesTime, setShowtimesDate } = useMessageContext();
 
+    //lấy lịch chiếu của phim
     const { data: calendarMovie, isLoading: isLoadingCalendarMovie } = useQuery(
         {
             queryKey: ["calendarMovie", id],
@@ -26,18 +27,22 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                 const { data } = await axios.get(
                     `http://localhost:8000/api/calendar-show/movie/${id}`
                 );
+                console.log("calendar", data);
+
                 return data;
             },
             staleTime: 1000 * 60 * 10,
         }
     );
 
+    //gán id của movie vào id của calendar
     useEffect(() => {
         if (calendarMovie?.id) {
             setCalendarShowtimesId(calendarMovie.id);
         }
     }, [calendarMovie]);
 
+    //real api
     const { data: datesByCalendar, isLoading: isLoadingDates } = useQuery({
         queryKey: ["datesByCalendar", calendarShowtimesId],
         queryFn: async () => {
@@ -46,7 +51,8 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
             //     calendar_show_id: calendarShowtimesId,
             // });
             const { data } = await axios.post(
-                "http://localhost:8000/api/show-times/get-date-by-calendar",
+                // "http://localhost:8000/api/show-times/get-date-by-calendar",
+                "http://localhost:8000/api/showtimes/by-date",
                 {
                     calendar_show_id: calendarShowtimesId,
                 }

@@ -23,7 +23,7 @@ import SeatPage from "./page/admin/Seat/SeatPage";
 import RoomPage from "./page/admin/RoomPage/RoomPage";
 import FilmDetail from "./ClientComponents/FilmDetail/FilmDetail";
 import Showtimes from "./ClientComponents/Showtimes/Showtimes";
-import Booking from "./ClientComponents/Booking/Booking";
+// import Booking from "./ClientComponents/Booking/Booking";
 import Payment from "./ClientComponents/Payment/Payment";
 import Login from "./page/auth/Login";
 import Register from "./page/auth/Register";
@@ -250,19 +250,19 @@ export const router = createBrowserRouter([
         path: "/showtimes/:movieId",
         element: <Showtimes />,
     },
-    {
-        element: <ProtectedRoute />,
-        children: [
-            {
-                path: "/booking/:showtimeId/:roomId",
-                element: <Booking />,
-            },
-            {
-                path: "/payment/:showtimeId",
-                element: <Payment />,
-            },
-        ],
-    },
+    // {
+    //     element: <ProtectedRoute />,
+    //     children: [
+    //         {
+    //             path: "/booking/:showtimeId/:roomId",
+    //             element: <Booking />,
+    //         },
+    //         {
+    //             path: "/payment/:showtimeId",
+    //             element: <Payment />,
+    //         },
+    //     ],
+    // },
     {
         element: <PublicRoute />,
         children: [

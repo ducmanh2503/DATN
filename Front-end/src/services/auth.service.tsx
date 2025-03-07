@@ -64,15 +64,11 @@ const api = axios.create({
   },
 });
 
+// Thêm interceptor xử lý request
 api.interceptors.request.use(
-  async (config) => {
+  (config) => {
     const token = localStorage.getItem("auth_token");
     if (token) {
-      const isValid = await authService.isAuthenticated();
-      if (!isValid) {
-        console.warn("[Auth Service] Token hết hạn, chặn request.");
-        return Promise.reject({ message: "Token expired" });
-      }
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -80,15 +76,19 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Thêm interceptor xử lý response
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       console.error(
-        "[Auth Service] Unauthorized (api instance) - Redirecting to login"
+        "[Auth Service] Unauthorized (401) - Token có thể đã hết hạn."
       );
+
+      // Xoá token và role, chuyển hướng về trang login
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_role");
+
       window.location.href = "/auth/login";
     }
     return Promise.reject(error);

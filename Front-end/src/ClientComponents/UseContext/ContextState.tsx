@@ -21,10 +21,11 @@ export const MessageProvider = ({
     const [totalPrice, setTotalPrice] = useState<number | null>(null); // tổng tiền mua vé
     const [roomIdFromShowtimes, setRoomIdFromShowtimes] = useState<
         number | null
-    >(); // id room_id
+    >(); // id room_id booking
     const [showtimeIdFromBooking, setShowtimeIdFromBooking] = useState<
         number | null
-    >();
+    >(); // id suất chiếu booking
+    const [holdSeatId, setHoldSeatId] = useState<string[]>([]); // id của hold-seat
     return (
         <MessageContext.Provider
             value={{
@@ -56,6 +57,8 @@ export const MessageProvider = ({
                 setRoomIdFromShowtimes,
                 showtimeIdFromBooking,
                 setShowtimeIdFromBooking,
+                holdSeatId,
+                setHoldSeatId,
             }}
         >
             {children}

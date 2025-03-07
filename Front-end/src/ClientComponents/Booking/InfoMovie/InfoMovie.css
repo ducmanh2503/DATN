@@ -46,23 +46,41 @@
 }
 
 .booking-film .film-info .info-genres {
-    margin-top: 5px;
+    margin-top: 10px;
 }
 
 .booking-film .film-info .info-genres .genre-item {
     font-size: 14px;
     padding: 1px 4px;
+    margin-right: 3px;
     background-color: #ececec;
     border-radius: 4px;
     border: 1px solid black;
 }
 
 .booking-film .film-info .info-sub {
-    margin-top: 5px;
+    margin-top: 7px;
+}
+
+.info-sub .sub-rated {
+    margin-top: 60px;
+}
+
+.info-sub .sub-room-type {
+    padding-right: 8px;
 }
 
 .info-movie .booking-detail {
     margin-top: 15px;
+}
+
+.info-movie .booking-detail .detail-time,
+.info-movie .booking-detail .detail-day {
+    font-weight: 700;
+}
+
+.info-movie .booking-detail .detail-day {
+    letter-spacing: 1px;
 }
 
 .info-movie .booking-seats .seat-item,

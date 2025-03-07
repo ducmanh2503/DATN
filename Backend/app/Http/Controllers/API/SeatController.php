@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class SeatController extends Controller
 {
@@ -73,7 +74,7 @@ class SeatController extends Controller
 
         $validator = Validator::make($request->all(), [
             'seats' => 'required|array',
-            'seats.*' => 'exists:seats,id'
+            'seats.*' => 'exists:seats,id',
         ]);
 
         // Kiểm tra nếu có lỗi xác thực
@@ -98,7 +99,7 @@ class SeatController extends Controller
         }
 
         // Phát sự kiện cập nhật realtime
-        broadcast(new SeatHeldEvent($seats, $userId));
+        event(new SeatHeldEvent($seats, $userId));
 
         return response()->json(['message' => 'Ghế đã được giữ!']);
     }
@@ -382,7 +383,7 @@ class SeatController extends Controller
     //     return response()->json([
     //         'message' => 'Ghế đã được giữ thành công!',
     //         'seat' => $seat,
-    //         'expires_at' => $expiresAt
+    //         'expires_at' => $expiresAt,
     //     ]);
     // }
 }

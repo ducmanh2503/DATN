@@ -62,8 +62,14 @@ class CalendarShowController extends Controller
         return response()->json($calendarShows);
     }
 
-    public function showClient(string $movie_id)
+    public function showClient(Request $request)
     {
+        $movie_id = $request->input('movie_id');
+
+        if (!$movie_id) {
+            return response()->json(['message' => 'Thiếu movie_id'], 400);
+        }
+
         $calendarShow = CalendarShow::with(['movie'])->where('movie_id', $movie_id)->first();
 
         if (!$calendarShow) {
@@ -72,6 +78,7 @@ class CalendarShowController extends Controller
 
         return response()->json($calendarShow);
     }
+
 
 
 

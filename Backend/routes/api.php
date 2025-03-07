@@ -51,7 +51,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
     Route::post('/release-seats', [SeatController::class, 'releaseSeat']);
 
-
     // Chỉ admin mới truy cập được
     Route::middleware(['role:admin'])->group(function () {
         // Movies
@@ -61,7 +60,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']);
         Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']);
         Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
-
 
         // Room
         Route::apiResource('room', RoomController::class);
@@ -109,14 +107,12 @@ Route::middleware('auth:sanctum')->group(function () {
         //Bài viết
         Route::apiResource('article', ArticleController::class);
 
-
         //người dùng
         Route::apiResource('/user-management', UserController::class);
         Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
         Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
         Route::post('/restore-user', [UserController::class, 'restore']);
     });
-
 
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -127,7 +123,7 @@ Route::middleware('auth:sanctum')->group(function () {
 //movie, calendar_show, showTime
 Route::get('/movies-index', [MoviesController::class, 'index']);
 Route::get('/showtimes/by-date', [ShowTimeController::class, 'getShowTimesByDateClient']);
-Route::get('/calendar-show/movie/{movie_id}', [CalendarShowController::class, 'showClient']);
+Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient']);
 
 
 //combo

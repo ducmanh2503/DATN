@@ -35,4 +35,9 @@ class Seat extends Model
     {
         return $this->hasMany(ShowTimeSeat::class);
     }
+
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }

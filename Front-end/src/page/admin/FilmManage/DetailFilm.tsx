@@ -12,9 +12,9 @@ import {
 import axios from "axios";
 import { useEffect, useState, memo } from "react";
 import "./DetailFilm.css";
-import { URL_IMAGE } from "../../../config/ApiConfig";
+import { GET_FILM_DETAIL, URL_IMAGE } from "../../../config/ApiConfig";
 
-const DetailFilm = ({ id, film, apiUrl }: any) => {
+const DetailFilm = ({ id, film }: any) => {
     const [open, setOpen] = useState(false);
     const [size, setSize] = useState<DrawerProps["size"]>();
     const [poster, setPoster] = useState("");
@@ -28,10 +28,10 @@ const DetailFilm = ({ id, film, apiUrl }: any) => {
         setOpen(true);
     };
 
-    const { data, isLoading } = useQuery({
+    const { data } = useQuery({
         queryKey: ["film", id],
         queryFn: async () => {
-            const { data } = await axios.get(apiUrl);
+            const { data } = await axios.get(GET_FILM_DETAIL(id));
             console.log("check-data-detail", data);
 
             return data.data;

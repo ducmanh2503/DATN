@@ -1,14 +1,41 @@
-import { Steps } from "antd";
+import { Button, message, notification, Space, Steps } from "antd";
 import "./BookingMain.css";
 import BookingSeat from "./BookingSeat/BookingSeat";
 import BookingInfo from "./BookingInfo/BookingInfo";
-import { useState } from "react";
 import ComboFood from "./ComboFood/ComboFood";
 import PaymentGate from "./PaymentGate/PaymentGate";
+import { useMessageContext } from "../UseContext/ContextState";
+import { useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { CloseCircleOutlined } from "@ant-design/icons";
 
-const Booking = () => {
-    const [currentStep, setCurrentStep] = useState(1);
+const BookingMain = () => {
+    const { currentStep, setCurrentStep, quantitySeats } = useMessageContext();
+    const navigate = useNavigate();
+    const [api, contextHolder] = notification.useNotification();
+
+    const openNotification = (pauseOnHover: boolean) => () => {
+        api.open({
+            message: (
+                <>
+                    <span className="notification-icon">
+                        <CloseCircleOutlined />
+                    </span>{" "}
+                    Không thể tiếp tục...
+                </>
+            ),
+
+            description: "Phải đặt ghế nếu bạn muốn tiếp tục",
+            showProgress: true,
+            pauseOnHover,
+        });
+    };
+
     const nextStep = () => {
+        if (currentStep === 1 && quantitySeats === 0) {
+            openNotification(false)();
+            return;
+        }
         if (currentStep < 4) setCurrentStep(currentStep + 1);
     };
 
@@ -16,10 +43,14 @@ const Booking = () => {
         if (currentStep > 0) setCurrentStep(currentStep - 1);
     };
 
+    useEffect(() => {
+        if (currentStep === 0) {
+            navigate("/playingFilm"); // Điều hướng về trang PlayingFilm
+        }
+    }, [currentStep, navigate]);
+
     const renderStepContent = () => {
         switch (currentStep) {
-            // case 0:
-            // return <BookingInfo nextStep={nextStep} prevStep={prevStep} />;
             case 1:
                 return (
                     <>
@@ -34,12 +65,12 @@ const Booking = () => {
             case 2:
                 return (
                     <>
-                        <ComboFood className="booking-left"></ComboFood>
+                        <ComboFood className="booking-left" />
                         <BookingInfo
                             className="booking-right"
                             nextStep={nextStep}
                             prevStep={prevStep}
-                        ></BookingInfo>
+                        />
                     </>
                 );
             case 3:
@@ -61,6 +92,7 @@ const Booking = () => {
     };
     return (
         <div className="main-base">
+            {contextHolder}
             <Steps
                 className="steps-booking"
                 current={currentStep}
@@ -87,4 +119,4 @@ const Booking = () => {
     );
 };
 
-export default Booking;
+export default BookingMain;

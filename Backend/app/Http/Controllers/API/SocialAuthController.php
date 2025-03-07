@@ -1,6 +1,8 @@
 <?php
 
+
 namespace App\Http\Controllers\API;
+
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -8,6 +10,7 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+
 
 class SocialAuthController extends Controller
 {
@@ -18,6 +21,7 @@ class SocialAuthController extends Controller
         return response()->json(['url' => $redirectUrl]);
     }
 
+
     // Xử lý callback từ Google
     public function handleGoogleCallback(Request $request)
     {
@@ -27,14 +31,18 @@ class SocialAuthController extends Controller
                 'verify' => 'H:/laragon/etc/ssl/cacert.pem',
             ];
 
+
+
             // Lấy thông tin user từ Google
             $googleUser = Socialite::driver('google')
                 ->setHttpClient(new Client([$clientOptions]))
                 ->stateless()
                 ->user();
 
+
             // Kiểm tra xem user đã tồn tại chưa
             $user = User::where('email', $googleUser->getEmail())->first();
+
 
             if (!$user) {
                 // Nếu chưa có tài khoản thì tạo mới
@@ -53,8 +61,10 @@ class SocialAuthController extends Controller
                 }
             }
 
+
             // Tạo token để ReactJS dùng
             $token = $user->createToken('auth_token')->plainTextToken;
+
 
             // Chuyển hướng về frontend với token và role
             return redirect()->to("http://localhost:3000/auth/google/success?token={$token}&role={$user->role}");
@@ -64,16 +74,20 @@ class SocialAuthController extends Controller
     }
 
 
+
+
     // Redirect to Facebook
     // public function redirectToFacebook()
     // {
     //     return Socialite::driver('facebook')->redirect();
     // }
 
+
     // // Handle Facebook callback
     // public function handleFacebookCallback()
     // {
     //     $facebookUser = Socialite::driver('facebook')->user();
+
 
     //     $user = User::updateOrCreate([
     //         'email' => $facebookUser->getEmail(),
@@ -83,7 +97,9 @@ class SocialAuthController extends Controller
     //         'password' => bcrypt(uniqid()),
     //     ]);
 
+
     //     $token = $user->createToken('auth_token')->plainTextToken;
+
 
     //     return response()->json([
     //         'access_token' => $token,

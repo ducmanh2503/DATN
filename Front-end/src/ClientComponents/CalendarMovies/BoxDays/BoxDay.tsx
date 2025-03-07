@@ -1,14 +1,13 @@
-import React, { useState } from "react";
 import "./BoxDay.css";
-const BoxDay = () => {
-    const [isActive, setIsActive] = useState(false);
+
+const BoxDay = ({ date, number, searchDate, onClick }: any) => {
     return (
         <div
-            className={`box-days ${isActive ? "active-btn" : ""}`}
-            onClick={() => setIsActive(!isActive)}
+            className={`box-days ${searchDate === date ? "active-btn" : ""}`}
+            onClick={onClick}
         >
-            <div className="title-days">Thứ hai</div>
-            <div className="number-days">03/03</div>
+            <div className="title-days">{number}</div>
+            <div className="number-days">{date}</div>
         </div>
     );
 };

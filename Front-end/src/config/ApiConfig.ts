@@ -41,7 +41,7 @@ const GET_DATES_BY_CALENDAR = `${BASE_URL}/show-times/get-date-range-by-calendar
 const GET_RANGE = `${BASE_URL}/show-times/in-range`;
 
 const GET_ROOMS = `${BASE_URL}/room`;
-
+const GET_SHOW_BY_FILM_DATE = `${BASE_URL}/showtimes/by-date`; // lấy suất chiếu qua ngày chiếu
 export {
     GET_FILM_LIST,
     GET_FILM_DETAIL,
@@ -73,4 +73,5 @@ export {
     GET_DATES_BY_CALENDAR,
     UPDATE_ONE_SHOWTIMES,
     GET_ROOMS,
+    GET_SHOW_BY_FILM_DATE,
 };

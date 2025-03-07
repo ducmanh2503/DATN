@@ -2,8 +2,8 @@
     display: inline-block;
     color: black;
     border: 1px solid #cbcbbe;
-    padding: 10px 16px;
-    margin-right: 6px;
+    padding: 10px 20px;
+    margin-right: 10px;
     clip-path: polygon(
         0% 15%,
         15% 15%,
@@ -18,4 +18,7 @@
         15% 85%,
         0% 85%
     );
+}
+.box-numbers .box-numbers {
+    margin-top: 8px;
 }

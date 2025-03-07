@@ -63,6 +63,21 @@
     justify-content: space-between;
 }
 
+.seat-item .seat-info .seat-numbers {
+    display: inline-flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.seat-item .seat-info .seat-numbers .seat-name {
+    display: inline-block;
+    max-width: 103px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
 .seat-item .seat-info .seat-count .number,
 .seat-item .seat-info .seat-numbers .seat-name {
     font-weight: 700;
@@ -81,4 +96,8 @@
     color: var(--border-color);
     font-weight: 700;
     font-size: 18px;
+}
+
+.booking-combo .combo-item .number {
+    font-weight: 700;
 }

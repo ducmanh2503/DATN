@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { GET_FILM_DETAIL, URL_IMAGE } from "../../../config/ApiConfig";
 import SeatInfo from "../SeatInfo/SeatInfo";
 import ComboInfo from "../ComboInfo/ComboInfo";
+import dayjs from "dayjs";
 const InfoMovie = () => {
     const {
         filmId,
@@ -19,8 +20,10 @@ const InfoMovie = () => {
     const { data: detailFilm } = useQuery({
         queryKey: ["film", filmId],
         queryFn: async () => {
-            const { data } = await axios.get(GET_FILM_DETAIL(filmId));
-            console.log("check-data-detail", data);
+            const { data } = await axios.get(
+                `http://localhost:8000/api/movie-details-booking/${filmId}`
+            );
+            console.log("http://localhost:8000", data);
 
             return data.data;
         },
@@ -32,41 +35,45 @@ const InfoMovie = () => {
                 <div className="film-image">
                     <Image
                         className="film-thumbnail"
-                        // src={`${URL_IMAGE}${detailFilm.poster}`}
+                        src={`${URL_IMAGE}${detailFilm?.poster}`}
                     />
                 </div>
                 <div className="film-info">
                     <div className="info-title cliptextTitle">
-                        {/* {detailFilm.title} */}
+                        {detailFilm?.title}
                     </div>
                     <div className="info-genres">
-                        {/* {detailFilm.genres
-                            .map((genre: any) => genre.name_genre)
-                            .join(", ")} */}
+                        {detailFilm?.genres.map((genre: any, index: number) => (
+                            <span key={index} className="genre-item">
+                                {genre.name_genre}
+                            </span>
+                        ))}
                     </div>
                     <div className="info-sub">
                         <span className="sub-room-type">2D</span>
                         <span className="sub-form">lồng tiếng</span>
-                        {/* <span className="sub-rated">{detailFilm.rated}</span> */}
+                        <span className="sub-rated">{detailFilm?.rated}</span>
                     </div>
                 </div>
             </div>
 
             <div className="booking-detail">
-                {/* <span className="detail-time">Suất: {showtimesTime}</span> - */}
-                {/* <span className="detail-day"> {showtimesDate}</span> */}
+                <span className="detail-time">
+                    Suất: {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")}
+                </span>{" "}
+                -<span className="detail-day"> {showtimesDate}</span>
             </div>
-            {/* {currentStep === 1 || currentStep === 2 ? ( */}
+
             <>
                 {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
                 {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
             </>
-            {/* ) : null} */}
+
             <div className="booking-total">
                 <Divider className="divider-custom" dashed />
                 <div className="total-info">
                     <div className="total-label">Tổng cộng</div>
-                    <div className="total-price">{totalPrice}đ</div>
+                    <div className="total-price">{parseInt(totalPrice)}đ</div>
                 </div>
             </div>
         </div>

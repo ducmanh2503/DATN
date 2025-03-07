@@ -6,7 +6,7 @@ import ComboFood from "./ComboFood/ComboFood";
 import PaymentGate from "./PaymentGate/PaymentGate";
 import { useMessageContext } from "../UseContext/ContextState";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { CloseCircleOutlined } from "@ant-design/icons";
 
 const BookingMain = () => {
@@ -36,6 +36,7 @@ const BookingMain = () => {
             openNotification(false)();
             return;
         }
+
         if (currentStep < 4) setCurrentStep(currentStep + 1);
     };
 
@@ -67,6 +68,7 @@ const BookingMain = () => {
                     <>
                         <ComboFood className="booking-left" />
                         <BookingInfo
+                            currentStep={currentStep}
                             className="booking-right"
                             nextStep={nextStep}
                             prevStep={prevStep}

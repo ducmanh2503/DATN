@@ -23,12 +23,13 @@ import SeatPage from "./page/admin/Seat/SeatPage";
 import RoomPage from "./page/admin/RoomPage/RoomPage";
 import FilmDetail from "./ClientComponents/FilmDetail/FilmDetail";
 import Showtimes from "./ClientComponents/Showtimes/Showtimes";
-// import Booking from "./ClientComponents/Booking/Booking";
 import Payment from "./ClientComponents/Payment/Payment";
 import Login from "./page/auth/Login";
 import Register from "./page/auth/Register";
 import GoogleCallback from "./page/auth/GoogleCallback";
 import authService from "./services/auth.service";
+import BookingMain from "./ClientComponents/Booking/BookingMain";
+import Booking from "./page/client/Booking/Booking";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -263,6 +264,10 @@ export const router = createBrowserRouter([
     //         },
     //     ],
     // },
+    {
+        path: "/booking",
+        element: <Booking></Booking>,
+    },
     {
         element: <PublicRoute />,
         children: [

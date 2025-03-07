@@ -40,12 +40,21 @@
 }
 
 .booking-film .film-info .info-title {
-    font-weight: 600;
+    font-weight: 700;
     width: 220px;
+    letter-spacing: 1px;
 }
 
 .booking-film .film-info .info-genres {
     margin-top: 5px;
+}
+
+.booking-film .film-info .info-genres .genre-item {
+    font-size: 14px;
+    padding: 1px 4px;
+    background-color: #ececec;
+    border-radius: 4px;
+    border: 1px solid black;
 }
 
 .booking-film .film-info .info-sub {

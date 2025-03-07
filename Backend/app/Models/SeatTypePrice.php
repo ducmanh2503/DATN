@@ -116,4 +116,9 @@ class SeatTypePrice extends Model
     // }
 
     //////////////---------------------end-carbon V2-----------------/////////////////////
+
+    public function getFormattedPriceAttribute()
+    {
+        return ($this->price == floor($this->price)) ? number_format($this->price, 0) : number_format($this->price, 2);
+    }
 }

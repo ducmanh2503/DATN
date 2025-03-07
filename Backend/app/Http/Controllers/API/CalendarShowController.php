@@ -126,7 +126,7 @@ class CalendarShowController extends Controller
     }
 
     //lấy tất cả các ngày mà phim đó có lịch chiếu
-    public function getShowDates(string $movie_id)
+    public function getShowDates(Request $request, string $movie_id)
     {
         // Kiểm tra movie_id có tồn tại không
         if (!Movies::where('id', $movie_id)->exists()) {

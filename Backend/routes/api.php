@@ -153,6 +153,7 @@ Route::get('/movies-index', [MoviesController::class, 'index']);
 Route::get('/showtimes/by-date/{movie_id}/{date}', [ShowTimeController::class, 'getShowTimesByDate']);
 Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient']);
 Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::class, 'getShowDates']);
+Route::get('/movie-details-booking/{movie}', [MoviesController::class, 'show']);
 
 
 //combo

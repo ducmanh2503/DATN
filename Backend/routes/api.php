@@ -150,7 +150,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //movie, calendar_show, showTime
 Route::get('/movies-index', [MoviesController::class, 'index']);
-Route::get('/showtimes/by-date/{date}', [ShowTimeController::class, 'getShowTimesByDate']);
+Route::get('/showtimes/by-date/{movie_id}/{date}', [ShowTimeController::class, 'getShowTimesByDate']);
 Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient']);
 Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::class, 'getShowDates']);
 

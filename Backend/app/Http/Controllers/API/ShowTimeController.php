@@ -498,7 +498,7 @@ class ShowTimeController extends Controller
     //hàm lọc theo lịch chiếu
 
 
-    /**
+    /**                                
      * Hiển thị tất cả suất chiếu trong khoảng ngày từ bảng calendar_show
      */
     public function getShowTimesInDateRange(Request $request)

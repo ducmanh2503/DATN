@@ -3,7 +3,7 @@ import "./InfoMovie.css";
 import { useMessageContext } from "../../UseContext/ContextState";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { GET_FILM_DETAIL, URL_IMAGE } from "../../../config/ApiConfig";
+import { URL_IMAGE } from "../../../config/ApiConfig";
 import SeatInfo from "../SeatInfo/SeatInfo";
 import ComboInfo from "../ComboInfo/ComboInfo";
 import dayjs from "dayjs";
@@ -12,7 +12,6 @@ const InfoMovie = () => {
         filmId,
         showtimesTime,
         showtimesDate,
-        currentStep,
         totalPrice,
         quantitySeats,
         quantityCombo,
@@ -51,15 +50,18 @@ const InfoMovie = () => {
                     </div>
                     <div className="info-sub">
                         <span className="sub-room-type">2D</span>
-                        <span className="sub-form">lồng tiếng</span>
-                        <span className="sub-rated">{detailFilm?.rated}</span>
+                        <span className="sub-form">{detailFilm?.language}</span>
+                        <div className="sub-rated">{detailFilm?.rated}</div>
                     </div>
                 </div>
             </div>
 
             <div className="booking-detail">
-                <span className="detail-time">
-                    Suất: {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")}
+                <span>
+                    Suất:{" "}
+                    <span className="detail-time">
+                        {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")}
+                    </span>
                 </span>{" "}
                 -<span className="detail-day"> {showtimesDate}</span>
             </div>

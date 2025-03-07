@@ -17,37 +17,48 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
+    if (!email || !password) {
+      message.warning("Vui lòng nhập email và mật khẩu!");
+      setLoading(false);
+      return;
+    }
+
     try {
-      console.log("Login attempt with:", { email, password });
+      console.log("Đang đăng nhập với:", { email, password });
+
+      // Gửi request đăng nhập
       const response: AuthResponse = await authService.login({
         email,
         password,
       });
 
-      console.log("Login API response:", response);
+      console.log("📡 Phản hồi từ API:", response);
 
-      if (!response.token) {
-        throw new Error("Token không được trả về từ API");
+      if (!response?.token) {
+        throw new Error("API không trả về token. Vui lòng thử lại!");
       }
 
-      // Lưu token và role vào localStorage
+      // Lưu token & role vào localStorage
       localStorage.setItem("auth_token", response.token);
       localStorage.setItem("user_role", response.role || "customer");
 
+      // Cấu hình axios để gửi token tự động
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${response.token}`;
+
       message.success("Đăng nhập thành công!");
 
-      // ✅ Kiểm tra role để chuyển hướng đúng
-      if (response.role === "admin") {
-        navigate("/admin/film");
-      } else {
-        navigate("/");
-      }
+      // Chuyển hướng dựa trên quyền
+      response.role === "admin" ? navigate("/admin/film") : navigate("/");
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Lỗi đăng nhập:", error);
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_role");
+
       message.error(
-        error.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại."
+        error.response?.data?.message ||
+          "Đăng nhập thất bại. Vui lòng kiểm tra lại."
       );
     } finally {
       setLoading(false);

@@ -7,6 +7,7 @@ use App\Http\Controllers\API\ActorController;
 use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalendarShowController;
+use App\Http\Controllers\API\CartItemController;
 use App\Http\Controllers\API\ComboController;
 use App\Http\Controllers\API\DirectorController;
 use App\Http\Controllers\API\DiscountCodeController;
@@ -166,6 +167,11 @@ Route::post('/verify-code', [AuthController::class, 'verifyCode']);
 Route::post('/login', [AuthController::class, 'login']);
 
 
+//cart
+Route::post('/cart/add-combo', [CartItemController::class, 'addComboToCart']);
+Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
+Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToCart']);
+Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
 
 
 //lấy lại mật khẩu

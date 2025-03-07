@@ -333,12 +333,10 @@ class ShowTimeController extends Controller
 
 
     //------------------------------------showTime-------------------------------------------------
-    public function getShowTimesByDate(Request $request)
+    public function getShowTimesByDate($date, Request $request)
     {
-
-
         // Validate dữ liệu đầu vào
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make(['date' => $date] + $request->query(), [
             'date' => 'required|date',
             'room_id' => 'nullable|exists:rooms,id',
             'room_type_id' => 'nullable|exists:room_types,id'
@@ -349,7 +347,7 @@ class ShowTimeController extends Controller
         }
 
         // Lấy tất cả show_time_id có trong ngày đã chọn
-        $showTimeIds = ShowTimeDate::where('show_date', $request->date)
+        $showTimeIds = ShowTimeDate::where('show_date', $date)
             ->pluck('show_time_id');
 
         if ($showTimeIds->isEmpty()) {
@@ -362,13 +360,13 @@ class ShowTimeController extends Controller
 
         // Thêm điều kiện lọc theo phòng nếu có
         if ($request->has('room_id')) {
-            $query->where('room_id', $request->room_id);
+            $query->where('room_id', $request->query('room_id'));
         }
 
-        //lọc theo room_type
+        // Lọc theo room_type
         if ($request->has('room_type_id')) {
             $query->whereHas('room', function ($query) use ($request) {
-                $query->where('room_type_id', $request->room_type_id);
+                $query->where('room_type_id', $request->query('room_type_id'));
             });
         }
 
@@ -475,8 +473,8 @@ class ShowTimeController extends Controller
 
     public function getShowTimesByDateClient(Request $request)
     {
-        // Lấy ngày từ query string
-        $date = $request->query('date');
+        // Lấy ngày từ request body
+        $date = $request->input('date');
 
         // Kiểm tra nếu không có date hoặc không đúng định dạng
         if (!$date || !strtotime($date)) {
@@ -484,8 +482,7 @@ class ShowTimeController extends Controller
         }
 
         // Lấy danh sách show_time_id theo ngày
-        $showTimeIds = ShowTimeDate::where('show_date', $date)
-            ->pluck('show_time_id');
+        $showTimeIds = ShowTimeDate::where('show_date', $date)->pluck('show_time_id');
 
         if ($showTimeIds->isEmpty()) {
             return response()->json(['message' => 'Không có suất chiếu nào cho ngày này'], 404);

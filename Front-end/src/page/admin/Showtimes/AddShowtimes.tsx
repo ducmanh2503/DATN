@@ -295,12 +295,6 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
                         className="input-label"
                         label="Hình thức chiếu"
                         name="room_type"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Vui lòng nhập hình thức chiếu",
-                            },
-                        ]}
                     >
                         <Select
                             allowClear

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
+use App\Models\Movies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -114,6 +115,8 @@ class CalendarShowController extends Controller
     public function destroy(string $id)
     {
 
+
+
         $calendarShows = CalendarShow::find($id);
 
         if (!$calendarShows) {
@@ -124,6 +127,44 @@ class CalendarShowController extends Controller
 
         return response()->json([
             'message' => 'Lịch chiếu đã được gỡ'
+        ]);
+    }
+
+    //lấy tất cả các ngày mà phim đó có lịch chiếu
+    public function getShowDates(Request $request, string $movie_id)
+    {
+        // Kiểm tra movie_id có tồn tại không
+        if (!Movies::where('id', $movie_id)->exists()) {
+            return response()->json(['error' => 'Phim không tồn tại'], 404);
+        }
+
+
+        // Lấy ngày hiện tại
+        $today = now()->toDateString();
+
+        // Tìm lịch chiếu của phim, chỉ lấy từ ngày hôm nay trở đi
+        $calendarShow = CalendarShow::where('movie_id', $request->movie_id)
+            ->where('end_date', '>=', $today) // Loại bỏ lịch chiếu đã kết thúc
+            ->selectRaw('MIN(show_date) as start_date, MAX(end_date) as end_date')
+            ->first();
+
+        if (!$calendarShow || !$calendarShow->start_date || !$calendarShow->end_date) {
+            return response()->json(['message' => 'Không tìm thấy lịch chiếu cho phim này'], 404);
+        }
+
+        // Chỉ lấy từ hôm nay trở đi
+        $startDate = new \DateTime(max($calendarShow->start_date, $today));
+        $endDate = new \DateTime($calendarShow->end_date);
+        $dates = [];
+
+        while ($startDate <= $endDate) {
+            $dates[] = $startDate->format('Y-m-d');
+            $startDate->modify('+1 day');
+        }
+
+        return response()->json([
+            'movie_id' => $request->movie_id,
+            'show_dates' => $dates
         ]);
     }
 }

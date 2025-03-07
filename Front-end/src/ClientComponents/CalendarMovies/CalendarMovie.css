@@ -4,10 +4,20 @@
     flex-wrap: wrap;
 }
 
+.loading-time {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .film-room {
     margin-top: 20px;
 }
 
 .calendar-numbers {
     margin-top: 30px;
+}
+
+.no-showtimes {
+    color: red;
 }

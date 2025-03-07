@@ -15,3 +15,10 @@
 .booking-main .booking-right {
     width: 35%;
 }
+
+.notification-icon {
+    color: red;
+    font-size: 20px;
+    margin-top: 10px;
+    margin-right: 2px;
+}

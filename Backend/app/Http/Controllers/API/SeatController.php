@@ -114,7 +114,6 @@ class SeatController extends Controller
         // Phát sự kiện cập nhật realtime
         Broadcast(new SeatHeldEvent($seats, $userId, $roomId, $showTimeId));
 
-
         return response()->json(['message' => 'Ghế đã được giữ!', 'seats' => $seats, 'expires_at' => $expiresAt, 'user_id' => $userId]);
     }
 

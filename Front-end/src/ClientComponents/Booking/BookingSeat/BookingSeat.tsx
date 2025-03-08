@@ -46,27 +46,49 @@ const BookingSeat = ({ className }: any) => {
   >({});
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
 
-  // State để theo dõi kênh Pusher đã được đăng ký
-  const [isPusherRegistered, setIsPusherRegistered] = useState(false);
+  // api sơ đồ ghế
+  const { data: matrixSeats } = useQuery({
+    queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `http://localhost:8000/api/get-seats-for-booking/${roomIdFromShowtimes}/${showtimeIdFromBooking}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("check-matrix", data);
+      return data;
+    },
+  });
 
-  // Ref để theo dõi trạng thái đăng ký Pusher event handlers
-  const pusherEventHandlersRegistered = useRef(false);
+  // Lấy ID của user
+  const { data: getUserId } = useQuery({
+    queryKey: ["getUserId"],
+    queryFn: async () => {
+      const { data } = await axios.get(`http://localhost:8000/api/user`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("check-user-id", data);
+      return data.id;
+    },
+  });
 
-  // Thêm ref để lưu trữ interval ID của polling
-  const pollingIntervalRef = useRef<number | null>(null);
-  // Thêm Query Client để thao tác với cache
-  const queryClient = useQueryClient();
+  const userId = getUserId || null;
 
-  const handleContinue = () => {
-    console.log("🔵 Ghế đang giữ: ", selectedSeatIds);
+  // Hàm tìm mã ghế từ ID
+  const findSeatCodeById = (seatId: number): string | null => {
+    if (!matrixSeats) return null;
 
-    if (selectedSeatIds.length === 0) {
-      console.warn("⚠ Không có ghế nào được chọn!");
-      message.warning("Vui lòng chọn ít nhất một ghế!");
-      return;
+    for (const rowKey in matrixSeats) {
+      const row = matrixSeats[rowKey];
+      for (const seatKey in row) {
+        const seat = row[seatKey];
+        if (seat.id === seatId) {
+          return seat.seatCode;
+        }
+      }
     }
-
-    holdSeatMutation.mutate(selectedSeatIds);
+    return null;
   };
   // API giữ ghế
   const holdSeatMutation = useMutation({
@@ -290,6 +312,7 @@ const BookingSeat = ({ className }: any) => {
 
   // Xử lý click vào ghế
   const handleSeatClick = (seat: SeatType) => {
+    // Thêm biến này vào context hoặc trong component
     console.log("get-seat", seat.id);
     setHoldSeatId(seat.id);
 

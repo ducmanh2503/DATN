@@ -26,14 +26,12 @@ export const MessageProvider = ({
     number | null
   >(); // id suất chiếu booking
   const [holdSeatId, setHoldSeatId] = useState<string[]>([]); // id của hold-seat
-  //aaaaaaaaaaaaaaaaaaaaaa
-  //bbbbbbbbbbbbbbbbbbbbb
-  //ccccccccccccccccccccc
-  //ccccccccccccccccccccc
-  //ccccccccccccccccccccc
-  //ccccccccccccccccccccc
-  //ccccccccccccccccccccc
-  //ccccccccccccccccccccc
+  const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]); //  id ghế đã chọn
+  // Thêm state để theo dõi trạng thái refetch
+  const [shouldRefetch, setShouldRefetch] = useState(false);
+  // const [userIdFromShowtimes, setUserIdFromShowtimes] = useState<number | null>(
+  //   0
+  // ); // user ID showtimes
 
   return (
     <MessageContext.Provider
@@ -68,6 +66,10 @@ export const MessageProvider = ({
         setShowtimeIdFromBooking,
         holdSeatId,
         setHoldSeatId,
+        selectedSeatIds,
+        setSelectedSeatIds,
+        shouldRefetch,
+        setShouldRefetch,
       }}
     >
       {children}

@@ -29,7 +29,13 @@ const BookingSeat = ({ className }: any) => {
         showtimeIdFromBooking,
         setHoldSeatId,
         holdSeatId,
+        setHandleContinue,
+        selectedSeatIds,
+        setSelectedSeatIds,
     } = useMessageContext();
+    const [seats, setSeats] = useState<Record<string, { isHeld?: boolean }>>(
+        {}
+    );
 
     // Lấy token từ localStorage
     const token = localStorage.getItem("auth_token");
@@ -82,7 +88,6 @@ const BookingSeat = ({ className }: any) => {
         },
     });
 
-    const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
     const handleSeatClick = (seat: SeatType) => {
         // Thêm biến này vào context hoặc trong component
         console.log("get-seat", seat.id);
@@ -101,8 +106,8 @@ const BookingSeat = ({ className }: any) => {
                 updatedTotalPrice -= Number(seat.price);
 
                 // Cũng cập nhật mảng ID
-                setSelectedSeatIds((prev) =>
-                    prev.filter((id) => id !== seat.id)
+                setSelectedSeatIds((prev: any) =>
+                    prev.filter((id: any) => id !== seat.id)
                 );
             } else {
                 // Chọn thêm ghế
@@ -110,7 +115,7 @@ const BookingSeat = ({ className }: any) => {
                 updatedTotalPrice += Number(seat.price);
 
                 // Thêm ID vào mảng
-                setSelectedSeatIds((prev) => [...prev, seat.id]);
+                setSelectedSeatIds((prev: any) => [...prev, seat.id]);
             }
 
             setQuantitySeats(updatedSeats.length);
@@ -123,6 +128,10 @@ const BookingSeat = ({ className }: any) => {
         // Gửi mảng ID ghế đã chọn
         holdSeatMutation.mutate(selectedSeatIds);
     };
+
+    useEffect(() => {
+        setHandleContinue(() => handleContinue);
+    }, [selectedSeatIds]);
 
     useEffect(() => {
         setTotalPrice(totalSeatPrice);
@@ -143,9 +152,6 @@ const BookingSeat = ({ className }: any) => {
     const userId = getUserId || null;
 
     //hold time
-    const [seats, setSeats] = useState<Record<string, { isHeld?: boolean }>>(
-        {}
-    );
 
     useEffect(() => {
         // Đảm bảo pusher được cấu hình đúng
@@ -265,11 +271,12 @@ const BookingSeat = ({ className }: any) => {
                                                         <button
                                                             className="seat-name"
                                                             key={seat.id}
-                                                            onClick={() =>
+                                                            onClick={() => {
                                                                 handleSeatClick(
                                                                     seat
-                                                                )
-                                                            }
+                                                                );
+                                                                handleContinue;
+                                                            }}
                                                             disabled={
                                                                 seats?.[
                                                                     seat
@@ -328,15 +335,6 @@ const BookingSeat = ({ className }: any) => {
                                     )
                                 )}
                         </div>
-
-                        {/* Nút "Tiếp tục" */}
-                        <Button
-                            type="primary"
-                            onClick={handleContinue}
-                            disabled={nameSeats.length === 0}
-                        >
-                            Tiếp tục
-                        </Button>
                     </Card>
                 </div>
                 <pre>{JSON.stringify(seats, null, 2)}</pre>

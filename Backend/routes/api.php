@@ -175,7 +175,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 //cart
 Route::post('/cart/add-combo', [CartItemController::class, 'addComboToCart']);
 Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
-Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToCart']);
+Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
 Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
 
 

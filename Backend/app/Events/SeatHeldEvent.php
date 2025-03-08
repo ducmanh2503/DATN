@@ -18,16 +18,20 @@ class SeatHeldEvent implements ShouldBroadcastNow
 
     public $seats;
     public $userId;
+    public $roomId;
+    public $showTimeId;
 
-    public function __construct($seats, $userId)
+    public function __construct($seats, $userId, $roomId, $showTimeId)
     {
         $this->seats = $seats;
         $this->userId = $userId;
+        $this->roomId = $roomId;
+        $this->showTimeId = $showTimeId;
     }
 
     public function broadcastOn()
     {
-        return new Channel('seats');
+        return new Channel('seats'  . $this->roomId . '.' . $this->showTimeId);
     }
 
     //định nghĩa tên sự kiện phát đi

@@ -16,7 +16,7 @@ class CartItemController extends Controller
         $request->validate([
             'cart_id' => 'required|exists:cart,id',
             'combo_id' => 'required|exists:combos,id',
-            'seat_id' => 'required|exists:seats,id',   
+            'seat_id' => 'required|exists:seats,id',
             'price_SATOBK' => 'required|numeric',
             'price_FATOBK' => 'required|numeric',
             'total_price' => 'required|numeric',
@@ -46,29 +46,31 @@ class CartItemController extends Controller
         ], 201);
     }
 
-    //add seat và showTime (code lỏ)
+    //add seat và showTime (code lỏ combo_id đang không được null khả năng phải sửa lại db)
     public function addSeatToCart(Request $request)
     {
         $request->validate([
-            'cart_id' => 'required|exists:carts,id',
+            'cart_id' => 'required|exists:cart,id',
             'seat_id' => 'required|exists:seats,id',
-            'show_times_id' => 'required|exists:show_times,id',
+            // 'show_times_id' => 'required|exists:show_times,id',
         ]);
 
         $cartItem = CartItem::where('cart_id', $request->cart_id)
             ->where('seat_id', $request->seat_id)
-            ->where('showtime_id', $request->showtime_id)
+            // ->where('showtime_id', $request->showtime_id)
             ->first();
 
 
         if ($cartItem) {
             return response()->json(['message' => 'Ghế và suất chiếu đã có trong giỏ hàng'], 400);
         }
+        $defaultComboId = null;
 
         $cartItem = CartItem::create([
             'cart_id' => $request->cart_id,
             'seat_id' => $request->seat_id,
-            'showtime_id' => $request->showtime_id,
+            'combo_id' => $defaultComboId,
+            // 'showtime_id' => $request->showtime_id,
             'total_price' => $this->calculateTotalPrice($request->cart_id), // Tính lại giá
         ]);
 
@@ -77,6 +79,43 @@ class CartItemController extends Controller
             'cart_item' => $cartItem,
         ]);
     }
+
+
+    //add showTime (trong bảng cart_item đang không có showTime mà showTime đang nằm ở booking)
+
+    public function addShowtimeToBooking(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'showtime_id' => 'required|exists:show_times,id',
+        ]);
+    
+        // Kiểm tra xem người dùng đã có booking chưa
+        $booking = Booking::where('user_id', $request->user_id)
+                          ->where('status', 'pending')
+                          ->first();
+    
+        if ($booking) {
+            // Nếu đã có booking, cập nhật showtime_id
+            $booking->update(['showtime_id' => $request->showtime_id]);
+        } else {
+            // Nếu chưa có booking, tạo mới
+            $booking = Booking::create([
+                'user_id' => $request->user_id,
+                'showtime_id' => $request->showtime_id,
+                'total_ticket_price' => 0, // Chưa chọn ghế
+                'total_combo_price' => 0, // Chưa chọn combo
+                'status' => 'pending',
+            ]);
+        }
+    
+        return response()->json([
+            'message' => 'Suất chiếu đã được lưu vào booking',
+            'booking' => $booking
+        ], 201);
+    }
+    
+
 
 
     //tính toán (code lỏ)
@@ -94,15 +133,15 @@ class CartItemController extends Controller
     }
 
 
-    //thanh toán (code lỏ)
+    //thanh toán (code lỏ chưa hoàn thiện)
 
     public function checkout(Request $request)
     {
 
         $request->validate([
-            'cart_id' => 'required|exists:carts,id',
+            'cart_id' => 'required|exists:cart,id',
             'user_id' => 'required|exists:users,id',
-            'payment_method' => 'required|string', // Ví dụ: 'credit_card', 'paypal', v.v.
+            // 'payment_method' => 'required|string', // Ví dụ: 'credit_card', 'paypal', v.v.
         ]);
 
         $cartItems = CartItem::where('cart_id', $request->cart_id)->get();
@@ -118,6 +157,7 @@ class CartItemController extends Controller
         // Tạo đơn đặt hàng (booking)
         $booking = Booking::create([
             'user_id' => $request->user_id,
+            'showtime_id' => $request->showtime_id, // Thêm dòng này
             'total_ticket_price' => $totalAmount,
             'total_combo_price' => 0, // Tổng tiền combo (nếu cần)
             'status' => 'pending',

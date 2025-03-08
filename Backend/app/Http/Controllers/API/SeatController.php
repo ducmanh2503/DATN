@@ -74,7 +74,7 @@ class SeatController extends Controller
 
         $validator = Validator::make($request->all(), [
             'seats' => 'required|array',
-            'seats.*' => 'exists:seats,id',
+            'seats.*' => 'numeric|exists:seats,id',
         ]);
 
         // Kiểm tra nếu có lỗi xác thực
@@ -83,7 +83,6 @@ class SeatController extends Controller
         }
 
         $seats = $request->all();
-
         $userId = auth()->id();
         $expiresAt = now()->addMinutes(5);
 
@@ -99,9 +98,9 @@ class SeatController extends Controller
         }
 
         // Phát sự kiện cập nhật realtime
-        event(new SeatHeldEvent($seats, $userId));
+        Broadcast(new SeatHeldEvent($seats, $userId));
 
-        return response()->json(['message' => 'Ghế đã được giữ!']);
+        return response()->json(['message' => 'Ghế đã được giữ!', 'seats' => $seats, 'expires_at' => $expiresAt, 'user_id' => $userId]);
     }
 
     /**

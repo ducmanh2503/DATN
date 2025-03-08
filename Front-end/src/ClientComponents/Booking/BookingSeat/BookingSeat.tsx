@@ -53,6 +53,7 @@ const BookingSeat = ({ className }: any) => {
       console.log("check-matrix", data);
       return data;
     },
+
   });
 
   // Lấy ID của user
@@ -115,6 +116,7 @@ const BookingSeat = ({ className }: any) => {
 
   // Xử lý click vào ghế
   const handleSeatClick = (seat: SeatType) => {
+    // Thêm biến này vào context hoặc trong component
     console.log("get-seat", seat.id);
     setHoldSeatId(seat.id);
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./BookingSeat.css";
-import { Card, Tooltip, Button } from "antd"; // Thêm Button
+import { Card, Tooltip, Button } from "antd";
 import { useMessageContext } from "../../UseContext/ContextState";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -88,6 +88,7 @@ const BookingSeat = ({ className }: any) => {
         },
     });
 
+    const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
     const handleSeatClick = (seat: SeatType) => {
         // Thêm biến này vào context hoặc trong component
         console.log("get-seat", seat.id);
@@ -106,8 +107,8 @@ const BookingSeat = ({ className }: any) => {
                 updatedTotalPrice -= Number(seat.price);
 
                 // Cũng cập nhật mảng ID
-                setSelectedSeatIds((prev: any) =>
-                    prev.filter((id: any) => id !== seat.id)
+                setSelectedSeatIds((prev) =>
+                    prev.filter((id) => id !== seat.id)
                 );
             } else {
                 // Chọn thêm ghế
@@ -130,10 +131,6 @@ const BookingSeat = ({ className }: any) => {
     };
 
     useEffect(() => {
-        setHandleContinue(() => handleContinue);
-    }, [selectedSeatIds]);
-
-    useEffect(() => {
         setTotalPrice(totalSeatPrice);
     }, [totalSeatPrice, setTotalPrice]);
 
@@ -152,6 +149,9 @@ const BookingSeat = ({ className }: any) => {
     const userId = getUserId || null;
 
     //hold time
+    const [seats, setSeats] = useState<Record<string, { isHeld?: boolean }>>(
+        {}
+    );
 
     useEffect(() => {
         // Đảm bảo pusher được cấu hình đúng
@@ -271,12 +271,11 @@ const BookingSeat = ({ className }: any) => {
                                                         <button
                                                             className="seat-name"
                                                             key={seat.id}
-                                                            onClick={() => {
+                                                            onClick={() =>
                                                                 handleSeatClick(
                                                                     seat
-                                                                );
-                                                                handleContinue;
-                                                            }}
+                                                                )
+                                                            }
                                                             disabled={
                                                                 seats?.[
                                                                     seat
@@ -335,6 +334,15 @@ const BookingSeat = ({ className }: any) => {
                                     )
                                 )}
                         </div>
+
+                        {/* Nút "Tiếp tục" */}
+                        <Button
+                            type="primary"
+                            onClick={handleContinue}
+                            disabled={nameSeats.length === 0}
+                        >
+                            Tiếp tục
+                        </Button>
                     </Card>
                 </div>
                 <pre>{JSON.stringify(seats, null, 2)}</pre>

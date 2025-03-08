@@ -28,29 +28,6 @@ export const MessageProvider = ({
         number | null
     >(); // id suất chiếu booking
     const [holdSeatId, setHoldSeatId] = useState<string[]>([]); // id của hold-seat
-    const [handleContinue, setHandleContinue] = useState<() => void>(() => {}); //  hàm handleContinue
-    const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]); // id ghế đã chọn khi muốn hủy
-
-    // Lấy token từ localStorage
-    const token = localStorage.getItem("auth_token");
-
-    const releaseSeatsMutation = useMutation({
-        mutationFn: async (seatIds: string[]) => {
-            await axios.post(
-                `http://localhost:8000/api/release-seats`,
-                { seat: seatIds.join(",") },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-        },
-        onSuccess: () => {
-            console.log("Ghế đã được giải phóng!");
-        },
-    });
-
     return (
         <MessageContext.Provider
             value={{
@@ -84,11 +61,6 @@ export const MessageProvider = ({
                 setShowtimeIdFromBooking,
                 holdSeatId,
                 setHoldSeatId,
-                handleContinue,
-                setHandleContinue,
-                releaseSeatsMutation,
-                selectedSeatIds,
-                setSelectedSeatIds,
             }}
         >
             {children}

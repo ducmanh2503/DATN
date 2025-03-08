@@ -10,14 +10,7 @@ import React, { useEffect, useState } from "react";
 import { CloseCircleOutlined } from "@ant-design/icons";
 
 const BookingMain = () => {
-    const {
-        currentStep,
-        setCurrentStep,
-        quantitySeats,
-        handleContinue,
-        releaseSeatsMutation,
-        selectedSeatIds,
-    } = useMessageContext();
+    const { currentStep, setCurrentStep, quantitySeats } = useMessageContext();
     const navigate = useNavigate();
     const [api, contextHolder] = notification.useNotification();
 
@@ -43,22 +36,20 @@ const BookingMain = () => {
             openNotification(false)();
             return;
         }
-        if (currentStep >= 2) {
-            handleContinue();
-        }
 
         if (currentStep < 4) setCurrentStep(currentStep + 1);
     };
 
     const prevStep = () => {
         if (currentStep > 0) setCurrentStep(currentStep - 1);
+        //ccccccccccccccccccccc
+        //ccccccccccccccccccccc
+        //ccccccccccccccccccccc
+        //ccccccccccccccccccccc
+        //ccccccccccccccccccccc
     };
 
     useEffect(() => {
-        if (currentStep === 1) {
-            releaseSeatsMutation.mutate(selectedSeatIds); // Hủy giữ ghế
-        }
-
         if (currentStep === 0) {
             navigate("/playingFilm"); // Điều hướng về trang PlayingFilm
         }

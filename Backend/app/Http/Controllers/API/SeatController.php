@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Events\SeatHeldEvent;
+use App\Events\SeatUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Seat;
 use App\Models\SeatType;
@@ -31,6 +32,7 @@ class SeatController extends Controller
         // Tạo ma trận ghế ngồi theo hàng và cột
         $seatingMatrix = [];
         foreach ($seats as $seat) {
+
             if (!isset($seatingMatrix[$seat->row])) {
                 $seatingMatrix[$seat->row] = [];
             }
@@ -43,6 +45,11 @@ class SeatController extends Controller
             $heldSeat = Cache::get("seat_$seat->id");
             $isHeld = !empty($heldSeat);
             $heldByUser = $isHeld && $heldSeat['user_id'] == $userId;
+
+            // **Nếu ghế đang bị giữ, cập nhật trạng thái**
+            if ($isHeld) {
+                $status = 'held';
+            }
 
             // Tạo mã ghế từ hàng và cột
             $seatCode = $seat->row . $seat->column;
@@ -61,7 +68,10 @@ class SeatController extends Controller
             ];
         }
 
-        return response()->json($seatingMatrix);
+        // Phát sự kiện cập nhật ghế cho tất cả người dùng
+        broadcast(new SeatUpdated($room_id, $show_time_id, $seatingMatrix))->toOthers();
+
+        return response()->json(array_values($seatingMatrix));
     }
 
     //Cập nhật trạng thái ghế theo thời gian thực khi chọn ghế
@@ -75,6 +85,8 @@ class SeatController extends Controller
         $validator = Validator::make($request->all(), [
             'seats' => 'required|array',
             'seats.*' => 'numeric|exists:seats,id',
+            'room_id' => 'required|numeric|exists:rooms,id',
+            'showtime_id' => 'required|numeric|exists:show_times,id'
         ]);
 
         // Kiểm tra nếu có lỗi xác thực
@@ -82,7 +94,9 @@ class SeatController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $seats = $request->all();
+        $seats = $request->input('seats'); // Lấy danh sách ghế dưới dạng mảng
+        $roomId = $request->input('room_id');
+        $showTimeId = $request->input('showtime_id');
         $userId = auth()->id();
         $expiresAt = now()->addMinutes(5);
 
@@ -98,7 +112,7 @@ class SeatController extends Controller
         }
 
         // Phát sự kiện cập nhật realtime
-        Broadcast(new SeatHeldEvent($seats, $userId));
+        Broadcast(new SeatHeldEvent($seats, $userId, $roomId, $showTimeId));
 
         return response()->json(['message' => 'Ghế đã được giữ!', 'seats' => $seats, 'expires_at' => $expiresAt, 'user_id' => $userId]);
     }
@@ -109,7 +123,9 @@ class SeatController extends Controller
     public function releaseSeat(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'seat' => 'required|string|exists:seats,id'
+            'seat' => 'required|string|exists:seats,id',
+            'room_id' => 'required|numeric|exists:rooms,id',
+            'showtime_id' => 'required|numeric|exists:show_times,id'
         ]);
 
         // Kiểm tra nếu có lỗi xác thực
@@ -118,6 +134,8 @@ class SeatController extends Controller
         }
 
         $seat = $request->input('seat');
+        $roomId = $request->all();
+        $showTimeId = $request->all();
 
         // Kiểm tra ghế có tồn tại trong cache không
         if (!Cache::has("seat_$seat")) {
@@ -128,7 +146,7 @@ class SeatController extends Controller
         Cache::forget("seat_$seat");
 
         // Phát sự kiện giải phóng ghế
-        broadcast(new SeatHeldEvent($seat, null));
+        Broadcast(new SeatHeldEvent($seat, null, $roomId, $showTimeId));
 
         return response()->json([
             'message' => 'Ghế đã được giải phóng!',

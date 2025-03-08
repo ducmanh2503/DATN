@@ -8,12 +8,16 @@ import { useMessageContext } from "../UseContext/ContextState";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { CloseCircleOutlined } from "@ant-design/icons";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 const BookingMain = () => {
-  const { currentStep, setCurrentStep, quantitySeats } = useMessageContext();
+  const { currentStep, setCurrentStep, quantitySeats, selectedSeatIds } =
+    useMessageContext();
   const navigate = useNavigate();
   const [api, contextHolder] = notification.useNotification();
 
+  // thông báo phải đặt ghế để tiếp tục
   const openNotification = (pauseOnHover: boolean) => () => {
     api.open({
       message: (
@@ -31,6 +35,7 @@ const BookingMain = () => {
     });
   };
 
+  // Xử lý khi ấn tiếp tục
   const nextStep = () => {
     if (currentStep === 1 && quantitySeats === 0) {
       openNotification(false)();
@@ -40,13 +45,15 @@ const BookingMain = () => {
     if (currentStep < 4) setCurrentStep(currentStep + 1);
   };
 
+  //xử lý khi ấn quay lại
   const prevStep = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1);
-    //ccccccccccccccccccccc
-    //ccccccccccccccccccccc
-    //ccccccccccccccccccccc
-    //ccccccccccccccccccccc
-    //ccccccccccccccccccccc
+    if (currentStep === 2 && selectedSeatIds.length > 0) {
+      // Chỉ gọi API nếu có ghế được chọn
+    }
+
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   useEffect(() => {

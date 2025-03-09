@@ -1,5 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 import { createContext, useContext, useState } from "react";
 
 const MessageContext = createContext<any>(null);
@@ -28,6 +26,7 @@ export const MessageProvider = ({
         number | null
     >(); // id suất chiếu booking
     const [holdSeatId, setHoldSeatId] = useState<string[]>([]); // id của hold-seat
+    const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]); //  id ghế đã chọn
     return (
         <MessageContext.Provider
             value={{
@@ -61,6 +60,8 @@ export const MessageProvider = ({
                 setShowtimeIdFromBooking,
                 holdSeatId,
                 setHoldSeatId,
+                selectedSeatIds,
+                setSelectedSeatIds,
             }}
         >
             {children}

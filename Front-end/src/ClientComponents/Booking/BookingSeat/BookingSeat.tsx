@@ -11,9 +11,9 @@ interface SeatType {
     roomId: number;
     row: string;
     column: string;
-    seatCode: string; // Ghép từ row + column
-    seatType: string; // Lấy từ bảng `seat_types.name`
-    price: number; // Lấy từ bảng `seat_type_price`
+    seatCode: string;
+    seatType: string;
+    price: number;
     dayType: "weekday" | "weekend" | "holiday";
 }
 
@@ -28,51 +28,18 @@ const BookingSeat = ({ className }: any) => {
         roomIdFromShowtimes,
         showtimeIdFromBooking,
         setHoldSeatId,
-        holdSeatId,
-        setHandleContinue,
-        selectedSeatIds,
         setSelectedSeatIds,
     } = useMessageContext();
-    const [seats, setSeats] = useState<Record<string, { isHeld?: boolean }>>(
-        {}
-    );
 
     // Lấy token từ localStorage
     const token = localStorage.getItem("auth_token");
 
-    //api giữ ghế
-    const holdSeatMutation = useMutation({
-        mutationFn: async (seatIds: number[]) => {
-            const { data } = await axios.post(
-                `http://localhost:8000/api/hold-seats`,
-                {
-                    seats: seatIds, // Gửi danh sách ID ghế (số)
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
-            return data;
-        },
-        onSuccess: (data) => {
-            setSeats((prevSeats: any) => {
-                const updatedSeats = { ...prevSeats };
-                if (data.seats && typeof data.seats === "object") {
-                    Object.keys(data.seats).forEach((seatKey) => {
-                        updatedSeats[seatKey] = {
-                            ...updatedSeats[seatKey],
-                            status: "held",
-                            isHeld: true,
-                            heldByUser: true,
-                        };
-                    });
-                }
-                return updatedSeats;
-            });
-        },
-    });
+    // Tạo state để theo dõi trạng thái của các ghế
+    const [seats, setSeats] = useState<
+        Record<string, { isHeld?: boolean; heldByUser?: boolean }>
+    >({});
 
-    // api sơ đồ ghế
+    // api sơ đồ ghế
     const { data: matrixSeats } = useQuery({
         queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
         queryFn: async () => {
@@ -83,18 +50,51 @@ const BookingSeat = ({ className }: any) => {
                 }
             );
             console.log("check-matrix", data);
-
             return data;
         },
     });
 
-    const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
+    // Lấy ID của user
+    const { data: getUserId } = useQuery({
+        queryKey: ["getUserId"],
+        queryFn: async () => {
+            const { data } = await axios.get(`http://localhost:8000/api/user`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            console.log("check-user-id", data);
+            return data.id;
+        },
+    });
+
+    const userId = getUserId || null;
+
+    // Hàm tìm mã ghế từ ID
+    const findSeatCodeById = (seatId: number): string | null => {
+        if (!matrixSeats) return null;
+
+        for (const rowKey in matrixSeats) {
+            const row = matrixSeats[rowKey];
+            for (const seatKey in row) {
+                const seat = row[seatKey];
+                if (seat.id === seatId) {
+                    return seat.seatCode;
+                }
+            }
+        }
+        return null;
+    };
+
+    // Xử lý click vào ghế
     const handleSeatClick = (seat: SeatType) => {
-        // Thêm biến này vào context hoặc trong component
         console.log("get-seat", seat.id);
         setHoldSeatId(seat.id);
 
-        // Xử lý tên ghế (seatCode) như trước
+        // Kiểm tra xem ghế đã được giữ chưa
+        if (seats[seat.seatCode]?.isHeld) {
+            console.log("Ghế này đã được giữ, không thể chọn");
+            return;
+        }
+
         setNameSeats((prevSeats: string[]) => {
             let updatedSeats: string[];
             let updatedTotalPrice: number = Number(totalSeatPrice);
@@ -106,9 +106,9 @@ const BookingSeat = ({ className }: any) => {
                 );
                 updatedTotalPrice -= Number(seat.price);
 
-                // Cũng cập nhật mảng ID
-                setSelectedSeatIds((prev) =>
-                    prev.filter((id) => id !== seat.id)
+                // Cập nhật mảng ID
+                setSelectedSeatIds((prev: any) =>
+                    prev.filter((id: any) => id !== seat.id)
                 );
             } else {
                 // Chọn thêm ghế
@@ -125,70 +125,47 @@ const BookingSeat = ({ className }: any) => {
         });
     };
 
-    const handleContinue = () => {
-        // Gửi mảng ID ghế đã chọn
-        holdSeatMutation.mutate(selectedSeatIds);
-    };
-
+    // Cập nhật tổng giá
     useEffect(() => {
         setTotalPrice(totalSeatPrice);
     }, [totalSeatPrice, setTotalPrice]);
 
-    // lấy ID của user
-    const { data: getUserId } = useQuery({
-        queryKey: ["getUserId"],
-        queryFn: async () => {
-            const { data } = await axios.get(`http://localhost:8000/api/user`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            console.log("check- user-id", data);
-            return data.id;
-        },
-    });
-
-    const userId = getUserId || null;
-
-    //hold time
-    const [seats, setSeats] = useState<Record<string, { isHeld?: boolean }>>(
-        {}
-    );
-
+    // Đăng ký kênh Pusher để nhận cập nhật về ghế bị giữ
     useEffect(() => {
-        // Đảm bảo pusher được cấu hình đúng
-        console.log("Đăng ký kênh 'seats'");
+        if (!roomIdFromShowtimes || !showtimeIdFromBooking) {
+            console.log(
+                "Chưa có thông tin phòng hoặc suất chiếu, không thể đăng ký kênh Pusher"
+            );
+            return;
+        }
 
-        const channel = pusher.subscribe("seats");
+        const channelName = `seats.${roomIdFromShowtimes}.${showtimeIdFromBooking}`;
+        console.log(`🔄 Đăng ký kênh Pusher: ${channelName}`);
+
+        // Hủy đăng ký kênh cũ nếu có
+        if (pusher.channel(channelName)) {
+            pusher.unsubscribe(channelName);
+        }
+
+        const channel = pusher.subscribe(channelName);
 
         channel.bind("pusher:subscription_succeeded", () => {
-            console.log("Đã đăng ký thành công kênh 'seats'");
+            console.log(`✅ Đã đăng ký thành công kênh ${channelName}`);
         });
 
-        // Thêm hàm này trong component BookingSeat
-        const findSeatCodeById = (
-            seatId: number,
-            matrixData: any
-        ): string | null => {
-            if (!matrixData) return null;
+        channel.bind("pusher:subscription_error", (error: any) => {
+            console.error(`🚨 Lỗi khi đăng ký kênh ${channelName}:`, error);
+        });
 
-            // Duyệt qua tất cả các hàng ghế
-            for (const rowKey in matrixData) {
-                const row = matrixData[rowKey];
-                // Duyệt qua tất cả các ghế trong hàng
-                for (const seatKey in row) {
-                    const seat = row[seatKey];
-                    if (seat.id === seatId) {
-                        return seat.seatCode;
-                    }
-                }
-            }
-            return null;
-        };
-
+        // Lắng nghe sự kiện seat-held
         channel.bind("seat-held", (data: any) => {
-            console.log("🔴 Dữ liệu nhận từ Pusher:", data);
+            console.log(
+                `🔴 Nhận sự kiện seat-held từ kênh ${channelName}:`,
+                data
+            );
 
-            // Kiểm tra cấu trúc dữ liệu
-            let seatsArray: any[] = [];
+            // Phân tích cấu trúc dữ liệu
+            let seatsArray: number[] = [];
 
             // Trường hợp 1: data.seats là mảng trực tiếp
             if (Array.isArray(data.seats)) {
@@ -198,44 +175,149 @@ const BookingSeat = ({ className }: any) => {
             else if (data.seats && Array.isArray(data.seats.seats)) {
                 seatsArray = data.seats.seats;
             }
-            // Xử lý dữ liệu nếu tìm thấy mảng ghế
+            // Trường hợp 3: data là mảng trực tiếp
+            else if (Array.isArray(data)) {
+                seatsArray = data;
+            }
+
+            console.log("Danh sách ghế cần cập nhật:", seatsArray);
+
             if (seatsArray.length > 0) {
-                setSeats((prevSeats = {}) => {
+                setSeats((prevSeats) => {
                     const newSeats = { ...prevSeats };
 
-                    seatsArray.forEach((seatId: any) => {
+                    seatsArray.forEach((seatId: number) => {
                         // Tìm mã ghế từ ID
-                        let seatCode = findSeatCodeById(seatId, matrixSeats);
+                        const seatCode = findSeatCodeById(seatId);
+                        console.log(`ID ghế ${seatId} => Mã ghế ${seatCode}`);
 
                         if (seatCode) {
                             newSeats[seatCode] = {
-                                ...(prevSeats?.[seatCode] || {}),
-                                status: "held",
                                 isHeld: true,
                                 heldByUser: data.userId === userId,
                             };
                         }
                     });
 
-                    console.log("Cập nhật chỗ ngồi:", newSeats);
+                    console.log(
+                        "🟢 Trạng thái ghế sau khi cập nhật:",
+                        newSeats
+                    );
                     return newSeats;
                 });
+
+                // Loại bỏ ghế đã giữ khỏi danh sách chọn (nếu không phải do người dùng hiện tại giữ)
+                if (data.userId !== userId) {
+                    setNameSeats((prevNameSeats: any) => {
+                        let updatedSeats = [...prevNameSeats];
+                        let updatedPrice = Number(totalSeatPrice);
+
+                        seatsArray.forEach((seatId) => {
+                            const seatCode = findSeatCodeById(seatId);
+                            if (seatCode && updatedSeats.includes(seatCode)) {
+                                updatedSeats = updatedSeats.filter(
+                                    (s) => s !== seatCode
+                                );
+
+                                // Tìm giá của ghế để trừ
+                                if (matrixSeats) {
+                                    for (const row in matrixSeats) {
+                                        for (const col in matrixSeats[row]) {
+                                            const seat = matrixSeats[row][col];
+                                            if (seat.seatCode === seatCode) {
+                                                updatedPrice -= Number(
+                                                    seat.price
+                                                );
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        setTotalSeatPrice(updatedPrice);
+                        setQuantitySeats(updatedSeats.length);
+                        return updatedSeats;
+                    });
+
+                    // Cập nhật selectedSeatIds
+                    setSelectedSeatIds((prev: any) => {
+                        return prev.filter(
+                            (id: any) => !seatsArray.includes(id)
+                        );
+                    });
+                }
             } else {
-                console.error("Không tìm thấy mảng ghế trong dữ liệu:", data);
+                console.error(
+                    "Không tìm thấy thông tin ghế trong dữ liệu:",
+                    data
+                );
             }
         });
 
         return () => {
-            console.log("Hủy đăng ký kênh 'seats'");
+            console.log(`🛑 Hủy đăng ký kênh Pusher: ${channelName}`);
             channel.unbind("seat-held");
-            pusher.unsubscribe("seats");
+            pusher.unsubscribe(channelName);
+        };
+    }, [roomIdFromShowtimes, showtimeIdFromBooking, userId, matrixSeats]);
+
+    // Lắng nghe sự kiện hold-seat-ack từ server
+    useEffect(() => {
+        // Tạo kênh riêng cho người dùng hiện tại (nếu cần)
+        if (!userId) return;
+
+        const userChannelName = `user.${userId}`;
+        console.log(`🔄 Đăng ký kênh cá nhân: ${userChannelName}`);
+
+        const userChannel = pusher.subscribe(userChannelName);
+
+        userChannel.bind("hold-seat-ack", (data: any) => {
+            console.log("✅ Nhận xác nhận giữ ghế:", data);
+            // Xử lý phản hồi từ server về việc giữ ghế thành công
+        });
+
+        return () => {
+            console.log(`🛑 Hủy đăng ký kênh cá nhân: ${userChannelName}`);
+            userChannel.unbind("hold-seat-ack");
+            pusher.unsubscribe(userChannelName);
         };
     }, [userId]);
+
+    // Lấy trạng thái ban đầu của các ghế từ API
+    useEffect(() => {
+        // Kiểm tra nếu có dữ liệu matrix và các ghế đã được giữ
+        if (matrixSeats) {
+            // Khởi tạo trạng thái ghế ban đầu
+            const initialSeats: Record<
+                string,
+                { isHeld: boolean; heldByUser: boolean }
+            > = {};
+
+            for (const rowKey in matrixSeats) {
+                const row = matrixSeats[rowKey];
+                for (const seatKey in row) {
+                    const seat = row[seatKey];
+                    // Nếu status của ghế là "held" hoặc "booked", đánh dấu là đã giữ
+                    if (seat.status === "held" || seat.status === "booked") {
+                        initialSeats[seat.seatCode] = {
+                            isHeld: true,
+                            heldByUser: seat.heldByCurrentUser || false,
+                        };
+                    }
+                }
+            }
+
+            console.log("🟣 Trạng thái ghế ban đầu:", initialSeats);
+            setSeats(initialSeats);
+        }
+    }, [matrixSeats]);
 
     return (
         <div className={`box-main-left ${className}`}>
             <div className="box-showtimes">
-                <span className="change-showtimes">Đổi suất chiếu:</span>
+                <span className="change-showtimes">Đổi suất chiếu:</span>
                 <span>13:00</span>
                 <span>13:00</span>
                 <span>13:00</span>
@@ -267,6 +349,13 @@ const BookingSeat = ({ className }: any) => {
                                                         nameSeats.includes(
                                                             seat.seatCode
                                                         );
+                                                    const seatState =
+                                                        seats[seat.seatCode] ||
+                                                        {};
+                                                    const isHeld =
+                                                        seatState.isHeld ||
+                                                        false;
+
                                                     return (
                                                         <button
                                                             className="seat-name"
@@ -276,23 +365,13 @@ const BookingSeat = ({ className }: any) => {
                                                                     seat
                                                                 )
                                                             }
-                                                            disabled={
-                                                                seats?.[
-                                                                    seat
-                                                                        .seatCode
-                                                                ]?.isHeld
-                                                            } // Nếu ghế đang giữ, disable button
+                                                            disabled={isHeld}
                                                             style={{
                                                                 background:
-                                                                    seats?.[
-                                                                        seat
-                                                                            .seatCode
-                                                                    ]?.isHeld
+                                                                    isHeld
                                                                         ? "rgb(241, 153, 2)" // Màu cam nếu ghế đang giữ
-                                                                        : nameSeats.includes(
-                                                                              seat.seatCode
-                                                                          )
-                                                                        ? "#52c41a"
+                                                                        : isSelected
+                                                                        ? "#52c41a" // Màu xanh nếu đang chọn
                                                                         : "transparent",
                                                                 border:
                                                                     seat.type ===
@@ -310,19 +389,12 @@ const BookingSeat = ({ className }: any) => {
                                                                           "Sweetbox"
                                                                         ? "#f5222d"
                                                                         : "black",
-                                                                cursor: seats?.[
-                                                                    seat
-                                                                        .seatCode
-                                                                ]?.isHeld
+                                                                cursor: isHeld
                                                                     ? "not-allowed"
                                                                     : "pointer",
-                                                                opacity:
-                                                                    seats?.[
-                                                                        seat
-                                                                            .seatCode
-                                                                    ]?.isHeld
-                                                                        ? 0.6
-                                                                        : 1, // Làm mờ nếu ghế bị giữ
+                                                                opacity: isHeld
+                                                                    ? 0.6
+                                                                    : 1, // Làm mờ nếu ghế bị giữ
                                                             }}
                                                         >
                                                             {seat.seatCode}
@@ -336,16 +408,10 @@ const BookingSeat = ({ className }: any) => {
                         </div>
 
                         {/* Nút "Tiếp tục" */}
-                        <Button
-                            type="primary"
-                            onClick={handleContinue}
-                            disabled={nameSeats.length === 0}
-                        >
-                            Tiếp tục
-                        </Button>
                     </Card>
                 </div>
-                <pre>{JSON.stringify(seats, null, 2)}</pre>
+                {/* Bảng debug (có thể bỏ khi chạy production) */}
+                {/*<pre>{JSON.stringify(seats, null, 2)}</pre>*/}
             </div>
         </div>
     );

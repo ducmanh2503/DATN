@@ -23,6 +23,7 @@ const InfoMovie = () => {
                 `http://localhost:8000/api/movie-details-booking/${filmId}`
             );
             console.log("http://localhost:8000", data);
+            console.log("detail-id", data.data);
 
             return data.data;
         },

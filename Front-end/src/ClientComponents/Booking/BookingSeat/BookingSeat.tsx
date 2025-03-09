@@ -5,28 +5,16 @@ import { useMessageContext } from "../../UseContext/ContextState";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import pusher from "../../../utils/pusher";
-
-interface SeatType {
-  id: number;
-  roomId: number;
-  row: string;
-  column: string;
-  seatCode: string;
-  seatType: string;
-  price: number;
-  dayType: "weekday" | "weekend" | "holiday";
-  status?: string;
-  heldByCurrentUser?: boolean;
-}
+import { BookingType } from "../../../types/interface";
 
 const BookingSeat = ({
   className,
   onContinue,
-  onSeatHoldSuccess,
+  onSeatHoldSuccess, // Thêm prop để nhận callback
 }: {
   className?: string;
   onContinue: (handler: () => void) => void;
-  onSeatHoldSuccess?: () => void;
+  onSeatHoldSuccess?: () => void; // Callback sau khi giữ ghế thành công
 }) => {
   const {
     setNameSeats,
@@ -45,7 +33,8 @@ const BookingSeat = ({
     setShouldRefetch,
   } = useMessageContext();
 
-  const token = localStorage.getItem("auth_token");
+  setTokenUserId(localStorage.getItem("auth_token") || "");
+
   const queryClient = useQueryClient();
 
   const [seats, setSeats] = useState<
@@ -54,16 +43,6 @@ const BookingSeat = ({
   const [isPusherRegistered, setIsPusherRegistered] = useState(false);
   const pusherEventHandlersRegistered = useRef(false);
   const pollingIntervalRef = useRef<number | null>(null);
-
-  // Tạo ref để theo dõi trạng thái hiện tại không gây render
-  const nameSeatsRef = useRef(nameSeats);
-  const selectedSeatIdsRef = useRef(selectedSeatIds);
-
-  // Cập nhật ref khi state thay đổi
-  useEffect(() => {
-    nameSeatsRef.current = nameSeats;
-    selectedSeatIdsRef.current = selectedSeatIds;
-  }, [nameSeats, selectedSeatIds]);
 
   const { data: getUserId } = useQuery({
     queryKey: ["getUserId"],
@@ -83,24 +62,12 @@ const BookingSeat = ({
 
   const userId = getUserId || null;
 
-  // Tối ưu hóa việc làm mới dữ liệu
-  const refetchSeatsData = useCallback(() => {
-    if (roomIdFromShowtimes && showtimeIdFromBooking) {
-      queryClient.invalidateQueries({
-        queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
-      });
-      // Chỉ gọi refetch khi cần thiết
-      if (!shouldRefetch) {
-        setShouldRefetch(true);
-      }
-    }
-  }, [
-    queryClient,
-    roomIdFromShowtimes,
-    showtimeIdFromBooking,
-    shouldRefetch,
-    setShouldRefetch,
-  ]);
+  const forceDataRefresh = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
+    });
+    setShouldRefetch(true);
+  }, [queryClient, roomIdFromShowtimes, showtimeIdFromBooking]);
 
   const { data: matrixSeats, refetch: refetchMatrix } = useQuery({
     queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
@@ -121,13 +88,12 @@ const BookingSeat = ({
         return null;
       }
     },
-    refetchOnWindowFocus: false, // Tắt refetch tự động khi focus để tránh vòng lặp
-    // staleTime: 0,
-    // cacheTime: 0,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    cacheTime: 0,
     enabled: !!roomIdFromShowtimes && !!showtimeIdFromBooking && !!token,
   });
 
-  // Tách findSeatCodeById và findSeatById thành các hàm memo
   const findSeatCodeById = useCallback(
     (seatId: number): string | null => {
       if (!matrixSeats) return null;
@@ -162,17 +128,14 @@ const BookingSeat = ({
     [matrixSeats]
   );
 
-  // Tách và tối ưu hóa updateSeatStates
   const updateSeatStates = useCallback(() => {
     if (!matrixSeats) return;
 
-    // Khởi tạo trạng thái ghế
     const initialSeats: Record<
       string,
       { isHeld: boolean; heldByUser: boolean }
     > = {};
 
-    // Xử lý trạng thái ghế từ ma trận
     for (const rowKey in matrixSeats) {
       const row = matrixSeats[rowKey];
       for (const seatKey in row) {
@@ -186,51 +149,45 @@ const BookingSeat = ({
       }
     }
 
-    // Cập nhật state seats
     setSeats(initialSeats);
 
-    // Lọc các ghế hợp lệ (không bị người khác giữ)
-    const updatedSeats = nameSeatsRef.current.filter(
-      (seatCode: any) =>
-        !initialSeats[seatCode]?.isHeld || initialSeats[seatCode]?.heldByUser
-    );
+    setNameSeats((prevNameSeats: string[]) => {
+      const updatedSeats = prevNameSeats.filter(
+        (seatCode) =>
+          !initialSeats[seatCode]?.isHeld || initialSeats[seatCode]?.heldByUser
+      );
 
-    // Chỉ cập nhật khi cần thiết
-    if (updatedSeats.length !== nameSeatsRef.current.length) {
-      // Tính toán giá mới
-      let newPrice = 0;
-      updatedSeats.forEach((seatCode: any) => {
-        for (const rowKey in matrixSeats) {
-          const row = matrixSeats[rowKey];
-          for (const seatKey in row) {
-            const seat = row[seatKey];
-            if (seat.seatCode === seatCode) {
-              newPrice += Number(seat.price);
-              break;
+      if (updatedSeats.length !== prevNameSeats.length) {
+        let newPrice = 0;
+        updatedSeats.forEach((seatCode) => {
+          for (const rowKey in matrixSeats) {
+            const row = matrixSeats[rowKey];
+            for (const seatKey in row) {
+              const seat = row[seatKey];
+              if (seat.seatCode === seatCode) {
+                newPrice += Number(seat.price);
+                break;
+              }
             }
           }
-        }
-      });
-
-      // Cập nhật state một cách riêng biệt, không lồng nhau
-      setNameSeats(updatedSeats);
-      setTotalSeatPrice(newPrice);
-      setQuantitySeats(updatedSeats.length);
-    }
-
-    // Cập nhật ID ghế đã chọn
-    const validIds = selectedSeatIdsRef.current.filter((id: number) => {
-      const seatCode = findSeatCodeById(id);
-      return (
-        seatCode &&
-        (!initialSeats[seatCode]?.isHeld || initialSeats[seatCode]?.heldByUser)
-      );
+        });
+        setTotalSeatPrice(newPrice);
+        setQuantitySeats(updatedSeats.length);
+      }
+      return updatedSeats;
     });
 
-    // Chỉ cập nhật khi cần thiết
-    if (validIds.length !== selectedSeatIdsRef.current.length) {
-      setSelectedSeatIds(validIds);
-    }
+    setSelectedSeatIds((prev: any) => {
+      const validIds = prev.filter((id: any) => {
+        const seatCode = findSeatCodeById(id);
+        return (
+          seatCode &&
+          (!initialSeats[seatCode]?.isHeld ||
+            initialSeats[seatCode]?.heldByUser)
+        );
+      });
+      return validIds;
+    });
   }, [
     matrixSeats,
     findSeatCodeById,
@@ -257,14 +214,15 @@ const BookingSeat = ({
     },
     onSuccess: (data) => {
       message.success("Đã giữ ghế thành công!");
-
-      // Cập nhật dữ liệu ghế
-      refetchSeatsData();
+      queryClient.invalidateQueries({
+        queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
+      });
+      setShouldRefetch(true);
 
       try {
         const eventData = {
           timestamp: new Date().getTime(),
-          seats: selectedSeatIdsRef.current,
+          seats: selectedSeatIds,
           action: "hold",
           userId: userId,
         };
@@ -288,103 +246,77 @@ const BookingSeat = ({
     },
   });
 
-  // Xử lý khi ghế được click
-  const handleSeatClick = useCallback(
-    (seat: SeatType) => {
-      // Kiểm tra ghế đã bị giữ chưa
-      if (
-        seats[seat.seatCode]?.isHeld ||
-        seat.status === "held" ||
-        seat.status === "booked"
-      ) {
-        console.log("Ghế này đã được giữ, không thể chọn");
-        return;
+  const handleSeatClick = (seat: SeatType) => {
+    setHoldSeatId(seat.id);
+
+    if (
+      seats[seat.seatCode]?.isHeld ||
+      seat.status === "held" ||
+      seat.status === "booked"
+    ) {
+      console.log("Ghế này đã được giữ, không thể chọn");
+      return;
+    }
+
+    setNameSeats((prevSeats: string[]) => {
+      let updatedSeats: string[];
+      let updatedTotalPrice: number = Number(totalSeatPrice);
+
+      if (prevSeats.includes(seat.seatCode)) {
+        updatedSeats = prevSeats.filter(
+          (seatCode: string) => seatCode !== seat.seatCode
+        );
+        updatedTotalPrice -= Number(seat.price);
+        setSelectedSeatIds((prev: any) =>
+          prev.filter((id: any) => id !== seat.id)
+        );
+      } else {
+        updatedSeats = [...prevSeats, seat.seatCode];
+        updatedTotalPrice += Number(seat.price);
+        setSelectedSeatIds((prev: any) => [...prev, seat.id]);
       }
 
-      setHoldSeatId(seat.id);
+      setQuantitySeats(updatedSeats.length);
+      setTotalSeatPrice(updatedTotalPrice);
+      return updatedSeats;
+    });
+  };
 
-      setNameSeats((prevSeats: string[]) => {
-        let updatedSeats: string[];
+  const handleContinue = () => {
+    console.log("🔵 Ghế đang giữ: ", selectedSeatIds);
 
-        if (prevSeats.includes(seat.seatCode)) {
-          // Bỏ chọn ghế
-          updatedSeats = prevSeats.filter(
-            (seatCode: string) => seatCode !== seat.seatCode
-          );
-          setSelectedSeatIds((prev: number[]) =>
-            prev.filter((id: number) => id !== seat.id)
-          );
-        } else {
-          // Chọn ghế
-          updatedSeats = [...prevSeats, seat.seatCode];
-          setSelectedSeatIds((prev: number[]) => [...prev, seat.id]);
-        }
-
-        // Tính lại tổng giá
-        let updatedTotalPrice = 0;
-        updatedSeats.forEach((seatCode) => {
-          if (matrixSeats) {
-            for (const rowKey in matrixSeats) {
-              const row = matrixSeats[rowKey];
-              for (const seatKey in row) {
-                const seat = row[seatKey];
-                if (seat.seatCode === seatCode) {
-                  updatedTotalPrice += Number(seat.price);
-                  break;
-                }
-              }
-            }
-          }
-        });
-
-        // Cập nhật số lượng ghế và giá tiền
-        setQuantitySeats(updatedSeats.length);
-        setTotalSeatPrice(updatedTotalPrice);
-
-        return updatedSeats;
-      });
-    },
-    [
-      matrixSeats,
-      seats,
-      setHoldSeatId,
-      setNameSeats,
-      setQuantitySeats,
-      setSelectedSeatIds,
-      setTotalSeatPrice,
-    ]
-  );
-
-  // Xử lý khi nhấn tiếp tục
-  const handleContinue = useCallback(() => {
-    console.log("🔵 Ghế đang giữ: ", selectedSeatIdsRef.current);
-
-    if (selectedSeatIdsRef.current.length === 0) {
+    if (selectedSeatIds.length === 0) {
       console.warn("⚠ Không có ghế nào được chọn!");
       message.warning("Vui lòng chọn ít nhất một ghế!");
       return;
     }
 
-    holdSeatMutation.mutate(selectedSeatIdsRef.current);
-  }, [holdSeatMutation]);
+    holdSeatMutation.mutate(selectedSeatIds);
+  };
 
-  // Xử lý sự kiện cập nhật ghế
   const handleSeatUpdateEvent = useCallback(
     (event: CustomEvent) => {
       const data = event.detail;
       if (data.userId !== userId) {
-        refetchSeatsData();
+        queryClient.invalidateQueries({
+          queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
+        });
+        refetchMatrix();
       }
     },
-    [userId, refetchSeatsData]
+    [
+      queryClient,
+      roomIdFromShowtimes,
+      showtimeIdFromBooking,
+      userId,
+      refetchMatrix,
+    ]
   );
 
-  // Cập nhật tổng giá
   useEffect(() => {
     setTotalPrice(totalSeatPrice);
   }, [totalSeatPrice, setTotalPrice]);
 
-  // Xử lý refetch khi cần
   useEffect(() => {
     if (shouldRefetch) {
       refetchMatrix()
@@ -398,21 +330,27 @@ const BookingSeat = ({
           setShouldRefetch(false);
         });
     }
-  }, [shouldRefetch, refetchMatrix, setShouldRefetch]);
+  }, [shouldRefetch, refetchMatrix]);
 
-  // Cập nhật trạng thái ghế khi ma trận ghế thay đổi
   useEffect(() => {
     updateSeatStates();
   }, [matrixSeats, updateSeatStates]);
 
-  // Xử lý sự kiện storage
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "seat_update") {
         try {
           const data = JSON.parse(e.newValue || "{}");
           if (data.userId !== userId) {
-            refetchSeatsData();
+            queryClient.invalidateQueries({
+              queryKey: [
+                "matrixSeats",
+                roomIdFromShowtimes,
+                showtimeIdFromBooking,
+              ],
+              refetchType: "active",
+            });
+            refetchMatrix();
           }
         } catch (error) {
           console.error("Lỗi khi xử lý sự kiện storage:", error);
@@ -433,9 +371,15 @@ const BookingSeat = ({
         handleSeatUpdateEvent as EventListener
       );
     };
-  }, [userId, handleSeatUpdateEvent, refetchSeatsData]);
+  }, [
+    queryClient,
+    roomIdFromShowtimes,
+    showtimeIdFromBooking,
+    userId,
+    handleSeatUpdateEvent,
+    refetchMatrix,
+  ]);
 
-  // Cấu hình Pusher cho real-time
   useEffect(() => {
     if (!roomIdFromShowtimes || !showtimeIdFromBooking || isPusherRegistered) {
       return;
@@ -463,7 +407,7 @@ const BookingSeat = ({
           }
 
           if (seatsArray.length > 0) {
-            if (data.userId !== userId) {
+            if (data.userId !== userIdFromShowtimes) {
               const seatCodes = seatsArray
                 .map((seatId) => findSeatCodeById(seatId))
                 .filter(Boolean)
@@ -474,7 +418,6 @@ const BookingSeat = ({
               refetchMatrix();
             }
 
-            // Cập nhật trạng thái ghế
             setSeats((prevSeats) => {
               const newSeats = { ...prevSeats };
               seatsArray.forEach((seatId) => {
@@ -489,27 +432,21 @@ const BookingSeat = ({
               return newSeats;
             });
 
-            // Chỉ cập nhật nếu người dùng khác giữ ghế
             if (data.userId !== userId) {
-              // Cập nhật danh sách ghế đã chọn
-              setNameSeats((prevNameSeats: string[]) => {
-                const updatedSeats = prevNameSeats.filter(
-                  (seatCode: string) => {
-                    for (const seatId of seatsArray) {
-                      if (findSeatCodeById(seatId) === seatCode) {
-                        return false;
-                      }
+              setNameSeats((prevNameSeats: any) => {
+                const updatedSeats = prevNameSeats.filter((seatCode: any) => {
+                  for (const seatId of seatsArray) {
+                    if (findSeatCodeById(seatId) === seatCode) {
+                      return false;
                     }
-                    return true;
                   }
-                );
+                  return true;
+                });
 
-                // Chỉ tính toán lại giá nếu có sự thay đổi
                 if (updatedSeats.length !== prevNameSeats.length) {
                   setQuantitySeats(updatedSeats.length);
-                  // Tính toán lại giá
                   let newPrice = 0;
-                  updatedSeats.forEach((seatCode: string) => {
+                  updatedSeats.forEach((seatCode: any) => {
                     if (matrixSeats) {
                       for (const row in matrixSeats) {
                         for (const col in matrixSeats[row]) {
@@ -526,9 +463,8 @@ const BookingSeat = ({
                 return updatedSeats;
               });
 
-              // Cập nhật danh sách ID ghế đã chọn
-              setSelectedSeatIds((prev: number[]) =>
-                prev.filter((id: number) => !seatsArray.includes(id))
+              setSelectedSeatIds((prev: any) =>
+                prev.filter((id: any) => !seatsArray.includes(id))
               );
             }
           }
@@ -550,18 +486,17 @@ const BookingSeat = ({
   }, [
     roomIdFromShowtimes,
     showtimeIdFromBooking,
-    userId,
+    userIdFromShowtimes,
     matrixSeats,
     findSeatCodeById,
     isPusherRegistered,
     refetchMatrix,
   ]);
 
-  // Cấu hình kênh Pusher cho người dùng
   useEffect(() => {
     if (!userId) return;
 
-    const userChannelName = `user.${userId}`;
+    const userChannelName = `user.${userIdFromShowtimes}`;
     const userChannel = pusher.subscribe(userChannelName);
 
     userChannel.bind("hold-seat-ack", (data: any) => {
@@ -572,19 +507,17 @@ const BookingSeat = ({
       userChannel.unbind("hold-seat-ack");
       pusher.unsubscribe(userChannelName);
     };
-  }, [userId, refetchMatrix]);
+  }, [userIdFromShowtimes, refetchMatrix]);
 
-  // Thiết lập polling với khoảng thời gian cố định
   useEffect(() => {
     if (roomIdFromShowtimes && showtimeIdFromBooking) {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
 
-      // Polling trong khoảng thời gian dài hơn (10 giây thay vì 5 giây)
       pollingIntervalRef.current = window.setInterval(() => {
         refetchMatrix();
-      }, 10000) as unknown as number;
+      }, 5000) as unknown as number;
 
       refetchMatrix();
     }
@@ -597,7 +530,6 @@ const BookingSeat = ({
     };
   }, [roomIdFromShowtimes, showtimeIdFromBooking, refetchMatrix]);
 
-  // Xử lý visibility change
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -606,18 +538,20 @@ const BookingSeat = ({
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    const handleFocus = () => refetchMatrix();
+    window.addEventListener("focus", handleFocus);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
     };
   }, [refetchMatrix]);
 
-  // Kết nối hàm onContinue với handleContinue, để tránh vòng lặp vô hạn
   useEffect(() => {
     if (onContinue) {
       onContinue(handleContinue);
     }
-  }, [onContinue, handleContinue]);
+  }, [onContinue, selectedSeatIds, holdSeatMutation]);
 
   return (
     <div className={`box-main-left ${className}`}>

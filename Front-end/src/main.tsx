@@ -11,10 +11,10 @@ import { MessageProvider } from "./ClientComponents/UseContext/ContextState";
 const client = new QueryClient();
 createRoot(document.getElementById("root")!).render(
     // <Provider store={store}>
-    <MessageProvider>
-        <QueryClientProvider client={client}>
+    <QueryClientProvider client={client}>
+        <MessageProvider>
             <RouterProvider router={router} />
-        </QueryClientProvider>
-    </MessageProvider>
+        </MessageProvider>
+    </QueryClientProvider>
     // </Provider>
 );

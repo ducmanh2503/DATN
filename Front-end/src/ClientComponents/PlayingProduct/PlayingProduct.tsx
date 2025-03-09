@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./PlayingProduct.css";
 import { Modal } from "antd";
 import CalendarMovies from "../CalendarMovies/CalendarMovies";
+import { Link } from "react-router-dom";
 
 const PlayingProduct = ({
     id,
@@ -32,14 +33,18 @@ const PlayingProduct = ({
     const handleCancel2 = () => {
         setIsModalOpen2(false);
     };
+
     return (
         <div
             className={`playingProduct ${className}`}
             onClick={() => onClick()}
         >
-            <div className="product-img">
-                <img className="img" src={poster} alt="" />
-                <div className="hover-btn">
+            <div className="product-img" onClick={(e) => e.stopPropagation()}>
+                <Link to={`/filmDetail/${id}`}>
+                    <img className="img" src={poster} alt="" />
+                </Link>
+                ;
+                <div className="hover-btn" onClick={(e) => e.stopPropagation()}>
                     <button className="btn" onClick={showModal2}>
                         Đặt vé
                     </button>

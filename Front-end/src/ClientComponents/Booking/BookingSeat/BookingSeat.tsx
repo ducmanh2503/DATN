@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import "./BookingSeat.css";
-import { Card, Tooltip, Button } from "antd";
+import { Card, Tooltip, message } from "antd";
 import { useMessageContext } from "../../UseContext/ContextState";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import pusher from "../../../utils/pusher";
 
@@ -28,7 +28,7 @@ const BookingSeat = ({ className }: any) => {
         roomIdFromShowtimes,
         showtimeIdFromBooking,
         setHoldSeatId,
-        setSelectedSeatIds,
+        holdSeatId,
     } = useMessageContext();
 
     // Lấy token từ localStorage
@@ -38,6 +38,7 @@ const BookingSeat = ({ className }: any) => {
     const [seats, setSeats] = useState<
         Record<string, { isHeld?: boolean; heldByUser?: boolean }>
     >({});
+    const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
 
     // api sơ đồ ghế
     const { data: matrixSeats } = useQuery({
@@ -84,8 +85,37 @@ const BookingSeat = ({ className }: any) => {
         return null;
     };
 
+    // API giữ ghế
+    const holdSeatMutation = useMutation({
+        mutationFn: async (seatIds: number[]) => {
+            const { data } = await axios.post(
+                `http://localhost:8000/api/hold-seats`,
+                {
+                    seats: seatIds,
+                    room_id: roomIdFromShowtimes,
+                    showtime_id: showtimeIdFromBooking,
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            return data;
+        },
+        onSuccess: (data) => {
+            console.log("✅ API giữ ghế thành công:", data);
+
+            // Lưu ý: Pusher sẽ gửi sự kiện này đến tất cả người dùng
+            // Chúng ta sẽ cập nhật trạng thái ghế khi nhận được sự kiện từ Pusher
+            // Do đó, không cần cập nhật trạng thái ngay lập tức ở đây
+        },
+        onError: (error) => {
+            console.error("🚨 Lỗi khi giữ ghế:", error);
+        },
+    });
+
     // Xử lý click vào ghế
     const handleSeatClick = (seat: SeatType) => {
+        // Thêm biến này vào context hoặc trong component
         console.log("get-seat", seat.id);
         setHoldSeatId(seat.id);
 
@@ -107,8 +137,8 @@ const BookingSeat = ({ className }: any) => {
                 updatedTotalPrice -= Number(seat.price);
 
                 // Cập nhật mảng ID
-                setSelectedSeatIds((prev: any) =>
-                    prev.filter((id: any) => id !== seat.id)
+                setSelectedSeatIds((prev) =>
+                    prev.filter((id) => id !== seat.id)
                 );
             } else {
                 // Chọn thêm ghế
@@ -116,13 +146,25 @@ const BookingSeat = ({ className }: any) => {
                 updatedTotalPrice += Number(seat.price);
 
                 // Thêm ID vào mảng
-                setSelectedSeatIds((prev: any) => [...prev, seat.id]);
+                setSelectedSeatIds((prev) => [...prev, seat.id]);
             }
 
             setQuantitySeats(updatedSeats.length);
             setTotalSeatPrice(updatedTotalPrice);
             return updatedSeats;
         });
+    };
+
+    // Xử lý nút Tiếp tục
+    const handleContinue = () => {
+        console.log("🔵 Ghế đang giữ: ", selectedSeatIds);
+
+        if (selectedSeatIds.length === 0) {
+            console.warn("⚠ Không có ghế nào được chọn!");
+            return;
+        }
+
+        holdSeatMutation.mutate(selectedSeatIds);
     };
 
     // Cập nhật tổng giá
@@ -208,7 +250,7 @@ const BookingSeat = ({ className }: any) => {
 
                 // Loại bỏ ghế đã giữ khỏi danh sách chọn (nếu không phải do người dùng hiện tại giữ)
                 if (data.userId !== userId) {
-                    setNameSeats((prevNameSeats: any) => {
+                    setNameSeats((prevNameSeats) => {
                         let updatedSeats = [...prevNameSeats];
                         let updatedPrice = Number(totalSeatPrice);
 
@@ -242,10 +284,8 @@ const BookingSeat = ({ className }: any) => {
                     });
 
                     // Cập nhật selectedSeatIds
-                    setSelectedSeatIds((prev: any) => {
-                        return prev.filter(
-                            (id: any) => !seatsArray.includes(id)
-                        );
+                    setSelectedSeatIds((prev) => {
+                        return prev.filter((id) => !seatsArray.includes(id));
                     });
                 }
             } else {
@@ -408,6 +448,17 @@ const BookingSeat = ({ className }: any) => {
                         </div>
 
                         {/* Nút "Tiếp tục" */}
+                        <Button
+                            type="primary"
+                            onClick={handleContinue}
+                            disabled={
+                                nameSeats.length === 0 ||
+                                holdSeatMutation.isPending
+                            }
+                            loading={holdSeatMutation.isPending}
+                        >
+                            Tiếp tục
+                        </Button>
                     </Card>
                 </div>
                 {/* Bảng debug (có thể bỏ khi chạy production) */}

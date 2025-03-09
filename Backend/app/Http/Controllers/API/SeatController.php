@@ -42,7 +42,7 @@ class SeatController extends Controller
             $status = $showTimeSeat ? $showTimeSeat->seat_status : 'available';
 
             // Kiểm tra nếu ghế đang bị giữ trong cache
-            $heldSeat = Cache::get("seat_$seat->id");
+            $heldSeat = Cache::get("seat_{$show_time_id}_{$seat->id}");
             $isHeld = !empty($heldSeat);
             $heldByUser = $isHeld && $heldSeat['user_id'] == $userId;
 
@@ -98,21 +98,23 @@ class SeatController extends Controller
         $roomId = $request->input('room_id');
         $showTimeId = $request->input('showtime_id');
         $userId = auth()->id();
-        $expiresAt = now()->addMinutes(5);
+        $expiresAt = now()->addMinutes(7);
 
         foreach ($request->seats as $seat) {
             // Kiểm tra ghế đã bị giữ chưa
-            $heldSeat = Cache::get("seat_$seat");
+            $cacheKey = "seat_{$showTimeId}_{$seat}";
+            $heldSeat = Cache::get("$cacheKey");
             if (!empty($heldSeat) && $heldSeat['user_id'] !== $userId) {
                 return response()->json(['message' => 'Ghế đã được giữ bởi người khác!'], 409);
             }
 
             // Giữ ghế
-            Cache::put("seat_$seat", ['user_id' => $userId, 'expires_at' => $expiresAt], $expiresAt);
+            Cache::put($cacheKey, ['user_id' => $userId, 'expires_at' => $expiresAt], $expiresAt);
         }
 
         // Phát sự kiện cập nhật realtime
-        Broadcast(new SeatHeldEvent($seats, $userId, $roomId, $showTimeId));
+        broadcast(new SeatHeldEvent($seats, $userId, $roomId, $showTimeId))
+            ->toOthers();
 
         return response()->json(['message' => 'Ghế đã được giữ!', 'seats' => $seats, 'expires_at' => $expiresAt, 'user_id' => $userId]);
     }
@@ -152,10 +154,12 @@ class SeatController extends Controller
 
         // Lặp qua từng ghế để xử lý
         foreach ($seats as $seatId) {
-            // Đảm bảo $seatId là số
-            if (!is_numeric($seatId)) {
+            $cacheKey = "seat_{$showTimeId}_{$seatId}";
+            if (Cache::has($cacheKey)) {
+                Cache::forget($cacheKey);
+                $releasedSeats[] = (int)$seatId;
+            } else {
                 $failedSeats[] = $seatId;
-                continue;
             }
 
             $cacheKey = "seat_" . (int)$seatId; // Chuyển $seatId thành số nguyên để tránh lỗi

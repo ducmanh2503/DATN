@@ -132,7 +132,7 @@ Route::middleware('auth:sanctum')->group(function () {
         //Mã khuyến mãi
         Route::apiResource('/discount-code', DiscountCodeController::class);
         //Bài viết
-        Route::apiResource('article', ArticleController::class);
+        Route::apiResource('/article', ArticleController::class);
 
         //người dùng
         Route::apiResource('/user-management', UserController::class);

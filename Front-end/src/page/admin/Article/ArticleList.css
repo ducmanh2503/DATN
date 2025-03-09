@@ -1,0 +1,101 @@
+/* Container chính */
+.container {
+  padding: 24px;
+  background-color: #f4f4f4;
+  min-height: 100vh;
+}
+
+/* Tiêu đề */
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+/* Bảng */
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background-color: #e5e7eb;
+}
+
+th,
+td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  font-weight: 600;
+}
+
+/* Hiệu ứng hover */
+tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Cột tiêu đề */
+.title-cell {
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.title-cell:hover {
+  text-decoration: underline;
+}
+
+/* Cột danh mục */
+.category {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Cột trạng thái */
+.status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.status.public {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status.private {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Căn giữa */
+.text-center {
+  text-align: center;
+}
+
+/* Màu chữ xám */
+.text-gray {
+  color: #6b7280;
+}
+
+/* Hiệu ứng tải */
+.loading-text {
+  text-align: center;
+  font-size: 18px;
+  margin-top: 20px;
+}

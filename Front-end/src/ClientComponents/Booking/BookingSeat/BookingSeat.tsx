@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import "./BookingSeat.css";
 import { Card, Tooltip, message } from "antd";
 import { useMessageContext } from "../../UseContext/ContextState";
@@ -7,15 +7,7 @@ import axios from "axios";
 import pusher from "../../../utils/pusher";
 import { BookingType } from "../../../types/interface";
 
-const BookingSeat = ({
-  className,
-  onContinue,
-  onSeatHoldSuccess, // Thêm prop để nhận callback
-}: {
-  className?: string;
-  onContinue: (handler: () => void) => void;
-  onSeatHoldSuccess?: () => void; // Callback sau khi giữ ghế thành công
-}) => {
+const BookingSeat = ({ className }: { className?: string }) => {
   const {
     setNameSeats,
     setQuantitySeats,
@@ -31,25 +23,30 @@ const BookingSeat = ({
     setSelectedSeatIds,
     shouldRefetch,
     setShouldRefetch,
+    tokenUserId,
+    setTokenUserId,
+    setUserIdFromShowtimes,
+    userIdFromShowtimes,
+    seats,
+    setSeats,
+    setMatrixSeatsManage,
   } = useMessageContext();
 
   setTokenUserId(localStorage.getItem("auth_token") || "");
 
   const queryClient = useQueryClient();
 
-  const [seats, setSeats] = useState<
-    Record<string, { isHeld?: boolean; heldByUser?: boolean }>
-  >({});
   const [isPusherRegistered, setIsPusherRegistered] = useState(false);
   const pusherEventHandlersRegistered = useRef(false);
   const pollingIntervalRef = useRef<number | null>(null);
 
+  // api lấy userID
   const { data: getUserId } = useQuery({
     queryKey: ["getUserId"],
     queryFn: async () => {
       try {
         const { data } = await axios.get("http://localhost:8000/api/user", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${tokenUserId}` },
         });
         return data.id;
       } catch (error) {
@@ -57,18 +54,17 @@ const BookingSeat = ({
         return null;
       }
     },
-    enabled: !!token,
+    enabled: !!tokenUserId, // Chỉ chạy khi có token
   });
 
-  const userId = getUserId || null;
+  // Cập nhật userId khi getUserId có dữ liệu
+  useEffect(() => {
+    if (getUserId !== undefined) {
+      setMatrixSeatsManage(getUserId ?? null);
+    }
+  }, [getUserId]);
 
-  const forceDataRefresh = useCallback(() => {
-    queryClient.invalidateQueries({
-      queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
-    });
-    setShouldRefetch(true);
-  }, [queryClient, roomIdFromShowtimes, showtimeIdFromBooking]);
-
+  // api lấy ma trận ghế
   const { data: matrixSeats, refetch: refetchMatrix } = useQuery({
     queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
     queryFn: async () => {
@@ -79,9 +75,10 @@ const BookingSeat = ({
         const { data } = await axios.get(
           `http://localhost:8000/api/get-seats-for-booking/${roomIdFromShowtimes}/${showtimeIdFromBooking}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${tokenUserId}` },
           }
         );
+
         return data;
       } catch (error) {
         console.error("🚨 Lỗi khi lấy thông tin ghế:", error);
@@ -89,10 +86,15 @@ const BookingSeat = ({
       }
     },
     refetchOnWindowFocus: true,
-    staleTime: 0,
-    cacheTime: 0,
-    enabled: !!roomIdFromShowtimes && !!showtimeIdFromBooking && !!token,
+    staleTime: 1000 * 60,
+    enabled: !!roomIdFromShowtimes && !!showtimeIdFromBooking && !!tokenUserId,
   });
+
+  useEffect(() => {
+    if (matrixSeats !== undefined) {
+      setUserIdFromShowtimes(matrixSeats ?? null);
+    }
+  }, [matrixSeats]);
 
   const findSeatCodeById = useCallback(
     (seatId: number): string | null => {
@@ -111,24 +113,66 @@ const BookingSeat = ({
     [matrixSeats]
   );
 
-  const findSeatById = useCallback(
-    (seatId: number): SeatType | null => {
-      if (!matrixSeats) return null;
-      for (const rowKey in matrixSeats) {
-        const row = matrixSeats[rowKey];
-        for (const seatKey in row) {
-          const seat = row[seatKey];
-          if (seat.id === seatId) {
-            return seat;
-          }
-        }
-      }
-      return null;
-    },
-    [matrixSeats]
-  );
+  const handleSeatClick = (seat: BookingType) => {
+    setHoldSeatId(seat.id);
 
-  const updateSeatStates = useCallback(() => {
+    if (
+      seats[seat.seatCode]?.isHeld ||
+      seat.status === "held" ||
+      seat.status === "booked"
+    ) {
+      console.log("Ghế này đã được giữ, không thể chọn");
+      return;
+    }
+
+    setNameSeats((prevSeats: string[]) => {
+      let updatedSeats: string[];
+      let updatedTotalPrice: number = Number(totalSeatPrice);
+
+      if (prevSeats.includes(seat.seatCode)) {
+        updatedSeats = prevSeats.filter(
+          (seatCode: string) => seatCode !== seat.seatCode
+        );
+        updatedTotalPrice -= Number(seat.price);
+        setSelectedSeatIds((prev: any) =>
+          prev.filter((id: any) => id !== seat.id)
+        );
+      } else {
+        updatedSeats = [...prevSeats, seat.seatCode];
+        updatedTotalPrice += Number(seat.price);
+        setSelectedSeatIds((prev: any) => [...prev, seat.id]);
+      }
+
+      setQuantitySeats(updatedSeats.length);
+      setTotalSeatPrice(updatedTotalPrice);
+      return updatedSeats;
+    });
+  };
+
+  const handleSeatUpdateEvent = useCallback(
+    (event: CustomEvent) => {
+      const data = event.detail;
+      if (data.userId !== userIdFromShowtimes) {
+        queryClient.invalidateQueries({
+          queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
+        });
+        refetchMatrix();
+      }
+    },
+    [
+      queryClient,
+      roomIdFromShowtimes,
+      showtimeIdFromBooking,
+      userIdFromShowtimes,
+      refetchMatrix,
+    ]
+  );
+  // gán tổng tiền ghế vào tiền tổng (sau phải sửa vì lỗi mất tiền combo khi từ trang combo quay lại)
+  useEffect(() => {
+    setTotalPrice(totalSeatPrice);
+  }, [totalSeatPrice, setTotalPrice]);
+
+  useEffect(() => {
     if (!matrixSeats) return;
 
     const initialSeats: Record<
@@ -188,160 +232,14 @@ const BookingSeat = ({
       });
       return validIds;
     });
-  }, [
-    matrixSeats,
-    findSeatCodeById,
-    setNameSeats,
-    setQuantitySeats,
-    setTotalSeatPrice,
-    setSelectedSeatIds,
-  ]);
-
-  const holdSeatMutation = useMutation({
-    mutationFn: async (seatIds: number[]) => {
-      const { data } = await axios.post(
-        "http://localhost:8000/api/hold-seats",
-        {
-          seats: seatIds,
-          room_id: roomIdFromShowtimes,
-          showtime_id: showtimeIdFromBooking,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return data;
-    },
-    onSuccess: (data) => {
-      message.success("Đã giữ ghế thành công!");
-      queryClient.invalidateQueries({
-        queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
-      });
-      setShouldRefetch(true);
-
-      try {
-        const eventData = {
-          timestamp: new Date().getTime(),
-          seats: selectedSeatIds,
-          action: "hold",
-          userId: userId,
-        };
-        localStorage.setItem("seat_update", JSON.stringify(eventData));
-        const updateEvent = new CustomEvent("seatUpdateEvent", {
-          detail: eventData,
-        });
-        window.dispatchEvent(updateEvent);
-      } catch (e) {
-        console.error("Lỗi khi lưu vào localStorage:", e);
-      }
-
-      // Gọi callback để chuyển bước sau khi giữ ghế thành công
-      if (onSeatHoldSuccess) {
-        onSeatHoldSuccess();
-      }
-    },
-    onError: (error) => {
-      console.error("🚨 Lỗi khi giữ ghế:", error);
-      message.error("Không thể giữ ghế. Vui lòng thử lại!");
-    },
-  });
-
-  const handleSeatClick = (seat: SeatType) => {
-    setHoldSeatId(seat.id);
-
-    if (
-      seats[seat.seatCode]?.isHeld ||
-      seat.status === "held" ||
-      seat.status === "booked"
-    ) {
-      console.log("Ghế này đã được giữ, không thể chọn");
-      return;
-    }
-
-    setNameSeats((prevSeats: string[]) => {
-      let updatedSeats: string[];
-      let updatedTotalPrice: number = Number(totalSeatPrice);
-
-      if (prevSeats.includes(seat.seatCode)) {
-        updatedSeats = prevSeats.filter(
-          (seatCode: string) => seatCode !== seat.seatCode
-        );
-        updatedTotalPrice -= Number(seat.price);
-        setSelectedSeatIds((prev: any) =>
-          prev.filter((id: any) => id !== seat.id)
-        );
-      } else {
-        updatedSeats = [...prevSeats, seat.seatCode];
-        updatedTotalPrice += Number(seat.price);
-        setSelectedSeatIds((prev: any) => [...prev, seat.id]);
-      }
-
-      setQuantitySeats(updatedSeats.length);
-      setTotalSeatPrice(updatedTotalPrice);
-      return updatedSeats;
-    });
-  };
-
-  const handleContinue = () => {
-    console.log("🔵 Ghế đang giữ: ", selectedSeatIds);
-
-    if (selectedSeatIds.length === 0) {
-      console.warn("⚠ Không có ghế nào được chọn!");
-      message.warning("Vui lòng chọn ít nhất một ghế!");
-      return;
-    }
-
-    holdSeatMutation.mutate(selectedSeatIds);
-  };
-
-  const handleSeatUpdateEvent = useCallback(
-    (event: CustomEvent) => {
-      const data = event.detail;
-      if (data.userId !== userId) {
-        queryClient.invalidateQueries({
-          queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
-        });
-        refetchMatrix();
-      }
-    },
-    [
-      queryClient,
-      roomIdFromShowtimes,
-      showtimeIdFromBooking,
-      userId,
-      refetchMatrix,
-    ]
-  );
-
-  useEffect(() => {
-    setTotalPrice(totalSeatPrice);
-  }, [totalSeatPrice, setTotalPrice]);
-
-  useEffect(() => {
-    if (shouldRefetch) {
-      refetchMatrix()
-        .then(() => {
-          console.log("✅ Đã cập nhật dữ liệu thành công");
-        })
-        .catch((error) => {
-          console.error("🚨 Lỗi khi cập nhật dữ liệu:", error);
-        })
-        .finally(() => {
-          setShouldRefetch(false);
-        });
-    }
-  }, [shouldRefetch, refetchMatrix]);
-
-  useEffect(() => {
-    updateSeatStates();
-  }, [matrixSeats, updateSeatStates]);
+  }, [matrixSeats]);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "seat_update") {
         try {
           const data = JSON.parse(e.newValue || "{}");
-          if (data.userId !== userId) {
+          if (data.userId !== userIdFromShowtimes) {
             queryClient.invalidateQueries({
               queryKey: [
                 "matrixSeats",
@@ -375,7 +273,7 @@ const BookingSeat = ({
     queryClient,
     roomIdFromShowtimes,
     showtimeIdFromBooking,
-    userId,
+    userIdFromShowtimes,
     handleSeatUpdateEvent,
     refetchMatrix,
   ]);
@@ -418,21 +316,21 @@ const BookingSeat = ({
               refetchMatrix();
             }
 
-            setSeats((prevSeats) => {
+            setSeats((prevSeats: any) => {
               const newSeats = { ...prevSeats };
               seatsArray.forEach((seatId) => {
                 const seatCode = findSeatCodeById(seatId);
                 if (seatCode) {
                   newSeats[seatCode] = {
                     isHeld: true,
-                    heldByUser: data.userId === userId,
+                    heldByUser: data.userId === userIdFromShowtimes,
                   };
                 }
               });
               return newSeats;
             });
 
-            if (data.userId !== userId) {
+            if (data.userId !== userIdFromShowtimes) {
               setNameSeats((prevNameSeats: any) => {
                 const updatedSeats = prevNameSeats.filter((seatCode: any) => {
                   for (const seatId of seatsArray) {
@@ -494,7 +392,7 @@ const BookingSeat = ({
   ]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userIdFromShowtimes) return;
 
     const userChannelName = `user.${userIdFromShowtimes}`;
     const userChannel = pusher.subscribe(userChannelName);
@@ -546,12 +444,6 @@ const BookingSeat = ({
       window.removeEventListener("focus", handleFocus);
     };
   }, [refetchMatrix]);
-
-  useEffect(() => {
-    if (onContinue) {
-      onContinue(handleContinue);
-    }
-  }, [onContinue, selectedSeatIds, holdSeatMutation]);
 
   return (
     <div className={`box-main-left ${className}`}>

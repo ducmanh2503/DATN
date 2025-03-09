@@ -10,6 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Support\Facades\Log;
 
 
 class SeatHeldEvent implements ShouldBroadcastNow
@@ -27,6 +28,8 @@ class SeatHeldEvent implements ShouldBroadcastNow
         $this->userId = $userId;
         $this->roomId = $roomId;
         $this->showTimeId = $showTimeId;
+        Log::info('Room ID: ' . $this->roomId); // Sửa thành \Log::info
+        Log::info('Show Time ID: ' . $this->showTimeId);
     }
 
     public function broadcastOn()

@@ -8,150 +8,207 @@ import { useMessageContext } from "../UseContext/ContextState";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { CloseCircleOutlined } from "@ant-design/icons";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
 const BookingMain = () => {
-  const { currentStep, setCurrentStep, quantitySeats, selectedSeatIds } =
-    useMessageContext();
-  const navigate = useNavigate();
-  const [api, contextHolder] = notification.useNotification();
-  const [seatContinueHandler, setSeatContinueHandler] = useState<
-    (() => void) | null
-  >(null);
+    const {
+        currentStep,
+        setCurrentStep,
+        quantitySeats,
+        selectedSeatIds,
+        roomIdFromShowtimes,
+        showtimeIdFromBooking,
+        tokenUserId,
+        setShouldRefetch,
+        userIdFromShowtimes,
+        setSeats,
+    } = useMessageContext();
+    const navigate = useNavigate();
+    const [api, contextHolder] = notification.useNotification();
+    const queryClient = useQueryClient();
 
-  // Thông báo phải đặt ghế để tiếp tục
-  const openNotification = (pauseOnHover: boolean) => () => {
-    api.open({
-      message: (
-        <>
-          <span className="notification-icon">
-            <CloseCircleOutlined />
-          </span>{" "}
-          Không thể tiếp tục...
-        </>
-      ),
-      description: "Phải đặt ghế nếu bạn muốn tiếp tục",
-      showProgress: true,
-      pauseOnHover,
+    // Thông báo phải đặt ghế để tiếp tục
+    const openNotification = (pauseOnHover: boolean) => () => {
+        api.open({
+            message: (
+                <>
+                    <span className="notification-icon">
+                        <CloseCircleOutlined />
+                    </span>{" "}
+                    Không thể tiếp tục...
+                </>
+            ),
+            description: "Phải đặt ghế nếu bạn muốn tiếp tục",
+            showProgress: true,
+            pauseOnHover,
+        });
+    };
+
+    //api giữ ghế
+    const holdSeatMutation = useMutation({
+        mutationFn: async (seatIds: number[]) => {
+            const { data } = await axios.post(
+                "http://localhost:8000/api/hold-seats",
+                {
+                    seats: seatIds,
+                    room_id: roomIdFromShowtimes,
+                    showtime_id: showtimeIdFromBooking,
+                },
+                {
+                    headers: { Authorization: `Bearer ${tokenUserId}` },
+                }
+            );
+            return data;
+        },
+
+        onSuccess: (data) => {
+            message.success("Đã giữ ghế thành công!");
+            queryClient.invalidateQueries({
+                queryKey: [
+                    "matrixSeats",
+                    roomIdFromShowtimes,
+                    showtimeIdFromBooking,
+                ],
+            });
+            setShouldRefetch(true);
+
+            try {
+                const eventData = {
+                    timestamp: new Date().getTime(),
+                    seats: selectedSeatIds,
+                    action: "hold",
+                    userId: userIdFromShowtimes,
+                };
+                localStorage.setItem("seat_update", JSON.stringify(eventData));
+                const updateEvent = new CustomEvent("seatUpdateEvent", {
+                    detail: eventData,
+                });
+                window.dispatchEvent(updateEvent);
+            } catch (e) {
+                console.error("Lỗi khi lưu vào localStorage:", e);
+            }
+        },
+        onError: (error) => {
+            console.error("🚨 Lỗi khi giữ ghế:", error);
+            message.error("Không thể giữ ghế. Vui lòng thử lại!");
+        },
     });
-  };
 
-  // Callback để xử lý sau khi giữ ghế thành công
-  const handleSeatHoldSuccess = () => {
-    if (currentStep === 1) {
-      setCurrentStep(2); // Chuyển sang bước "Chọn đồ ăn"
-    }
-  };
+    //api giải phóng ghế
+    const releaseSeatsMutation = useMutation({
+        mutationFn: async (seatIds: number[]) => {
+            await axios.post(
+                `http://localhost:8000/api/release-seats`, // API hủy ghế
+                {
+                    seats: seatIds,
+                    room_id: roomIdFromShowtimes,
+                    showtime_id: showtimeIdFromBooking,
+                },
+                { headers: { Authorization: `Bearer ${tokenUserId}` } }
+            );
+        },
+        onSuccess: () => {
+            setSeats((prevSeats: any) => {
+                const updatedSeats = { ...prevSeats };
+                //
+                return updatedSeats;
+            });
+        },
+    });
 
-  // Xử lý khi ấn tiếp tục
-  const nextStep = () => {
-    if (currentStep === 1) {
-      if (quantitySeats === 0) {
-        openNotification(false)();
-        return;
-      }
-      if (seatContinueHandler) {
-        seatContinueHandler(); // Gọi hàm handleContinue từ BookingSeat để giữ ghế
-        // Chuyển bước sẽ được xử lý trong handleSeatHoldSuccess sau khi giữ ghế thành công
-        return;
-      }
-    }
+    // Xử lý khi ấn tiếp tục
+    const nextStep = () => {
+        if (currentStep === 1 && quantitySeats === 0) {
+            openNotification(false)();
+            return;
+        }
 
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1); // Chuyển bước cho các bước khác
-    }
-  };
+        if (currentStep === 1 && quantitySeats !== 0) {
+            holdSeatMutation.mutate(selectedSeatIds);
+        }
 
-  // Xử lý khi ấn quay lại
-  const prevStep = () => {
-    if (currentStep === 2 && selectedSeatIds.length > 0) {
-      // Chỉ gọi API nếu có ghế được chọn (giữ nguyên logic)
-    }
+        if (currentStep < 4) {
+            setCurrentStep(currentStep + 1);
+        }
+    };
 
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+    // Xử lý khi ấn quay lại
+    const prevStep = () => {
+        if (currentStep === 2 && selectedSeatIds.length > 0) {
+            releaseSeatsMutation.mutate(selectedSeatIds);
+        }
 
-  useEffect(() => {
-    if (currentStep === 0) {
-      navigate("/playingFilm");
-    }
-  }, [currentStep, navigate]);
+        if (currentStep > 0) {
+            setCurrentStep(currentStep - 1);
+        }
+    };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <>
-            <BookingSeat
-              className="booking-left"
-              onContinue={(handler) => setSeatContinueHandler(() => handler)}
-              onSeatHoldSuccess={handleSeatHoldSuccess} // Truyền callback để xử lý sau khi giữ ghế
+    useEffect(() => {
+        if (currentStep === 0) {
+            navigate("/playingFilm");
+        }
+    }, [currentStep, navigate]);
+
+    const renderStepContent = () => {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <>
+                        <BookingSeat className="booking-left" />
+                        <BookingInfo
+                            className="booking-right"
+                            nextStep={nextStep}
+                            prevStep={prevStep}
+                        />
+                    </>
+                );
+            case 2:
+                return (
+                    <>
+                        <ComboFood className="booking-left" />
+                        <BookingInfo
+                            className="booking-right"
+                            nextStep={nextStep}
+                            prevStep={prevStep}
+                        />
+                    </>
+                );
+            case 3:
+                return (
+                    <>
+                        <PaymentGate className="booking-left" />
+                        <BookingInfo
+                            className="booking-right"
+                            nextStep={nextStep}
+                            prevStep={prevStep}
+                        />
+                    </>
+                );
+            case 4:
+                return null;
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div className="main-base">
+            {contextHolder}
+            <Steps
+                className="steps-booking"
+                current={currentStep}
+                items={[
+                    { title: "Chọn Phim" },
+                    { title: "Chọn ghế" },
+                    { title: "Chọn đồ ăn" },
+                    { title: "Chọn thanh toán" },
+                    { title: "Xác nhận" },
+                ]}
             />
-            <BookingInfo
-              className="booking-right"
-              nextStep={nextStep}
-              prevStep={prevStep}
-            />
-          </>
-        );
-      case 2:
-        return (
-          <>
-            <ComboFood className="booking-left" />
-            <BookingInfo
-              currentStep={currentStep}
-              className="booking-right"
-              nextStep={nextStep}
-              prevStep={prevStep}
-            />
-          </>
-        );
-      case 3:
-        return (
-          <>
-            <PaymentGate className="booking-left" />
-            <BookingInfo
-              className="booking-right"
-              nextStep={nextStep}
-              prevStep={prevStep}
-            />
-          </>
-        );
-      case 4:
-        return null;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="main-base">
-      {contextHolder}
-      <Steps
-        className="steps-booking"
-        current={currentStep}
-        items={[
-          { title: "Chọn Phim" },
-          { title: "Chọn ghế" },
-          { title: "Chọn đồ ăn" },
-          { title: "Chọn thanh toán" },
-          { title: "Xác nhận" },
-        ]}
-      />
-      <div className="booking-main">{renderStepContent()}</div>
-      {/* <Space className="navigation-buttons">
-        {currentStep > 1 && <Button onClick={prevStep}>Quay lại</Button>}
-        {currentStep < 4 && (
-          <Button type="primary" onClick={nextStep}>
-            Tiếp tục
-          </Button>
-        )}
-      </Space> */}
-    </div>
-  );
+            <div className="booking-main">{renderStepContent()}</div>
+        </div>
+    );
 };
 
 export default BookingMain;

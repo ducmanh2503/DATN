@@ -122,8 +122,10 @@ class SeatController extends Controller
      */
     public function releaseSeat(Request $request)
     {
+        // Xác thực dữ liệu đầu vào
         $validator = Validator::make($request->all(), [
-            'seat' => 'required|string|exists:seats,id',
+            'seats' => 'required|array',
+            'seats.*' => 'numeric|exists:seats,id',
             'room_id' => 'required|numeric|exists:rooms,id',
             'showtime_id' => 'required|numeric|exists:show_times,id'
         ]);
@@ -133,24 +135,57 @@ class SeatController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $seat = $request->input('seat');
-        $roomId = $request->all();
-        $showTimeId = $request->all();
+        // Lấy dữ liệu từ request
+        $seats = $request->input('seats');
+        $roomId = $request->input('room_id');
+        $showTimeId = $request->input('showtime_id');
 
-        // Kiểm tra ghế có tồn tại trong cache không
-        if (!Cache::has("seat_$seat")) {
-            return response()->json(['message' => 'Ghế chưa được giữ hoặc đã được giải phóng trước đó!'], 404);
+        // Kiểm tra xem $seats có phải là mảng hợp lệ không
+        if (!is_array($seats) || empty($seats)) {
+            return response()->json([
+                'message' => 'Danh sách ghế không hợp lệ!',
+            ], 400);
         }
 
-        // Xóa ghế khỏi Redis
-        Cache::forget("seat_$seat");
+        $releasedSeats = [];
+        $failedSeats = [];
+
+        // Lặp qua từng ghế để xử lý
+        foreach ($seats as $seatId) {
+            // Đảm bảo $seatId là số
+            if (!is_numeric($seatId)) {
+                $failedSeats[] = $seatId;
+                continue;
+            }
+
+            $cacheKey = "seat_" . (int)$seatId; // Chuyển $seatId thành số nguyên để tránh lỗi
+
+            // Kiểm tra ghế có tồn tại trong cache không
+            if (!Cache::has($cacheKey)) {
+                $failedSeats[] = $seatId;
+                continue;
+            }
+
+            // Xóa ghế khỏi Redis
+            Cache::forget($cacheKey);
+            $releasedSeats[] = (int)$seatId; // Đảm bảo $releasedSeats chỉ chứa số
+        }
+
+        // Nếu không có ghế nào được giải phóng, trả về lỗi
+        if (empty($releasedSeats)) {
+            return response()->json([
+                'message' => 'Tất cả ghế chưa được giữ hoặc đã được giải phóng trước đó!',
+                'failed_seats' => $failedSeats
+            ], 404);
+        }
 
         // Phát sự kiện giải phóng ghế
-        Broadcast(new SeatHeldEvent($seat, null, $roomId, $showTimeId));
+        Broadcast(new SeatHeldEvent($releasedSeats, null, $roomId, $showTimeId));
 
         return response()->json([
             'message' => 'Ghế đã được giải phóng!',
-            'seat' => $seat
+            'seats' => $releasedSeats,
+            'failed_seats' => $failedSeats
         ]);
     }
 

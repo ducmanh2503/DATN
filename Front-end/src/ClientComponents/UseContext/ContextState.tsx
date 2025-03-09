@@ -27,11 +27,15 @@ export const MessageProvider = ({
     >(); // id suất chiếu booking
     const [holdSeatId, setHoldSeatId] = useState<string[]>([]); // id của hold-seat
     const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]); //  id ghế đã chọn
-    // Thêm state để theo dõi trạng thái refetch
-    const [shouldRefetch, setShouldRefetch] = useState(false);
-    // const [userIdFromShowtimes, setUserIdFromShowtimes] = useState<number | null>(
-    //   0
-    // ); // user ID showtimes
+    const [shouldRefetch, setShouldRefetch] = useState(false); // Thêm state để theo dõi trạng thái refetch
+    const [tokenUserId, setTokenUserId] = useState<string | null>(null); // token user
+    const [userIdFromShowtimes, setUserIdFromShowtimes] = useState<
+        number | null
+    >(0); // user ID showtimes
+    const [seats, setSeats] = useState<
+        Record<string, { isHeld?: boolean; heldByUser?: boolean }>
+    >({}); // ghế đã chọn trong showtimes
+    const [matrixSeatsManage, setMatrixSeatsManage] = useState<string[]>([]);
 
     return (
         <MessageContext.Provider
@@ -70,6 +74,14 @@ export const MessageProvider = ({
                 setSelectedSeatIds,
                 shouldRefetch,
                 setShouldRefetch,
+                tokenUserId,
+                setTokenUserId,
+                userIdFromShowtimes,
+                setUserIdFromShowtimes,
+                seats,
+                setSeats,
+                matrixSeatsManage,
+                setMatrixSeatsManage,
             }}
         >
             {children}

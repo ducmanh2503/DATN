@@ -1,0 +1,67 @@
+.card {
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  background-color: white;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.info {
+  margin-bottom: 10px;
+}
+
+.info label {
+  font-weight: bold;
+  display: block;
+}
+
+.info p {
+  margin: 5px 0;
+}
+
+.role {
+  font-weight: bold;
+  color: blue;
+}
+
+.input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.button {
+  width: 100%;
+  padding: 10px;
+  background-color: blue;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: darkblue;
+}
+
+.loading,
+.error {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.error {
+  color: red;
+}

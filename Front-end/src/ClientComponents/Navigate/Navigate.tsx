@@ -1,10 +1,10 @@
-import React from "react";
-import "./Navigate.css";
 import { Link, useLocation } from "react-router-dom";
+import clsx from "clsx";
+import styles from "./navigate.module.css";
 
 const Navigate = () => {
     const location = useLocation();
-    const isActive = (path: string) => location.pathname === path;
+    const isActive = (path: string) => location.pathname === path; // so sánh để đổi styles
     return (
         <div className="navigate main-base">
             <Link

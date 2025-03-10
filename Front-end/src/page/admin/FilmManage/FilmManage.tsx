@@ -247,7 +247,7 @@ const FilmManage: React.FC = () => {
                 dataIndex: "running_time",
                 key: "running_time",
                 render: (time: number) => {
-                    return `${time} phút`;
+                    return `${time}`;
                 },
             },
             {

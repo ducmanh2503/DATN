@@ -39,12 +39,12 @@ const PlayingProduct = ({
             className={`playingProduct ${className}`}
             onClick={() => onClick()}
         >
-            <div className="product-img" onClick={(e) => e.stopPropagation()}>
+            <div className="product-img">
                 <Link to={`/filmDetail/${id}`}>
                     <img className="img" src={poster} alt="" />
                 </Link>
                 ;
-                <div className="hover-btn" onClick={(e) => e.stopPropagation()}>
+                <div className="hover-btn">
                     <button className="btn" onClick={showModal2}>
                         Đặt vé
                     </button>

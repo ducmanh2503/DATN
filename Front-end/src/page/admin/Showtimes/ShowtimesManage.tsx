@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Button, DatePicker, Form, Select, Divider, message, Spin } from "antd";
 import { FieldType } from "../../../types/interface";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { GET_ONE_SHOWTIMES } from "../../../config/ApiConfig";
+import { GET_ONE_SHOWTIMES, GET_ROOMS } from "../../../config/ApiConfig";
 import ShowtimesRoom1 from "./ShowtimesRoom1";
 import ShowtimesRoom2 from "./ShowtimesRoom2";
 import ShowtimesRoom3 from "./ShowtimesRoom3";
@@ -48,6 +48,7 @@ const ShowtimesManage: React.FC = () => {
         mutate(formData);
     };
 
+    // hàm tìm suất chiếu
     const { mutate } = useMutation({
         mutationFn: async (formData: any) => {
             setIsLoading(true);
@@ -83,6 +84,19 @@ const ShowtimesManage: React.FC = () => {
         },
     });
 
+    // hàm lấy danh sách phòng chiếu
+    const { data: roomOptions } = useQuery({
+        queryKey: ["getRooms"],
+        queryFn: async () => {
+            const { data } = await axios.get(GET_ROOMS);
+            return data.rooms.map((item: any) => ({
+                label: item.name,
+                value: item.room_type_id,
+            }));
+        },
+        staleTime: 1000 * 60 * 10,
+    });
+
     return (
         <>
             <div className="flex mb-4">
@@ -95,7 +109,7 @@ const ShowtimesManage: React.FC = () => {
                 >
                     <Form.Item<FieldType>
                         label="Phòng chiếu:"
-                        name="room_id"
+                        name="room_type_id"
                         rules={[
                             {
                                 required: true,
@@ -107,11 +121,7 @@ const ShowtimesManage: React.FC = () => {
                             placeholder={"phòng chiếu"}
                             style={{ width: 120 }}
                             onChange={handleRoomChange}
-                            options={[
-                                { value: "1", label: "Phòng số 1" },
-                                { value: "2", label: "Phòng số 2" },
-                                { value: "3", label: "Phòng số 3" },
-                            ]}
+                            options={roomOptions || []}
                         ></Select>
                     </Form.Item>
 

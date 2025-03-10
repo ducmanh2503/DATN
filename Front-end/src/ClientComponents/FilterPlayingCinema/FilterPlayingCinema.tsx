@@ -1,6 +1,6 @@
-import React from "react";
-import "./FilterPlayingCinema.css";
 import { Select } from "antd";
+import clsx from "clsx";
+import styles from "./FilterPlayingCinema.module.css";
 
 const FilterPlayingCinema = () => {
     const handleChange = (value: string) => {
@@ -9,7 +9,7 @@ const FilterPlayingCinema = () => {
     return (
         <div className="main-base">
             <Select
-                className="select-option"
+                className={clsx(styles.selectOption)}
                 defaultValue="Mới nhất"
                 onChange={handleChange}
                 options={[
@@ -18,7 +18,7 @@ const FilterPlayingCinema = () => {
                 ]}
             />
             <Select
-                className="select-option"
+                className={clsx(styles.selectOption)}
                 defaultValue="Thể loại"
                 onChange={handleChange}
                 options={[
@@ -30,7 +30,7 @@ const FilterPlayingCinema = () => {
                 ]}
             />
             <Select
-                className="select-option"
+                className={clsx(styles.selectOption)}
                 defaultValue="Rạp"
                 onChange={handleChange}
                 options={[

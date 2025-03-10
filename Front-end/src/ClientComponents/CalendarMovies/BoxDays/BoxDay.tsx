@@ -1,13 +1,16 @@
-import "./BoxDay.css";
-
+import clsx from "clsx";
+import styles from "./BoxDay.module.css";
 const BoxDay = ({ date, number, searchDate, onClick }: any) => {
     return (
         <div
-            className={`box-days ${searchDate === date ? "active-btn" : ""}`}
+            className={clsx(
+                styles.boxDays,
+                searchDate === date ? styles.activeBtn : ""
+            )}
             onClick={onClick}
         >
-            <div className="title-days">{number}</div>
-            <div className="number-days">{date}</div>
+            <div className={clsx(styles.titleDays)}>{number}</div>
+            <div>{date}</div>
         </div>
     );
 };

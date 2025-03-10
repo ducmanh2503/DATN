@@ -1,28 +1,27 @@
-.playingMain {
+.infomationSlide {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 50px;
-    row-gap: 70px;
+    gap: 20px;
+    row-gap: 50px;
     margin-top: 40px;
 }
 
-.item-main {
+.productInfo {
     width: 100%;
 }
 
-.item-main:nth-child(4n + 1) {
+:global(.productInfo:nth-child(4n + 1)) {
     justify-self: start;
 }
 
-.item-main:nth-child(4n) {
+:global(.productInfo:nth-child(4n)) {
     justify-self: end;
 }
 
 .hidden {
     display: none !important;
 }
-
-.playingMain .show-more-btn {
+.showBoreBtn {
     grid-column: span 4;
     width: 120px;
     padding: 10px;

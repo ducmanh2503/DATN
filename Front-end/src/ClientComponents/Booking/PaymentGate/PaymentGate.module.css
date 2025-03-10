@@ -1,70 +1,70 @@
-.payment-gate-container {
+.paymentGateContainer {
     margin-top: 40px;
 }
 
-.payment-gate-container .promotion-section {
+.promotionSection {
     background-color: white;
     padding: 15px 25px;
 }
 
-.promotion-section .promotion-title {
+.promotionTitle {
     font-size: 18px;
     color: #4a4a04;
 }
 
-.promotion-section .promotion-input {
+.promotionInput {
     margin-top: 20px;
 }
 
-.promotion-section .promotion-input h3 {
+.title {
     margin-bottom: 5px;
 }
 
-.promotion-section .promotion-panel {
+.promotionPanel {
     margin-left: -18px;
     margin-top: 18px;
 }
 
-.promotion-section .promotion-panel .promotion-note {
+.promotionNote {
     margin-top: 10px;
     font-size: 16px;
     font-weight: 500;
 }
 
-.promotion-section .promotion-panel .promotion-info {
+.promotionInfo {
     margin-top: 10px;
 }
 
-.promotion-section .promotion-panel .promotion-rate {
+.promotionRate {
     font-weight: 500;
     margin-left: 15px;
 }
 
-.promotion-section .promotion-panel .promotion-member {
+.promotionMember {
     margin-left: 15px;
 }
-.payment-gate-container .payment-method {
+.paymentMethod {
     background-color: white;
     padding: 15px 25px;
     margin-top: 20px;
 }
 
-.payment-method .method-title {
+.methodTitle {
     font-size: 18px;
     color: #4a4a04;
 }
 
-.payment-method .payment-radio-group {
+.paymentRadioGroup {
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-top: 18px;
 }
-.payment-method .more-info {
+.moreInfo {
     font-size: 12px;
     margin-top: 15px;
 }
 
-.payment-method .more-info .danger {
+.danger {
     color: red;
 }

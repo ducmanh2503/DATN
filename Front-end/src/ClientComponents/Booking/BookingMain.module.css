@@ -1,22 +1,22 @@
-.steps-booking {
+.stepsBooking {
     margin-top: 60px;
     margin-bottom: 40px;
 }
 
-.booking-main {
+.bookingMain {
     display: flex;
     gap: 10px;
 }
 
-.booking-main .booking-left {
+.bookingLeft {
     width: 65%;
 }
 
-.booking-main .booking-right {
+.bookingRight {
     width: 35%;
 }
 
-.notification-icon {
+.notificationIcon {
     color: red;
     font-size: 20px;
     margin-top: 10px;

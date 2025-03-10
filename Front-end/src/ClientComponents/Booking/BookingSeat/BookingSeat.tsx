@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import "./BookingSeat.css";
-import { Card, Tooltip, message } from "antd";
-import { useMessageContext } from "../../UseContext/ContextState";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Card, message } from "antd";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import pusher from "../../../utils/pusher";
+import clsx from "clsx";
+
+import { useMessageContext } from "../../UseContext/ContextState";
 import { BookingType } from "../../../types/interface";
+import styles from "./BookingSeat.module.css";
 
 const BookingSeat = ({ className }: { className?: string }) => {
     const {
@@ -18,11 +20,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
         roomIdFromShowtimes,
         showtimeIdFromBooking,
         setHoldSeatId,
-        holdSeatId,
-        selectedSeatIds,
         setSelectedSeatIds,
-        shouldRefetch,
-        setShouldRefetch,
         tokenUserId,
         setTokenUserId,
         setUserIdFromShowtimes,
@@ -482,29 +480,35 @@ const BookingSeat = ({ className }: { className?: string }) => {
     }, [refetchMatrix]);
 
     return (
-        <div className={`box-main-left ${className}`}>
-            <div className="box-showtimes">
-                <span className="change-showtimes">Đổi suất chiếu:</span>
+        <div className={clsx(styles.boxMainLeft, className)}>
+            <div className={clsx(styles.boxShowtimes)}>
+                <span className={clsx(styles.changeShowtimes)}>
+                    Đổi suất chiếu:
+                </span>
                 <span>13:00</span>
                 <span>13:00</span>
                 <span>13:00</span>
                 <span>13:00</span>
                 <span>13:00</span>
             </div>
-            <div className="booking-seat">
+            <div className={clsx(styles.bookingSeat)}>
                 <div>
                     <Card>
-                        <div className="screen">MÀN HÌNH</div>
+                        <div className={clsx(styles.screen)}>MÀN HÌNH</div>
 
-                        <div className="matrix-seat">
+                        <div className={clsx(styles.matrixSeat)}>
                             {matrixSeats &&
                                 Object.entries(matrixSeats).map(
                                     ([rowLabel, rowData]: any, rowIndex) => (
                                         <div
                                             key={`row-${rowLabel}-${rowIndex}`}
-                                            className="row-seats"
+                                            className={clsx(styles.rowSeats)}
                                         >
-                                            <div className="col-seats">
+                                            <div
+                                                className={clsx(
+                                                    styles.colSeats
+                                                )}
+                                            >
                                                 {rowLabel}
                                             </div>
                                             {Object.values(rowData).map(
@@ -525,7 +529,19 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
                                                     return (
                                                         <button
-                                                            className="seat-name"
+                                                            className={clsx(
+                                                                styles.seatName,
+                                                                isHeld &&
+                                                                    styles.held,
+                                                                isSelected &&
+                                                                    styles.selected,
+                                                                seat.type ===
+                                                                    "VIP" &&
+                                                                    styles.vip,
+                                                                seat.type ===
+                                                                    "Sweetbox" &&
+                                                                    styles.sweetbox
+                                                            )}
                                                             key={`seat-${seat.id}`}
                                                             onClick={() =>
                                                                 handleSeatClick(
@@ -533,36 +549,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                                                 )
                                                             }
                                                             disabled={isHeld}
-                                                            style={{
-                                                                background:
-                                                                    isHeld
-                                                                        ? "rgb(241, 153, 2)"
-                                                                        : isSelected
-                                                                        ? "#52c41a"
-                                                                        : "transparent",
-                                                                border:
-                                                                    seat.type ===
-                                                                    "VIP"
-                                                                        ? "1px solid #1890ff"
-                                                                        : seat.type ===
-                                                                          "Sweetbox"
-                                                                        ? "1px solid #f5222d"
-                                                                        : "1px solid #8c8c8c",
-                                                                color:
-                                                                    seat.type ===
-                                                                    "VIP"
-                                                                        ? "#1890ff"
-                                                                        : seat.type ===
-                                                                          "Sweetbox"
-                                                                        ? "#f5222d"
-                                                                        : "black",
-                                                                cursor: isHeld
-                                                                    ? "not-allowed"
-                                                                    : "pointer",
-                                                                opacity: isHeld
-                                                                    ? 0.6
-                                                                    : 1,
-                                                            }}
                                                         >
                                                             {seat.seatCode}
                                                         </button>
@@ -572,6 +558,102 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                         </div>
                                     )
                                 )}
+                        </div>
+                        <div className={clsx(styles.bookingSeatsInfo)}>
+                            <div className={clsx(styles.flexBooking)}>
+                                <div className={clsx(styles.seatsInfo)}>
+                                    <div
+                                        className={clsx(
+                                            styles.bookingSeats,
+                                            styles.seatsBooked
+                                        )}
+                                    />
+                                    <span
+                                        className={clsx(
+                                            styles.bookingSeatsName
+                                        )}
+                                    >
+                                        Ghế đã đặt
+                                    </span>
+                                </div>
+                                <div className={clsx(styles.seatsInfo)}>
+                                    <div
+                                        className={clsx(
+                                            styles.bookingSeats,
+                                            styles.seatsSelecting
+                                        )}
+                                    />
+                                    <span
+                                        className={clsx(
+                                            styles.bookingSeatsName
+                                        )}
+                                    >
+                                        Ghế đang chọn
+                                    </span>
+                                </div>
+                                <div className={clsx(styles.seatsInfo)}>
+                                    <div
+                                        className={clsx(
+                                            styles.bookingSeats,
+                                            styles.seatsHolding
+                                        )}
+                                    />
+                                    <span
+                                        className={clsx(
+                                            styles.bookingSeatsName
+                                        )}
+                                    >
+                                        Ghế đang được giữ
+                                    </span>
+                                </div>
+                            </div>
+                            <div className={clsx(styles.flexBooking)}>
+                                <div className={clsx(styles.seatsInfo)}>
+                                    <div
+                                        className={clsx(
+                                            styles.bookingSeats,
+                                            styles.seatsNormal
+                                        )}
+                                    />
+                                    <span
+                                        className={clsx(
+                                            styles.bookingSeatsName
+                                        )}
+                                    >
+                                        Ghế thường
+                                    </span>
+                                </div>
+                                <div className={clsx(styles.seatsInfo)}>
+                                    <div
+                                        className={clsx(
+                                            styles.bookingSeats,
+                                            styles.seatsVIP
+                                        )}
+                                    />
+                                    <span
+                                        className={clsx(
+                                            styles.bookingSeatsName
+                                        )}
+                                    >
+                                        Ghế VIP
+                                    </span>
+                                </div>
+                                <div className={clsx(styles.seatsInfo)}>
+                                    <div
+                                        className={clsx(
+                                            styles.bookingSeats,
+                                            styles.seatSweetbox
+                                        )}
+                                    />
+                                    <span
+                                        className={clsx(
+                                            styles.bookingSeatsName
+                                        )}
+                                    >
+                                        Ghế sweatbox
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </Card>
                 </div>

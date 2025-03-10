@@ -22,18 +22,11 @@ import DirectorsManage from "./page/admin/Directors/DirectorsManage";
 import SeatPage from "./page/admin/Seat/SeatPage";
 import RoomPage from "./page/admin/RoomPage/RoomPage";
 import FilmDetail from "./ClientComponents/FilmDetail/FilmDetail";
-import Showtimes from "./ClientComponents/Showtimes/Showtimes";
-import Payment from "./ClientComponents/Payment/Payment";
 import Login from "./page/auth/Login";
 import Register from "./page/auth/Register";
 import GoogleCallback from "./page/auth/GoogleCallback";
 import authService from "./services/auth.service";
-import BookingMain from "./ClientComponents/Booking/BookingMain";
 import Booking from "./page/client/Booking/Booking";
-import UserProfile from "./ClientComponents/UserProfile/UserProfile";
-import CreatePost from "./page/admin/Article/CreateArticle";
-import ArticleList from "./page/admin/Article/Article";
-import UpdatePost from "./page/admin/Article/UpdateArticle";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -252,24 +245,7 @@ export const router = createBrowserRouter([
         element: <FilmDetail />,
     },
     {
-        path: "/showtimes/:movieId",
-        element: <Showtimes />,
-    },
-    // {
-    //     element: <ProtectedRoute />,
-    //     children: [
-    //         {
-    //             path: "/booking/:showtimeId/:roomId",
-    //             element: <Booking />,
-    //         },
-    //         {
-    //             path: "/payment/:showtimeId",
-    //             element: <Payment />,
-    //         },
-    //     ],
-    // },
-    {
-        path: "/booking",
+        path: "/booking/:id",
         element: <Booking></Booking>,
     },
     {

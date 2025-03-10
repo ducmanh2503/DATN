@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import PlayingProduct from "../PlayingProduct/PlayingProduct";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { GET_FILM_LIST, URL_IMAGE } from "../../config/ApiConfig";
-import "../PlayingMain/PlayingMain.css";
+import clsx from "clsx";
+
+import styles from "../PlayingMain/PlayingMain.module.css";
+
 const ComingMain = ({ showChill }: any) => {
     const [showMore, setShowMore] = useState(false);
 
+    // lấy data film
     const { data: comingfilms } = useQuery({
         queryKey: ["comingfilms"],
         queryFn: async () => {
@@ -20,12 +24,13 @@ const ComingMain = ({ showChill }: any) => {
     });
 
     return (
-        <div className="playingMain main-base">
+        <div className={clsx(styles.playingMain, "main-base")}>
             {comingfilms?.map((film: any, index: number) => (
                 <PlayingProduct
-                    className={`item-main ${
-                        index >= 8 && !showMore ? "hidden" : ""
-                    }`}
+                    className={clsx(
+                        styles.itemMain,
+                        index >= 8 && !showMore && styles.hidden
+                    )}
                     key={film.id}
                     id={film.id}
                     title={film.title}
@@ -39,7 +44,7 @@ const ComingMain = ({ showChill }: any) => {
                 />
             ))}
             <button
-                className="show-more-btn"
+                className={clsx(styles.showMoreBtn)}
                 onClick={() => setShowMore(!showMore)}
             >
                 {showMore ? "Ẩn bớt " : "Xem thêm..."}

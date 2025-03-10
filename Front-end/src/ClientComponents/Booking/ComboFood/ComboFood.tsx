@@ -1,7 +1,8 @@
 import { Image, Table, TableProps } from "antd";
 import { useState } from "react";
-import "./ComboFood.css";
 import { useMessageContext } from "../../UseContext/ContextState";
+import clsx from "clsx";
+import styles from "./ComboFood.module.css";
 interface DataType {
     key: string;
     image: string;
@@ -137,14 +138,20 @@ const ComboFood = ({ className }: any) => {
                     }}
                 >
                     <button
-                        className="btn-change-number number-down"
+                        className={clsx(
+                            styles.btnChangeNumber,
+                            styles.numberDown
+                        )}
                         onClick={() => decreaseQuantity(record.key)}
                     >
                         -
                     </button>
                     <span>{record.quantity}</span>
                     <button
-                        className="btn-change-number number-up"
+                        className={clsx(
+                            styles.btnChangeNumber,
+                            styles.numberUp
+                        )}
                         onClick={() => increaseQuantity(record.key)}
                     >
                         +
@@ -189,8 +196,8 @@ const ComboFood = ({ className }: any) => {
         },
     ]);
     return (
-        <div className={` ${className}`}>
-            <h2 className="title-offer">Combo Ưu đãi</h2>
+        <div className={clsx(className)}>
+            <h2 className={clsx(styles.titleOffer)}>Combo Ưu đãi</h2>
             <Table<DataType>
                 columns={columns}
                 dataSource={data}

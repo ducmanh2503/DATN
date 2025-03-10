@@ -6,18 +6,18 @@
     background-color: white;
 }
 
-.infomationProduct .info-thumnail {
+.infoThumnail {
     width: 100%;
     height: 180px;
 }
 
-.infomationProduct .product-image {
+.productImage {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.infomationProduct .type {
+.type {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -25,7 +25,7 @@
     border-top: 1px solid var(--border-color);
 }
 
-.type .category {
+.category {
     width: 100px;
     text-align: center;
     padding: 6px 10px;
@@ -34,18 +34,17 @@
     background-color: var(--backgroud-product);
 }
 
-.type .date {
+.date {
     margin-right: 5px;
 }
 
-.infomationProduct .title {
+.title {
     height: 50px;
     padding: 12px;
     font-size: 14px;
     line-height: 1.5;
 }
 
-.title,
 .cliptext {
     --line-clamp: 3;
 }

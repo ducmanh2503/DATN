@@ -1,8 +1,8 @@
-.box-main-left {
+.boxMainLeft {
     margin-top: 40px;
 }
 
-.box-main-left .box-showtimes {
+.boxShowtimes {
     display: flex;
     align-items: center;
     padding-left: 20px;
@@ -12,15 +12,15 @@
     background-color: white;
 }
 
-.box-showtimes .change-showtimes {
+.changeShowtimes {
     margin-right: 20px;
 }
 
-.box-main-left .booking-seat {
+.bookingSeat {
     margin-top: 20px;
 }
 
-.booking-seat .screen {
+.screen {
     background-color: #1a1a1a;
     padding: 12px;
     text-align: center;
@@ -32,7 +32,7 @@
     width: 80%;
 }
 
-.booking-seat .matrix-seat {
+.matrixSeat {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -40,21 +40,25 @@
     overflow-x: auto;
     padding: 20px;
 }
-.booking-seat .row-seats {
+.rowSeats {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
-.booking-seat .col-seats {
+.colSeats {
     width: 30px;
     text-align: center;
     font-weight: 500;
 }
-.booking-seat .seat-name {
+.seatName {
     width: 25px;
     height: 25px;
+    border: 1px solid #8c8c8c;
+    color: black;
     border-radius: 6px;
+    background: transparent;
+    opacity: 1;
     cursor: pointer;
     font-size: 11px;
     display: flex;
@@ -64,11 +68,65 @@
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-.seat-name:hover {
+.seatName:hover {
     background: #52c41a !important; /* Màu xám nhạt khi hover */
 }
 
-.booking-seat .booking-seats-info {
+.held {
+    background: rgb(241, 153, 2);
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.selected {
+    background: #52c41a;
+}
+
+.vip {
+    border: 1px solid #1890ff;
+    color: #1890ff;
+}
+
+.sweetbox {
+    border: 1px solid #f5222d;
+    color: #f5222d;
+}
+
+.bookingSeats {
+    width: 15px;
+    height: 15px;
+    border-radius: 4px;
+}
+
+.seatsBooked {
+    background: rgb(166, 21, 210);
+    border: 2px solid rgb(166, 21, 210);
+}
+
+.seatsSelecting {
+    background-color: #52c41a;
+    border: 2px solid #52c41a;
+}
+
+.seatsHolding {
+    background-color: rgb(241, 153, 2);
+    border: 2px solid rgb(241, 153, 2);
+}
+
+.seatsNormal {
+    border: 2px solid #8c8c8c;
+}
+
+.seatsVIP {
+    border: 2px solid #1890ff;
+}
+
+.seatSweetbox {
+    border: 2px solid #f5222d;
+}
+
+.bookingSeatsInfo {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -79,24 +137,17 @@
     border-radius: 8px;
 }
 
-.booking-seats-info .flex-booking {
+.flexBooking {
     display: flex;
     gap: 12px;
 }
 
-.booking-seat .booking-seats-info .seats-info {
+.seatsInfo {
     display: flex;
     align-items: center;
     gap: 2px;
 }
 
-.seats-info .booking-seats-name {
+.bookingSeatsName {
     font-size: 13px;
-}
-
-.booking-seats-info .seats-info .booking-seats {
-    width: 15px;
-    height: 15px;
-    background-color: transparent;
-    border-radius: 4px;
 }

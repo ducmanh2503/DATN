@@ -1,23 +1,23 @@
-.calendar-days,
-.calendar-numbers {
+.calendarDays,
+.calendarNumbers {
     display: flex;
     flex-wrap: wrap;
 }
 
-.loading-time {
+.loadingTime {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.film-room {
+.filmRoom {
     margin-top: 20px;
 }
 
-.calendar-numbers {
+.calendarNumbers {
     margin-top: 30px;
 }
 
-.no-showtimes {
+.noShowtimes {
     color: red;
 }

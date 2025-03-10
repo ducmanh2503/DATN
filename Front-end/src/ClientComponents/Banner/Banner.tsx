@@ -2,13 +2,13 @@ import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import "swiper/swiper-bundle.css";
-
-import "./banner.css";
 import { Image } from "antd";
+import clsx from "clsx";
+import styles from "./banner.module.css";
 
 const Banner = () => {
     return (
-        <div className="banner-box">
+        <div className={clsx(styles.bannerBox)}>
             <Swiper
                 slidesPerView="auto"
                 spaceBetween={200}
@@ -31,20 +31,34 @@ const Banner = () => {
                     },
                 }}
             >
-                <SwiperSlide className="custom-slide">Slide 1</SwiperSlide>
-                <SwiperSlide className="custom-slide">Slide 2</SwiperSlide>
-                <SwiperSlide className="custom-slide">Slide 3</SwiperSlide>
-                <SwiperSlide className="custom-slide">Slide 4</SwiperSlide>
-                <SwiperSlide className="custom-slide">Slide 5</SwiperSlide>
-                <SwiperSlide className="custom-slide">Slide 6</SwiperSlide>
-                <SwiperSlide className="custom-slide">Slide 7</SwiperSlide>
+                <SwiperSlide className={clsx(styles.customSlide)}>
+                    Slide 1
+                </SwiperSlide>
+                <SwiperSlide className={clsx(styles.customSlide)}>
+                    Slide 2
+                </SwiperSlide>
+                <SwiperSlide className={clsx(styles.customSlide)}>
+                    Slide 3
+                </SwiperSlide>
+                <SwiperSlide className={clsx(styles.customSlide)}>
+                    Slide 4
+                </SwiperSlide>
+                <SwiperSlide className={clsx(styles.customSlide)}>
+                    Slide 5
+                </SwiperSlide>
+                <SwiperSlide className={clsx(styles.customSlide)}>
+                    Slide 6
+                </SwiperSlide>
+                <SwiperSlide className={clsx(styles.customSlide)}>
+                    Slide 7
+                </SwiperSlide>
             </Swiper>
-            <div className="promotion">
-                <div className="promotion-1">
-                    <Image className="promotion-image"></Image>
+            <div className={clsx(styles.promotion)}>
+                <div className={clsx(styles.promotion1)}>
+                    <Image className={clsx(styles.promotionImage)}></Image>
                 </div>
-                <div className="promotion-2">
-                    <Image className="promotion-image"></Image>
+                <div className={clsx(styles.promotion2)}>
+                    <Image className={clsx(styles.promotionImage)}></Image>
                 </div>
             </div>
         </div>

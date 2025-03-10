@@ -20,7 +20,7 @@ class ComboController extends Controller
         $combo = Combo::query()->latest('id')->get();
 
         return response()->json([
-            'message' => 'Danh Combo',
+            'message' => 'Danh sách Combo',
             'combo' => $combo,
 
         ], 200);

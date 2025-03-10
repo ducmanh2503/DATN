@@ -409,7 +409,7 @@ class ShowTimeController extends Controller
 
 
     //------------------------------------showTime-------------------------------------------------
-    public function getShowTimesByDate(string $movie_id, string $date, Request $request)
+    public function getShowTimesByDateClient(string $movie_id, string $date, Request $request)
     {
         // Kiểm tra movie_id có tồn tại không
         if (!Movies::where('id', $movie_id)->exists()) {
@@ -465,14 +465,43 @@ class ShowTimeController extends Controller
         ]);
     }
 
+    public function getShowTimesByDate(Request $request)
+    {
 
 
+        // Validate dữ liệu đầu vào
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date',
+            'room_id' => 'required|exists:rooms,id'
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
 
+        // Lấy tất cả show_time_id có trong ngày đã chọn
+        $showTimeIds = ShowTimeDate::where('show_date', $request->date)
+            ->pluck('show_time_id');
+
+        if ($showTimeIds->isEmpty()) {
+            return response()->json(['message' => 'Không có suất chiếu nào cho ngày này'], 404);
+        }
+
+        // Query các ShowTime
+        $query = ShowTime::whereIn('id', $showTimeIds)
+            ->with(['calendarShow.movie', 'calendarShow', 'room']);
+
+        // Thêm điều kiện lọc theo phòng nếu có
+        if ($request->has('room_id')) {
+            $query->where('room_id', $request->room_id);
+        }
+
+        $showTimes = $query->get();
+
+        return response()->json($showTimes, 200);
+    }
 
     //hàm hiển thị khoảng ngày giữa show_date và end_date
-
-
     public function generateDateRange($startDate, $endDate)
     {
 

@@ -18,7 +18,11 @@ const BookingSeat = ({ className }: { className?: string }) => {
         roomIdFromShowtimes,
         showtimeIdFromBooking,
         setHoldSeatId,
+        holdSeatId,
+        selectedSeatIds,
         setSelectedSeatIds,
+        shouldRefetch,
+        setShouldRefetch,
         tokenUserId,
         setTokenUserId,
         setUserIdFromShowtimes,
@@ -31,7 +35,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
     setTokenUserId(localStorage.getItem("auth_token") || "");
 
     const queryClient = useQueryClient();
-    const [messageApi, contextHolder] = message.useMessage();
+
     const [isPusherRegistered, setIsPusherRegistered] = useState(false);
     const pusherEventHandlersRegistered = useRef(false);
     const pollingIntervalRef = useRef<number | null>(null);
@@ -320,7 +324,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                 .filter(Boolean)
                                 .join(", ");
                             if (seatCodes) {
-                                messageApi.error(
+                                message.info(
                                     `Ghế ${seatCodes} vừa được người khác chọn`
                                 );
                             }
@@ -552,13 +556,12 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                                                           "Sweetbox"
                                                                         ? "#f5222d"
                                                                         : "black",
+                                                                cursor: isHeld
+                                                                    ? "not-allowed"
+                                                                    : "pointer",
                                                                 opacity: isHeld
-                                                                    ? 0.7
+                                                                    ? 0.6
                                                                     : 1,
-                                                                pointerEvents:
-                                                                    isHeld
-                                                                        ? "none"
-                                                                        : "auto",
                                                             }}
                                                         >
                                                             {seat.seatCode}
@@ -569,81 +572,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                         </div>
                                     )
                                 )}
-                        </div>
-                        <div className="booking-seats-info">
-                            <div className="flex-booking">
-                                <div className="seats-info">
-                                    <div
-                                        className="booking-seats "
-                                        style={{
-                                            background: "rgb(166, 21, 210)",
-                                            border: "2px solid rgb(166, 21, 210)",
-                                        }}
-                                    />
-                                    <span className="booking-seats-name">
-                                        Ghế đã đặt
-                                    </span>
-                                </div>
-                                <div className="seats-info">
-                                    <div
-                                        className="booking-seats "
-                                        style={{
-                                            background: "#52c41a",
-                                            border: "2px solid #52c41a",
-                                        }}
-                                    />
-                                    <span className="booking-seats-name">
-                                        Ghế đang chọn
-                                    </span>
-                                </div>
-                                <div className="seats-info">
-                                    <div
-                                        className="booking-seats "
-                                        style={{
-                                            background: "rgb(241, 153, 2)",
-                                            border: "2px solid rgb(241, 153, 2)",
-                                        }}
-                                    />
-                                    <span className="booking-seats-name">
-                                        Ghế đang được giữ
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex-booking">
-                                <div className="seats-info">
-                                    <div
-                                        className="booking-seats "
-                                        style={{
-                                            border: "2px solid #8c8c8c",
-                                        }}
-                                    />
-                                    <span className="booking-seats-name">
-                                        Ghế thường
-                                    </span>
-                                </div>
-                                <div className="seats-info">
-                                    <div
-                                        className="booking-seats "
-                                        style={{
-                                            border: "2px solid #1890ff",
-                                        }}
-                                    />
-                                    <span className="booking-seats-name">
-                                        Ghế VIP
-                                    </span>
-                                </div>
-                                <div className="seats-info">
-                                    <div
-                                        className="booking-seats "
-                                        style={{
-                                            border: "2px solid #f5222d",
-                                        }}
-                                    />
-                                    <span className="booking-seats-name">
-                                        Ghế sweatbox
-                                    </span>
-                                </div>
-                            </div>
                         </div>
                     </Card>
                 </div>

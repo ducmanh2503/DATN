@@ -30,6 +30,10 @@ import GoogleCallback from "./page/auth/GoogleCallback";
 import authService from "./services/auth.service";
 import BookingMain from "./ClientComponents/Booking/BookingMain";
 import Booking from "./page/client/Booking/Booking";
+import UserProfile from "./ClientComponents/UserProfile/UserProfile";
+import CreatePost from "./page/admin/Article/CreateArticle";
+import ArticleList from "./page/admin/Article/Article";
+import UpdatePost from "./page/admin/Article/UpdateArticle";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -265,7 +269,7 @@ export const router = createBrowserRouter([
     //     ],
     // },
     {
-        path: "/booking/:id",
+        path: "/booking",
         element: <Booking></Booking>,
     },
     {

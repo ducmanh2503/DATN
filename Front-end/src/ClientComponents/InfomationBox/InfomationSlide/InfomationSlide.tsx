@@ -1,6 +1,9 @@
-import React, { useState } from "react";
-import "./InfomationSlide.css";
+import { useState } from "react";
 import InfomationProduct from "../InfomationProduct/InfomationProduct";
+import clsx from "clsx";
+
+import styles from "./InfomationSlide.module.css";
+
 const InfomationSlide = () => {
     // làm thật
     // const [products, setProducts] = useState([]);
@@ -88,13 +91,14 @@ const InfomationSlide = () => {
     ];
     return (
         <div className="">
-            <div className="infomationSlide main-base ">
+            <div className={clsx(styles.infomationSlide, "main-base")}>
                 {products.map((product, index) => (
                     <InfomationProduct
                         key={product.id}
-                        className={`product-info ${
-                            index >= 8 && !showMore ? "hidden" : ""
-                        }`}
+                        className={clsx(
+                            styles.productInfo,
+                            index >= 8 && !showMore && styles.hidden
+                        )}
                         image={product.img}
                         category={product.category}
                         date={product.date}
@@ -102,7 +106,7 @@ const InfomationSlide = () => {
                     ></InfomationProduct>
                 ))}
                 <button
-                    className="show-more-btn"
+                    className={clsx(styles.showBoreBtn)}
                     onClick={() => setShowMore(!showMore)}
                 >
                     {showMore ? "Ẩn bớt " : "Xem thêm..."}

@@ -1,28 +1,36 @@
-import React from "react";
-import "./Navigate.css";
 import { Link, useLocation } from "react-router-dom";
+import clsx from "clsx";
+import styles from "./navigate.module.css";
 
 const Navigate = () => {
     const location = useLocation();
-    const isActive = (path: string) => location.pathname === path;
+    const isActive = (path: string) => location.pathname === path; // so sánh để đổi styles
     return (
-        <div className="navigate main-base">
+        <div className={clsx(styles.navigate, "main-base")}>
             <Link
-                className={` film ${isActive(`/playingFilm`) ? "nowing" : ""}`}
+                className={clsx(
+                    styles.film,
+                    isActive("/playingFilm") && styles.nowing
+                )}
                 to="/playingFilm"
             >
                 Phim đang chiếu
             </Link>
             <Link
-                className={` comingFilm film ${
-                    isActive(`/comingFilm`) ? "nowing" : ""
-                }`}
+                className={clsx(
+                    styles.comingFilm,
+                    styles.film,
+                    isActive("/comingFilm") && styles.nowing
+                )}
                 to="/comingFilm"
             >
                 Phim sắp chiếu
             </Link>
             <Link
-                className={` film ${isActive(`/cinemaFilm`) ? "nowing" : ""}`}
+                className={clsx(
+                    styles.film,
+                    isActive("/cinemaFilm") && styles.nowing
+                )}
                 to="/cinemaFilm"
             >
                 Rạp Forest

@@ -1,7 +1,6 @@
-import React from "react";
-import { Image } from "antd";
 import { Link } from "react-router-dom";
-import "./InfomationProduct.css";
+import clsx from "clsx";
+import styles from "./InfomationProduct.module.css";
 const InfomationProduct = ({
     className,
     image,
@@ -10,15 +9,18 @@ const InfomationProduct = ({
     title,
 }: any) => {
     return (
-        <Link className={`infomationProduct ${className}`} to={"....."}>
-            <div className="info-thumnail">
-                <img className="product-image" src={image}></img>
+        <Link
+            className={clsx(styles.infomationProduct, className)}
+            to={"....."}
+        >
+            <div className={clsx(styles.infoThumnail)}>
+                <img className={clsx(styles.productImage)} src={image}></img>
             </div>
-            <div className="type">
-                <h5 className="category">{category}</h5>
-                <span className="date">{date} </span>
+            <div className={clsx(styles.type)}>
+                <h5 className={clsx(styles.category)}>{category}</h5>
+                <span className={clsx(styles.date)}>{date} </span>
             </div>
-            <h4 className="title cliptext">{title}</h4>
+            <h4 className={clsx(styles.title, styles.cliptext)}>{title}</h4>
         </Link>
     );
 };

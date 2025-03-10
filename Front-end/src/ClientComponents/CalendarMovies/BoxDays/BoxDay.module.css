@@ -1,4 +1,4 @@
-.box-days {
+.boxDays {
     display: inline-block;
     width: 100px;
     background: var(--backgroud-product);
@@ -10,10 +10,10 @@
     height: 50px;
 }
 
-.active-btn {
+.activeBtn {
     background-color: #1f5692;
 }
 
-.box-days .title-days {
+.titleDays {
     font-size: 18px;
 }

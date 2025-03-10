@@ -1,4 +1,4 @@
-.box-numbers {
+.boxNumbers {
     display: inline-block;
     color: black;
     border: 1px solid #cbcbbe;
@@ -19,6 +19,6 @@
         0% 85%
     );
 }
-.box-numbers .box-numbers {
+.boxNumbers .boxNumbers {
     margin-top: 8px;
 }

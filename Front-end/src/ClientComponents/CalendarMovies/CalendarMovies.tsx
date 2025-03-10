@@ -1,13 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import BoxDay from "./BoxDays/BoxDay";
-import BoxNumbers from "./BoxNumbers/BoxNumbers";
-import "./CalendarMovie.css";
 import axios from "axios";
-import { GET_SHOW_BY_FILM_DATE } from "../../config/ApiConfig";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { Skeleton, Spin } from "antd";
+import clsx from "clsx";
+
+import { GET_SHOW_BY_FILM_DATE } from "../../config/ApiConfig";
+import BoxNumbers from "./BoxNumbers/BoxNumbers";
+import BoxDay from "./BoxDays/BoxDay";
 import { useMessageContext } from "../UseContext/ContextState";
+import styles from "./CalendarMovie.module.css";
 
 const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
     const [searchDateRaw, setSearchDateRaw] = useState<string | null>(null);
@@ -90,7 +92,7 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                 <Skeleton loading={isLoadingCalendarMovie} active></Skeleton>
             ) : (
                 <>
-                    <div className="calendar-days">
+                    <div className={clsx(styles.calendarDays)}>
                         {/* {console.log("check array", calendarMovie)} */}
                         {calendarMovie?.map((item: any, index: any) => {
                             const dayIndex = new Date(item).getDay();
@@ -112,13 +114,13 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                             );
                         })}
                     </div>
-                    <div className="film-room">Phòng chiếu</div>
+                    <div className={clsx(styles.filmRoom)}>Phòng chiếu</div>
                     {isLoadingFilmAndDate ? (
-                        <div className="loading-time">
+                        <div className={clsx(styles.loadingTime)}>
                             <Spin />
                         </div>
                     ) : (
-                        <div className="calendar-numbers">
+                        <div className={clsx(styles.calendarNumbers)}>
                             {LoadShowByFilmAndDate &&
                             LoadShowByFilmAndDate.length > 0 ? (
                                 LoadShowByFilmAndDate.map(
@@ -155,7 +157,7 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                                     }
                                 )
                             ) : (
-                                <p className="no-showtimes">
+                                <p className={clsx(styles.noShowtimes)}>
                                     *Chưa có suất chiếu nào cho ngày đã chọn.
                                 </p>
                             )}

@@ -1,10 +1,15 @@
-import React from "react";
-import "./BoxNumbers.css";
+import { useMessageContext } from "../../UseContext/ContextState";
 import { Link } from "react-router-dom";
-import { Button } from "antd";
+import clsx from "clsx";
+import styles from "./BoxNumbers.module.css";
 const BoxNumbers = ({ time, onClick }: any) => {
+    const { filmId } = useMessageContext();
     return (
-        <Link to="/booking" className="box-numbers" onClick={() => onClick()}>
+        <Link
+            to={`/booking/${filmId}`}
+            className={clsx(styles.boxNumbers)}
+            onClick={() => onClick()}
+        >
             {time}
         </Link>
     );

@@ -1,11 +1,13 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
     faChevronLeft,
     faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RankingProduct from "../RankingProduct/RankingProduct";
-import "./RankingSlide.css";
+import clsx from "clsx";
+
+import styles from "./RankingSlide.module.css";
 
 const RankingSlide = () => {
     // const [products, setProducts] = useState([]);
@@ -77,17 +79,17 @@ const RankingSlide = () => {
 
     return (
         <div>
-            <div className="carousel-container">
+            <div className={clsx(styles.carouselContainer)}>
                 <button
-                    className="prev-btn"
+                    className={clsx(styles.prevBtn)}
                     onClick={handlePrev}
                     disabled={index === 0}
                 >
                     <FontAwesomeIcon icon={faChevronLeft} />
                 </button>
-                <div className="carousel-wrapper">
+                <div className={clsx(styles.carouselWrapper)}>
                     <div
-                        className="carousel-list"
+                        className={clsx(styles.carouselList)}
                         ref={listRef}
                         style={{
                             transform: `translateX(-${index * (310 + 75)}px)`,
@@ -96,7 +98,7 @@ const RankingSlide = () => {
                         {products.map((product, index) => (
                             <RankingProduct
                                 key={product.id}
-                                className="carousel-item"
+                                className={clsx(styles.carouselItem)}
                                 number={index + 1}
                                 name={product.name}
                                 image={product.img}
@@ -105,7 +107,7 @@ const RankingSlide = () => {
                     </div>
                 </div>
                 <button
-                    className="next-btn"
+                    className={clsx(styles.nextBtn)}
                     onClick={handleNext}
                     disabled={index + visibleItems >= products.length}
                 >

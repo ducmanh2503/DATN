@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
-import "../BookingInfo/BookingInfo.css";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import clsx from "clsx";
+import styles from "../BookingInfo/BookingInfo.module.css";
 const SeatHoldTime = () => {
     const [timeLeft, setTimeLeft] = useState(420); //  giây
     const [isTimeUp, setIsTimeUp] = useState(false); // State để kiểm tra hết giờ chưa
@@ -28,9 +29,9 @@ const SeatHoldTime = () => {
         }
     }, [isTimeUp, navigate]);
     return (
-        <div className="booking-timer">
+        <div className={clsx(styles.bookingTimer)}>
             Thời gian giữ ghế:
-            <span className="timer-countdown">
+            <span className={clsx(styles.timerCountdown)}>
                 {minutes}:{seconds < 10 ? "0" : ""}
                 {seconds}
             </span>

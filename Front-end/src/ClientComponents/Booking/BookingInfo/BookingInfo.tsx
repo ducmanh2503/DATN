@@ -1,21 +1,28 @@
 import { useMessageContext } from "../../UseContext/ContextState";
 import InfoMovie from "../InfoMovie/InfoMovie";
 import SeatHoldTime from "../SeatHoldTime/SeatHoldTime";
-import "./BookingInfo.css";
+import clsx from "clsx";
+import styles from "./BookingInfo.module.css";
 const BookingInfo = ({ nextStep, prevStep, className }: any) => {
     const { currentStep } = useMessageContext();
     return (
         <div
-            className={`booking-info ${className}`}
+            className={clsx(styles.bookingInfo, className)}
             style={currentStep === 1 ? { marginTop: "20px" } : {}}
         >
             {currentStep !== 1 ? <SeatHoldTime></SeatHoldTime> : ""}
             <InfoMovie></InfoMovie>
-            <div className="booking-actions">
-                <button className="btn-back btn-link" onClick={prevStep}>
+            <div className={clsx(styles.bookingActions)}>
+                <button
+                    className={clsx(styles.btnBack, styles.btnLink)}
+                    onClick={prevStep}
+                >
                     Quay lại
                 </button>
-                <button className="btn-next btn-link" onClick={nextStep}>
+                <button
+                    className={clsx(styles.btnNext, styles.btnLink)}
+                    onClick={nextStep}
+                >
                     Tiếp tục
                 </button>
             </div>

@@ -13,6 +13,7 @@ use App\Http\Controllers\API\DirectorController;
 use App\Http\Controllers\API\DiscountCodeController;
 use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
+use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\ShowTimeController;
@@ -40,7 +41,8 @@ use Illuminate\Support\Facades\Route;
 
 
 
-
+Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
+Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -150,7 +152,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //movie, calendar_show, showTime
 Route::get('/movies-index', [MoviesController::class, 'index']);
-Route::get('/showtimes/by-date/{movie_id}/{date}', [ShowTimeController::class, 'getShowTimesByDate']);
+Route::get('/showtimes-client/by-date/{movie_id}/{date}', [ShowTimeController::class, 'getShowTimesByDateClient']);
 Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient']);
 Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::class, 'getShowDates']);
 Route::get('/movie-details-booking/{movie}', [MoviesController::class, 'show']);

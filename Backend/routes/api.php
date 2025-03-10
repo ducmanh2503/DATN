@@ -25,8 +25,8 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
-Route::middleware('auth:sanctum')->group(function () {
+Route::apiResource('article', ArticleController::class);
+// Route::middleware('auth:sanctum')->group(function () {
     // Lấy thông tin user đã đăng nhập
     Route::get('/user', function (Request $request) {
         return response()->json($request->user());
@@ -81,7 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
-});
+// });
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);

@@ -1,15 +1,17 @@
-import { Button, message, notification, Space, Steps } from "antd";
-import "./BookingMain.css";
+import { message, notification, Steps } from "antd";
 import BookingSeat from "./BookingSeat/BookingSeat";
 import BookingInfo from "./BookingInfo/BookingInfo";
 import ComboFood from "./ComboFood/ComboFood";
 import PaymentGate from "./PaymentGate/PaymentGate";
 import { useMessageContext } from "../UseContext/ContextState";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { CloseCircleOutlined } from "@ant-design/icons";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import clsx from "clsx";
 import axios from "axios";
+
+import styles from "./BookingMain.module.css";
 
 const BookingMain = () => {
     const {
@@ -33,7 +35,7 @@ const BookingMain = () => {
         api.open({
             message: (
                 <>
-                    <span className="notification-icon">
+                    <span className={clsx(styles.notificationIcon)}>
                         <CloseCircleOutlined />
                     </span>{" "}
                     Không thể tiếp tục...
@@ -155,9 +157,9 @@ const BookingMain = () => {
             case 1:
                 return (
                     <>
-                        <BookingSeat className="booking-left" />
+                        <BookingSeat className={clsx(styles.bookingLeft)} />
                         <BookingInfo
-                            className="booking-right"
+                            className={clsx(styles.bookingRight)}
                             nextStep={nextStep}
                             prevStep={prevStep}
                         />
@@ -166,9 +168,9 @@ const BookingMain = () => {
             case 2:
                 return (
                     <>
-                        <ComboFood className="booking-left" />
+                        <ComboFood className={clsx(styles.bookingLeft)} />
                         <BookingInfo
-                            className="booking-right"
+                            className={clsx(styles.bookingRight)}
                             nextStep={nextStep}
                             prevStep={prevStep}
                         />
@@ -177,9 +179,9 @@ const BookingMain = () => {
             case 3:
                 return (
                     <>
-                        <PaymentGate className="booking-left" />
+                        <PaymentGate className={clsx(styles.bookingLeft)} />
                         <BookingInfo
-                            className="booking-right"
+                            className={clsx(styles.bookingRight)}
                             nextStep={nextStep}
                             prevStep={prevStep}
                         />
@@ -193,10 +195,10 @@ const BookingMain = () => {
     };
 
     return (
-        <div className="main-base">
+        <div className={clsx("main-base")}>
             {contextHolder}
             <Steps
-                className="steps-booking"
+                className={clsx(styles.stepsBooking)}
                 current={currentStep}
                 items={[
                     { title: "Chọn Phim" },
@@ -206,7 +208,9 @@ const BookingMain = () => {
                     { title: "Xác nhận" },
                 ]}
             />
-            <div className="booking-main">{renderStepContent()}</div>
+            <div className={clsx(styles.bookingMain)}>
+                {renderStepContent()}
+            </div>
         </div>
     );
 };

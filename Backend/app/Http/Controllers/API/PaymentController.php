@@ -12,7 +12,7 @@ class PaymentController extends Controller
     public function createVNPay(Request $request)
     {
         $vnp_Url = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
-        $vnp_Returnurl = env('VNP_RETURN_URL', 'https://localhost:8000/api/VNPay/return');
+        $vnp_Returnurl = env('VNP_RETURN_URL', 'https://localhost:8000/api/movies-index');
         $vnp_TmnCode = env('VNP_TMN_CODE', 'GXTS9J8E'); //Mã website tại VNPAY 
         $vnp_HashSecret = env('VNP_HASH_SECRET', 'Y7EVYR6BH7GXOWUSYIFLWW9JHZV5DK7E'); //Chuỗi bí mật
 

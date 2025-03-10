@@ -1,7 +1,10 @@
 import { useState } from "react";
-import "./PlayingProduct.css";
 import { Modal } from "antd";
 import CalendarMovies from "../CalendarMovies/CalendarMovies";
+import { Link } from "react-router-dom";
+import clsx from "clsx";
+
+import styles from "./PlayingProduct.module.css";
 
 const PlayingProduct = ({
     id,
@@ -32,18 +35,22 @@ const PlayingProduct = ({
     const handleCancel2 = () => {
         setIsModalOpen2(false);
     };
+
     return (
         <div
-            className={`playingProduct ${className}`}
+            className={clsx(styles.playingProduct, className)}
             onClick={() => onClick()}
         >
-            <div className="product-img">
-                <img className="img" src={poster} alt="" />
-                <div className="hover-btn">
-                    <button className="btn" onClick={showModal2}>
+            <div className={clsx(styles.productImg)}>
+                <Link to={`/filmDetail/${id}`}>
+                    <img className={clsx(styles.img)} src={poster} alt="" />
+                </Link>
+
+                <div className={clsx(styles.hoverBtn)}>
+                    <button className={clsx(styles.btn)} onClick={showModal2}>
                         Đặt vé
                     </button>
-                    <button className="btn" onClick={showModal1}>
+                    <button className={clsx(styles.btn)} onClick={showModal1}>
                         Trailer
                     </button>
                     <Modal
@@ -82,17 +89,25 @@ const PlayingProduct = ({
                     </Modal>
                 </div>
             </div>
-            <div className="product-sub">
-                <h4 className="category cliptextTitle">{genres}</h4>
-                {showChill || <span className="date">{release_date}</span>}
+            <div className={clsx(styles.productSub)}>
+                <h4 className={clsx(styles.category, styles.cliptextTitle)}>
+                    {genres}
+                </h4>
+                {showChill || (
+                    <span className={clsx(styles.date)}>{release_date}</span>
+                )}
             </div>
             {showChill && (
-                <h4 className="start-day">
+                <h4 className={clsx(styles.startDay)}>
                     Ngày khởi chiếu:{" "}
-                    <span className="word-render">{release_date}</span>
+                    <span className={clsx(styles.wordRender)}>
+                        {release_date}
+                    </span>
                 </h4>
             )}
-            <h2 className="product-title cliptextTitle">{title}</h2>
+            <h2 className={clsx(styles.productTitle, styles.cliptextTitle)}>
+                {title}
+            </h2>
         </div>
     );
 };

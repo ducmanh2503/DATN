@@ -1,15 +1,25 @@
-import { Image } from "antd";
-import React from "react";
-import "./rankingProduct.css";
+import clsx from "clsx";
+import styles from "./RankingProduct.module.css";
+
 const RankingProduct = ({ className, number, name, image }: any) => {
     return (
-        <div className={`r-product ${className}`}>
-            <div className="img-box">
-                <img className="image" src={image}></img>
+        <div className={clsx(styles.rProduct, className)}>
+            <div className={clsx(styles.imgBox)}>
+                <img className={clsx(styles.image)} src={image}></img>
             </div>
-            <div className="title">
-                <span className="number">{number}</span>
-                <h2 className="product-name cliptextTitle">{name}</h2>
+            <div className={clsx(styles.title)}>
+                <span
+                    className={clsx(
+                        styles.number,
+                        number === 1 && styles.firstRank,
+                        number === 2 && styles.secondRank
+                    )}
+                >
+                    {number}
+                </span>
+                <h2 className={clsx(styles.productName, "cliptextTitle")}>
+                    {name}
+                </h2>
             </div>
         </div>
     );

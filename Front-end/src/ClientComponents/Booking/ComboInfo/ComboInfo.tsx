@@ -1,8 +1,8 @@
 import { Divider } from "antd";
-import "../InfoMovie/InfoMovie.css";
 import { useMessageContext } from "../../UseContext/ContextState";
 import { useEffect } from "react";
-
+import clsx from "clsx";
+import styles from "../InfoMovie/InfoMovie.module.css";
 const ComboInfo = () => {
     const {
         nameCombo,
@@ -35,20 +35,20 @@ const ComboInfo = () => {
     }, [nameCombo, totalSeatPrice]);
     return (
         <div>
-            <div className="booking-combo">
-                <Divider className="divider-custom" dashed />
-                <div className="combo-list">
+            <div className={clsx(styles.bookingCombo)}>
+                <Divider className={clsx(styles.dividerCustom)} dashed />
+                <div className={clsx(styles.comboList)}>
                     {nameCombo.map((combo: any, index: any) => (
-                        <div className="combo-item" key={index}>
-                            <div className="combo-info">
-                                <span className="combo-name">
-                                    <span className="number">
+                        <div className={clsx(styles.comboItem)} key={index}>
+                            <div className={clsx(styles.comboInfo)}>
+                                <span className={clsx(styles.comboName)}>
+                                    <span className={clsx(styles.number)}>
                                         {combo.quantity}
                                     </span>{" "}
                                     x {combo.title}
                                 </span>
                             </div>
-                            <div className="combo-price">
+                            <div className={clsx(styles.comboPrice)}>
                                 {combo.quantity * combo.price}đ
                             </div>
                         </div>

@@ -1,4 +1,4 @@
-.info-movie {
+.infoMovie {
     background-color: white;
     padding: 25px 20px 40px;
     margin-top: 20px;
@@ -19,37 +19,37 @@
     );
 }
 
-.info-movie .booking-film {
+.bookingFilm {
     display: flex;
 }
 
-.info-movie .booking-film .film-image {
-    width: 150px;
+.filmImage {
+    width: 250px;
     height: 190px;
     background-color: green;
 }
 
-.booking-film .film-image .film-thumbnail {
+.filmThumbnail {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.info-movie .booking-film .film-info {
+.filmInfo {
     margin-left: 8px;
 }
 
-.booking-film .film-info .info-title {
+.infoTitle {
     font-weight: 700;
     width: 220px;
     letter-spacing: 1px;
 }
 
-.booking-film .film-info .info-genres {
+.infoGenres {
     margin-top: 10px;
 }
 
-.booking-film .film-info .info-genres .genre-item {
+.genreItem {
     font-size: 14px;
     padding: 1px 4px;
     margin-right: 3px;
@@ -58,46 +58,51 @@
     border: 1px solid black;
 }
 
-.booking-film .film-info .info-sub {
+.infoSub {
     margin-top: 7px;
 }
 
-.info-sub .sub-rated {
+.subRated {
     margin-top: 60px;
 }
 
-.info-sub .sub-room-type {
+.subRoomType {
     padding-right: 8px;
 }
 
-.info-movie .booking-detail {
+.bookingDetail {
     margin-top: 15px;
 }
 
-.info-movie .booking-detail .detail-time,
-.info-movie .booking-detail .detail-day {
+/* Gộp các class có cùng font-weight */
+.detailTime,
+.detailDay,
+.number,
+.seatName,
+.totalLabel {
     font-weight: 700;
 }
 
-.info-movie .booking-detail .detail-day {
+.detailDay {
     letter-spacing: 1px;
 }
 
-.info-movie .booking-seats .seat-item,
-.info-movie .booking-combo .combo-item,
-.info-movie .booking-total .total-info {
+/* Gộp các class có cùng display: flex và justify-content */
+.seatItem,
+.comboItem,
+.totalInfo {
     display: flex;
     justify-content: space-between;
 }
 
-.seat-item .seat-info .seat-numbers {
+.seatNumbers {
     display: inline-flex;
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 5px;
 }
 
-.seat-item .seat-info .seat-numbers .seat-name {
+.seatName {
     display: inline-block;
     max-width: 103px;
     word-wrap: break-word;
@@ -105,26 +110,14 @@
     white-space: normal;
 }
 
-.seat-item .seat-info .seat-count .number,
-.seat-item .seat-info .seat-numbers .seat-name {
-    font-weight: 700;
-}
-
-.seat-item .seat-price,
-.booking-combo .combo-item .combo-price {
+/* Gộp các class có cùng font-weight */
+.seatPrice,
+.comboPrice {
     font-weight: 600;
 }
 
-.info-movie .booking-total .total-info .total-label {
-    font-weight: 700;
-}
-
-.info-movie .booking-total .total-info .total-price {
+.totalPrice {
     color: var(--border-color);
     font-weight: 700;
     font-size: 18px;
-}
-
-.booking-combo .combo-item .number {
-    font-weight: 700;
 }

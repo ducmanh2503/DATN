@@ -1,29 +1,28 @@
-.r-product {
+.rProduct {
     width: 310px;
     height: 290px;
     flex-shrink: 0;
     text-align: center;
-    /* background-color: var(--backgroud-product); */
     background-color: #fafafa;
 }
 
-.r-product .img-box {
+.imgBox {
     width: 100%;
 }
 
-.r-product .img-box .image {
+.image {
     min-width: 300px;
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.r-product .title {
+.title {
     border-top: 1px solid var(--border-color);
     margin-top: 15px;
     display: flex;
 }
-.r-product .title .number {
+.number {
     width: 35px;
     height: 34px;
     padding-top: 4px;
@@ -35,7 +34,15 @@
     background-color: var(--normal-rank);
 }
 
-.product-name.cliptextTitle {
+.firstRank {
+    background-color: var(--first-rank);
+}
+
+.secondRank {
+    background-color: var(--secound-rank);
+}
+
+.productName {
     font-size: 18px;
     font-weight: 500;
     padding-top: 5px;

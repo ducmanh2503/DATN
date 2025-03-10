@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PlayingProduct from "../PlayingProduct/PlayingProduct";
-import "./PlayingMain.css";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { URL_IMAGE } from "../../config/ApiConfig";
 import { useMessageContext } from "../UseContext/ContextState";
+import clsx from "clsx";
+
+import { URL_IMAGE } from "../../config/ApiConfig";
+import styles from "./PlayingMain.module.css";
+
 const PlayingMain = ({ showChill }: any) => {
     const [showMore, setShowMore] = useState(false);
     const { setFilmId } = useMessageContext();
@@ -29,13 +32,18 @@ const PlayingMain = ({ showChill }: any) => {
         setFilmId(filmId);
         console.log("check-id", filmId);
     };
+    //itemMain
     return (
-        <div className="playingMain main-base">
+        <div className={clsx(styles.playingMain, "main-base")}>
             {playingfilm?.map((film: any, index: number) => (
                 <PlayingProduct
-                    className={`item-main ${
-                        index >= 4 && !showMore ? "hidden" : ""
-                    }`}
+                    // className={`itemMain ${
+                    //     index >= 4 && !showMore ? "hidden" : ""
+                    // }`}
+                    className={clsx(
+                        styles.itemMain,
+                        index >= 8 && !showMore && styles.hidden
+                    )}
                     id={film.id}
                     key={film.id}
                     trailer={film.trailer}
@@ -53,7 +61,7 @@ const PlayingMain = ({ showChill }: any) => {
                 />
             ))}
             <button
-                className="show-more-btn"
+                className={clsx(styles.showMoreBtn)}
                 onClick={() => setShowMore(!showMore)}
             >
                 {showMore ? "Ẩn bớt " : "Xem thêm..."}

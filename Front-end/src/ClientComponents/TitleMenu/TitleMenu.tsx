@@ -1,14 +1,13 @@
-import React from "react";
-import "./TitleMenu.css";
+import clsx from "clsx";
+import styles from "./TitleMenu.module.css";
 const TitleMenu = (props: any) => {
     return (
-        <div className=" main-base">
-            <div className="ranking">
-                <div className="title">
-                    <h1 className="sub-vn">{props.name}</h1>
-                    <h1 className="sub-en">{props.nameSub}</h1>
+        <div className={clsx("main-base")}>
+            <div className={clsx(styles.ranking)}>
+                <div className={clsx(styles.title)}>
+                    <h1 className={clsx(styles.subVn)}>{props.name}</h1>
+                    <h1 className={clsx(styles.subEn)}>{props.nameSub}</h1>
                 </div>
-                <div className="main"></div>
             </div>
         </div>
     );

@@ -15,13 +15,13 @@
     background-image: linear-gradient(160deg, #0093e9 0%, #80d0c7 100%);
 }
 
-.ranking .title .sub-vn {
+.subVn {
     font-size: 22px;
     font-weight: 600;
     word-spacing: 2px;
 }
 
-.ranking .title .sub-en {
+.subEn {
     margin-top: 5px;
     font-size: 14px;
     color: #4c585b;

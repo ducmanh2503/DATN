@@ -15,6 +15,7 @@ use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\RoomController;
+use App\Http\Controllers\API\RoomTypeController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
@@ -77,10 +78,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
 
         // Room
-        Route::apiResource('room', RoomController::class);
+        Route::apiResource('/room', RoomController::class);
 
-
-
+        //room_type
+        Route::apiResource('/room-type', RoomTypeController::class);
 
         // Seats
         Route::post('/seats', [SeatController::class, 'store']);

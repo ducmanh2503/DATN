@@ -12,15 +12,15 @@ class PaymentController extends Controller
     public function createVNPay(Request $request)
     {
         $vnp_Url = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
-        $vnp_Returnurl = env('VNP_RETURN_URL', 'https://localhost:8000/api/movies-index');
+        $vnp_Returnurl = env('VNP_RETURN_URL', 'http://localhost:8000/api/VNPay/return');
         $vnp_TmnCode = env('VNP_TMN_CODE', 'GXTS9J8E'); //Mã website tại VNPAY 
         $vnp_HashSecret = env('VNP_HASH_SECRET', 'Y7EVYR6BH7GXOWUSYIFLWW9JHZV5DK7E'); //Chuỗi bí mật
 
         $vnp_TxnRef = time() . ""; //Mã đơn hàng. Trong thực tế Merchant cần insert đơn hàng vào DB và gửi mã này 
-        $vnp_OrderInfo = 'order_desc';
-        $vnp_OrderType = 'order_type';
-        $vnp_Amount = 10000 * 100;
-        $vnp_Locale = 'VN';
+        $vnp_OrderInfo = $request->input('order_desc', 'order_desc');
+        $vnp_OrderType = $request->input('order_type', 'order_type');
+        $vnp_Amount = ($request->input('amount', 10000)) * 100;
+        $vnp_Locale = 'vn';
         $vnp_BankCode = 'NCB';
         $vnp_IpAddr = $request->ip();
         //Add Params of 2.0.1 Version

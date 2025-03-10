@@ -28,7 +28,7 @@ class SocialAuthController extends Controller
         try {
             // Cấu hình Guzzle cho Socialite
             $clientOptions = [
-                'verify' => 'H:/laragon/etc/ssl/cacert.pem',
+                'verify' => env('CURL_CA_BUNDLE', 'E:\laragon\etc\ssl\cacert.pem.txt'),
             ];
 
 
@@ -67,43 +67,47 @@ class SocialAuthController extends Controller
 
 
             // Chuyển hướng về frontend với token và role
-            return redirect()->to("http://localhost:3000/auth/google/success?token={$token}&role={$user->role}");
+            return response()->json([
+                'message' => 'Đăng nhập thành công',
+                'auth_token' => $token,
+                'user' => $user
+            ]);
         } catch (\Exception $e) {
-            return redirect()->to("http://localhost:3000/auth/google/failure?error=" . urlencode($e->getMessage()));
+            return response()->json(['message' => $e->getMessage()], 500);
         }
+
+
+
+
+        // Redirect to Facebook
+        // public function redirectToFacebook()
+        // {
+        //     return Socialite::driver('facebook')->redirect();
+        // }
+
+
+        // // Handle Facebook callback
+        // public function handleFacebookCallback()
+        // {
+        //     $facebookUser = Socialite::driver('facebook')->user();
+
+
+        //     $user = User::updateOrCreate([
+        //         'email' => $facebookUser->getEmail(),
+        //     ], [
+        //         'name' => $facebookUser->getName(),
+        //         'facebook_id' => $facebookUser->getId(),
+        //         'password' => bcrypt(uniqid()),
+        //     ]);
+
+
+        //     $token = $user->createToken('auth_token')->plainTextToken;
+
+
+        //     return response()->json([
+        //         'access_token' => $token,
+        //         'user' => $user
+        //     ]);
+        // }
     }
-
-
-
-
-    // Redirect to Facebook
-    // public function redirectToFacebook()
-    // {
-    //     return Socialite::driver('facebook')->redirect();
-    // }
-
-
-    // // Handle Facebook callback
-    // public function handleFacebookCallback()
-    // {
-    //     $facebookUser = Socialite::driver('facebook')->user();
-
-
-    //     $user = User::updateOrCreate([
-    //         'email' => $facebookUser->getEmail(),
-    //     ], [
-    //         'name' => $facebookUser->getName(),
-    //         'facebook_id' => $facebookUser->getId(),
-    //         'password' => bcrypt(uniqid()),
-    //     ]);
-
-
-    //     $token = $user->createToken('auth_token')->plainTextToken;
-
-
-    //     return response()->json([
-    //         'access_token' => $token,
-    //         'user' => $user
-    //     ]);
-    // }
 }

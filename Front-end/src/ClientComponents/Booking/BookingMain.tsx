@@ -52,6 +52,11 @@ const BookingMain = () => {
           seats: seatIds,
           room_id: roomIdFromShowtimes,
           showtime_id: showtimeIdFromBooking,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
         }
       );
 

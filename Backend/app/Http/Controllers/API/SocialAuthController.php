@@ -65,13 +65,7 @@ class SocialAuthController extends Controller
             // Tạo token để ReactJS dùng
             $token = $user->createToken('auth_token')->plainTextToken;
 
-
-            // Chuyển hướng về frontend với token và role
-            return response()->json([
-                'message' => 'Đăng nhập thành công',
-                'auth_token' => $token,
-                'user' => $user
-            ]);
+            return response()->json(['access_token' => $token, 'user' => $user, 'redirect_url' => '/']);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }

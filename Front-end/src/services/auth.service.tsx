@@ -34,7 +34,7 @@ interface ResetPasswordRequest {
 
 interface AuthResponse {
   message: string;
-  token?: string;
+  access_token?: string;
   redirect_url?: string;
   user?: {
     id: number;
@@ -57,14 +57,13 @@ interface AuthError {
 
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // Bật gửi cookie theo request
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
 
-// Thêm interceptor xử lý request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("auth_token");
@@ -76,7 +75,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Thêm interceptor xử lý response
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -84,11 +82,8 @@ api.interceptors.response.use(
       console.error(
         "[Auth Service] Unauthorized (401) - Token có thể đã hết hạn."
       );
-
-      // Xoá token và role, chuyển hướng về trang login
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_role");
-
       window.location.href = "/auth/login";
     }
     return Promise.reject(error);
@@ -122,9 +117,9 @@ const handleAuthError = (error: unknown): AuthError => {
 
 const saveAuthData = (response: AuthResponse): void => {
   console.log("[saveAuthData] Nhận response:", response);
-  if (response.token) {
-    localStorage.setItem("auth_token", response.token);
-    console.log("[saveAuthData] Đã lưu auth_token:", response.token);
+  if (response.access_token) {
+    localStorage.setItem("auth_token", response.access_token);
+    console.log("[saveAuthData] Đã lưu auth_token:", response.access_token);
     if (response.user?.role) {
       localStorage.setItem("user_role", response.user.role);
       console.log("[saveAuthData] Đã lưu user_role:", response.user.role);
@@ -134,7 +129,7 @@ const saveAuthData = (response: AuthResponse): void => {
       console.log("[saveAuthData] Đã lưu user_role từ redirect_url:", role);
     }
     console.log("[Auth Service] Auth data saved:", {
-      hasToken: !!response.token,
+      hasToken: !!response.access_token,
       role: response.user?.role || localStorage.getItem("user_role"),
     });
   } else {
@@ -262,64 +257,19 @@ const authService = {
   async handleGoogleCallback(code: string): Promise<AuthResponse> {
     try {
       console.log("[Auth Service] Handling Google Callback with code:", code);
-      const response = await axios.get<AuthResponse>(
+      console.log(
+        "[Auth Service] Sending request to:",
         `${BASE_URL}/auth/google/callback?code=${code}`
       );
+      const response = await axios.get<AuthResponse>(
+        `${BASE_URL}/auth/google/callback?code=${code}`,
+        { withCredentials: true }
+      );
       console.log("[Auth Service] Google Callback Response:", response.data);
+      console.log("[Auth Service] Response Status:", response.status);
       saveAuthData(response.data);
       return response.data;
     } catch (error) {
-      console.error("[Auth Service] Error handling Google callback:", error);
-      throw handleAuthError(error);
-    }
-  },
-
-  checkForGoogleCallback(): boolean {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    const source = urlParams.get("source");
-    if (code && source === "google-auth") {
-      console.log(
-        "[Auth Service] Google auth callback detected with code:",
-        code
-      );
-      return true;
-    }
-    console.log("[Auth Service] Không phát hiện Google callback");
-    return false;
-  },
-
-  async processGoogleCallback(): Promise<string> {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-
-    console.log("[Auth Service] processGoogleCallback - Code từ URL:", code);
-
-    if (!code) {
-      console.error(
-        "[Auth Service] processGoogleCallback - Không tìm thấy code trong URL"
-      );
-      throw new Error("No authentication code found in URL");
-    }
-
-    try {
-      const response = await this.handleGoogleCallback(code);
-      console.log(
-        "[Auth Service] processGoogleCallback - Successfully authenticated with Google:",
-        response
-      );
-      saveAuthData(response); // Gọi lại để chắc chắn token được lưu
-      const redirectUrl = getRedirectUrlByRole();
-      console.log(
-        "[Auth Service] processGoogleCallback - Redirecting to:",
-        redirectUrl
-      );
-      return redirectUrl;
-    } catch (error) {
-      console.error(
-        "[Auth Service] processGoogleCallback - Failed to process Google auth:",
-        error
-      );
       throw handleAuthError(error);
     }
   },
@@ -352,10 +302,10 @@ const authService = {
   async createDefaultAdmin(): Promise<AuthResponse> {
     const defaultAdminData: RegisterRequest = {
       name: "Admin",
-      email: "admin@example.com",
+      email: "movie.forest.host@gmail.com",
       password: "admin123",
       password_confirmation: "admin123",
-      phone: "1234567890",
+      phone: "0989721167",
       role: "admin",
     };
     try {

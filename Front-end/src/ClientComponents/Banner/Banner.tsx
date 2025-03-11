@@ -48,12 +48,7 @@ const Banner = () => {
                 </div>
             </div>
         </div>
-        <div className={clsx(styles.promotion2)}>
-          <Image className={clsx(styles.promotionImage)}></Image>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Banner;

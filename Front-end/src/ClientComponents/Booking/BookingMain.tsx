@@ -14,167 +14,192 @@ import styles from "./BookingMain.module.css";
 import { useMessageContext } from "../UseContext/ContextState";
 
 const BookingMain = () => {
-  const {
-    currentStep,
-    setCurrentStep,
-    quantitySeats,
-    selectedSeatIds,
-    roomIdFromShowtimes,
-    showtimeIdFromBooking,
-    setSeats,
-  } = useMessageContext();
-  const navigate = useNavigate();
-  const [api, contextHolder] = notification.useNotification();
+    const {
+        currentStep,
+        setCurrentStep,
+        quantitySeats,
+        selectedSeatIds,
+        roomIdFromShowtimes,
+        showtimeIdFromBooking,
+        setSeats,
+        tokenUserId,
+    } = useMessageContext();
+    const navigate = useNavigate();
+    const [api, contextHolder] = notification.useNotification();
 
-  // Thông báo phải đặt ghế để tiếp tục
-  const openNotification = (pauseOnHover: boolean) => () => {
-    api.open({
-      message: (
-        <>
-          <span className={clsx(styles.notificationIcon)}>
-            <CloseCircleOutlined />
-          </span>{" "}
-          Không thể tiếp tục...
-        </>
-      ),
-      description: "Phải đặt ghế nếu bạn muốn tiếp tục",
-      showProgress: true,
-      pauseOnHover,
+    // Thông báo phải đặt ghế để tiếp tục
+    const openNotification = (pauseOnHover: boolean) => () => {
+        api.open({
+            message: (
+                <>
+                    <span className={clsx(styles.notificationIcon)}>
+                        <CloseCircleOutlined />
+                    </span>{" "}
+                    Không thể tiếp tục...
+                </>
+            ),
+            description: "Phải đặt ghế nếu bạn muốn tiếp tục",
+            showProgress: true,
+            pauseOnHover,
+        });
+    };
+
+    //api giữ ghế
+    const holdSeatMutation = useMutation({
+        mutationFn: async (seatIds: number[]) => {
+            const { data } = await axios.post(
+                "http://localhost:8000/api/hold-seats",
+                {
+                    seats: seatIds,
+                    room_id: roomIdFromShowtimes,
+                    showtime_id: showtimeIdFromBooking,
+                }
+            );
+
+            return data;
+        },
+        onSuccess: () => {
+            setSeats((prevSeats: any) => {
+                const updatedSeats = { ...prevSeats };
+                //
+                return updatedSeats;
+            });
+            message.success("Đã giữ ghế thành công!");
+        },
+        onError: (error) => {
+            console.error("🚨 Lỗi khi giữ ghế:", error);
+            message.error("Không thể giữ ghế. Vui lòng thử lại!");
+        },
     });
-  };
 
-  //api giữ ghế
-  const holdSeatMutation = useMutation({
-    mutationFn: async (seatIds: number[]) => {
-      const { data } = await axios.post(
-        "http://localhost:8000/api/hold-seats",
-        {
-          seats: seatIds,
-          room_id: roomIdFromShowtimes,
-          showtime_id: showtimeIdFromBooking,
+    // const getDetailCard = () => {};
+
+    //api giải phóng ghế
+    const releaseSeatsMutation = useMutation({
+        mutationFn: async (seatIds: number[]) => {
+            await axios.post(
+                `http://localhost:8000/api/release-seats`, // API hủy ghế
+                {
+                    seats: seatIds,
+                    room_id: roomIdFromShowtimes,
+                    showtime_id: showtimeIdFromBooking,
+                },
+                { headers: { Authorization: `Bearer ${tokenUserId}` } }
+            );
+        },
+        onSuccess: () => {
+            setSeats((prevSeats: any) => {
+                const updatedSeats = { ...prevSeats };
+                //
+                return updatedSeats;
+            });
+        },
+    });
+
+    // Xử lý khi ấn tiếp tục
+    const nextStep = () => {
+        if (currentStep === 1 && quantitySeats === 0) {
+            openNotification(false)();
+            return;
         }
-      );
 
-      return data;
-    },
-    onSuccess: () => {
-      setSeats((prevSeats: any) => {
-        const updatedSeats = { ...prevSeats };
-        //
-        return updatedSeats;
-      });
-      message.success("Đã giữ ghế thành công!");
-    },
-    onError: (error) => {
-      console.error("🚨 Lỗi khi giữ ghế:", error);
-      message.error("Không thể giữ ghế. Vui lòng thử lại!");
-    },
-  });
+        if (currentStep === 1 && quantitySeats !== 0) {
+            holdSeatMutation.mutate(selectedSeatIds);
+        }
 
-  // const getDetailCard = () => {};
+        if (currentStep < 4) {
+            setCurrentStep(currentStep + 1);
+        }
+    };
 
-  // Xử lý khi ấn tiếp tục
-  const nextStep = () => {
-    if (currentStep === 1 && quantitySeats === 0) {
-      openNotification(false)();
-      return;
-    }
+    // Xử lý khi ấn quay lại
+    const prevStep = () => {
+        if (currentStep === 2 && selectedSeatIds.length > 0) {
+            releaseSeatsMutation.mutate(selectedSeatIds);
+        }
 
-    if (currentStep === 1 && quantitySeats !== 0) {
-      holdSeatMutation.mutate(selectedSeatIds);
-    }
+        if (currentStep > 0) {
+            setCurrentStep(currentStep - 1);
+        }
+    };
 
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
+    useEffect(() => {
+        if (currentStep === 0) {
+            navigate("/playingFilm");
+        }
+    }, [currentStep, navigate]);
 
-  // Xử lý khi ấn quay lại
-  const prevStep = () => {
-    if (currentStep === 2 && selectedSeatIds.length > 0) {
-      releaseSeatsMutation.mutate(selectedSeatIds);
-    }
+    const renderStepContent = () => {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <>
+                        <BookingSeat className={clsx(styles.bookingLeft)} />
+                        <BookingInfo
+                            className={clsx(styles.bookingRight)}
+                            nextStep={nextStep}
+                            prevStep={prevStep}
+                        />
+                    </>
+                );
+            case 2:
+                return (
+                    <>
+                        <ComboFood className={clsx(styles.bookingLeft)} />
+                        <BookingInfo
+                            className={clsx(styles.bookingRight)}
+                            nextStep={nextStep}
+                            prevStep={prevStep}
+                        />
+                    </>
+                );
+            case 3:
+                return (
+                    <>
+                        <PaymentGate className={clsx(styles.bookingLeft)} />
+                        <BookingInfo
+                            className={clsx(styles.bookingRight)}
+                            nextStep={nextStep}
+                            prevStep={prevStep}
+                            currentStep={currentStep}
+                        />
+                    </>
+                );
+            case 4:
+                return (
+                    <>
+                        <BookingInfo
+                            className={clsx(styles.bookingRight)}
+                            nextStep={nextStep}
+                            prevStep={prevStep}
+                            currentStep={currentStep}
+                        />
+                    </>
+                );
+            default:
+                return null;
+        }
+    };
 
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  useEffect(() => {
-    if (currentStep === 0) {
-      navigate("/playingFilm");
-    }
-  }, [currentStep, navigate]);
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <>
-            <BookingSeat className={clsx(styles.bookingLeft)} />
-            <BookingInfo
-              className={clsx(styles.bookingRight)}
-              nextStep={nextStep}
-              prevStep={prevStep}
+    return (
+        <div className={clsx("main-base")}>
+            {contextHolder}
+            <Steps
+                className={clsx(styles.stepsBooking)}
+                current={currentStep}
+                items={[
+                    { title: "Chọn Phim" },
+                    { title: "Chọn ghế" },
+                    { title: "Chọn đồ ăn" },
+                    { title: "Chọn thanh toán" },
+                    { title: "Xác nhận" },
+                ]}
             />
-          </>
-        );
-      case 2:
-        return (
-          <>
-            <ComboFood className={clsx(styles.bookingLeft)} />
-            <BookingInfo
-              className={clsx(styles.bookingRight)}
-              nextStep={nextStep}
-              prevStep={prevStep}
-            />
-          </>
-        );
-      case 3:
-        return (
-          <>
-            <PaymentGate className={clsx(styles.bookingLeft)} />
-            <BookingInfo
-              className={clsx(styles.bookingRight)}
-              nextStep={nextStep}
-              prevStep={prevStep}
-              currentStep={currentStep}
-            />
-          </>
-        );
-      case 4:
-        return (
-          <>
-            <BookingInfo
-              className={clsx(styles.bookingRight)}
-              nextStep={nextStep}
-              prevStep={prevStep}
-              currentStep={currentStep}
-            />
-          </>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className={clsx("main-base")}>
-      {contextHolder}
-      <Steps
-        className={clsx(styles.stepsBooking)}
-        current={currentStep}
-        items={[
-          { title: "Chọn Phim" },
-          { title: "Chọn ghế" },
-          { title: "Chọn đồ ăn" },
-          { title: "Chọn thanh toán" },
-          { title: "Xác nhận" },
-        ]}
-      />
-      <div className={clsx(styles.bookingMain)}>{renderStepContent()}</div>
-    </div>
-  );
+            <div className={clsx(styles.bookingMain)}>
+                {renderStepContent()}
+            </div>
+        </div>
+    );
 };
 
 export default BookingMain;

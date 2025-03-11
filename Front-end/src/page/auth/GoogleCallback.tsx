@@ -27,9 +27,9 @@ const GoogleCallbackHandler = () => {
       .handleGoogleCallback(code)
       .then((response) => {
         console.log("Full response from authService:", response); // Debug chi tiết
-        const { redirect_url, access_token } = response; // Sử dụng access_token thay vì token
+        const { redirect_url, auth_token } = response; // Sử dụng auth_token thay vì token
 
-        if (!access_token) {
+        if (!auth_token) {
           throw new Error("Access token không được trả về từ server");
         }
 

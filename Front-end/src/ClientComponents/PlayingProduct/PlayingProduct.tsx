@@ -90,14 +90,14 @@ const PlayingProduct = ({
                 </div>
             </div>
             <div className={clsx(styles.productSub)}>
-                <h4 className={clsx(styles.category, styles.cliptextTitle)}>
+                <h4 className={clsx(styles.category, "cliptextTitle")}>
                     {genres}
                 </h4>
-                {showChill || (
+                {showChill && (
                     <span className={clsx(styles.date)}>{release_date}</span>
                 )}
             </div>
-            {showChill && (
+            {showChill || (
                 <h4 className={clsx(styles.startDay)}>
                     Ngày khởi chiếu:{" "}
                     <span className={clsx(styles.wordRender)}>
@@ -105,7 +105,7 @@ const PlayingProduct = ({
                     </span>
                 </h4>
             )}
-            <h2 className={clsx(styles.productTitle, styles.cliptextTitle)}>
+            <h2 className={clsx(styles.productTitle, "cliptextTitle")}>
                 {title}
             </h2>
         </div>

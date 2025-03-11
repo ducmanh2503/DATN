@@ -8,8 +8,8 @@ import clsx from "clsx";
 import { GET_SHOW_BY_FILM_DATE } from "../../config/ApiConfig";
 import BoxNumbers from "./BoxNumbers/BoxNumbers";
 import BoxDay from "./BoxDays/BoxDay";
-import { useMessageContext } from "../UseContext/ContextState";
 import styles from "./CalendarMovie.module.css";
+import { useMessageContext } from "../UseContext/ContextState";
 
 const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
     const [searchDateRaw, setSearchDateRaw] = useState<string | null>(null);

@@ -4,10 +4,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import pusher from "../../../utils/pusher";
 import clsx from "clsx";
-
-import { useMessageContext } from "../../UseContext/ContextState";
 import { BookingType } from "../../../types/interface";
 import styles from "./BookingSeat.module.css";
+import { useMessageContext } from "../../UseContext/ContextState";
 
 const BookingSeat = ({ className }: { className?: string }) => {
     const {

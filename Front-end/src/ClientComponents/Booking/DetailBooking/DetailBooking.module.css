@@ -1,0 +1,95 @@
+.infoBox {
+    background-color: var(--primary-color);
+    padding: 15px 20px;
+    border: 3px solid transparent; /* Độ dày nét đứt */
+    border-image: repeating-linear-gradient(
+            to right,
+            var(--border-color) 0px,
+            var(--border-color) 10px,
+            /* Độ dài nét */ transparent 10px,
+            transparent 20px /* Khoảng cách giữa các nét */
+        )
+        30;
+}
+
+.info {
+    text-align: center;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.movieInfo,
+.bookingContent,
+.allInfo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.allInfo {
+    margin-top: 35px;
+    position: relative;
+}
+
+.allInfo::after {
+    width: calc(100% + 30px);
+    height: 3px;
+    display: inline-block;
+    content: " ";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background-image: repeating-linear-gradient(
+        to right,
+        var(--border-color) 0px,
+        var(--border-color) 10px,
+        /* Độ dài nét đứt */ transparent 10px,
+        transparent 20px /* Khoảng cách giữa các nét */
+    );
+}
+
+.bookingContent {
+    margin-top: 10px;
+}
+.movieInfo,
+.totalPrice {
+    margin-top: 20px;
+}
+
+.sectionTitle {
+    width: 70px;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.movieTitle,
+.showtime,
+.seatName {
+    font-weight: 700;
+}
+
+.rated {
+    display: inline-block;
+}
+
+.subBox,
+.ticketDetails {
+    border: 1px solid black;
+    padding: 10px;
+    width: 100%;
+}
+
+.totalPrice {
+    margin-left: 25px;
+    width: 100%;
+    padding: 10px;
+    color: white;
+    font-weight: 600;
+    background-color: var(--border-color);
+}
+
+.all {
+    margin-top: 30px;
+    font-size: 16px;
+    font-weight: 600;
+}

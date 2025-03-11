@@ -39,7 +39,7 @@
     left: 50%;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.5s ease;
+    transition: opacity 0.8s ease;
     transform: translate(-50%, -50%);
 }
 
@@ -60,19 +60,16 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 240px;
-    margin-top: 6px;
-    padding: 10px;
-    background-color: #fff;
+    max-width: 275px;
+    padding: 10px 0;
 }
 
 .startDay {
     padding: 0 10px;
     margin-left: 3px;
-    margin-top: 12px;
     margin-bottom: -5px;
     font-size: 14px;
-    color: #444;
+    color: var(--border-color);
 }
 
 .wordRender {
@@ -83,50 +80,20 @@
 .category {
     margin-left: 3px;
     width: 120px;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .date {
     margin-right: 3px;
     font-size: 14px;
-    color: #666;
+    color: var(--border-color);
+    font-weight: 600;
 }
 
 .productTitle {
     width: 230px;
-    padding: 0 10px 10px;
-    margin-top: 10px;
     margin-left: 3px;
-    font-size: 18px;
     font-weight: 500;
-    color: #333;
-}
-
-.playingProduct {
-    width: 220px;
-    height: 360px;
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.playingProduct:hover {
-    transform: translateY(-5px);
-}
-
-.category {
-    margin: 0;
-    font-size: 14px;
-    color: #888;
-    text-transform: uppercase;
-}
-
-.cliptextTitle {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    color: var(--border-color);
+    font-weight: 700;
 }

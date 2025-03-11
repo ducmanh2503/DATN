@@ -1,15 +1,40 @@
-import { Space, Table, Tag } from "antd";
+import { Space, Spin, Table, Tag } from "antd";
 import { RoomSHowtimesType } from "../../../types/interface";
 import "./ShowtimesRoom.css";
 import DeleteShowtimes from "./DeleteShowtimes";
 import EditShowtimes from "./EditShowtimes";
 import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 
 const ShowtimesAllRooms = ({
     setShowtimesData,
     selectedDate,
     showtimesData,
 }: any) => {
+    const [processedData, setProcessedData] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    useEffect(() => {
+        if (showtimesData.length > 0) {
+            setLoading(true);
+            console.log("Dữ liệu showtimesData cập nhật:", showtimesData);
+            // điều chỉnh thứ tự đúng thơi gian suất chiếu
+            const sortedData = [...showtimesData].sort((a, b) =>
+                dayjs(a.start_time, "HH:mm").isBefore(
+                    dayjs(b.start_time, "HH:mm")
+                )
+                    ? -1
+                    : 1
+            );
+
+            setProcessedData(sortedData);
+            setLoading(false);
+        }
+    }, [showtimesData]);
+
+    if (loading) {
+        return <Spin tip="Đang tải dữ liệu..." />;
+    }
+
     const columns = [
         {
             title: "Phim chiếu",
@@ -124,19 +149,9 @@ const ShowtimesAllRooms = ({
     ];
     return (
         <div className="roomBox">
-            <h1 className="roomName">Phòng chiếu số 3</h1>
-            <Table
-                columns={columns}
-                dataSource={[...showtimesData].sort((a, b) =>
-                    dayjs(a.start_time, "HH:mm").isBefore(
-                        dayjs(b.start_time, "HH:mm")
-                    )
-                        ? -1
-                        : 1
-                )}
-            />
+            <h1 className="roomName">{processedData[0].room.name}</h1>
+            <Table columns={columns} dataSource={processedData} />
         </div>
     );
 };
-
 export default ShowtimesAllRooms;

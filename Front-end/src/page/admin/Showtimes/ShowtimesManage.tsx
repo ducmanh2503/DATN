@@ -4,12 +4,10 @@ import { FieldType } from "../../../types/interface";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { GET_ONE_SHOWTIMES, GET_ROOMS } from "../../../config/ApiConfig";
-import ShowtimesRoom1 from "./ShowtimesRoom1";
-import ShowtimesRoom2 from "./ShowtimesRoom2";
-import ShowtimesRoom3 from "./ShowtimesRoom3";
 import dayjs from "dayjs";
 import { useForm } from "antd/es/form/Form";
 import AddShowtimes from "./AddShowtimes";
+import ShowtimesAllRooms from "./ShowtimesAllRooms";
 
 const contentStyle: React.CSSProperties = {
     paddingTop: 100,
@@ -46,6 +44,7 @@ const ShowtimesManage: React.FC = () => {
         setSearchedDate(selectedDate);
         setSearchedRoom(selectedRoom);
         mutate(formData);
+        form.resetFields();
     };
 
     // hàm tìm suất chiếu
@@ -109,7 +108,7 @@ const ShowtimesManage: React.FC = () => {
                 >
                     <Form.Item<FieldType>
                         label="Phòng chiếu:"
-                        name="room_type_id"
+                        name="room_id"
                         rules={[
                             {
                                 required: true,
@@ -146,6 +145,7 @@ const ShowtimesManage: React.FC = () => {
                 <AddShowtimes
                     setShowtimesData={setShowtimesData}
                     showtimesData={showtimesData}
+                    selectedRoom={selectedRoom}
                 ></AddShowtimes>
             </div>
             <Divider variant="solid" style={{ borderColor: "#7cb305" }}>
@@ -156,26 +156,12 @@ const ShowtimesManage: React.FC = () => {
 
             {isLoading ? (
                 <Spin tip="Loading">{content}</Spin>
-            ) : showtimesData.length > 0 ? (
-                searchedRoom === "1" ? (
-                    <ShowtimesRoom1
-                        setShowtimesData={setShowtimesData}
-                        showtimesData={showtimesData}
-                        selectedDate={selectedDate}
-                    />
-                ) : searchedRoom === "2" ? (
-                    <ShowtimesRoom2
-                        setShowtimesData={setShowtimesData}
-                        showtimesData={showtimesData}
-                        selectedDate={selectedDate}
-                    />
-                ) : searchedRoom === "3" ? (
-                    <ShowtimesRoom3
-                        setShowtimesData={setShowtimesData}
-                        showtimesData={showtimesData}
-                        selectedDate={selectedDate}
-                    />
-                ) : null
+            ) : showtimesData?.length ? (
+                <ShowtimesAllRooms
+                    setShowtimesData={setShowtimesData}
+                    showtimesData={showtimesData}
+                    selectedDate={selectedDate}
+                />
             ) : isSearched ? (
                 <p
                     style={{

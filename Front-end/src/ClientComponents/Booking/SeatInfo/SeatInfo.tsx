@@ -1,7 +1,7 @@
 import { Divider } from "antd";
-import { useMessageContext } from "../../UseContext/ContextState";
 import clsx from "clsx";
 import styles from "../InfoMovie/InfoMovie.module.css";
+import { useMessageContext } from "../../UseContext/ContextState";
 
 const SeatInfo = () => {
     const { quantitySeats, typeSeats, nameSeats, totalSeatPrice } =

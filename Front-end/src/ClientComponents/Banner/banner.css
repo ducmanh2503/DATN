@@ -4,7 +4,7 @@
     overflow: visible !important;
 }
 
-.customSlide {
+.custom-slide {
     width: 100%;
     max-width: 780px;
     height: 340px;
@@ -17,12 +17,12 @@
     font-weight: bold;
 }
 
-/* .swiper-slide img {
+.swiper-slide img {
     display: inline-block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-} */
+}
 
 .swiper-button-prev,
 .swiper-button-next {
@@ -52,7 +52,7 @@
     transform: translateY(50%);
 }
 
-.swiperPaginationBullet {
+.swiper-pagination-bullet {
     width: 7px;
     height: 7px;
     background-color: gray;
@@ -60,16 +60,16 @@
     transition: opacity 0.3s ease;
 }
 
-.swiperPaginationBulletActive {
+.swiper-pagination-bullet-active {
     background-color: white;
     opacity: 1;
 }
 
-.swiperPagination {
+.swiper-pagination {
     bottom: -55px !important; /* Điều chỉnh khoảng cách so với slider */
 }
 
-.promotion {
+.banner-box .promotion {
     margin: 80px auto 0;
     display: flex;
     align-items: center;
@@ -77,14 +77,14 @@
     max-width: 1800px;
 }
 
-.promotion1,
-.promotion2 {
+.promotion-1,
+.promotion-2 {
     width: 450px;
     height: 80px;
     background-color: white;
 }
 
-.promotionImage {
+.promotion .promotion-image {
     width: 100%;
     height: 100%;
     object-fit: cover;

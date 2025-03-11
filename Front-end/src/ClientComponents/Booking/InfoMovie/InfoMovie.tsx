@@ -2,13 +2,13 @@ import { Divider, Image } from "antd";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-
-import { useMessageContext } from "../../UseContext/ContextState";
 import { URL_IMAGE } from "../../../config/ApiConfig";
 import SeatInfo from "../SeatInfo/SeatInfo";
 import ComboInfo from "../ComboInfo/ComboInfo";
 import clsx from "clsx";
 import styles from "./InfoMovie.module.css";
+import { useMessageContext } from "../../UseContext/ContextState";
+import { useEffect } from "react";
 
 const InfoMovie = () => {
     const {
@@ -18,6 +18,7 @@ const InfoMovie = () => {
         totalPrice,
         quantitySeats,
         quantityCombo,
+        setDataDetailFilm,
     } = useMessageContext();
     const { data: detailFilm } = useQuery({
         queryKey: ["film", filmId],
@@ -32,6 +33,9 @@ const InfoMovie = () => {
         },
         staleTime: 1000 * 60 * 10,
     });
+    useEffect(() => {
+        setDataDetailFilm(detailFilm);
+    }, detailFilm);
     return (
         <div className={clsx(styles.infoMovie)}>
             <div className={clsx(styles.bookingFilm)}>

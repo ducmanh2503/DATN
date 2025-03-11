@@ -1,5 +1,4 @@
-/* Reset default styles */
-* {
+Reset default styles * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -114,7 +113,7 @@
 }
 
 .section-title::after {
-    content: '';
+    content: "";
     width: 50px;
     height: 3px;
     background: #e71a0f;
@@ -198,7 +197,9 @@
 }
 
 /* States */
-.loading, .error, .not-found {
+.loading,
+.error,
+.not-found {
     text-align: center;
     padding: 60px;
     font-size: 1.3rem;
@@ -213,11 +214,11 @@
     .film-header {
         gap: 20px;
     }
-    
+
     .poster-container {
         flex: 0 0 250px;
     }
-    
+
     .film-title {
         font-size: 2rem;
     }
@@ -241,7 +242,7 @@
     .related-movies-grid {
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     }
-    
+
     .related-movie-poster {
         height: 240px;
     }
@@ -251,27 +252,27 @@
     .film-detail {
         padding: 10px;
     }
-    
+
     .film-title {
         font-size: 1.8rem;
     }
-    
+
     .section-title {
         font-size: 1.5rem;
     }
-    
+
     .related-movies-grid {
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     }
-    
+
     .related-movie-poster {
         height: 200px;
     }
-    
+
     .related-movie-title {
         font-size: 0.9rem;
     }
-    
+
     .action-btn {
         padding: 10px 18px;
         font-size: 0.9rem;

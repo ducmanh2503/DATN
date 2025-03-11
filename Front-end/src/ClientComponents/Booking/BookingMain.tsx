@@ -3,7 +3,6 @@ import BookingSeat from "./BookingSeat/BookingSeat";
 import BookingInfo from "./BookingInfo/BookingInfo";
 import ComboFood from "./ComboFood/ComboFood";
 import PaymentGate from "./PaymentGate/PaymentGate";
-import { useMessageContext } from "../UseContext/ContextState";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { CloseCircleOutlined } from "@ant-design/icons";
@@ -12,6 +11,7 @@ import clsx from "clsx";
 import axios from "axios";
 
 import styles from "./BookingMain.module.css";
+import { useMessageContext } from "../UseContext/ContextState";
 
 const BookingMain = () => {
     const {
@@ -119,6 +119,8 @@ const BookingMain = () => {
         },
     });
 
+    // const getDetailCard = () => {};
+
     // Xử lý khi ấn tiếp tục
     const nextStep = () => {
         if (currentStep === 1 && quantitySeats === 0) {
@@ -184,11 +186,21 @@ const BookingMain = () => {
                             className={clsx(styles.bookingRight)}
                             nextStep={nextStep}
                             prevStep={prevStep}
+                            currentStep={currentStep}
                         />
                     </>
                 );
             case 4:
-                return null;
+                return (
+                    <>
+                        <BookingInfo
+                            className={clsx(styles.bookingRight)}
+                            nextStep={nextStep}
+                            prevStep={prevStep}
+                            currentStep={currentStep}
+                        />
+                    </>
+                );
             default:
                 return null;
         }

@@ -34,8 +34,10 @@ interface ResetPasswordRequest {
 
 interface AuthResponse {
   message: string;
-  access_token?: string;
+  token?: string; // Thêm token để khớp với backend
+  auth_token?: string; // Giữ lại để tương thích với các endpoint khác nếu cần
   redirect_url?: string;
+  role?: string; // Thêm role trực tiếp
   user?: {
     id: number;
     name: string;
@@ -117,20 +119,33 @@ const handleAuthError = (error: unknown): AuthError => {
 
 const saveAuthData = (response: AuthResponse): void => {
   console.log("[saveAuthData] Nhận response:", response);
-  if (response.access_token) {
-    localStorage.setItem("auth_token", response.access_token);
-    console.log("[saveAuthData] Đã lưu auth_token:", response.access_token);
+
+  // Xử lý token (ưu tiên auth_token, nếu không có thì dùng token)
+  const authToken = response.auth_token || response.token;
+  if (authToken) {
+    localStorage.setItem("auth_token", authToken);
+    console.log("[saveAuthData] Đã lưu auth_token:", authToken);
+
+    // Xử lý role (ưu tiên response.user?.role, nếu không có thì dùng response.role hoặc suy ra từ redirect_url)
+    let userRole: string | undefined;
     if (response.user?.role) {
-      localStorage.setItem("user_role", response.user.role);
-      console.log("[saveAuthData] Đã lưu user_role:", response.user.role);
+      userRole = response.user.role;
+    } else if (response.role) {
+      userRole = response.role;
     } else if (response.redirect_url) {
-      const role = response.redirect_url === "/admin" ? "admin" : "customer";
-      localStorage.setItem("user_role", role);
-      console.log("[saveAuthData] Đã lưu user_role từ redirect_url:", role);
+      userRole = response.redirect_url === "/admin" ? "admin" : "customer";
     }
+
+    if (userRole) {
+      localStorage.setItem("user_role", userRole);
+      console.log("[saveAuthData] Đã lưu user_role:", userRole);
+    } else {
+      console.warn("[saveAuthData] Không tìm thấy role trong response");
+    }
+
     console.log("[Auth Service] Auth data saved:", {
-      hasToken: !!response.access_token,
-      role: response.user?.role || localStorage.getItem("user_role"),
+      hasToken: !!authToken,
+      role: userRole || localStorage.getItem("user_role"),
     });
   } else {
     console.warn("[Auth Service] No token in response to save");
@@ -196,6 +211,11 @@ const authService = {
       console.log("[Auth Service] Login Request:", data);
       const response = await api.post<AuthResponse>("/login", data);
       console.log("[Auth Service] Login Response:", response.data);
+
+      if (!response.data.token && !response.data.auth_token) {
+        throw new Error("No token received from API");
+      }
+
       saveAuthData(response.data);
       return response.data;
     } catch (error) {
@@ -323,7 +343,7 @@ const authService = {
 
   async verifyDefaultAdmin(otp: string): Promise<AuthResponse> {
     const verifyData: VerifyCodeRequest = {
-      email: "admin@example.com",
+      email: "movie.forest.host@gmail.com",
       code: otp,
     };
     try {

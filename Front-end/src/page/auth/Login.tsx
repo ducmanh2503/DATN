@@ -39,25 +39,28 @@ const Login = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      console.log("Thử đăng nhập với:", data);
       const response = await authService.login(data);
-      console.log("Phản hồi API đăng nhập:", response);
+      console.log("Phản hồi từ authService.login:", response);
 
-      if (!response?.token) {
-        throw new Error("API không trả về token. Vui lòng thử lại!");
+      const savedToken = localStorage.getItem("auth_token");
+      const savedRole = localStorage.getItem("user_role");
+      console.log("Token sau khi lưu:", savedToken);
+      console.log("Role sau khi lưu:", savedRole);
+
+      if (!savedToken) {
+        throw new Error("Token không được lưu vào localStorage!");
+      }
+      if (!savedRole) {
+        console.warn("Role không được lưu vào localStorage!");
       }
 
       message.success("Đăng nhập thành công!");
       const redirectUrl = authService.getRedirectUrl();
-      console.log("Chuyển hướng tới:", redirectUrl);
+      console.log("Chuyển hướng đến:", redirectUrl);
       navigate(redirectUrl);
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("user_role");
-      message.error(
-        error.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại."
-      );
+      message.error(error.message || "Đăng nhập thất bại. Vui lòng thử lại!");
     }
   };
 

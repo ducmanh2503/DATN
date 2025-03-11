@@ -19,6 +19,7 @@ use App\Http\Controllers\API\RoomTypeController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
+use App\Http\Controllers\API\TicketController;
 use App\Http\Controllers\API\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -164,10 +165,10 @@ Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 
 
 //cart
-Route::post('/cart/add-combo', [CartItemController::class, 'addComboToCart']);
-Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
-Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
-Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
+Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
+// Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
+// Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
+// Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
 
 
 //lấy lại mật khẩu

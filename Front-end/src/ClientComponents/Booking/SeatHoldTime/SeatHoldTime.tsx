@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import styles from "../BookingInfo/BookingInfo.module.css";
 const SeatHoldTime = () => {
-  const [timeLeft, setTimeLeft] = useState(420); //  giây
-  const [isTimeUp, setIsTimeUp] = useState(false); // State để kiểm tra hết giờ chưa
-  const navigate = useNavigate();
+    const [timeLeft, setTimeLeft] = useState(42000); //  giây
+    const [isTimeUp, setIsTimeUp] = useState(false); // State để kiểm tra hết giờ chưa
+    const navigate = useNavigate();
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;

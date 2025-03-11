@@ -421,7 +421,7 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                         </Select>
                     </Form.Item>
                     <Form.Item
-                        // style={{ display: "none" }}
+                        style={{ display: "none" }}
                         className="input-label"
                         label="ID"
                         name="calendar_show_id"

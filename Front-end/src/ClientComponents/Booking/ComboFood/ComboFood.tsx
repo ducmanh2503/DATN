@@ -1,153 +1,203 @@
 import { Image, Table, TableProps } from "antd";
-import { useState } from "react";
-import { useMessageContext } from "../../UseContext/ContextState";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import styles from "./ComboFood.module.css";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { GET_COMBOS } from "../../../config/ApiConfig";
+import { useMessageContext } from "../../UseContext/ContextState";
 interface DataType {
-  key: string;
-  image: string;
-  title: string;
-  price: number;
-  description: string;
-  quantity: number;
+    key: string;
+    image: string;
+    title: string;
+    price: string;
+    description: string;
+    quantity: number;
 }
 const ComboFood = ({ className }: any) => {
-  const { setQuantityCombo, setNameCombo, setTotalComboPrice } =
-    useMessageContext();
+    const {
+        quantityCombo,
+        setQuantityCombo,
+        totalComboPrice,
+        setTotalComboPrice,
+        quantityMap,
+        setQuantityMap,
+        setNameCombo,
+    } = useMessageContext();
 
-  // Hàm tăng số lượng
-  const increaseQuantity = (key: string) => {
-    setData((prevData) => {
-      return prevData.map((item) => {
-        if (item.key === key) {
-          const updatedItem = {
-            ...item,
-            quantity: item.quantity + 1,
-          };
+    // Hàm tăng số lượng
+    const increaseQuantity = (key: string, price: string, record: any) => {
+        console.log("check-record", record);
 
-          // Cập nhật tổng số lượng combo
-          setQuantityCombo((prev: number) => prev + 1);
+        setQuantityMap((prev: any) => {
+            const newQuantity = (prev[key] || 0) + 1;
 
-          // Cập nhật tổng giá tiền combo
-          setTotalComboPrice((prev: number) => prev + item.price);
+            // Cập nhật tổng số lượng combo
+            setQuantityCombo((prevTotal: any) => prevTotal + 1);
 
-          // Cập nhật danh sách tên combo
-          setNameCombo((prevNames: any[]) => {
-            if (!Array.isArray(prevNames)) prevNames = []; // Đảm bảo prevNames là mảng
-
-            const exists = prevNames.find(
-              (combo) => combo.title === item.title
+            // Cập nhật tổng giá tiền combo
+            setTotalComboPrice(
+                (prev: string) => parseInt(prev) + parseInt(price)
             );
 
-            if (exists) {
-              // Nếu combo đã tồn tại, cập nhật quantity
-              return prevNames.map((combo) =>
-                combo.title === item.title
-                  ? { ...combo, quantity: combo.quantity + 1 }
-                  : combo
-              );
-            } else {
-              // Nếu combo chưa có, thêm mới với quantity = 1
-              return [
-                ...prevNames,
-                {
-                  title: item.title,
-                  quantity: 1,
-                  price: item.price,
-                },
-              ];
-            }
-          });
+            // Cập nhật danh sách tên combo
+            setNameCombo((prevNames: any[]) => {
+                if (!Array.isArray(prevNames)) prevNames = []; // Đảm bảo prevNames là mảng
 
-          return updatedItem;
-        }
-        return item;
-      });
+                const exists = prevNames.find(
+                    (combo) => combo.name === record.name
+                );
+
+                if (exists) {
+                    // Nếu combo đã tồn tại, cập nhật quantity
+                    return prevNames.map((combo) =>
+                        combo.name === record.name
+                            ? {
+                                  name: record.name,
+                                  price: parseInt(record.price),
+                                  defaultQuantityCombo: newQuantity,
+                              }
+                            : combo
+                    );
+                } else {
+                    // Nếu combo chưa có, thêm mới với quantity = 1
+                    return [
+                        ...prevNames,
+                        {
+                            name: record.name,
+                            defaultQuantityCombo: 1,
+                            price: parseInt(record.price),
+                        },
+                    ];
+                }
+            });
+
+            return { ...prev, [key]: newQuantity };
+        });
+    };
+
+    // Hàm giảm số lượng
+    const decreaseQuantity = (key: string, price: string, record: any) => {
+        setQuantityMap((prev: any) => {
+            if (!prev[key] || prev[key] <= 0) return prev;
+
+            const newQuantity = prev[key] - 1;
+
+            // Cập nhật tổng số lượng combo
+            setQuantityCombo((prevTotal: any) => Math.max(prevTotal - 1, 0));
+
+            // Cập nhật tổng giá tiền combo
+            setTotalComboPrice((prevPrice: any) =>
+                Math.max(parseInt(prevPrice) - parseInt(price), 0)
+            );
+
+            // Cập nhật danh sách tên combo
+            setNameCombo((prevNames: any[]) => {
+                return prevNames
+                    .map((combo) =>
+                        combo.name === record.name
+                            ? {
+                                  name: record.name,
+                                  price: parseInt(record.price),
+                                  defaultQuantityCombo: newQuantity,
+                              }
+                            : combo
+                    )
+                    .filter((combo) => combo.defaultQuantityCombo > 0); // Loại bỏ combo có số lượng = 0
+            });
+
+            return { ...prev, [key]: newQuantity };
+        });
+    };
+
+    // useEffect(() => {
+    //     console.log("total-check", totalComboPrice); // ✅ Chỉ log sau khi state thực sự cập nhật
+    // }, [totalComboPrice]);
+
+    const columns: TableProps<DataType>["columns"] = [
+        {
+            dataIndex: "image",
+            key: "image",
+            render: (_, record: any) => (
+                <Image src={record.image} width={140} height={90}></Image>
+            ),
+        },
+        {
+            dataIndex: "name",
+            key: "name",
+            render: (_, record: any) => {
+                return (
+                    <>
+                        <div>{record.name}</div>
+                        <div>{`${parseInt(record.price)} đ`}</div>
+                    </>
+                );
+            },
+        },
+        {
+            dataIndex: "description",
+            key: "description",
+        },
+        {
+            dataIndex: "quantity",
+            key: "quantity",
+            render: (_, record) => (
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                    }}
+                >
+                    <button
+                        className={clsx(
+                            styles.btnChangeNumber,
+                            styles.numberDown
+                        )}
+                        onClick={() =>
+                            decreaseQuantity(record.key, record.price, record)
+                        }
+                    >
+                        -
+                    </button>
+                    {/* {debugger} */}
+                    <span>{quantityMap[record.key] || 0}</span>
+                    <button
+                        className={clsx(
+                            styles.btnChangeNumber,
+                            styles.numberUp
+                        )}
+                        onClick={() =>
+                            increaseQuantity(record.key, record.price, record)
+                        }
+                    >
+                        +
+                    </button>
+                </div>
+            ),
+        },
+    ];
+
+    const { data: optionsCombos } = useQuery({
+        queryKey: ["optionsCombos"],
+        queryFn: async () => {
+            const { data } = await axios.get(GET_COMBOS);
+            return data.combos.map((record: any) => ({
+                ...record,
+                key: record.id,
+            }));
+        },
+        staleTime: 1000 * 60 * 10,
     });
-  };
-
-  // Hàm giảm số lượng
-  const decreaseQuantity = (key: string) => {
-    setData((prevData) => {
-      return prevData.map((item) => {
-        if (item.key === key && item.quantity > 0) {
-          const updatedItem = {
-            ...item,
-            quantity: item.quantity - 1,
-          };
-
-          // Cập nhật tổng số lượng combo
-          setQuantityCombo((prev: number) => Math.max(prev - 1, 0));
-
-          // Cập nhật tổng giá tiền combo
-          setTotalComboPrice((prev: number) => Math.max(prev - item.price, 0));
-
-          // Cập nhật danh sách tên combo
-          setNameCombo((prevNames: any[]) => {
-            return prevNames
-              .map((combo) =>
-                combo.title === item.title
-                  ? { ...combo, quantity: combo.quantity - 1 }
-                  : combo
-              )
-              .filter((combo) => combo.quantity > 0); // Loại bỏ combo có số lượng = 0
-          });
-
-          return updatedItem;
-        }
-        return item;
-      });
-    });
-  };
-
-  const columns: TableProps<DataType>["columns"] = [
-    {
-      dataIndex: "image",
-      key: "image",
-      render: (_, record: any) => (
-        <Image src={record.image} width={140} height={90}></Image>
-      ),
-    },
-    {
-      dataIndex: "title",
-      key: "title",
-      render: (_, record: any) => {
-        return (
-          <>
-            <div>{record.title}</div>
-            <div>{record.price}</div>
-          </>
-        );
-      },
-    },
-    {
-      dataIndex: "description",
-      key: "description",
-    },
-    {
-      dataIndex: "quantity",
-      key: "quantity",
-      render: (_, record) => (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-          }}
-        >
-          <button
-            className={clsx(styles.btnChangeNumber, styles.numberDown)}
-            onClick={() => decreaseQuantity(record.key)}
-          >
-            -
-          </button>
-          <span>{record.quantity}</span>
-          <button
-            className={clsx(styles.btnChangeNumber, styles.numberUp)}
-            onClick={() => increaseQuantity(record.key)}
-          >
-            +
-          </button>
+    return (
+        <div className={clsx(className)}>
+            <h2 className={clsx(styles.titleOffer)}>Combo Ưu đãi</h2>
+            <Table<DataType>
+                columns={columns}
+                dataSource={optionsCombos}
+                pagination={false}
+                showHeader={false}
+            />
         </div>
       ),
     },

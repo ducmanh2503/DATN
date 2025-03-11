@@ -36,7 +36,12 @@ export const MessageProvider = ({
         Record<string, { isHeld?: boolean; heldByUser?: boolean }>
     >({}); // ghế đã chọn trong showtimes
     const [matrixSeatsManage, setMatrixSeatsManage] = useState<string[]>([]);
-
+    const [quantityMap, setQuantityMap] = useState<Record<string, number>>({}); // giá trị mặc định của combo
+    const [dataDetailFilm, setDataDetailFilm] = useState({
+        title: "",
+        language: "",
+        rated: "",
+    }); // lưu tạm thời data 1 phim
     return (
         <MessageContext.Provider
             value={{
@@ -82,6 +87,10 @@ export const MessageProvider = ({
                 setSeats,
                 matrixSeatsManage,
                 setMatrixSeatsManage,
+                quantityMap,
+                setQuantityMap,
+                dataDetailFilm,
+                setDataDetailFilm,
             }}
         >
             {children}

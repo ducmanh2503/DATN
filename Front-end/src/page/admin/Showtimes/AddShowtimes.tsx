@@ -25,7 +25,7 @@ import { PlusCircleOutlined } from "@ant-design/icons";
 import "./ShowtimesRoom.css";
 import dayjs from "dayjs";
 
-const AddShowtimes = ({ setShowtimesData }: any) => {
+const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
     const [open, setOpen] = useState(false);
@@ -56,10 +56,6 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
                           )
                         : null,
                 });
-                // setShowtimesData((prevData: any) => [
-                //     ...prevData,
-                //     formattedData,
-                // ]);
                 form.resetFields();
                 setOpen(false);
             },
@@ -72,9 +68,17 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
         });
     };
 
+    // hàm tìm suất chiếu theo ngày
     const { mutate: mutateGetOneShowtimes } = useMutation({
         mutationFn: async (formData: any) => {
-            return await axios.post(GET_ONE_SHOWTIMES, formData);
+            const response = await axios.post(GET_ONE_SHOWTIMES, formData);
+            // console.log("new-data", response.data);
+
+            return response.data; // Trả về dữ liệu mới
+        },
+        onSuccess: (data) => {
+            // console.log("new-data", data);
+            setShowtimesData(data); // Cập nhật state để UI render lại
         },
     });
 
@@ -188,7 +192,7 @@ const AddShowtimes = ({ setShowtimesData }: any) => {
         <>
             {contextHolder}
             <Button type="primary" onClick={showModal} className="addShowtimes">
-                <PlusCircleOutlined /> Thêm lịch chiếu
+                <PlusCircleOutlined /> Thêm suất chiếu
             </Button>
             <Modal
                 title="Thêm mới suất chiếu"

@@ -46,47 +46,68 @@ const PlayingProduct = ({
           <img className={clsx(styles.img)} src={poster} alt="" />
         </Link>
 
-        <div className={clsx(styles.hoverBtn)}>
-          <button className={clsx(styles.btn)} onClick={showModal2}>
-            Đặt vé
-          </button>
-          <button className={clsx(styles.btn)} onClick={showModal1}>
-            Trailer
-          </button>
-          <Modal
-            title={`Lịch chiếu phim`}
-            width={700}
-            open={isModalOpen2}
-            onCancel={handleCancel2}
-            footer={null}
-          >
-            <CalendarMovies
-              id={id}
-              setIsModalOpen2={setIsModalOpen2}
-            ></CalendarMovies>
-          </Modal>
-          <Modal
-            width={720}
-            open={isModalOpen1}
-            onCancel={handleCancel1}
-            footer={null}
-            closable={false}
-            destroyOnClose={true}
-          >
-            {isModalOpen1 && (
-              <iframe
-                key={videoKey}
-                width="670"
-                height="375"
-                src={`${trailer}?autoplay=1`}
-                title="YouTube video player"
-                style={{ border: "none" }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              ></iframe>
+                <div className={clsx(styles.hoverBtn)}>
+                    <button className={clsx(styles.btn)} onClick={showModal2}>
+                        Đặt vé
+                    </button>
+                    <button className={clsx(styles.btn)} onClick={showModal1}>
+                        Trailer
+                    </button>
+                    <Modal
+                        title={`Lịch chiếu phim`}
+                        width={700}
+                        open={isModalOpen2}
+                        onCancel={handleCancel2}
+                        footer={null}
+                    >
+                        <CalendarMovies
+                            id={id}
+                            setIsModalOpen2={setIsModalOpen2}
+                        ></CalendarMovies>
+                    </Modal>
+                    <Modal
+                        width={720}
+                        open={isModalOpen1}
+                        onCancel={handleCancel1}
+                        footer={null}
+                        closable={false}
+                        destroyOnClose={true}
+                    >
+                        {isModalOpen1 && (
+                            <iframe
+                                key={videoKey}
+                                width="670"
+                                height="375"
+                                src={`${trailer}?autoplay=1`}
+                                title="YouTube video player"
+                                style={{ border: "none" }}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerPolicy="strict-origin-when-cross-origin"
+                                allowFullScreen
+                            ></iframe>
+                        )}
+                    </Modal>
+                </div>
+            </div>
+            <div className={clsx(styles.productSub)}>
+                <h4 className={clsx(styles.category, "cliptextTitle")}>
+                    {genres}
+                </h4>
+                {showChill && (
+                    <span className={clsx(styles.date)}>{release_date}</span>
+                )}
+            </div>
+            {showChill || (
+                <h4 className={clsx(styles.startDay)}>
+                    Ngày khởi chiếu:{" "}
+                    <span className={clsx(styles.wordRender)}>
+                        {release_date}
+                    </span>
+                </h4>
             )}
-          </Modal>
+            <h2 className={clsx(styles.productTitle, "cliptextTitle")}>
+                {title}
+            </h2>
         </div>
       </div>
       <div className={clsx(styles.productSub)}>

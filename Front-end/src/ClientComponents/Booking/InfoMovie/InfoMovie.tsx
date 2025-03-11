@@ -70,33 +70,29 @@ const InfoMovie = () => {
                     </div>
                 </div>
             </div>
+      <div className={clsx(styles.bookingDetail)}>
+        <span>
+          Suất:{" "}
+          <span className={clsx(styles.detailTime)}>
+            {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")}
+          </span>
+        </span>{" "}
+        -<span className={clsx(styles.detailDay)}> {showtimesDate}</span>
+      </div>
 
-            <div className={clsx(styles.bookingDetail)}>
-                <span>
-                    Suất:{" "}
-                    <span className={clsx(styles.detailTime)}>
-                        {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")}
-                    </span>
-                </span>{" "}
-                -
-                <span className={clsx(styles.detailDay)}> {showtimesDate}</span>
-            </div>
+      <>
+        {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
+        {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
+      </>
 
-            <>
-                {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
-                {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
-            </>
-
-            <div className={clsx(styles.bookingTotal)}>
-                <Divider className={clsx(styles.dividerCustom)} dashed />
-                <div className={clsx(styles.totalInfo)}>
-                    <div className={clsx(styles.totalLabel)}>Tổng cộng</div>
-                    <div className={clsx(styles.totalPrice)}>
-                        {parseInt(totalPrice)}đ
-                    </div>
-                </div>
-            </div>
+      <div className={clsx(styles.bookingTotal)}>
+        <Divider className={clsx(styles.dividerCustom)} dashed />
+        <div className={clsx(styles.totalInfo)}>
+          <div className={clsx(styles.totalLabel)}>Tổng cộng</div>
+          <div className={clsx(styles.totalPrice)}>{parseInt(totalPrice)}đ</div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 export default InfoMovie;

@@ -49,10 +49,11 @@ const GET_ARTICLE = `${BASE_URL}/article`;
 const CREATE_ARTICLE = `${BASE_URL}/article`;
 const UPDATE_ARTICLE = (id: number) => `${BASE_URL}/article/${id}`;
 const DELETE_ARTICLE = (id: number) => `${BASE_URL}/article/${id}`;
-
+const GOOGLE_CALLBACK = `${BASE_URL}/auth/google/callback`;
 const GET_COMBOS = `${BASE_URL}/combos`;
 
 export {
+    GOOGLE_CALLBACK,
     UPDATE_USER_CLIENT,
     GET_USER,
     GET_ARTICLE,

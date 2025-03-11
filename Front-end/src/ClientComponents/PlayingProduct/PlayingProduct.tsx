@@ -7,44 +7,44 @@ import clsx from "clsx";
 import styles from "./PlayingProduct.module.css";
 
 const PlayingProduct = ({
-    id,
-    title,
-    className,
-    genres,
-    release_date,
-    poster,
-    trailer,
-    showChill,
-    onClick,
+  id,
+  title,
+  className,
+  genres,
+  release_date,
+  poster,
+  trailer,
+  showChill,
+  onClick,
 }: any) => {
-    const [videoKey, setVideoKey] = useState(0);
-    const [isModalOpen1, setIsModalOpen1] = useState(false);
-    const [isModalOpen2, setIsModalOpen2] = useState(false);
-    const showModal1 = () => {
-        setVideoKey((prevKey) => prevKey + 1);
-        setIsModalOpen1(true);
-    };
+  const [videoKey, setVideoKey] = useState(0);
+  const [isModalOpen1, setIsModalOpen1] = useState(false);
+  const [isModalOpen2, setIsModalOpen2] = useState(false);
+  const showModal1 = () => {
+    setVideoKey((prevKey) => prevKey + 1);
+    setIsModalOpen1(true);
+  };
 
-    const handleCancel1 = () => {
-        setIsModalOpen1(false);
-    };
+  const handleCancel1 = () => {
+    setIsModalOpen1(false);
+  };
 
-    const showModal2 = () => {
-        setIsModalOpen2(true);
-    };
-    const handleCancel2 = () => {
-        setIsModalOpen2(false);
-    };
+  const showModal2 = () => {
+    setIsModalOpen2(true);
+  };
+  const handleCancel2 = () => {
+    setIsModalOpen2(false);
+  };
 
-    return (
-        <div
-            className={clsx(styles.playingProduct, className)}
-            onClick={() => onClick()}
-        >
-            <div className={clsx(styles.productImg)}>
-                <Link to={`/filmDetail/${id}`}>
-                    <img className={clsx(styles.img)} src={poster} alt="" />
-                </Link>
+  return (
+    <div
+      className={clsx(styles.playingProduct, className)}
+      onClick={() => onClick()}
+    >
+      <div className={clsx(styles.productImg)}>
+        <Link to={`/filmDetail/${id}`}>
+          <img className={clsx(styles.img)} src={poster} alt="" />
+        </Link>
 
                 <div className={clsx(styles.hoverBtn)}>
                     <button className={clsx(styles.btn)} onClick={showModal2}>
@@ -109,7 +109,24 @@ const PlayingProduct = ({
                 {title}
             </h2>
         </div>
-    );
+      </div>
+      <div className={clsx(styles.productSub)}>
+        <h4 className={clsx(styles.category, styles.cliptextTitle)}>
+          {genres}
+        </h4>
+        {showChill || <span className={clsx(styles.date)}>{release_date}</span>}
+      </div>
+      {showChill && (
+        <h4 className={clsx(styles.startDay)}>
+          Ngày khởi chiếu:{" "}
+          <span className={clsx(styles.wordRender)}>{release_date}</span>
+        </h4>
+      )}
+      <h2 className={clsx(styles.productTitle, styles.cliptextTitle)}>
+        {title}
+      </h2>
+    </div>
+  );
 };
 
 export default PlayingProduct;

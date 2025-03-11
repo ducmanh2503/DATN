@@ -1,46 +1,64 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
-import { message } from 'antd';
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { message, Spin } from "antd";
+import authService from "../../services/auth.service";
 
 const GoogleCallbackHandler = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const code = params.get('code');
+    const code = params.get("code");
 
-    if (code) {
-      // Gửi yêu cầu đến endpoint API của server
-      axios
-        .get(`http://localhost:8000/api/auth/google/callback?code=${code}`, {
-          withCredentials: true, // Nếu server yêu cầu cookie hoặc thông tin xác thực
-        })
-        .then((response) => {
-          const { token, user } = response.data;
-          // Lưu thông tin vào localStorage
-          localStorage.setItem('auth_token', token);
-          localStorage.setItem('user_role', user.role);
-          message.success('Đăng nhập với Google thành công!');
-          // Chuyển hướng dựa trên vai trò người dùng
-          const redirectUrl = user.role === 'admin' ? '/admin' : '/';
-          navigate(redirectUrl, { replace: true });
-        })
-        .catch((error) => {
-          console.error('Lỗi khi xử lý callback Google:', error);
-          message.error('Đăng nhập với Google thất bại. Vui lòng thử lại.');
-          navigate('/auth/login', { replace: true });
-        });
-    } else {
-      message.error('Không tìm thấy mã xác thực.');
-      navigate('/auth/login', { replace: true });
+    console.log("GoogleCallbackHandler mounted. Received code from URL:", code);
+    console.log("Current location:", location);
+
+    if (!code) {
+      console.error("No code found in URL");
+      message.error("Không tìm thấy mã xác thực.");
+      navigate("/auth/login", { replace: true });
+      setLoading(false);
+      return;
     }
+
+    authService
+      .handleGoogleCallback(code)
+      .then((response) => {
+        console.log("Full response from authService:", response); // Debug chi tiết
+        const { redirect_url, access_token } = response; // Sử dụng access_token thay vì token
+
+        if (!access_token) {
+          throw new Error("Access token không được trả về từ server");
+        }
+
+        message.success("Đăng nhập với Google thành công!");
+        navigate(redirect_url || "/", { replace: true });
+      })
+      .catch((error) => {
+        console.error("Error processing Google callback:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+        message.error(
+          error.message || "Đăng nhập với Google thất bại. Vui lòng thử lại."
+        );
+        navigate("/auth/login", { replace: true });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [location, navigate]);
 
   return (
-    <div>
-      <p>Đang xử lý đăng nhập Google...</p>
+    <div style={{ textAlign: "center", padding: "20px" }}>
+      {loading ? (
+        <Spin tip="Đang xử lý đăng nhập Google..." />
+      ) : (
+        <p>Đăng nhập hoàn tất, đang chuyển hướng...</p>
+      )}
     </div>
   );
 };

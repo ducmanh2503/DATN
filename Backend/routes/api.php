@@ -15,6 +15,7 @@ use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\RoomController;
+use App\Http\Controllers\API\RoomTypeController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
@@ -36,14 +37,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
-
-
-
-
-Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
-Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
-
 Route::middleware('auth:sanctum')->group(function () {
 
     // Lấy thông tin user đã đăng nhập
@@ -58,8 +51,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
     Route::put('/update-profile', [UserController::class, 'updateProfile']);
 
-
-
+    //thanh toán VNPay
+    Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
+    Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 
     //Sơ đồ ghế, giữ ghế, giải phóng ghế
     Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
@@ -77,10 +71,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
 
         // Room
-        Route::apiResource('room', RoomController::class);
+        Route::apiResource('/room', RoomController::class);
 
-
-
+        //room_type
+        Route::apiResource('/room-type', RoomTypeController::class);
 
         // Seats
         Route::post('/seats', [SeatController::class, 'store']);
@@ -128,9 +122,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/actors', ActorController::class);
         Route::apiResource('/directors', DirectorController::class);
 
-
-
-
         //Mã khuyến mãi
         Route::apiResource('/discount-code', DiscountCodeController::class);
         //Bài viết
@@ -145,10 +136,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
 });
-//customer
 
-
-
+///////////////////////////////////////////////customer///////////////////////////////////////////////
 
 //movie, calendar_show, showTime
 Route::get('/movies-index', [MoviesController::class, 'index']);

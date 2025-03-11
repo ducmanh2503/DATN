@@ -60,8 +60,11 @@ const ComboInfo = () => {
                     ))}
                 </div>
             </div>
+          ))}
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default ComboInfo;

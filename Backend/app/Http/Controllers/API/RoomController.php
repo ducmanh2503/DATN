@@ -15,8 +15,6 @@ class RoomController extends Controller
      */
     public function index(Request $request)
     {
-
-
         // Lấy danh sách phòng và phân trang
         $rooms = Room::query()->latest('id')->get();
 

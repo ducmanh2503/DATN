@@ -199,7 +199,60 @@ const ComboFood = ({ className }: any) => {
                 showHeader={false}
             />
         </div>
-    );
+      ),
+    },
+  ];
+
+  const [data, setData] = useState<DataType[]>([
+    {
+      key: "1",
+      image:
+        "https://cdn.galaxycine.vn/media/2024/3/29/menuboard-coonline-2024-combo1-min_1711699834430.jpg",
+      title: "iCombo 2 Big Extra STD",
+      price: 50000,
+      description: "1 Ly nước ngọt size L + 01 Hộp bắp + 1 Snack",
+      quantity: 0,
+    },
+    {
+      key: "2",
+      image:
+        "https://cdn.galaxycine.vn/media/2024/3/29/menuboard-coonline-2024-combo1-min_1711699834430.jpg",
+      title: "iCombo 3 Big Extra STD",
+      price: 100000,
+      description: "1 Ly nước ngọt size L + 01 Hộp bắp + 1 Snack",
+      quantity: 0,
+    },
+    {
+      key: "3",
+      image:
+        "https://cdn.galaxycine.vn/media/2024/3/29/menuboard-coonline-2024-combo1-min_1711699834430.jpg",
+      title: "iCombo 4 Big Extra STD",
+      price: 150000,
+      description: "1 Ly nước ngọt size L + 01 Hộp bắp + 1 Snack",
+      quantity: 0,
+    },
+    {
+      key: "4",
+      image:
+        "https://cdn.galaxycine.vn/media/2024/3/29/menuboard-coonline-2024-combo1-min_1711699834430.jpg",
+      title: "iCombo 5 Big Extra STD",
+      price: 200000,
+      description: "1 Ly nước ngọt size L + 01 Hộp bắp + 1 Snack",
+      quantity: 0,
+    },
+  ]);
+  return (
+    <div className={clsx(className)}>
+      <h2 className={clsx(styles.titleOffer)}>Combo Ưu đãi</h2>
+      <Table<DataType>
+        columns={columns}
+        dataSource={data}
+        pagination={false}
+        showHeader={false}
+      />
+      ;
+    </div>
+  );
 };
 
 export default ComboFood;

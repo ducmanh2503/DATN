@@ -28,6 +28,11 @@ class TicketController extends Controller
             'seat_ids.*' => 'exists:seats,id',
             'combo_ids' => 'nullable|array',
             'combo_ids.*' => 'exists:combos,id',
+            'pricing' => 'required|array',
+            'pricing.total_ticket_price' => 'required|numeric|min:0',
+            'pricing.total_combo_price' => 'required|numeric|min:0',
+            'pricing.total_price' => 'required|numeric|min:0',
+            'payment_method' => 'required|in:cash,VNpay,Momo,Zalopay', // Danh sách phương thức thanh toán
         ]);
 
         // Lấy thông tin phim
@@ -67,12 +72,9 @@ class TicketController extends Controller
                 ->get();
         }
 
-        // Tính tổng giá vé và combo
-        $totalTicketPrice = $seats->sum(function ($seat) use ($showTime) {
-            return $showTime->room->roomType->price; // Giá vé dựa trên loại phòng
-        });
-        $totalComboPrice = $combos->sum('price');
-        $totalPrice = $totalTicketPrice + $totalComboPrice;
+        // Lấy giá và phương thức thanh toán từ FE
+        $pricing = $request->pricing;
+        $paymentMethod = $request->payment_method;
 
         // Chuẩn bị dữ liệu trả về
         $ticketDetails = [
@@ -104,10 +106,11 @@ class TicketController extends Controller
                 ];
             }),
             'pricing' => [
-                'total_ticket_price' => $totalTicketPrice,
-                'total_combo_price' => $totalComboPrice,
-                'total_price' => $totalPrice,
+                'total_ticket_price' => $pricing['total_ticket_price'],
+                'total_combo_price' => $pricing['total_combo_price'],
+                'total_price' => $pricing['total_price'],
             ],
+            'payment_method' => $paymentMethod, // Thêm thông tin phương thức thanh toán
         ];
 
         // Trả về response
@@ -116,12 +119,15 @@ class TicketController extends Controller
             'data' => $ticketDetails,
         ], 200);
     }
+    
 
 
 
 
 
-    //-----------------------test--------------------//
+    
+//--------------------------------------------------test--------------------------//
+
 
     // public function getTicketDetails(Request $request)
     // {
@@ -138,10 +144,11 @@ class TicketController extends Controller
     //         'pricing.total_ticket_price' => 'required|numeric|min:0',
     //         'pricing.total_combo_price' => 'required|numeric|min:0',
     //         'pricing.total_price' => 'required|numeric|min:0',
+    //         'payment_method' => 'required|in:cash,VNpay,Momo,Zalopay',
     //     ]);
 
     //     // Lấy thông tin phim
-    //     $movie = Movie::where('id', $request->movie_id)
+    //     $movie = Movies::where('id', $request->movie_id)
     //         ->select('id', 'title', 'rated', 'language', 'poster')
     //         ->first();
 
@@ -177,8 +184,9 @@ class TicketController extends Controller
     //             ->get();
     //     }
 
-    //     // Lấy giá từ FE
+    //     // Lấy giá và phương thức thanh toán từ FE
     //     $pricing = $request->pricing;
+    //     $paymentMethod = $request->payment_method;
 
     //     // Chuẩn bị dữ liệu trả về
     //     $ticketDetails = [
@@ -214,12 +222,36 @@ class TicketController extends Controller
     //             'total_combo_price' => $pricing['total_combo_price'],
     //             'total_price' => $pricing['total_price'],
     //         ],
+    //         'payment_method' => $paymentMethod,
     //     ];
+
+    //     // Lưu booking vào bảng bookings
+    //     $booking = Booking::create([
+    //         'user_id' => auth()->id(), 
+    //         'showtime_id' => $request->showtime_id,
+    //         'total_ticket_price' => $pricing['total_ticket_price'],
+    //         'total_combo_price' => $pricing['total_combo_price'],
+    //         'status' => 'pending',
+    //         'payment_method' => $paymentMethod,
+    //     ]);
+
+    //     // Lưu chi tiết ghế vào bảng booking_details
+    //     $pricePerSeat = $pricing['total_ticket_price'] / count($request->seat_ids); // Giá trung bình mỗi ghế
+    //     foreach ($request->seat_ids as $seatId) {
+    //         BookingDetail::create([
+    //             'booking_id' => $booking->id,
+    //             'seat_id' => $seatId,
+    //             'price' => $pricePerSeat, // Giá mỗi ghế
+    //         ]);
+    //     }
 
     //     // Trả về response
     //     return response()->json([
     //         'success' => true,
     //         'data' => $ticketDetails,
+    //         'booking_id' => $booking->id, // Trả thêm ID của booking vừa tạo
     //     ], 200);
     // }
 }
+   
+

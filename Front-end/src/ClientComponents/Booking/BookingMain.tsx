@@ -22,6 +22,7 @@ const BookingMain = () => {
     roomIdFromShowtimes,
     showtimeIdFromBooking,
     setSeats,
+    tokenUserId,
   } = useMessageContext();
   const navigate = useNavigate();
   const [api, contextHolder] = notification.useNotification();
@@ -55,7 +56,7 @@ const BookingMain = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            Authorization: `Bearer ${tokenUserId}`,
           },
         }
       );

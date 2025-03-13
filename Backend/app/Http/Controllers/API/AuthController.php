@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ResetPassword;
 use App\Mail\VerifyEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -51,8 +52,8 @@ class AuthController extends Controller
             'role' => $role,
         ], now()->addMinutes(10));
 
-        // Gửi email
-        Mail::to($request->email)->send(new VerifyEmail($verificationCode, 'verify'));
+        // Để gửi email xác thực
+        Mail::to($request->email)->send(new VerifyEmail($verificationCode));
 
         return response()->json(['message' => 'Mã xác thực đã gửi đến email. Vui lòng kiểm tra và nhập mã để hoàn tất.', 'expires_at' => now()->addMinutes(10)]);
     }
@@ -117,8 +118,8 @@ class AuthController extends Controller
         // Lưu OTP vào cache (10 phút)
         Cache::put('reset_password:' . $request->email, $otp, now()->addMinutes(10));
 
-        // Gửi email
-        Mail::to($request->email)->send(new VerifyEmail($otp, 'reset'));
+        // Để gửi email reset password
+        Mail::to($request->email)->send(new ResetPassword($otp));
 
         return response()->json(['message' => 'Mã OTP đặt lại mật khẩu đã được gửi.']);
     }
@@ -181,8 +182,8 @@ class AuthController extends Controller
         // Lưu lại cache với TTL mới
         Cache::put('verify_code:' . $request->email, $cachedData, now()->addMinutes(10));
 
-        // Gửi email mới
-        Mail::to($request->email)->send(new VerifyEmail($verificationCode, 'verify'));
+        // Để gửi email xác thực
+        Mail::to($request->email)->send(new VerifyEmail($verificationCode));
 
         return response()->json(['message' => 'Mã xác thực đã được gửi lại.']);
     }

@@ -17,34 +17,16 @@ import { useFilmContext } from "../UseContext/FIlmContext";
 import { useAuthContext } from "../UseContext/tokenContext";
 
 const BookingMain = () => {
-  const {
-    currentStep,
-    setCurrentStep,
-    quantitySeats,
-    selectedSeatIds,
-    roomIdFromShowtimes,
-    showtimeIdFromBooking,
-    setSeats,
-  } = useMessageContext();
+  const { quantitySeats, selectedSeatIds, setSeats, setShouldRefetch } =
+    useSeatsContext();
+  const { currentStep, setCurrentStep, userIdFromShowtimes } =
+    useStepsContext();
+  const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
+  const { tokenUserId } = useAuthContext();
   const navigate = useNavigate();
-  const [api, contextHolder] = notification.useNotification();
-
+  const queryClient = useQueryClient();
   // Thông báo phải đặt ghế để tiếp tục
-  const openNotification = (pauseOnHover: boolean) => () => {
-    api.open({
-      message: (
-        <>
-          <span className={clsx(styles.notificationIcon)}>
-            <CloseCircleOutlined />
-          </span>{" "}
-          Không thể tiếp tục...
-        </>
-      ),
-      description: "Phải đặt ghế nếu bạn muốn tiếp tục",
-      showProgress: true,
-      pauseOnHover,
-    });
-  };
+  const { openNotification, contextHolder } = CustomNotification();
 
   //api giữ ghế
   const holdSeatMutation = useMutation({
@@ -58,7 +40,7 @@ const BookingMain = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            Authorization: `Bearer ${tokenUserId}`,
           },
         }
       );

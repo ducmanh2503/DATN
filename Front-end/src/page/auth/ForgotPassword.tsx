@@ -174,6 +174,7 @@ const ForgotPassword = () => {
                 type="email"
                 id="email"
                 placeholder="Nhập email của bạn"
+                autoComplete="off" // Tắt autofill cho ô email
                 {...register('email', {
                   required: 'Email là bắt buộc',
                   pattern: {
@@ -229,6 +230,7 @@ const ForgotPassword = () => {
                 }}
                 placeholder="Nhập mã OTP (6 chữ số)"
                 maxLength={6}
+                autoComplete="off" // Tắt autofill cho ô OTP
               />
             </div>
             {otpError && <p className={styles.errorMessage}>{otpError}</p>}
@@ -246,6 +248,7 @@ const ForgotPassword = () => {
                   if (newPasswordError) setNewPasswordError('');
                 }}
                 placeholder="Nhập mật khẩu mới"
+                autoComplete="new-password" // Tắt autofill cho ô mật khẩu mới
               />
             </div>
             {newPasswordError && <p className={styles.errorMessage}>{newPasswordError}</p>}
@@ -263,6 +266,7 @@ const ForgotPassword = () => {
                   if (confirmPasswordError) setConfirmPasswordError('');
                 }}
                 placeholder="Xác nhận mật khẩu mới"
+                autoComplete="new-password" // Tắt autofill cho ô xác nhận mật khẩu
               />
             </div>
             {confirmPasswordError && <p className={styles.errorMessage}>{confirmPasswordError}</p>}

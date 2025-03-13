@@ -310,7 +310,6 @@ class SeatController extends Controller
             'row' => 'required|max:20',
             'column' => 'required|max:10',
             'seat_type_id' => 'required|exists:seat_types,id',
-            'seat_status' => 'required|in:available,booked',
         ]);
 
         // Kiểm tra nếu có lỗi xác thực

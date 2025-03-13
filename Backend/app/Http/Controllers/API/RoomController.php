@@ -41,7 +41,7 @@ class RoomController extends Controller
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name',
                 'capacity' => 'required|integer|min:1',
-                'room_type' => 'required|in:2D,3D,4D'
+                'room_type_id' => 'required|exists:room_types,id'
             ]);
 
             // Nếu có lỗi validate, trả về lỗi
@@ -106,7 +106,7 @@ class RoomController extends Controller
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name,' . $id,
                 'capacity' => 'required|integer|min:1',
-                'room_type' => 'required|in:2D,3D,4D'
+                'room_type_id' => 'required|exists:room_types,id'
             ]);
 
             // Nếu có lỗi validate, trả về lỗi

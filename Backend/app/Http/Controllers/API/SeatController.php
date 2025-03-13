@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Seat;
 use App\Models\SeatType;
 use App\Models\SeatTypePrice;
+use App\Models\ShowTime;
+use App\Models\ShowTimeSeat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
@@ -198,14 +200,20 @@ class SeatController extends Controller
      */
     public function updateSeatStatus(Request $request)
     {
-
-        // Kiểm tra yêu cầu có chứa 'seats' không (danh sách ghế)
-        if (!$request->has('seats') || !is_array($request->seats)) {
-            return response()->json(['error' => 'Thiếu thông tin ghế hoặc dữ liệu ghế không hợp lệ'], 400);
+        // Kiểm tra yêu cầu có chứa 'show_time_id' và 'seats' không
+        if (!$request->has('show_time_id') || !$request->has('seats') || !is_array($request->seats)) {
+            return response()->json(['error' => 'Thiếu show_time_id hoặc danh sách ghế không hợp lệ'], 400);
         }
 
-        // Lấy danh sách ghế và trạng thái từ yêu cầu
+        // Lấy show_time_id và danh sách ghế từ yêu cầu
+        $show_time_id = $request->show_time_id;
         $seatsData = $request->seats;
+
+        // Kiểm tra suất chiếu có tồn tại không
+        $showTime = ShowTime::find($show_time_id);
+        if (!$showTime) {
+            return response()->json(['error' => 'Suất chiếu không tồn tại'], 404);
+        }
 
         // Mảng lưu thông báo về ghế đã được cập nhật
         $updatedSeats = [];
@@ -220,17 +228,29 @@ class SeatController extends Controller
             $seat_id = $seatData['seat_id'];
             $seat_status = $seatData['seat_status'];
 
+            // Kiểm tra trạng thái ghế hợp lệ
+            if (!in_array($seat_status, ['available', 'booked'])) {
+                return response()->json(['error' => 'Trạng thái ghế không hợp lệ'], 400);
+            }
+
             // Tìm ghế theo seat_id
             $seat = Seat::find($seat_id);
-
-            // Kiểm tra nếu không tìm thấy ghế
             if (!$seat) {
                 return response()->json(['error' => 'Ghế không tồn tại'], 404);
             }
 
+            // Tìm bản ghi trong bảng show_time_seats
+            $showTimeSeat = ShowTimeSeat::where('show_time_id', $show_time_id)
+                ->where('seat_id', $seat_id)
+                ->first();
+
+            if (!$showTimeSeat) {
+                return response()->json(['error' => 'Ghế không thuộc suất chiếu này'], 404);
+            }
+
             // Cập nhật trạng thái ghế
-            $seat->seat_status = $seat_status;
-            $seat->save();
+            $showTimeSeat->seat_status = $seat_status;
+            $showTimeSeat->save();
 
             // Thêm ghế vào mảng đã cập nhật
             $updatedSeats[] = [
@@ -239,14 +259,13 @@ class SeatController extends Controller
             ];
         }
 
-        // Trả về kết quả thành công
         return response()->json([
-            'message' => 'Chuyển trạng thái ghế thành công',
+            'message' => 'Cập nhật trạng thái ghế thành công',
             'updated_seats' => $updatedSeats
         ], 200);
     }
     /**
-     * Lấy ghế theo id phòng và cập nhật trạng thái ghế
+     * Lấy ghế theo id phòng
      */
 
     public function getSeats($room_id)
@@ -276,7 +295,7 @@ class SeatController extends Controller
                 'seatCode' => $seatCode,
                 'type' => $seat->seatType->name, // Lấy từ mối quan hệ seatType
                 'status' => $seat->seat_status,
-                'price' => $seat->getPriceAttribute(),
+                'price' => $price,
             ];
         }
 
@@ -310,7 +329,6 @@ class SeatController extends Controller
             'row' => 'required|max:20',
             'column' => 'required|max:10',
             'seat_type_id' => 'required|exists:seat_types,id',
-            'seat_status' => 'required|in:available,booked',
         ]);
 
         // Kiểm tra nếu có lỗi xác thực
@@ -364,7 +382,6 @@ class SeatController extends Controller
             'row' => 'sometimes|max:20',
             'column' => 'sometimes|max:10',
             'seat_type_id' => 'sometimes|exists:seat_types,id',
-            'seat_status' => 'sometimes|in:available,booked',
         ]);
 
         if ($validator->fails()) {
@@ -372,7 +389,7 @@ class SeatController extends Controller
         }
 
         // Cập nhật các trường được gửi
-        $seat->update($request->only(['row', 'column', 'seat_type_id', 'seat_status']));
+        $seat->update($request->only(['row', 'column', 'seat_type_id']));
 
         return response()->json(['message' => 'Cập nhật ghế thành công', 'data' => $seat->load('seatType')], 200);
     }

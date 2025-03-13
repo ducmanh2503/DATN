@@ -19,9 +19,9 @@ class SeatTypePrice extends Model
         'day_type',
     ];
 
-    public function seatTypes()
+    public function seatType()
     {
-        return $this->belongsTo(SeatType::class);
+        return $this->belongsTo(SeatType::class, 'seat_type_id');
     }
 
     //Lấy giá của loại ghế

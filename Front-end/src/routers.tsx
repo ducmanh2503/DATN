@@ -27,7 +27,7 @@ import Register from "./page/auth/Register";
 import GoogleCallback from "./page/auth/GoogleCallback";
 import authService from "./services/auth.service";
 import Booking from "./page/client/Booking/Booking";
-import TicketsPrice from "./page/admin/TicketsPrice/TicketsPrice";
+import ForgotPassword from "./page/auth/ForgotPassword";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -112,11 +112,11 @@ const LoadingComponent = () => (
             }}
         ></div>
         <style>{`
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `}</style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
 );
 
@@ -260,7 +260,10 @@ export const router = createBrowserRouter([
                 path: "/auth/register",
                 element: <Register />,
             },
-            // Route cho Google callback đã được cập nhật
+            {
+                path: "/auth/forgot-password",
+                element: <ForgotPassword />,
+            },
             {
                 path: "/auth/google/callback",
                 element: <GoogleCallback />,
@@ -297,10 +300,6 @@ export const router = createBrowserRouter([
                     {
                         path: "showtimes",
                         element: <ShowtimesManage />,
-                    },
-                    {
-                        path: "ticketsPrice",
-                        element: <TicketsPrice />,
                     },
                     {
                         path: "actors",

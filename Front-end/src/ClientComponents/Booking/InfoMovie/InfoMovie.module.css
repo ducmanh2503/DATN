@@ -24,7 +24,8 @@
 }
 
 .filmImage {
-    width: 250px;
+    width: 40%;
+    min-width: 130px;
     height: 190px;
     background-color: green;
 }

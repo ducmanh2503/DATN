@@ -36,23 +36,14 @@ class TicketController extends Controller
             'seatType.seat.room.roomType'
         ])->get();
 
-
-
-
         // Nhóm dữ liệu theo seat_type_id để xử lý từng loại ghế
         $groupedBySeatType = $ticketPrices->groupBy('seat_type_id');
-
-
-
 
         $result = [];
         foreach ($groupedBySeatType as $seatTypeId => $group) {
             // Lấy thông tin seatType từ bản ghi đầu tiên
             $seatType = $group->first()->seatType;
             $seatTypeName = $seatType ? $seatType->name : 'Không xác định';
-
-
-
 
             // Lấy danh sách tất cả loại phòng liên quan đến seatType này
             $roomTypes = $seatType->seat
@@ -63,39 +54,24 @@ class TicketController extends Controller
                 ->unique('id')
                 ->values();
 
-
-
-
             // Nếu không có loại phòng, thêm một giá trị mặc định
             if ($roomTypes->isEmpty()) {
                 $roomTypes = collect([null]); // Sẽ hiển thị "Không xác định"
             }
-
-
-
 
             // Tạo bản ghi cho từng loại phòng
             foreach ($roomTypes as $roomType) {
                 $roomTypeName = $roomType ? $roomType->name : 'Không xác định';
                 $roomTypePrice = $roomType ? $roomType->price : 0; // Giá của loại phòng (mặc định là 0 nếu không có)
 
-
-
-
                 // Lấy giá cho từng day_type và cộng với giá của loại phòng
                 foreach ($group as $ticketPrice) {
                     $totalPrice = $ticketPrice->price + $roomTypePrice; // Tổng giá = giá loại ghế + giá loại phòng
-
-
-
 
                     // Định dạng lại tổng giá
                     $formattedTotalPrice = ($totalPrice == floor($totalPrice))
                         ? number_format($totalPrice, 0)
                         : number_format($totalPrice, 2);
-
-
-
 
                     $result[] = [
                         'seat_type_name' => $seatTypeName,
@@ -107,18 +83,12 @@ class TicketController extends Controller
             }
         }
 
-
-
-
         // Sắp xếp lại kết quả
         $result = collect($result)->sortBy([
             ['seat_type_name', 'asc'],
             ['room_type_name', 'asc'],
             ['day_type', 'asc']
         ])->values();
-
-
-
 
         return response()->json([
             'message' => 'Lấy danh sách quản lý vé thành công',

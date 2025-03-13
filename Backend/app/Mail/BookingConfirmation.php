@@ -67,8 +67,10 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                     "Ghế: {$seats}";
 
             // Tạo QR code dưới dạng base64 để nhúng vào email
-            $qrCode = base64_encode(QrCode::size(200)->format('svg')->encoding('UTF-8')->generate($qrData));
-            // Log::info('QR Code Base64 (Mail): ' . $qrCode);
+            $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);
+        $qrCode = base64_encode(file_get_contents($qrUrl));
+            Log::info('QR Code Base64 (Mail): ' . $qrCode);
+            
 
             return <<<HTML
     <!DOCTYPE html>
@@ -94,7 +96,8 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
         <p><strong>Mã đặt vé:</strong> {$this->booking->id}</p>
 
         <h2>QR Code vé của bạn</h2>
-        <img src="data:image/svg+xml;base64,{$qrCode}" alt="QR Code">
+        <img src="data:image/png;base64,{$qrCode}" alt="QR Code">
+        <p>File QR code cũng được đính kèm dưới dạng PNG để bạn tải về nếu cần.</p>
 
         <p>Vui lòng giữ mã đặt vé hoặc QR code để kiểm tra tại rạp.</p>
     </body>
@@ -109,6 +112,27 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
          */
         public function attachments(): array
         {
-            return [];
+            $qrData = "Mã đặt vé: {$this->booking->id}\n" .
+                  "Phim: {$this->ticketDetails['movie']['title']}\n" .
+                  "Ngày chiếu: {$this->ticketDetails['calendar_show']['show_date']}\n" .
+                  "Giờ chiếu: {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}\n" .
+                  "Phòng: {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})\n" .
+                  "Ghế: " . implode(', ', array_map(function ($seat) {
+                      return "{$seat['row']}{$seat['column']} ({$seat['seat_type']})";
+                  }, $this->ticketDetails['seats']->toArray()));
+
+        // Tạo và lưu file SVG
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);
+        $qrCodePath = storage_path('app/public/qr_code_' . $this->booking->id . '.png');
+        file_put_contents($qrCodePath, file_get_contents($qrUrl));
+        $attachment = \Illuminate\Mail\Mailables\Attachment::fromPath($qrCodePath)
+            ->as('qr_code.png')
+            ->withMime('image/png');
+
+        // Xóa file tạm sau khi gửi
+        register_shutdown_function(function () use ($qrCodePath) {
+            @unlink($qrCodePath);
+        });
+        return [$attachment];
         }
     }

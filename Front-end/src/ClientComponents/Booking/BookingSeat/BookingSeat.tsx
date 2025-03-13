@@ -6,7 +6,11 @@ import pusher from "../../../utils/pusher";
 import clsx from "clsx";
 import { BookingType } from "../../../types/interface";
 import styles from "./BookingSeat.module.css";
-import { useMessageContext } from "../../UseContext/ContextState";
+import { useSeatsContext } from "../../UseContext/SeatsContext";
+import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
+import { useFilmContext } from "../../UseContext/FIlmContext";
+import { useAuthContext } from "../../UseContext/tokenContext";
+import { useStepsContext } from "../../UseContext/StepsContext";
 
 const BookingSeat = ({ className }: { className?: string }) => {
   const {
@@ -15,24 +19,20 @@ const BookingSeat = ({ className }: { className?: string }) => {
     nameSeats,
     setTotalSeatPrice,
     totalSeatPrice,
-    setTotalPrice,
-    roomIdFromShowtimes,
-    showtimeIdFromBooking,
+  } = useSeatsContext();
+  const { setTotalPrice } = useFinalPriceContext();
+  const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
+  const {
     setHoldSeatId,
     setSelectedSeatIds,
-    tokenUserId,
-    setTokenUserId,
-    setUserIdFromShowtimes,
-    userIdFromShowtimes,
     seats,
     setSeats,
     setMatrixSeatsManage,
-  } = useMessageContext();
-
-  setTokenUserId(localStorage.getItem("auth_token") || "");
+  } = useSeatsContext();
+  const { tokenUserId } = useAuthContext();
+  const { setUserIdFromShowtimes, userIdFromShowtimes } = useStepsContext();
 
   const queryClient = useQueryClient();
-
   const [isPusherRegistered, setIsPusherRegistered] = useState(false);
   const pusherEventHandlersRegistered = useRef(false);
   const pollingIntervalRef = useRef<number | null>(null);
@@ -82,7 +82,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
         return null;
       }
     },
-    refetchOnWindowFocus: true,
     staleTime: 1000 * 60,
     enabled: !!roomIdFromShowtimes && !!showtimeIdFromBooking && !!tokenUserId,
   });

@@ -7,19 +7,21 @@ import SeatInfo from "../SeatInfo/SeatInfo";
 import ComboInfo from "../ComboInfo/ComboInfo";
 import clsx from "clsx";
 import styles from "./InfoMovie.module.css";
-import { useMessageContext } from "../../UseContext/ContextState";
 import { useEffect } from "react";
+import { useFilmContext } from "../../UseContext/FIlmContext";
+import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
+import { useSeatsContext } from "../../UseContext/SeatsContext";
+import { useComboContext } from "../../UseContext/CombosContext";
+import { useStepsContext } from "../../UseContext/StepsContext";
 
 const InfoMovie = () => {
-    const {
-        filmId,
-        showtimesTime,
-        showtimesDate,
-        totalPrice,
-        quantitySeats,
-        quantityCombo,
-        setDataDetailFilm,
-    } = useMessageContext();
+    const { filmId, showtimesTime, showtimesDate } = useFilmContext();
+    const { quantityCombo } = useComboContext();
+    const { quantitySeats } = useSeatsContext();
+    const { setDataDetailFilm } = useStepsContext();
+    const { totalPrice } = useFinalPriceContext();
+
+    // lấy detail film
     const { data: detailFilm } = useQuery({
         queryKey: ["film", filmId],
         queryFn: async () => {
@@ -35,7 +37,7 @@ const InfoMovie = () => {
     });
     useEffect(() => {
         setDataDetailFilm(detailFilm);
-    }, detailFilm);
+    }, [detailFilm]);
     return (
         <div className={clsx(styles.infoMovie)}>
             <div className={clsx(styles.bookingFilm)}>
@@ -70,29 +72,32 @@ const InfoMovie = () => {
                     </div>
                 </div>
             </div>
-      <div className={clsx(styles.bookingDetail)}>
-        <span>
-          Suất:{" "}
-          <span className={clsx(styles.detailTime)}>
-            {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")}
-          </span>
-        </span>{" "}
-        -<span className={clsx(styles.detailDay)}> {showtimesDate}</span>
-      </div>
+            <div className={clsx(styles.bookingDetail)}>
+                <span>
+                    Suất:{" "}
+                    <span className={clsx(styles.detailTime)}>
+                        {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")}
+                    </span>
+                </span>{" "}
+                -
+                <span className={clsx(styles.detailDay)}> {showtimesDate}</span>
+            </div>
 
-      <>
-        {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
-        {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
-      </>
+            <>
+                {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
+                {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
+            </>
 
-      <div className={clsx(styles.bookingTotal)}>
-        <Divider className={clsx(styles.dividerCustom)} dashed />
-        <div className={clsx(styles.totalInfo)}>
-          <div className={clsx(styles.totalLabel)}>Tổng cộng</div>
-          <div className={clsx(styles.totalPrice)}>{parseInt(totalPrice)}đ</div>
+            <div className={clsx(styles.bookingTotal)}>
+                <Divider className={clsx(styles.dividerCustom)} dashed />
+                <div className={clsx(styles.totalInfo)}>
+                    <div className={clsx(styles.totalLabel)}>Tổng cộng</div>
+                    <div className={clsx(styles.totalPrice)}>
+                        {parseInt(totalPrice)}đ
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 export default InfoMovie;

@@ -5,43 +5,28 @@ import ComboFood from "./ComboFood/ComboFood";
 import PaymentGate from "./PaymentGate/PaymentGate";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { CloseCircleOutlined } from "@ant-design/icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import axios from "axios";
 
 import styles from "./BookingMain.module.css";
-import { useMessageContext } from "../UseContext/ContextState";
+import CustomNotification from "./Notification/Notification";
+import { useStepsContext } from "../UseContext/StepsContext";
+import { useSeatsContext } from "../UseContext/SeatsContext";
+import { useFilmContext } from "../UseContext/FIlmContext";
+import { useAuthContext } from "../UseContext/tokenContext";
 
 const BookingMain = () => {
-  const {
-    currentStep,
-    setCurrentStep,
-    quantitySeats,
-    selectedSeatIds,
-    roomIdFromShowtimes,
-    showtimeIdFromBooking,
-    setSeats,
-  } = useMessageContext();
+  const { quantitySeats, selectedSeatIds, setSeats, setShouldRefetch } =
+    useSeatsContext();
+  const { currentStep, setCurrentStep, userIdFromShowtimes } =
+    useStepsContext();
+  const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
+  const { tokenUserId } = useAuthContext();
   const navigate = useNavigate();
-  const [api, contextHolder] = notification.useNotification();
-
+  const queryClient = useQueryClient();
   // Thông báo phải đặt ghế để tiếp tục
-  const openNotification = (pauseOnHover: boolean) => () => {
-    api.open({
-      message: (
-        <>
-          <span className={clsx(styles.notificationIcon)}>
-            <CloseCircleOutlined />
-          </span>{" "}
-          Không thể tiếp tục...
-        </>
-      ),
-      description: "Phải đặt ghế nếu bạn muốn tiếp tục",
-      showProgress: true,
-      pauseOnHover,
-    });
-  };
+  const { openNotification, contextHolder } = CustomNotification();
 
   //api giữ ghế
   const holdSeatMutation = useMutation({
@@ -55,7 +40,7 @@ const BookingMain = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            Authorization: `Bearer ${tokenUserId}`,
           },
         }
       );
@@ -63,12 +48,31 @@ const BookingMain = () => {
       return data;
     },
     onSuccess: () => {
-      setSeats((prevSeats: any) => {
-        const updatedSeats = { ...prevSeats };
-        //
-        return updatedSeats;
-      });
       message.success("Đã giữ ghế thành công!");
+      queryClient.invalidateQueries({
+        queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
+      });
+
+      setShouldRefetch(true);
+
+      try {
+        const eventData = {
+          timestamp: new Date().getTime(),
+          seats: selectedSeatIds,
+          action: "hold",
+          userId: userIdFromShowtimes,
+        };
+
+        localStorage.setItem("seat_update", JSON.stringify(eventData));
+
+        const updateEvent = new CustomEvent("seatUpdateEvent", {
+          detail: eventData,
+        });
+
+        window.dispatchEvent(updateEvent);
+      } catch (e) {
+        console.error("Lỗi khi lưu vào localStorage:", e);
+      }
     },
     onError: (error) => {
       console.error("🚨 Lỗi khi giữ ghế:", error);
@@ -76,24 +80,47 @@ const BookingMain = () => {
     },
   });
 
-  // const getDetailCard = () => {};
+  //api giải phóng ghế
+  const releaseSeatsMutation = useMutation({
+    mutationFn: async (seatIds: number[]) => {
+      await axios.post(
+        `http://localhost:8000/api/release-seats`, // API hủy ghế
+        {
+          seats: seatIds,
+          room_id: roomIdFromShowtimes,
+          showtime_id: showtimeIdFromBooking,
+        },
+        { headers: { Authorization: `Bearer ${tokenUserId}` } }
+      );
+    },
+    onSuccess: () => {
+      // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
+      message.success("Giải phóng ghế thành công!");
+
+      setSeats((prevSeats: any) => {
+        const updatedSeats = { ...prevSeats };
+
+        return updatedSeats;
+      });
+    },
+  });
 
   // Xử lý khi ấn tiếp tục
   const nextStep = () => {
     if (currentStep === 1 && quantitySeats === 0) {
-      openNotification(false)();
+      openNotification({
+        description: "Đặt ghế để tiếp tục",
+      });
       return;
     }
 
     if (currentStep === 1 && quantitySeats !== 0) {
       holdSeatMutation.mutate(selectedSeatIds);
     }
-
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   };
-
   // Xử lý khi ấn quay lại
   const prevStep = () => {
     if (currentStep === 2 && selectedSeatIds.length > 0) {
@@ -108,9 +135,9 @@ const BookingMain = () => {
   useEffect(() => {
     if (currentStep === 0) {
       navigate("/playingFilm");
+      setCurrentStep(1);
     }
   }, [currentStep, navigate]);
-
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -164,21 +191,23 @@ const BookingMain = () => {
   };
 
   return (
-    <div className={clsx("main-base")}>
-      {contextHolder}
-      <Steps
-        className={clsx(styles.stepsBooking)}
-        current={currentStep}
-        items={[
-          { title: "Chọn Phim" },
-          { title: "Chọn ghế" },
-          { title: "Chọn đồ ăn" },
-          { title: "Chọn thanh toán" },
-          { title: "Xác nhận" },
-        ]}
-      />
-      <div className={clsx(styles.bookingMain)}>{renderStepContent()}</div>
-    </div>
+    <>
+      <div className={clsx("main-base")}>
+        {contextHolder}
+        <Steps
+          className={clsx(styles.stepsBooking)}
+          current={currentStep}
+          items={[
+            { title: "Chọn Phim" },
+            { title: "Chọn ghế" },
+            { title: "Chọn đồ ăn" },
+            { title: "Chọn thanh toán" },
+            { title: "Xác nhận" },
+          ]}
+        />
+        <div className={clsx(styles.bookingMain)}>{renderStepContent()}</div>
+      </div>
+    </>
   );
 };
 

@@ -1,76 +1,79 @@
 <?php
-    namespace App\Mail;
 
-    // use BaconQrCode\Encoder\QrCode;
-    use Illuminate\Bus\Queueable;
-    use Illuminate\Contracts\Queue\ShouldQueue;
-    use Illuminate\Mail\Mailable;
-    use Illuminate\Mail\Mailables\Content;
-    use Illuminate\Mail\Mailables\Envelope;
-    use Illuminate\Queue\SerializesModels;
+namespace App\Mail;
+
+// use BaconQrCode\Encoder\QrCode;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-    class BookingConfirmation extends Mailable
+class BookingConfirmation extends Mailable
+{
+    use Queueable, SerializesModels;
+
+    public $booking;
+    public $ticketDetails;
+
+    /**
+     * Create a new message instance.
+     */
+    public function __construct($booking, $ticketDetails)
     {
-        use Queueable, SerializesModels;
+        $this->booking = $booking;
+        $this->ticketDetails = $ticketDetails;
+    }
 
-        public $booking;
-        public $ticketDetails;
+    /**
+     * Get the message envelope.
+     */
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: 'Đặt vé thành công',
+        );
+    }
 
-        /**
-         * Create a new message instance.
-         */
-        public function __construct($booking, $ticketDetails)
-        {
-            $this->booking = $booking;
-            $this->ticketDetails = $ticketDetails;
+    /**
+     * Get the message content definition.
+     */
+    public function content(): Content
+    {
+        return new Content(
+            htmlString: $this->buildEmailContent(),
+        );
+    }
+
+    protected function buildEmailContent(): string
+    {
+        $seats = implode(', ', array_map(function ($seat) {
+            return "{$seat['row']}{$seat['column']} ({$seat['seat_type']})";
+        }, $this->ticketDetails['seats']->toArray()));
+
+        $combos = '';
+        if (!empty($this->ticketDetails['combos'])) {
+            $combos = implode(', ', array_map(function ($combo) {
+                return "{$combo['name']} ({$combo['price']})";
+            }, $this->ticketDetails['combos']->toArray()));
         }
+        $qrData = "Mã đặt vé: {$this->booking->id}\n" .
+            "Phim: {$this->ticketDetails['movie']['title']}\n" .
+            "Ngày chiếu: {$this->ticketDetails['calendar_show']['show_date']}\n" .
+            "Giờ chiếu: {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}\n" .
+            "Phòng: {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})\n" .
+            "Ghế: {$seats}";
 
-        /**
-         * Get the message envelope.
-         */
-        public function envelope(): Envelope
-        {
-            return new Envelope(
-                subject: 'Đặt vé thành công',
-            );
-        }
+        // Tạo QR code dưới dạng base64 để nhúng vào email
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);
+        $qrCode = base64_encode(file_get_contents($qrUrl));
+        Log::info('QR Code Base64 (Mail): ' . $qrCode);
 
-        /**
-         * Get the message content definition.
-         */
-        public function content(): Content
-        {
-            return new Content(
-                htmlString: $this->buildEmailContent(),
-            );
-        }
 
-        protected function buildEmailContent(): string
-        {
-            $seats = implode(', ', array_map(function ($seat) {
-                return "{$seat['row']}{$seat['column']} ({$seat['seat_type']})";
-            }, $this->ticketDetails['seats']->toArray()));
-
-            $combos = '';
-            if (!empty($this->ticketDetails['combos'])) {
-                $combos = implode(', ', array_map(function ($combo) {
-                    return "{$combo['name']} ({$combo['price']})";
-                }, $this->ticketDetails['combos']->toArray()));
-            }
-            $qrData = "Mã đặt vé: {$this->booking->id}\n" .
-                    "Phim: {$this->ticketDetails['movie']['title']}\n" .
-                    "Ngày chiếu: {$this->ticketDetails['calendar_show']['show_date']}\n" .
-                    "Giờ chiếu: {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}\n" .
-                    "Phòng: {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})\n" .
-                    "Ghế: {$seats}";
-
-            // Tạo QR code dưới dạng base64 để nhúng vào email
-            $qrCode = base64_encode(QrCode::size(200)->format('svg')->encoding('UTF-8')->generate($qrData));
-            // Log::info('QR Code Base64 (Mail): ' . $qrCode);
-
-            return <<<HTML
+        return <<<HTML
     <!DOCTYPE html>
     <html>
     <head>
@@ -94,21 +97,43 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
         <p><strong>Mã đặt vé:</strong> {$this->booking->id}</p>
 
         <h2>QR Code vé của bạn</h2>
-        <img src="data:image/svg+xml;base64,{$qrCode}" alt="QR Code">
+        <img src="data:image/png;base64,{$qrCode}" alt="QR Code">
+        <p>File QR code cũng được đính kèm dưới dạng PNG để bạn tải về nếu cần.</p>
 
         <p>Vui lòng giữ mã đặt vé hoặc QR code để kiểm tra tại rạp.</p>
     </body>
     </html>
     HTML;
-        }
-
-        /**
-         * Get the attachments for the message.
-         *
-         * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-         */
-        public function attachments(): array
-        {
-            return [];
-        }
     }
+
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     */
+    public function attachments(): array
+    {
+        $qrData = "Mã đặt vé: {$this->booking->id}\n" .
+            "Phim: {$this->ticketDetails['movie']['title']}\n" .
+            "Ngày chiếu: {$this->ticketDetails['calendar_show']['show_date']}\n" .
+            "Giờ chiếu: {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}\n" .
+            "Phòng: {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})\n" .
+            "Ghế: " . implode(', ', array_map(function ($seat) {
+                return "{$seat['row']}{$seat['column']} ({$seat['seat_type']})";
+            }, $this->ticketDetails['seats']->toArray()));
+
+        // Tạo và lưu file SVG
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);
+        $qrCodePath = storage_path('app/public/qr_code_' . $this->booking->id . '.png');
+        file_put_contents($qrCodePath, file_get_contents($qrUrl));
+        $attachment = \Illuminate\Mail\Mailables\Attachment::fromPath($qrCodePath)
+            ->as('qr_code.png')
+            ->withMime('image/png');
+
+        // Xóa file tạm sau khi gửi
+        register_shutdown_function(function () use ($qrCodePath) {
+            @unlink($qrCodePath);
+        });
+        return [$attachment];
+    }
+}

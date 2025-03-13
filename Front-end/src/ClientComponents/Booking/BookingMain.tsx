@@ -9,12 +9,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import axios from "axios";
 
+
 import styles from "./BookingMain.module.css";
 import CustomNotification from "./Notification/Notification";
 import { useStepsContext } from "../UseContext/StepsContext";
 import { useSeatsContext } from "../UseContext/SeatsContext";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useAuthContext } from "../UseContext/tokenContext";
+
 
 const BookingMain = () => {
     const { quantitySeats, selectedSeatIds, setSeats, setShouldRefetch } =
@@ -27,6 +29,7 @@ const BookingMain = () => {
     const queryClient = useQueryClient();
     // Thông báo phải đặt ghế để tiếp tục
     const { openNotification, contextHolder } = CustomNotification();
+
 
     //api giữ ghế
     const holdSeatMutation = useMutation({
@@ -45,6 +48,7 @@ const BookingMain = () => {
                 }
             );
 
+
             return data;
         },
         onSuccess: () => {
@@ -57,7 +61,9 @@ const BookingMain = () => {
                 ],
             });
 
+
             setShouldRefetch(true);
+
 
             try {
                 const eventData = {
@@ -67,11 +73,14 @@ const BookingMain = () => {
                     userId: userIdFromShowtimes,
                 };
 
+
                 localStorage.setItem("seat_update", JSON.stringify(eventData));
+
 
                 const updateEvent = new CustomEvent("seatUpdateEvent", {
                     detail: eventData,
                 });
+
 
                 window.dispatchEvent(updateEvent);
             } catch (e) {
@@ -83,6 +92,7 @@ const BookingMain = () => {
             message.error("Không thể giữ ghế. Vui lòng thử lại!");
         },
     });
+
 
     //api giải phóng ghế
     const releaseSeatsMutation = useMutation({
@@ -101,13 +111,16 @@ const BookingMain = () => {
             // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
             message.success("Giải phóng ghế thành công!");
 
+
             setSeats((prevSeats: any) => {
                 const updatedSeats = { ...prevSeats };
+
 
                 return updatedSeats;
             });
         },
     });
+
 
     // Xử lý khi ấn tiếp tục
     const nextStep = () => {
@@ -117,6 +130,7 @@ const BookingMain = () => {
             });
             return;
         }
+
 
         if (currentStep === 1 && quantitySeats !== 0) {
             holdSeatMutation.mutate(selectedSeatIds);
@@ -131,10 +145,12 @@ const BookingMain = () => {
             releaseSeatsMutation.mutate(selectedSeatIds);
         }
 
+
         if (currentStep > 0) {
             setCurrentStep(currentStep - 1);
         }
     };
+
 
     useEffect(() => {
         if (currentStep === 0) {
@@ -194,6 +210,7 @@ const BookingMain = () => {
         }
     };
 
+
     return (
         <>
             <div className={clsx("main-base")}>
@@ -216,5 +233,6 @@ const BookingMain = () => {
         </>
     );
 };
+
 
 export default BookingMain;

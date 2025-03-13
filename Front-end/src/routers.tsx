@@ -22,32 +22,46 @@ import Booking from './ClientComponents/Booking/Booking';
 import Payment from './ClientComponents/Payment/Payment';
 import Login from './page/auth/Login';
 import Register from './page/auth/Register';
-import GoogleCallback from './page/auth/GoogleCallback';
+import ForgotPassword from './page/auth/ForgotPassword';
 import authService from './services/auth.service';
 
-axios.defaults.baseURL = 'http://localhost:8000/api';
-axios.defaults.headers.common['Content-Type'] = 'application/json';
+// Cấu hình hai instance của Axios
+const protectedApi = axios.create({
+  baseURL: 'http://localhost:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+});
 
-// Hàm thiết lập interceptors cho axios
+const publicApi = axios.create({
+  baseURL: 'http://localhost:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+});
+
+// Hàm thiết lập interceptors cho protectedApi
 const setupAxiosInterceptors = (navigate: ReturnType<typeof useNavigate>) => {
-  const requestInterceptor = axios.interceptors.request.use(
+  const requestInterceptor = protectedApi.interceptors.request.use(
     (config) => {
       const token = authService.getToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('[Axios] Token đã được gắn:', token);
+        console.log('[Protected API] Token đã được gắn:', token);
       } else {
-        console.warn('[Axios] Không tìm thấy token trong request');
+        console.warn('[Protected API] Không tìm thấy token trong request');
       }
       return config;
     },
     (error) => {
-      console.error('[Axios Request Error]:', error);
+      console.error('[Protected API Request Error]:', error);
       return Promise.reject(error);
     }
   );
 
-  const responseInterceptor = axios.interceptors.response.use(
+  const responseInterceptor = protectedApi.interceptors.response.use(
     (response) => response,
     (error) => {
       const { response } = error;
@@ -73,8 +87,8 @@ const setupAxiosInterceptors = (navigate: ReturnType<typeof useNavigate>) => {
   );
 
   return () => {
-    axios.interceptors.request.eject(requestInterceptor);
-    axios.interceptors.response.eject(responseInterceptor);
+    protectedApi.interceptors.request.eject(requestInterceptor);
+    protectedApi.interceptors.response.eject(responseInterceptor);
   };
 };
 
@@ -243,6 +257,10 @@ export const router = createBrowserRouter([
         path: '/auth/register',
         element: <Register />,
       },
+      {
+        path: '/auth/forgot-password',
+        element: <ForgotPassword />,
+      },
     ],
   },
   {
@@ -300,11 +318,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // Route cho Google callback đã được cập nhật
-  {
-    path: '/auth/google/callback',
-    element: <GoogleCallback />,
-  },
   {
     path: '*',
     element: <Navigate to="/" replace />,
@@ -312,3 +325,4 @@ export const router = createBrowserRouter([
 ]);
 
 export default router;
+export { protectedApi, publicApi };

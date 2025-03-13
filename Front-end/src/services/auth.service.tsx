@@ -2,6 +2,13 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8000/api';
 
+// Định nghĩa enum cho type xác thực
+enum VerifyType {
+  REGISTRATION = 'registration',
+  PASSWORD_RESET = 'password_reset',
+}
+
+// Interface cho yêu cầu đăng ký
 interface RegisterRequest {
   name: string;
   email: string;
@@ -11,27 +18,32 @@ interface RegisterRequest {
   role?: 'admin' | 'customer';
 }
 
+// Interface cho yêu cầu xác thực mã OTP (không còn cần thiết riêng, tích hợp vào ResetPasswordRequest)
 interface VerifyCodeRequest {
   email: string;
   code: string;
+  type?: VerifyType;
 }
 
+// Interface cho yêu cầu đăng nhập
 interface LoginRequest {
   email: string;
   password: string;
 }
 
+// Interface cho yêu cầu quên mật khẩu
 interface ForgotPasswordRequest {
   email: string;
 }
 
-interface ResetPasswordRequest {
+interface ResetPasswordFormData {
   email: string;
   otp: string;
-  new_password: string;
-  new_password_confirmation: string;
+  new_password?: string; // Tùy chọn để hỗ trợ cả xác thực OTP và đặt mật khẩu
+  new_password_confirmation?: string; // Tùy chọn
 }
 
+// Interface cho phản hồi từ API xác thực
 interface AuthResponse {
   message: string;
   token?: string;
@@ -45,16 +57,19 @@ interface AuthResponse {
   };
 }
 
+// Interface cho phản hồi từ API Google Auth
 interface GoogleAuthResponse {
   url: string;
 }
 
+// Interface cho lỗi xác thực
 interface AuthError {
   error: string | object;
   message?: string;
   status?: number;
 }
 
+// Tạo instance của Axios
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -63,6 +78,7 @@ const api = axios.create({
   },
 });
 
+// Interceptor để gắn token vào mỗi request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token');
@@ -77,6 +93,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Interceptor để xử lý lỗi phản hồi (ví dụ: 401 Unauthorized)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -90,6 +107,7 @@ api.interceptors.response.use(
   }
 );
 
+// Hàm xử lý lỗi từ API
 const handleAuthError = (error: unknown): AuthError => {
   if (axios.isAxiosError(error) && error.response) {
     const { data, status } = error.response;
@@ -115,6 +133,7 @@ const handleAuthError = (error: unknown): AuthError => {
   };
 };
 
+// Hàm lưu dữ liệu xác thực vào localStorage
 const saveAuthData = (response: AuthResponse): void => {
   console.log('[saveAuthData] Nhận response:', response);
   if (response.token) {
@@ -137,6 +156,7 @@ const saveAuthData = (response: AuthResponse): void => {
   }
 };
 
+// Hàm lấy URL chuyển hướng dựa trên vai trò người dùng
 const getRedirectUrlByRole = (): string => {
   const userRole = localStorage.getItem('user_role');
   console.log('[getRedirectUrlByRole] User role từ localStorage:', userRole);
@@ -145,7 +165,9 @@ const getRedirectUrlByRole = (): string => {
   return redirectUrl;
 };
 
+// Dịch vụ xác thực
 const authService = {
+  // Đăng ký người dùng
   async register(data: RegisterRequest): Promise<AuthResponse> {
     try {
       console.log('[Auth Service] Register Request:', { endpoint: `${BASE_URL}/register`, data });
@@ -157,6 +179,7 @@ const authService = {
     }
   },
 
+  // Gửi lại email xác thực
   async resendVerificationEmail(email: string): Promise<AuthResponse> {
     try {
       console.log('[Auth Service] Resend Verification Request:', { email });
@@ -168,18 +191,24 @@ const authService = {
     }
   },
 
+  // Xác thực mã OTP (sử dụng resetPassword để xử lý)
   async verifyCode(data: VerifyCodeRequest): Promise<AuthResponse> {
     try {
       console.log('[Auth Service] Verify Code Request:', data);
-      const response = await api.post<AuthResponse>('/verify-code', data);
+      const params = new URLSearchParams({
+        email: data.email,
+        code: data.code,
+        type: data.type || VerifyType.PASSWORD_RESET,
+      }).toString();
+      const response = await api.post<AuthResponse>(`/reset-password?${params}`);
       console.log('[Auth Service] Verify Code Response:', response.data);
-      saveAuthData(response.data);
       return response.data;
     } catch (error) {
       throw handleAuthError(error);
     }
   },
 
+  // Đăng nhập
   async login(data: LoginRequest): Promise<AuthResponse> {
     try {
       console.log('[Auth Service] Login Request:', data);
@@ -192,6 +221,7 @@ const authService = {
     }
   },
 
+  // Quên mật khẩu
   async forgotPassword(data: ForgotPasswordRequest): Promise<AuthResponse> {
     try {
       console.log('[Auth Service] Forgot Password Request:', data);
@@ -203,17 +233,42 @@ const authService = {
     }
   },
 
-  async resetPassword(data: ResetPasswordRequest): Promise<AuthResponse> {
+  // Đặt lại mật khẩu (bao gồm xác thực OTP)
+  async resetPassword(data: ResetPasswordFormData): Promise<AuthResponse> {
     try {
-      console.log('[Auth Service] Reset Password Request:', data);
-      const response = await api.post<AuthResponse>('/reset-password', data);
+      console.log('[Auth Service] Reset Password Request:', {
+        email: data.email,
+        otp: data.otp,
+        hasPassword: !!data.new_password
+      });
+  
+      // Xây dựng query string từ dữ liệu nhập vào
+      const queryParams = new URLSearchParams();
+      queryParams.append('email', data.email);
+      queryParams.append('otp', data.otp);
+      
+      // Thêm mật khẩu mới nếu được cung cấp
+      if (data.new_password) {
+        queryParams.append('new_password', data.new_password);
+      }
+      
+      if (data.new_password_confirmation) {
+        queryParams.append('new_password_confirmation', data.new_password_confirmation);
+      }
+  
+      const queryString = queryParams.toString();
+      console.log('[Auth Service] Reset Password URL:', `/reset-password?${queryString}`);
+      
+      const response = await api.post<AuthResponse>(`/reset-password?${queryString}`);
       console.log('[Auth Service] Reset Password Response:', response.data);
+      
       return response.data;
     } catch (error) {
       throw handleAuthError(error);
     }
   },
 
+  // Đăng xuất
   async logout(): Promise<AuthResponse> {
     try {
       const token = localStorage.getItem('auth_token');
@@ -231,6 +286,7 @@ const authService = {
     }
   },
 
+  // Lấy URL xác thực Google
   async getGoogleAuthUrl(): Promise<string> {
     try {
       console.log('[Auth Service] Getting Google Auth URL');
@@ -243,6 +299,7 @@ const authService = {
     }
   },
 
+  // Xử lý callback từ Google Auth
   async handleGoogleCallback(code: string): Promise<AuthResponse> {
     try {
       console.log('[Auth Service] Handling Google Callback with code:', code);
@@ -256,6 +313,7 @@ const authService = {
     }
   },
 
+  // Kiểm tra callback từ Google
   checkForGoogleCallback(): boolean {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
@@ -268,6 +326,7 @@ const authService = {
     return false;
   },
 
+  // Xử lý callback từ Google và chuyển hướng
   async processGoogleCallback(): Promise<string> {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
@@ -282,7 +341,7 @@ const authService = {
     try {
       const response = await this.handleGoogleCallback(code);
       console.log('[Auth Service] processGoogleCallback - Successfully authenticated with Google:', response);
-      saveAuthData(response); // Gọi lại để chắc chắn token được lưu
+      saveAuthData(response);
       const redirectUrl = getRedirectUrlByRole();
       console.log('[Auth Service] processGoogleCallback - Redirecting to:', redirectUrl);
       return redirectUrl;
@@ -292,28 +351,33 @@ const authService = {
     }
   },
 
+  // Kiểm tra trạng thái xác thực
   isAuthenticated(): boolean {
     const isAuth = !!localStorage.getItem('auth_token');
     console.log('[Auth Service] Is Authenticated:', isAuth);
     return isAuth;
   },
 
+  // Lấy token từ localStorage
   getToken(): string | null {
     const token = localStorage.getItem('auth_token');
     console.log('[Auth Service] Get Token:', token ? 'Token exists' : 'No token');
     return token;
   },
 
+  // Lấy vai trò người dùng từ localStorage
   getRole(): string | null {
     const role = localStorage.getItem('user_role');
     console.log('[Auth Service] Get Role:', role);
     return role;
   },
 
+  // Lấy URL chuyển hướng
   getRedirectUrl(): string {
     return getRedirectUrlByRole();
   },
 
+  // Tạo admin mặc định
   async createDefaultAdmin(): Promise<AuthResponse> {
     const defaultAdminData: RegisterRequest = {
       name: 'Admin',
@@ -333,10 +397,12 @@ const authService = {
     }
   },
 
+  // Xác thực admin mặc định
   async verifyDefaultAdmin(otp: string): Promise<AuthResponse> {
     const verifyData: VerifyCodeRequest = {
       email: 'admin@example.com',
       code: otp,
+      type: VerifyType.REGISTRATION,
     };
     try {
       console.log('[Auth Service] Verify Default Admin Request:', verifyData);
@@ -350,4 +416,4 @@ const authService = {
 };
 
 export default authService;
-export { api };
+export { api, VerifyType };

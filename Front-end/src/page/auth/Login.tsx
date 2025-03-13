@@ -109,7 +109,7 @@ const Login = () => {
             <label className="form-label" htmlFor="password">
               Mật khẩu
             </label>
-            <Link to="/forgot-password" className="forgot-password">
+            <Link to="/auth/forgot-password" className="forgot-password">
               Quên mật khẩu?
             </Link>
           </div>

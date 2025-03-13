@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Select, Button, message, Spin, Modal } from "antd";
-import { SeatCreateRequest, Seat, SeatingMatrix } from "../../types/seat.types";
-// import "./SeatForm.css";
+import { Form, Input, Button, Select, InputNumber, Row, Col, Space, Checkbox } from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { SeatingMatrix, SeatCreateRequest, Seat } from "../../types/seat.types";
 
 const { Option } = Select;
 
+interface SeatType {
+  id: number;
+  name: string;
+  price: number;
+}
+
 interface SeatFormProps {
-  onSubmit: (data: SeatCreateRequest[] | Seat) => void;
-  onDelete?: (seatId: number) => void;
-  roomId?: number;
-  seatTypes: { id: number; name: string; price: number }[];
-  seat?: Seat;
+  onSubmit: (data: SeatCreateRequest | SeatCreateRequest[] | Seat) => void;
+  onDelete?: (id: number) => void;
+  roomId: number;
+  seatTypes: SeatType[];
+  seat?: Seat | null;
   isEditing?: boolean;
-  existingSeats?: SeatingMatrix;
+  existingSeats: SeatingMatrix;
+  maxSeats?: number;
 }
 
 const SeatForm: React.FC<SeatFormProps> = ({
@@ -23,260 +30,262 @@ const SeatForm: React.FC<SeatFormProps> = ({
   seat,
   isEditing = false,
   existingSeats,
+  maxSeats = 0,
 }) => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [maxColumn, setMaxColumn] = useState<string>("1");
-
-  const MAX_SEATS_PER_ROW = 40;
+  const [batchMode, setBatchMode] = useState(false);
+  const [rowStart, setRowStart] = useState<string>("");
+  const [rowEnd, setRowEnd] = useState<string>("");
+  const [columnStart, setColumnStart] = useState<number>(1);
+  const [columnEnd, setColumnEnd] = useState<number>(1);
+  const [skipOccupied, setSkipOccupied] = useState(true);
 
   useEffect(() => {
-    if (seat && isEditing) {
+    if (isEditing && seat) {
       form.setFieldsValue({
         row: seat.row,
         column: seat.column,
         seat_type_id: seat.seat_type_id,
-        seat_status: seat.seat_status,
       });
     } else {
-      form.setFieldsValue({ column: maxColumn });
+      form.resetFields();
     }
-  }, [seat, isEditing, form, maxColumn]);
+  }, [form, isEditing, seat]);
 
-  const calculateMaxColumn = (row: string) => {
-    if (!existingSeats || !row || !existingSeats[row]) {
-      return "1";
-    }
-    const columns = Object.values(existingSeats[row]).map((seat) =>
-      parseInt(seat.seatCode.match(/\d+$/)?.[0] || "0", 10)
-    );
-    const maxCol = columns.length > 0 ? Math.max(...columns) : 0;
-    return String(maxCol + 1);
-  };
+  const handleSubmit = (values: any) => {
+    if (isEditing && seat) {
+      const updatedSeat: Seat = {
+        ...seat,
+        row: values.row,
+        column: values.column,
+        seat_type_id: values.seat_type_id,
+      };
+      onSubmit(updatedSeat);
+    } else if (batchMode) {
+      const batchSeats: SeatCreateRequest[] = [];
+      const startRowCode = rowStart.charCodeAt(0);
+      const endRowCode = rowEnd.charCodeAt(0);
 
-  const getCurrentSeatCount = (row: string) => {
-    if (!existingSeats || !row || !existingSeats[row]) {
-      return 0;
-    }
-    return Object.keys(existingSeats[row]).length;
-  };
+      for (let rowCode = startRowCode; rowCode <= endRowCode; rowCode++) {
+        const currentRow = String.fromCharCode(rowCode);
 
-  const handleRowChange = (value: string) => {
-    const newMaxColumn = calculateMaxColumn(value);
-    setMaxColumn(newMaxColumn);
-    form.setFieldsValue({ column: newMaxColumn });
-  };
+        for (let col = columnStart; col <= columnEnd; col++) {
+          const seatExists = existingSeats[currentRow]?.[col.toString()];
+          if (skipOccupied && seatExists) {
+            continue;
+          }
 
-  const onFinish = async (values: any) => {
-    setLoading(true);
-    try {
-      const currentRow = values.row;
-      const currentSeatCount = getCurrentSeatCount(currentRow);
-      const numberOfSeats = values.numberOfSeats || 1;
+          batchSeats.push({
+            room_id: roomId,
+            row: currentRow,
+            column: col.toString(), // Đảm bảo column là string như backend yêu cầu
+            seat_type_id: values.seat_type_id,
+          });
+        }
+      }
 
-      if (!isEditing && currentSeatCount + numberOfSeats > MAX_SEATS_PER_ROW) {
-        message.error(
-          `Hàng ${currentRow} chỉ cho phép tối đa ${MAX_SEATS_PER_ROW} ghế. Hiện tại đã có ${currentSeatCount} ghế.`
-        );
-        setLoading(false);
+      if (batchSeats.length === 0) {
         return;
       }
 
-      if (isEditing && seat) {
-        const updatedSeat: Seat = {
-          ...seat,
-          row: values.row,
-          column: values.column,
-          seat_type_id: values.seat_type_id,
-          seat_status: values.seat_status,
-        };
-        await onSubmit(updatedSeat);
-        message.success("Cập nhật ghế thành công");
+      if (maxSeats && batchSeats.length > maxSeats) {
+        onSubmit(batchSeats.slice(0, maxSeats));
       } else {
-        const newSeats: SeatCreateRequest[] = Array.from(
-          { length: numberOfSeats },
-          (_, index) => ({
-            room_id: roomId!,
-            row: values.row,
-            column: String(parseInt(values.column, 10) + index),
-            seat_type_id: values.seat_type_id,
-            seat_status: values.seat_status || "available",
-          })
-        );
-        await onSubmit(newSeats);
-        message.success("Thêm ghế mới thành công");
+        onSubmit(batchSeats);
       }
-      form.resetFields();
-    } catch (error) {
-      message.error(
-        "Lỗi khi xử lý ghế: " + (error as Error).message || "Có lỗi xảy ra"
-      );
-    } finally {
-      setLoading(false);
+    } else {
+      const newSeat: SeatCreateRequest = {
+        room_id: roomId,
+        row: values.row,
+        column: values.column,
+        seat_type_id: values.seat_type_id,
+      };
+      onSubmit(newSeat);
     }
   };
 
   const handleDelete = () => {
-    if (seat && onDelete) {
-      setIsDeleteConfirmOpen(true);
+    if (isEditing && seat && onDelete) {
+      onDelete(seat.id);
     }
   };
 
-  const confirmDelete = async () => {
-    if (seat && onDelete) {
-      setLoading(true);
-      try {
-        await onDelete(seat.id);
-        message.success("Xóa ghế thành công");
-        setIsDeleteConfirmOpen(false);
-        form.resetFields();
-      } catch (error) {
-        message.error(
-          "Lỗi khi xóa ghế: " + (error as Error).message || "Có lỗi xảy ra"
-        );
-      } finally {
-        setLoading(false);
-      }
+  const validateRow = (_: any, value: string) => {
+    if (!value) {
+      return Promise.reject(new Error("Vui lòng nhập hàng ghế"));
     }
+    if (!/^[A-Z]$/.test(value)) {
+      return Promise.reject(new Error("Hàng ghế phải là một chữ cái in hoa (A-Z)"));
+    }
+    return Promise.resolve();
+  };
+
+  const validateColumn = (_: any, value: string) => {
+    if (!value) {
+      return Promise.reject(new Error("Vui lòng nhập số ghế"));
+    }
+    if (!/^\d+$/.test(value)) {
+      return Promise.reject(new Error("Số ghế phải là số nguyên dương"));
+    }
+    return Promise.resolve();
+  };
+
+  const validateRowRange = (_: any, value: string) => {
+    if (!value) {
+      return Promise.reject(new Error("Vui lòng nhập hàng ghế"));
+    }
+    if (!/^[A-Z]$/.test(value)) {
+      return Promise.reject(new Error("Hàng ghế phải là một chữ cái in hoa (A-Z)"));
+    }
+    return Promise.resolve();
   };
 
   return (
-    <Form form={form} onFinish={onFinish} layout="vertical">
-      <Spin spinning={loading}>
-        <Form.Item
-          name="row"
-          label="Hàng (VD: A, B, C)"
-          rules={[{ required: true, message: "Vui lòng chọn hàng ghế!" }]}
-        >
-          <Select
-            onChange={handleRowChange}
-            placeholder="Chọn hàng"
-            disabled={isEditing}
-          >
-            {["A", "B", "C", "D", "E", "F", "G", "H", "J"].map((row) => (
-              <Option key={row} value={row}>
-                {row}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item
-          name="column"
-          label="Cột"
-          rules={[
-            { required: true, message: "Cột không hợp lệ!" },
-            { pattern: /^[1-9]\d*$/, message: "Cột phải là số nguyên dương!" },
-          ]}
-        >
-          <Input
-            disabled={
-              !isEditing &&
-              getCurrentSeatCount(form.getFieldValue("row") || "") > 0
-            }
-          />
-        </Form.Item>
-        <Form.Item
-          name="seat_type_id"
-          label="Loại Ghế"
-          // rules={[{ required: true, message: "Vui lòng chọn loại ghế!" }]}
-        >
-          <Select>
-            {seatTypes.map((type) => (
-              <Option key={type.id} value={type.id}>
-                {type.name} - {type.price} VND
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item
-          name="seat_status"
-          label="Trạng Thái"
-          rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
-        >
-          <Select>
-            <Option value="available">Trống</Option>
-            <Option value="booked">Đã Đặt</Option>
-          </Select>
-        </Form.Item>
-        {!isEditing && (
-          <Form.Item
-            name="numberOfSeats"
-            label="Số lượng ghế"
-            rules={[
-              { required: true, message: "Vui lòng nhập số lượng ghế!" },
-              {
-                validator: (_, value) => {
-                  if (!value || parseInt(value) <= 0) {
-                    return Promise.reject(
-                      new Error("Số lượng ghế phải lớn hơn 0!")
-                    );
-                  }
-                  const currentRow = form.getFieldValue("row");
-                  const currentSeatCount = getCurrentSeatCount(currentRow);
-                  if (currentSeatCount + parseInt(value) > MAX_SEATS_PER_ROW) {
-                    return Promise.reject(
-                      new Error(
-                        `Hàng ${currentRow} chỉ cho phép tối đa ${MAX_SEATS_PER_ROW} ghế. Hiện tại đã có ${currentSeatCount} ghế.`
-                      )
-                    );
-                  }
-                  return Promise.resolve();
-                },
-              },
-            ]}
-          >
-            <Input type="number" min={1} />
-          </Form.Item>
-        )}
+    <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      {!isEditing && (
         <Form.Item>
-          <div style={{ display: "flex", gap: "8px" }}>
+          <Checkbox checked={batchMode} onChange={(e) => setBatchMode(e.target.checked)}>
+            Thêm nhiều ghế cùng lúc
+          </Checkbox>
+        </Form.Item>
+      )}
+
+      {!batchMode ? (
+        <>
+          <Form.Item name="row" label="Hàng ghế" rules={[{ validator: validateRow }]}>
+            <Input placeholder="Nhập hàng ghế" />
+          </Form.Item>
+
+          <Form.Item name="column" label="Số ghế" rules={[{ validator: validateColumn }]}>
+            <Input placeholder="Nhập số ghế" />
+          </Form.Item>
+
+          <Form.Item
+            name="seat_type_id"
+            label="Loại ghế"
+            rules={[{ required: true, message: "Vui lòng chọn loại ghế" }]}
+            initialValue={seatTypes[0]?.id || 1}
+          >
+            <Select placeholder="Chọn loại ghế">
+              {seatTypes.map((type) => (
+                <Option key={type.id} value={type.id}>
+                  {type.name} - {type.price.toLocaleString()}đ
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </>
+      ) : (
+        <>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Hàng bắt đầu" rules={[{ validator: validateRowRange }]}>
+                <Input
+                  placeholder="A"
+                  maxLength={1}
+                  style={{ textTransform: "uppercase" }}
+                  value={rowStart}
+                  onChange={(e) => setRowStart(e.target.value.toUpperCase())}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Hàng kết thúc" rules={[{ validator: validateRowRange }]}>
+                <Input
+                  placeholder="Z"
+                  maxLength={1}
+                  style={{ textTransform: "uppercase" }}
+                  value={rowEnd}
+                  onChange={(e) => setRowEnd(e.target.value.toUpperCase())}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Cột bắt đầu">
+                <InputNumber
+                  min={1}
+                  max={100}
+                  placeholder="1"
+                  style={{ width: "100%" }}
+                  value={columnStart}
+                  onChange={(value) => setColumnStart(Number(value))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Cột kết thúc">
+                <InputNumber
+                  min={1}
+                  max={100}
+                  placeholder="10"
+                  style={{ width: "100%" }}
+                  value={columnEnd}
+                  onChange={(value) => setColumnEnd(Number(value))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="seat_type_id"
+            label="Loại ghế"
+            rules={[{ required: true, message: "Vui lòng chọn loại ghế" }]}
+            initialValue={seatTypes[0]?.id || 1}
+          >
+            <Select placeholder="Chọn loại ghế">
+              {seatTypes.map((type) => (
+                <Option key={type.id} value={type.id}>
+                  {type.name} - {type.price.toLocaleString()}đ
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item>
+            <Checkbox checked={skipOccupied} onChange={(e) => setSkipOccupied(e.target.checked)}>
+              Bỏ qua các vị trí ghế đã tồn tại
+            </Checkbox>
+          </Form.Item>
+
+          {maxSeats > 0 && (
+            <div style={{ marginBottom: "15px", color: "blue" }}>
+              Số ghế tối đa có thể thêm: {maxSeats}
+            </div>
+          )}
+        </>
+      )}
+
+      <Form.Item>
+        <Space>
+          <Button
+            type="primary"
+            htmlType="submit"
+            style={{
+              background: "var(--backgroud-product)",
+              color: "var(--word-color)",
+            }}
+          >
+            {isEditing ? "Cập Nhật" : "Thêm Ghế"}
+          </Button>
+
+          {isEditing && onDelete && (
             <Button
-              type="primary"
-              htmlType="submit"
+              danger
+              onClick={handleDelete}
+              icon={<DeleteOutlined />}
               style={{
-                background: "var(--backgroud-product)",
+                background: "var(--normal-rank)",
                 color: "var(--word-color)",
               }}
-              disabled={loading}
             >
-              {loading
-                ? "Đang xử lý..."
-                : isEditing
-                ? "Cập nhật Ghế"
-                : "Thêm Ghế"}
+              Xóa Ghế
             </Button>
-            {isEditing && onDelete && (
-              <Button
-                onClick={handleDelete}
-                style={{
-                  background: "var(--normal-rank)",
-                  color: "var(--word-color)",
-                }}
-                disabled={loading}
-              >
-                Xóa Ghế
-              </Button>
-            )}
-          </div>
-        </Form.Item>
-      </Spin>
-      <Modal
-        title="Xác nhận xóa ghế"
-        open={isDeleteConfirmOpen}
-        onOk={confirmDelete}
-        onCancel={() => setIsDeleteConfirmOpen(false)}
-        okText="Xóa"
-        cancelText="Hủy"
-        okButtonProps={{
-          style: {
-            background: "var(--normal-rank)",
-            color: "var(--word-color)",
-          },
-        }}
-      >
-        <p>Bạn có chắc muốn xóa ghế này?</p>
-      </Modal>
+          )}
+        </Space>
+      </Form.Item>
     </Form>
   );
 };

@@ -1,88 +1,70 @@
 // src/types/room.types.ts
 
-// Room model from database
+// Room model interface
 export interface Room {
-    id: string | number; // Room ID can be string or number based on Laravel
-    name: string; // Room name
-    capacity: number; // Room capacity
-    room_type: '2D' | '3D' | '4D'; // Room type enum
-    created_at?: string; // Creation timestamp
-    updated_at?: string; // Update timestamp
-    deleted_at?: string | null; // Soft delete timestamp
+    id: string;
+    name: string;
+    capacity: number;
+    room_type: string;
+    created_at?: string;
+    updated_at?: string;
+    deleted_at?: string | null;
 }
 
-// Request for creating a new room (store API)
+// Request for creating a new room
 export interface RoomCreateRequest {
     name: string;
     capacity: number;
-    room_type: '2D' | '3D' | '4D';
+    room_type: string;
 }
 
-// Response from store API
+// Response for room creation
 export interface RoomCreateResponse {
     message: string;
     room: Room;
 }
 
-// Request for updating a room (update API)
+// Request for updating a room
 export interface RoomUpdateRequest {
-    name: string;
-    capacity: number;
-    room_type: '2D' | '3D' | '4D';
+    name?: string;
+    capacity?: number;
+    room_type?: string;
 }
 
-// Response from update API
+// Response for room update
 export interface RoomUpdateResponse {
     message: string;
     room: Room;
 }
 
-// Response from index API (list of rooms)
+// Response for room listing
 export interface RoomListResponse {
-    message: string;
+    message?: string;
     rooms: Room[];
 }
 
-// Request for deleting multiple rooms (destroy API)
+// Request for deleting rooms
 export interface RoomDeleteRequest {
     ids: (string | number)[];
 }
 
-// Response from destroy API
+// Response for room deletion
 export interface RoomDeleteResponse {
     message: string;
+    deletedCount?: number;
+    deletedIds?: (string | number)[];
 }
 
-// Response from restore API
+// Response for restoring a room
 export interface RoomRestoreResponse {
     message: string;
+    room?: Room;
 }
 
-// Props for room display component
-export interface RoomDisplayProps {
-    rooms: Room[];
-    onRoomSelect?: (room: Room) => void; // Optional callback for room selection
-}
-
-// Props for room form component (create/update)
-export interface RoomFormProps {
-    onSubmit: (data: RoomCreateRequest | RoomUpdateRequest) => void;
-    initialData?: Room; // Optional initial data for edit mode
-}
-
-// Data structure for room table display
-export interface RoomTableDataSource {
-    key: string | number;
-    name: string;
-    capacity: number;
-    room_type: '2D' | '3D' | '4D';
-}
-
-// API error response structure
+// API Error response format
 export interface ApiError {
-    error?: string;
+    error: string;
     message?: string;
-    details?: string | Record<string, any>;
+    details?: Record<string, string[]>;
     status?: number;
-    [key: string]: any;
 }

@@ -1,4 +1,3 @@
-// src/services/room.service.tsx
 import axios from 'axios';
 import { 
     Room, 
@@ -13,7 +12,7 @@ import {
     ApiError 
 } from '../types/room.types';
 
-// Base URL for API (adjust according to your Laravel setup)
+// Base URL for API
 const BASE_URL = "http://localhost:8000/api";
 
 // API endpoints matching Laravel routes

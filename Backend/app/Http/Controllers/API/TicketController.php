@@ -1,8 +1,10 @@
 <?php
+
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Mail\BookingConfirmation;
+use App\Models\SeatTypePrice;
 use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\BookingDetail;
@@ -21,6 +23,78 @@ use Illuminate\Support\Facades\Mail;
 
 class TicketController extends Controller
 {
+
+    //Quản lý vé
+    public function index()
+    {
+        // Lấy tất cả bản ghi từ seat_type_price và preload các quan hệ
+        $ticketPrices = SeatTypePrice::with([
+            'seatType',
+            'seatType.seat',
+            'seatType.seat.room',
+            'seatType.seat.room.roomType'
+        ])->get();
+
+        // Nhóm dữ liệu theo seat_type_id để xử lý từng loại ghế
+        $groupedBySeatType = $ticketPrices->groupBy('seat_type_id');
+
+        $result = [];
+        foreach ($groupedBySeatType as $seatTypeId => $group) {
+            // Lấy thông tin seatType từ bản ghi đầu tiên
+            $seatType = $group->first()->seatType;
+            $seatTypeName = $seatType ? $seatType->name : 'Không xác định';
+
+            // Lấy danh sách tất cả loại phòng liên quan đến seatType này
+            $roomTypes = $seatType->seat
+                ->map(function ($seat) {
+                    return $seat->room && $seat->room->roomType ? $seat->room->roomType : null;
+                })
+                ->filter()
+                ->unique('id')
+                ->values();
+
+            // Nếu không có loại phòng, thêm một giá trị mặc định
+            if ($roomTypes->isEmpty()) {
+                $roomTypes = collect([null]); // Sẽ hiển thị "Không xác định"
+            }
+
+            // Tạo bản ghi cho từng loại phòng
+            foreach ($roomTypes as $roomType) {
+                $roomTypeName = $roomType ? $roomType->name : 'Không xác định';
+                $roomTypePrice = $roomType ? $roomType->price : 0; // Giá của loại phòng (mặc định là 0 nếu không có)
+
+                // Lấy giá cho từng day_type và cộng với giá của loại phòng
+                foreach ($group as $ticketPrice) {
+                    $totalPrice = $ticketPrice->price + $roomTypePrice; // Tổng giá = giá loại ghế + giá loại phòng
+
+                    // Định dạng lại tổng giá
+                    $formattedTotalPrice = ($totalPrice == floor($totalPrice))
+                        ? number_format($totalPrice, 0)
+                        : number_format($totalPrice, 2);
+
+                    $result[] = [
+                        'seat_type_name' => $seatTypeName,
+                        'room_type_name' => $roomTypeName,
+                        'day_type' => ucfirst($ticketPrice->day_type),
+                        'price' => $formattedTotalPrice, // Giá đã cộng
+                    ];
+                }
+            }
+        }
+
+        // Sắp xếp lại kết quả
+        $result = collect($result)->sortBy([
+            ['seat_type_name', 'asc'],
+            ['room_type_name', 'asc'],
+            ['day_type', 'asc']
+        ])->values();
+
+        return response()->json([
+            'message' => 'Lấy danh sách quản lý vé thành công',
+            'data' => $result
+        ], 200);
+    }
+
     // public function getTicketDetails(Request $request)
     // {
     //     // Validate 
@@ -123,14 +197,14 @@ class TicketController extends Controller
     //         'data' => $ticketDetails,
     //     ], 200);
     // }
-    
 
 
 
 
 
-    
-//--------------------------------------------------test--------------------------//
+
+
+    //--------------------------------------------------test--------------------------//
 
 
     public function getTicketDetails(Request $request)
@@ -169,9 +243,9 @@ class TicketController extends Controller
         $showTime = ShowTime::where('id', $request->showtime_id)
             ->with(['room' => function ($query) {
                 $query->select('id', 'name', 'room_type_id')
-                      ->with(['roomType' => function ($query) {
-                          $query->select('id', 'name', 'price');
-                      }]);
+                    ->with(['roomType' => function ($query) {
+                        $query->select('id', 'name', 'price');
+                    }]);
             }])
             ->select('id', 'calendar_show_id', 'room_id', 'start_time', 'end_time', 'status')
             ->first();
@@ -255,6 +329,7 @@ class TicketController extends Controller
         }
 
         $qrData = "Mã đặt vé: {$booking->id}\n" .
+
               "Phim: {$ticketDetails['movie']['title']}\n" .
               "Ngày chiếu: {$ticketDetails['calendar_show']['show_date']}\n" .
               "Giờ chiếu: {$ticketDetails['show_time']['start_time']} - {$ticketDetails['show_time']['end_time']}\n" .
@@ -264,6 +339,7 @@ class TicketController extends Controller
               $qrCode = base64_encode(file_get_contents($qrUrl));
     // Log::info('QR Code Base64 (Controller): ' . $qrCode);
     $ticketDetails['qr_code'] = $qrCode; // Thêm QR code vào dữ liệu trả về
+
 
         $user = User::find($request->user_id);
         if ($user && $user->email) {
@@ -281,7 +357,5 @@ class TicketController extends Controller
     }
 
 
-//--------------------------------------------------end-test--------------------------//
+    //--------------------------------------------------end-test--------------------------//
 }
-   
-

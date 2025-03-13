@@ -27,6 +27,7 @@ import Register from "./page/auth/Register";
 import GoogleCallback from "./page/auth/GoogleCallback";
 import authService from "./services/auth.service";
 import Booking from "./page/client/Booking/Booking";
+import ForgotPassword from "./page/auth/ForgotPassword";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -250,7 +251,10 @@ export const router = createBrowserRouter([
         path: "/auth/register",
         element: <Register />,
       },
-      // Route cho Google callback đã được cập nhật
+      {
+        path: "/auth/forgot-password",
+        element: <ForgotPassword />,
+      },
       {
         path: "/auth/google/callback",
         element: <GoogleCallback />,

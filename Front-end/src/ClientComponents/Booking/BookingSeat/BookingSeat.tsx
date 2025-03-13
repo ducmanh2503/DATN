@@ -9,7 +9,7 @@ import styles from "./BookingSeat.module.css";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
 import { useFilmContext } from "../../UseContext/FIlmContext";
-import { useAuthContext } from "../../UseContext/tokenContext";
+import { useAuthContext } from "../../UseContext/TokenContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
 
 const BookingSeat = ({ className }: { className?: string }) => {

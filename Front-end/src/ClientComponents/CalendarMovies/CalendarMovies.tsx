@@ -11,7 +11,8 @@ import BoxDay from "./BoxDays/BoxDay";
 import styles from "./CalendarMovie.module.css";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useStepsContext } from "../UseContext/StepsContext";
-import { useAuthContext } from "../UseContext/tokenContext";
+import { useAuthContext } from "../UseContext/TokenContext";
+import { useNavigate } from "react-router-dom";
 
 const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
     const [searchDateRaw, setSearchDateRaw] = useState<string | null>(null);
@@ -26,6 +27,16 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
         setRoomIdFromShowtimes,
         setShowtimeIdFromBooking,
     } = useFilmContext();
+    const { tokenUserId } = useAuthContext();
+    const navigate = useNavigate();
+
+    // useEffect(() => {
+    //     if (!tokenUserId && ) {
+    //         {
+    //             navigate("/auth/login");
+    //         }
+    //     }
+    // }, [tokenUserId]);
 
     //lấy các ngày trong lịch chiếu của phim
     const { data: calendarMovie, isLoading: isLoadingCalendarMovie } = useQuery(
@@ -106,6 +117,22 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
         }
     }, []);
 
+    const handleShowtimeClick = (
+        item: any,
+        setRoomIdFromShowtimes: (id: number) => void,
+        setShowtimeIdFromBooking: (id: number) => void,
+        setShowtimesTime: (time: string) => void
+    ) => {
+        if (!item.room_id) {
+            console.error("room_id is invalid!", item);
+            return;
+        }
+
+        setRoomIdFromShowtimes(item.room_id);
+        setShowtimeIdFromBooking(item.id);
+        setShowtimesTime(item.start_time);
+    };
+
     // loading website and get calendar_showtime_id
     useEffect(() => {
         if (LoadShowByFilmAndDate) {
@@ -173,25 +200,14 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                                             <BoxNumbers
                                                 key={index}
                                                 time={formattedTime}
-                                                onClick={() => {
-                                                    if (!item.room_id) {
-                                                        console.error(
-                                                            "room_id is invalid!",
-                                                            item
-                                                        );
-                                                        return;
-                                                    }
-                                                    setRoomIdFromShowtimes(
-                                                        item.room_id
-                                                    );
-                                                    setShowtimeIdFromBooking(
-                                                        item.id
-                                                    );
-                                                    setShowtimesTime(
-                                                        item.start_time
-                                                    );
-                                                    // setCurrentStep(1);
-                                                }}
+                                                onClick={() =>
+                                                    handleShowtimeClick(
+                                                        item,
+                                                        setRoomIdFromShowtimes,
+                                                        setShowtimeIdFromBooking,
+                                                        setShowtimesTime
+                                                    )
+                                                }
                                             />
                                         );
                                     })

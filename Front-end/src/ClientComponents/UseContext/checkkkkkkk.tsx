@@ -1,0 +1,112 @@
+// import { createContext, useContext, useState } from "react";
+
+// const MessageContext = createContext<any>(null);
+
+// export const MessageProvider = ({
+//     children,
+// }: {
+//     children: React.ReactNode;
+// }) => {
+//     const [filmId, setFilmId] = useState<number | null>(null); // id phim
+//     const [showtimesTime, setShowtimesTime] = useState<string | null>(null); // thời gian suất chiếu
+//     const [showtimesDate, setShowtimesDate] = useState<string | null>(null); // ngày suất chiếu
+//     const [currentStep, setCurrentStep] = useState(1); // step payment
+//     const [quantitySeats, setQuantitySeats] = useState<number | null>(0); // tổng số lượng ghế
+//     const [typeSeats, setTypeSeats] = useState<string | null>(null); // loại ghế
+//     const [nameSeats, setNameSeats] = useState<string[]>([]); // tên ghế
+//     const [totalSeatPrice, setTotalSeatPrice] = useState<number | null>(0); // tổng số tiền ghế
+//     const [quantityCombo, setQuantityCombo] = useState<number | null>(0); // tổng số lượng combo
+//     const [nameCombo, setNameCombo] = useState([]); // tên combo
+//     const [totalComboPrice, setTotalComboPrice] = useState<string | null>(null); // tổng số tiền combo
+//     const [totalPrice, setTotalPrice] = useState<number | null>(0); // tổng tiền mua vé
+//     const [roomIdFromShowtimes, setRoomIdFromShowtimes] = useState<
+//         number | null
+//     >(); // id room_id booking
+//     const [showtimeIdFromBooking, setShowtimeIdFromBooking] = useState<
+//         number | null
+//     >(); // id suất chiếu booking
+//     const [calendarShowtimeID, setCalendarShowtimeID] = useState<string | null>(
+//         null
+//     ); // id lịch chiếu của suất chiếu
+//     const [holdSeatId, setHoldSeatId] = useState<string[]>([]); // id của hold-seat
+//     const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]); //  id ghế đã chọn
+//     const [shouldRefetch, setShouldRefetch] = useState(false); // Thêm state để theo dõi trạng thái refetch
+//     const [tokenUserId, setTokenUserId] = useState<string | null>(null); // token user
+//     const [userIdFromShowtimes, setUserIdFromShowtimes] = useState<
+//         number | null
+//     >(0); // user ID showtimes
+//     const [seats, setSeats] = useState<
+//         Record<string, { isHeld?: boolean; heldByUser?: boolean }>
+//     >({}); // ghế đã chọn trong showtimes
+//     const [matrixSeatsManage, setMatrixSeatsManage] = useState<string[]>([]);
+//     const [quantityMap, setQuantityMap] = useState<Record<string, number>>({}); // giá trị mặc định của combo
+//     const [dataDetailFilm, setDataDetailFilm] = useState({
+//         title: "",
+//         language: "",
+//         rated: "",
+//     }); // lưu tạm thời data 1 phim
+//     const [paymentType, setPaymentType] = useState<number | null>(); //hình thức thanh toán
+
+//     return (
+//         <MessageContext.Provider
+//             value={{
+//                 filmId,
+//                 setFilmId,
+//                 showtimesTime,
+//                 setShowtimesTime,
+//                 showtimesDate,
+//                 setShowtimesDate,
+//                 currentStep,
+//                 setCurrentStep,
+//                 quantitySeats,
+//                 setQuantitySeats,
+//                 typeSeats,
+//                 setTypeSeats,
+//                 nameSeats,
+//                 setNameSeats,
+//                 totalSeatPrice,
+//                 setTotalSeatPrice,
+//                 quantityCombo,
+//                 setQuantityCombo,
+//                 nameCombo,
+//                 setNameCombo,
+//                 totalComboPrice,
+//                 setTotalComboPrice,
+//                 totalPrice,
+//                 setTotalPrice,
+//                 roomIdFromShowtimes,
+//                 setRoomIdFromShowtimes,
+//                 showtimeIdFromBooking,
+//                 setShowtimeIdFromBooking,
+//                 holdSeatId,
+//                 setHoldSeatId,
+//                 selectedSeatIds,
+//                 setSelectedSeatIds,
+//                 shouldRefetch,
+//                 setShouldRefetch,
+//                 tokenUserId,
+//                 setTokenUserId,
+//                 userIdFromShowtimes,
+//                 setUserIdFromShowtimes,
+//                 seats,
+//                 setSeats,
+//                 matrixSeatsManage,
+//                 setMatrixSeatsManage,
+//                 quantityMap,
+//                 setQuantityMap,
+//                 dataDetailFilm,
+//                 setDataDetailFilm,
+//                 paymentType,
+//                 setPaymentType,
+//                 calendarShowtimeID,
+//                 setCalendarShowtimeID,
+//             }}
+//         >
+//             {children}
+//         </MessageContext.Provider>
+//     );
+// };
+
+// export const useMessageContext = () => {
+//     return useContext(MessageContext);
+// };

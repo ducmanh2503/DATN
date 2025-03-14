@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Room;
+use App\Models\Seat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -40,7 +41,6 @@ class RoomController extends Controller
             // Kiểm tra dữ liệu nhập vào
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name',
-                'capacity' => 'required|integer|min:1',
                 'room_type_id' => 'required|exists:room_types,id'
             ]);
 
@@ -50,7 +50,16 @@ class RoomController extends Controller
             }
 
             // Tạo phòng mới trong database
-            $room = Room::create($data);
+            $room = Room::create([
+                'name' => $data['name'],
+                'room_type_id' => $data['room_type_id'],
+                'capacity' => 0 // Gán mặc định là 0, sẽ cập nhật sau
+            ]);
+
+            // Tính capacity dựa trên số ghế liên kết với room_id
+            $seatCount = Seat::where('room_id', $room->id)->count();
+            $room->capacity = $seatCount;
+            $room->save();
 
             // Trả về kết quả thành công
             return response()->json([
@@ -105,7 +114,6 @@ class RoomController extends Controller
             // Kiểm tra dữ liệu nhập vào
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name,' . $id,
-                'capacity' => 'required|integer|min:1',
                 'room_type_id' => 'required|exists:room_types,id'
             ]);
 
@@ -115,7 +123,15 @@ class RoomController extends Controller
             }
 
             // Cập nhật thông tin phòng
-            $room->update($data);
+            $room->update([
+                'name' => $data['name'],
+                'room_type_id' => $data['room_type_id']
+            ]);
+
+            // Tính capacity dựa trên số ghế liên kết với room_id
+            $seatCount = Seat::where('room_id', $room->id)->count();
+            $room->capacity = $seatCount;
+            $room->save();
 
             // Trả về kết quả thành công
             return response()->json([

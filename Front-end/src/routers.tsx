@@ -24,7 +24,8 @@ import Login from './page/auth/Login';
 import Register from './page/auth/Register';
 import ForgotPassword from './page/auth/ForgotPassword';
 import authService from './services/auth.service';
-
+import OrderList from './page/admin/Order/OrderList';
+import OrderDetail from './page/admin/Order/OrderDetail';
 // Cấu hình hai instance của Axios
 const protectedApi = axios.create({
   baseURL: 'http://localhost:8000/api',
@@ -313,6 +314,14 @@ export const router = createBrowserRouter([
           {
             path: 'rooms',
             element: <RoomPage />,
+          },
+          {
+             path: 'orders',
+            element: <OrderList />,
+          },
+          {
+            path: 'order-details',
+            element: <OrderDetail />,
           },
         ],
       },

@@ -39,60 +39,71 @@ class TicketController extends Controller
         // Nhóm dữ liệu theo seat_type_id để xử lý từng loại ghế
         $groupedBySeatType = $ticketPrices->groupBy('seat_type_id');
 
-        $result = [];
+        $data = [];
         foreach ($groupedBySeatType as $seatTypeId => $group) {
             // Lấy thông tin seatType từ bản ghi đầu tiên
             $seatType = $group->first()->seatType;
             $seatTypeName = $seatType ? $seatType->name : 'Không xác định';
 
-            // Lấy danh sách tất cả loại phòng liên quan đến seatType này
-            $roomTypes = $seatType->seat
+            // Lấy danh sách tất cả phòng và loại phòng liên quan đến seatType
+            $roomData = $seatType->seat
                 ->map(function ($seat) {
-                    return $seat->room && $seat->room->roomType ? $seat->room->roomType : null;
+                    if ($seat->room && $seat->room->roomType) {
+                        return [
+                            'room_name' => $seat->room->name,
+                            'room_type' => $seat->room->roomType
+                        ];
+                    }
+                    return null;
                 })
                 ->filter()
-                ->unique('id')
+                ->unique(function ($item) {
+                    return $item['room_type']->id . '|' . $item['room_name'];
+                })
                 ->values();
 
-            // Nếu không có loại phòng, thêm một giá trị mặc định
-            if ($roomTypes->isEmpty()) {
-                $roomTypes = collect([null]); // Sẽ hiển thị "Không xác định"
+            // Nếu không có phòng, thêm một giá trị mặc định
+            if ($roomData->isEmpty()) {
+                $roomData = collect([['room_name' => 'Không xác định', 'room_type' => null]]);
             }
 
-            // Tạo bản ghi cho từng loại phòng
-            foreach ($roomTypes as $roomType) {
-                $roomTypeName = $roomType ? $roomType->name : 'Không xác định';
-                $roomTypePrice = $roomType ? $roomType->price : 0; // Giá của loại phòng (mặc định là 0 nếu không có)
+            // Tạo bản ghi cho từng phòng và loại phòng
+            foreach ($roomData as $roomItem) {
+                $roomTypeName = $roomItem['room_type'] ? $roomItem['room_type']->name : 'Không xác định';
+                $roomTypePrice = $roomItem['room_type'] ? $roomItem['room_type']->price : 0;
+                $roomName = $roomItem['room_name'];
 
                 // Lấy giá cho từng day_type và cộng với giá của loại phòng
                 foreach ($group as $ticketPrice) {
-                    $totalPrice = $ticketPrice->price + $roomTypePrice; // Tổng giá = giá loại ghế + giá loại phòng
+                    $totalPrice = $ticketPrice->price + $roomTypePrice;
 
                     // Định dạng lại tổng giá
                     $formattedTotalPrice = ($totalPrice == floor($totalPrice))
                         ? number_format($totalPrice, 0)
                         : number_format($totalPrice, 2);
 
-                    $result[] = [
+                    $data[] = [
                         'seat_type_name' => $seatTypeName,
                         'room_type_name' => $roomTypeName,
+                        'room_name' => $roomName,
                         'day_type' => ucfirst($ticketPrice->day_type),
-                        'price' => $formattedTotalPrice, // Giá đã cộng
+                        'price' => $formattedTotalPrice,
                     ];
                 }
             }
         }
 
         // Sắp xếp lại kết quả
-        $result = collect($result)->sortBy([
+        $data = collect($data)->sortBy([
             ['seat_type_name', 'asc'],
             ['room_type_name', 'asc'],
+            ['room_name', 'asc'],
             ['day_type', 'asc']
         ])->values();
 
         return response()->json([
             'message' => 'Lấy danh sách quản lý vé thành công',
-            'data' => $result
+            'data' => $data
         ], 200);
     }
 

@@ -11,7 +11,7 @@ class SeatSeeder extends Seeder
     {
         $rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J']; // Danh sách các hàng
         $columns = range(1, 13); // Các cột từ 1 đến 13
-        $room_id = 1; // Giả sử phòng ID là 1
+        $room_id = 6; // Giả sử phòng ID là 1
 
         $seats = [];
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Events\SeatHeldEvent;
 use App\Events\SeatUpdated;
 use App\Http\Controllers\Controller;
+use App\Models\Room;
 use App\Models\Seat;
 use App\Models\SeatType;
 use App\Models\SeatTypePrice;
@@ -352,6 +353,14 @@ class SeatController extends Controller
         // Tạo ghế mới
         $seat = Seat::query()->create($data);
 
+        // Cập nhật capacity của phòng
+        $room = Room::find($seat->room_id);
+        if ($room) {
+            $seatCount = Seat::where('room_id', $room->id)->count();
+            $room->capacity = $seatCount;
+            $room->save();
+        }
+
         // Trả về phản hồi thành công
         return response()->json(['message' => 'Thêm ghế thành công', 'data' => $seat], 201);
     }
@@ -359,7 +368,16 @@ class SeatController extends Controller
     public function destroy($seat)
     {
         $seat = Seat::findOrFail($seat);
+        $roomId = $seat->room_id;
         $seat->delete();
+
+        // Cập nhật capacity của phòng
+        $room = Room::find($roomId);
+        if ($room) {
+            $seatCount = Seat::where('room_id', $room->id)->count();
+            $room->capacity = $seatCount;
+            $room->save();
+        }
         return response()->json(['message' => 'Ghế đã được xóa thành công'], 200);
     }
 

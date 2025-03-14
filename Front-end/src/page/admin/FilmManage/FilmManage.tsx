@@ -24,8 +24,9 @@ import { DELETE_FILM, GET_FILM_LIST } from "../../../config/ApiConfig";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DetailFilm from "../FilmManage/DetailFilm";
 import EditFilm from "../FilmManage/EditFilm";
-import "./AddFilm.css";
 import { FormData } from "../../../types/interface";
+import clsx from "clsx";
+import styles from "../globalAdmin.module.css";
 
 type DataIndex = keyof FormData;
 
@@ -190,7 +191,12 @@ const FilmManage: React.FC = () => {
                 ...getColumnSearchProps("directors"),
                 render: (records: any) => {
                     return (
-                        <div className="cliptextTitle directorsColumn">
+                        <div
+                            className={clsx(
+                                styles.directorsColumn,
+                                "cliptextTitle"
+                            )}
+                        >
                             {records.name_director}
                         </div>
                     );
@@ -217,11 +223,15 @@ const FilmManage: React.FC = () => {
                         "Tình cảm": "pink",
                     };
                     return (
-                        <div className="cliptextTitle genresColumn">
+                        <div
+                            className={clsx(
+                                styles.genresColumn,
+                                "cliptextTitle"
+                            )}
+                        >
                             {genres.map((genre: any, index: number) => {
                                 const color =
                                     colorMap[genre.name_genre] || "blue";
-
                                 return (
                                     <Tag
                                         color={color}
@@ -346,7 +356,7 @@ const FilmManage: React.FC = () => {
                     columns={columns}
                     dataSource={dataSource}
                     rowSelection={{ type: selectionType, ...rowSelection }}
-                    rowClassName={() => "custom-row"}
+                    rowClassName={() => clsx(styles.customRow)}
                 />
             </Skeleton>
         </div>

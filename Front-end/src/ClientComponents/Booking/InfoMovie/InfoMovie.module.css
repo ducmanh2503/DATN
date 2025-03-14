@@ -96,6 +96,10 @@
     justify-content: space-between;
 }
 
+.seatItem {
+    margin-top: 6px;
+}
+
 .seatNumbers {
     display: inline-flex;
     align-items: flex-start;

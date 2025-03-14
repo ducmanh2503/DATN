@@ -1,10 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Form, Input, InputNumber, message, Modal } from "antd";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button, Form, Input, message, Modal } from "antd";
 import axios from "axios";
-import "../FilmManage/AddFilm.css";
 import { GET_DIRECTORS_LIST } from "../../../config/ApiConfig";
 import { useState } from "react";
 import { PlusCircleOutlined } from "@ant-design/icons";
+import clsx from "clsx";
+import styles from "../globalAdmin.module.css";
 
 const AddDirector = () => {
     const [messageApi, contextHolder] = message.useMessage();
@@ -54,7 +55,11 @@ const AddDirector = () => {
     return (
         <>
             {contextHolder}
-            <Button type="primary" onClick={showModal} className="addBtnForm">
+            <Button
+                type="primary"
+                onClick={showModal}
+                className={clsx(styles.addBtnForm)}
+            >
                 <PlusCircleOutlined /> Thêm mới
             </Button>
             <Modal
@@ -71,7 +76,7 @@ const AddDirector = () => {
                     onFinish={onFinish}
                 >
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Tên đạo diễn"
                         name="name_director"
                         rules={[

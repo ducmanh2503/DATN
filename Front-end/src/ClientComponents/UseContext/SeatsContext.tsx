@@ -4,7 +4,7 @@ const SeatsContext = createContext<any>(null);
 
 export const SeatsProvider = ({ children }: { children: React.ReactNode }) => {
     const [quantitySeats, setQuantitySeats] = useState<number | null>(0); // tổng số lượng ghế
-    const [typeSeats, setTypeSeats] = useState<string | null>(null); // loại ghế
+    const [typeSeats, setTypeSeats] = useState<string[]>([]); // loại ghế
     const [nameSeats, setNameSeats] = useState<string[]>([]); // tên ghế
     const [totalSeatPrice, setTotalSeatPrice] = useState<number | null>(0); // tổng số tiền ghế
     const [matrixSeatsManage, setMatrixSeatsManage] = useState<string[]>([]); // ma trận ghế

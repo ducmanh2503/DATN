@@ -37,6 +37,8 @@ const ComboInfo = () => {
         });
     }, [nameCombo, totalSeatPrice]);
 
+    // console.log("kiểm tra name combo", nameCombo);
+
     return (
         <div>
             <div className={clsx(styles.bookingCombo)}>

@@ -11,8 +11,9 @@ import {
 } from "antd";
 import axios from "axios";
 import { useEffect, useState, memo } from "react";
-import "./DetailFilm.css";
 import { GET_FILM_DETAIL, URL_IMAGE } from "../../../config/ApiConfig";
+import clsx from "clsx";
+import styles from "../globalAdmin.module.css";
 
 const DetailFilm = ({ id, film }: any) => {
     const [open, setOpen] = useState(false);
@@ -66,7 +67,7 @@ const DetailFilm = ({ id, film }: any) => {
             <a onClick={showLargeDrawer}>{film}</a>
             <Drawer
                 title={`Chi tiết phim ${film}`}
-                className="custom-drawer-title"
+                className={clsx(styles.customDrawerTitle)}
                 placement="right"
                 size={size}
                 onClose={onClose}
@@ -86,21 +87,24 @@ const DetailFilm = ({ id, film }: any) => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="title"
                                 label="Tên phim:"
                             >
-                                <Input className="input-detail" disabled />
+                                <Input
+                                    className={clsx(styles.inputDetail)}
+                                    disabled
+                                />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="trailer"
                                 label="Trailer:"
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                     style={{ width: "100%" }}
                                 />
@@ -110,13 +114,13 @@ const DetailFilm = ({ id, film }: any) => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="poster"
                                 label="Poster:"
                             >
                                 {poster && (
                                     <Image
-                                        className="imagePreview"
+                                        className={clsx(styles.imagePreview)}
                                         src={`${URL_IMAGE}${poster}`}
                                         alt="poster"
                                         width={160}
@@ -127,12 +131,12 @@ const DetailFilm = ({ id, film }: any) => {
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="actors"
                                 label="Diễn viên:"
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                 ></Input>
                             </Form.Item>
@@ -141,24 +145,24 @@ const DetailFilm = ({ id, film }: any) => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="movie_status"
                                 label="Trạng thái:"
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                 ></Input>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="directors"
                                 label="Đạo diễn:"
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                 ></Input>
                             </Form.Item>
@@ -167,24 +171,24 @@ const DetailFilm = ({ id, film }: any) => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="release_date"
                                 label="Ngày phát hành: "
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                 ></Input>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="running_time"
                                 label="Thời lượng:"
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                 ></Input>
                             </Form.Item>
@@ -193,24 +197,24 @@ const DetailFilm = ({ id, film }: any) => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="rated"
                                 label="Đánh giá:"
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                 ></Input>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="language"
                                 label="Ngôn ngữ:"
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                 ></Input>
                             </Form.Item>
@@ -219,24 +223,24 @@ const DetailFilm = ({ id, film }: any) => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="id"
                                 label="ID:"
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                 ></Input>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="genres"
                                 label="Thể loại:"
                             >
                                 <Input
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                 ></Input>
                             </Form.Item>
@@ -245,12 +249,12 @@ const DetailFilm = ({ id, film }: any) => {
                     <Row gutter={16}>
                         <Col span={24}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="description"
                                 label="Description:"
                             >
                                 <Input.TextArea
-                                    className="input-detail"
+                                    className={clsx(styles.inputDetail)}
                                     disabled
                                     rows={4}
                                 />

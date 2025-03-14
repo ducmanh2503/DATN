@@ -52,6 +52,14 @@ const DELETE_ARTICLE = (id: number) => `${BASE_URL}/article/${id}`;
 const GOOGLE_CALLBACK = `${BASE_URL}/auth/google/callback`;
 const GET_COMBOS = `${BASE_URL}/combos`;
 
+const GET_TICKETSPRICE = `${BASE_URL}/ticket-management`;
+const DETAIL_TICKETPRICE = (id: number) =>
+    `${BASE_URL}/ticket-management/${id}`;
+const ADD_TICKETSPRICE = `${BASE_URL}/ticket-management`;
+const DELETE_TICKETPRICE = (id: number) =>
+    `${BASE_URL}/ticket-management/${id}`;
+const UPDATE_TICKETPRICE = (id: number) =>
+    `${BASE_URL}/ticket-management/${id}`;
 export {
     GOOGLE_CALLBACK,
     UPDATE_USER_CLIENT,
@@ -92,4 +100,9 @@ export {
     GET_ROOMS,
     GET_SHOW_BY_FILM_DATE,
     GET_COMBOS,
+    GET_TICKETSPRICE,
+    ADD_TICKETSPRICE,
+    DELETE_TICKETPRICE,
+    UPDATE_TICKETPRICE,
+    DETAIL_TICKETPRICE,
 };

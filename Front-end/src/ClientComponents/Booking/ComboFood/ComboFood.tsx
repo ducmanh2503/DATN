@@ -26,7 +26,7 @@ const ComboFood = ({ className }: any) => {
         setQuantityMap,
         setNameCombo,
     } = useComboContext();
-    const { quantitySeats } = useSeatsContext(0);
+    const { quantitySeats } = useSeatsContext();
     const { openNotification, contextHolder } = CustomNotification();
 
     // Hàm tăng số lượng

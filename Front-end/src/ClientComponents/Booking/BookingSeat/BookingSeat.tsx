@@ -12,6 +12,7 @@ import { useFilmContext } from "../../UseContext/FIlmContext";
 import { useAuthContext } from "../../UseContext/TokenContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
 import { useSeatSelection } from "../ValidateSeats/ValidateSeats";
+import { useComboContext } from "../../UseContext/CombosContext";
 
 const BookingSeat = ({ className }: { className?: string }) => {
     const {
@@ -21,18 +22,18 @@ const BookingSeat = ({ className }: { className?: string }) => {
         setTotalSeatPrice,
         totalSeatPrice,
         setTypeSeats,
-    } = useSeatsContext();
-    const { setTotalPrice } = useFinalPriceContext();
-    const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
-    const {
         setHoldSeatId,
         setSelectedSeatIds,
         seats,
         setSeats,
         setMatrixSeatsManage,
     } = useSeatsContext();
+    const { setTotalPrice, totalPrice } = useFinalPriceContext();
+    const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
     const { tokenUserId } = useAuthContext();
-    const { setUserIdFromShowtimes, userIdFromShowtimes } = useStepsContext();
+    const { setUserIdFromShowtimes, userIdFromShowtimes, currentStep } =
+        useStepsContext();
+    const { totalComboPrice } = useComboContext();
 
     const queryClient = useQueryClient();
     const [isPusherRegistered, setIsPusherRegistered] = useState(false);
@@ -211,7 +212,9 @@ const BookingSeat = ({ className }: { className?: string }) => {
             }
 
             setQuantitySeats(updatedSeats.length);
+
             setTotalSeatPrice(updatedTotalPrice);
+
             return updatedSeats;
         });
     };
@@ -238,10 +241,14 @@ const BookingSeat = ({ className }: { className?: string }) => {
             refetchMatrix,
         ]
     );
-    // gán tổng tiền ghế vào tiền tổng (sau phải sửa vì lỗi mất tiền combo khi từ trang combo quay lại)
+    // gán tổng tiền ghế vào tiền tổng
     useEffect(() => {
-        setTotalPrice(totalSeatPrice);
-    }, [totalSeatPrice, setTotalPrice]);
+        if (totalComboPrice && currentStep === 1) {
+            setTotalPrice(totalPrice);
+        } else {
+            setTotalPrice(totalSeatPrice);
+        }
+    }, [totalSeatPrice, totalComboPrice, currentStep]);
 
     useEffect(() => {
         if (!matrixSeats) return;

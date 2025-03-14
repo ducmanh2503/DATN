@@ -19,6 +19,7 @@ export const useTicketsPrice = () => {
                 key: item.id || index,
                 seat_type_name: item.seat_type_name,
                 room_type_name: item.room_type_name,
+                room_name: item.room_name,
                 day_type: item.day_type,
                 price: item.price,
             }));

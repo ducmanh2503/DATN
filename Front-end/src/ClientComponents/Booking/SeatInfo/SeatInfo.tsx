@@ -3,29 +3,33 @@ import clsx from "clsx";
 import styles from "../InfoMovie/InfoMovie.module.css";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useEffect } from "react";
+import { useComboContext } from "../../UseContext/CombosContext";
+import { useStepsContext } from "../../UseContext/StepsContext";
+import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
 
 const SeatInfo = () => {
-    const {
-        quantitySeats,
-        typeSeats,
-        nameSeats,
-        totalSeatPrice,
-        setTotalSeatPrice,
-    } = useSeatsContext();
+    const { typeSeats, setTotalSeatPrice } = useSeatsContext();
+    const { totalComboPrice } = useComboContext();
+    const { currentStep } = useStepsContext();
+    const { totalPrice } = useFinalPriceContext();
     useEffect(() => {
-        console.log("check type ghế", typeSeats);
+        const newTotalSeatsPrice = typeSeats.reduce(
+            (sum: number, seat: any) => {
+                const price = Number(seat.price) || 0;
+                return sum + price;
+            },
+            0
+        );
 
-        const newTotalSeatsPrice = typeSeats.length
-            ? typeSeats.reduce(
-                  (sum: any, seat: any) =>
-                      sum + seat.quantitySeats * seat.price,
-                  0
-              )
-            : 0;
+        // if (totalComboPrice && currentStep === 1) {
+        //     console.log("check- back", totalPrice);
 
+        //     setTotalSeatPrice(totalPrice);
+        // } else {
+        //     setTotalSeatPrice(newTotalSeatsPrice);
+        // }
         setTotalSeatPrice(newTotalSeatsPrice);
-        console.log(totalSeatPrice);
-    }, [typeSeats, totalSeatPrice]);
+    }, [typeSeats, totalComboPrice, currentStep]);
 
     return (
         <div>
@@ -52,7 +56,7 @@ const SeatInfo = () => {
                             </span>
                         </div>
                         <div className={clsx(styles.seatPrice)}>
-                            {seats.quantitySeats * seats.price}đ
+                            {seats.price}đ
                         </div>
                     </div>
                 ))}

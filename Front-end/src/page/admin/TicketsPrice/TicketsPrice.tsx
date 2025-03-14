@@ -21,7 +21,8 @@ import AddTicketPrice from "./AddTicketPrice";
 interface TicketsPrice {
     key: React.Key;
     seat_type_name: string;
-    room_type_name: number;
+    room_type_name: string;
+    room_name: string;
     day_type: string;
     price: string;
 }
@@ -103,11 +104,13 @@ const TicketsPrice = () => {
             filters: ticketsData
                 ? Array.from(
                       new Set(
-                          ticketsData.map((item: any) => item.seat_type_name)
+                          ticketsData
+                              .map((item: any) => String(item.seat_type_name))
+                              .filter(Boolean)
                       )
                   ).map((value) => ({
-                      text: value,
-                      value: value,
+                      text: String(value),
+                      value: String(value),
                   }))
                 : [],
             onFilter: (value, record) => record.seat_type_name === value,
@@ -125,17 +128,19 @@ const TicketsPrice = () => {
             filters: ticketsData
                 ? Array.from(
                       new Set(
-                          ticketsData.map((item: any) => item.room_type_name)
+                          ticketsData
+                              .map((item: any) => String(item.room_type_name))
+                              .filter(Boolean)
                       )
                   ).map((value) => ({
-                      text: value,
-                      value: value,
+                      text: String(value),
+                      value: String(value),
                   }))
                 : [],
             onFilter: (value, record) => record.room_type_name === value,
             render: (room_type_name) => (
-                <Tag color={getColorByRoomsType(room_type_name)}>
-                    {room_type_name}{" "}
+                <Tag color={getColorBySeatsType(room_type_name)}>
+                    {room_type_name}
                 </Tag>
             ),
         },
@@ -145,21 +150,41 @@ const TicketsPrice = () => {
             key: "day_type",
             filters: ticketsData
                 ? Array.from(
-                      new Set(ticketsData.map((item: any) => item.day_type))
+                      new Set(
+                          ticketsData
+                              .map((item: any) => String(item.day_type))
+                              .filter(Boolean)
+                      )
                   ).map((value) => ({
-                      text: value,
-                      value: value,
+                      text: String(value),
+                      value: String(value),
                   }))
                 : [],
             onFilter: (value, record) => record.day_type === value,
             render: (day_type) => (
-                <Tag color={getColorByDayType(day_type)}>{day_type}</Tag>
+                <Tag color={getColorBySeatsType(day_type)}>{day_type}</Tag>
             ),
         },
         {
             title: "Loại phòng chiếu",
-            dataIndex: "",
-            key: "",
+            dataIndex: "room_name",
+            key: "room_name",
+            filters: ticketsData
+                ? Array.from(
+                      new Set(
+                          ticketsData
+                              .map((item: any) => String(item.room_name))
+                              .filter(Boolean)
+                      )
+                  ).map((value) => ({
+                      text: String(value),
+                      value: String(value),
+                  }))
+                : [],
+            onFilter: (value, record) => record.room_name === value,
+            render: (room_name) => (
+                <Tag color={getColorBySeatsType(room_name)}>{room_name}</Tag>
+            ),
         },
         {
             title: "Giá vé",

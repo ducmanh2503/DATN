@@ -1,10 +1,11 @@
 import { Space, Spin, Table, Tag } from "antd";
 import { RoomSHowtimesType } from "../../../types/interface";
-import "./ShowtimesRoom.css";
 import DeleteShowtimes from "./DeleteShowtimes";
 import EditShowtimes from "./EditShowtimes";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import clsx from "clsx";
+import styles from "../globalAdmin.module.css";
 
 const ShowtimesAllRooms = ({
     setShowtimesData,
@@ -148,8 +149,10 @@ const ShowtimesAllRooms = ({
         },
     ];
     return (
-        <div className="roomBox">
-            <h1 className="roomName">{processedData[0].room.name}</h1>
+        <div className={clsx(styles.roomBox)}>
+            <h1 className={clsx(styles.roomName)}>
+                {processedData[0].room.name}
+            </h1>
             <Table columns={columns} dataSource={processedData} />
         </div>
     );

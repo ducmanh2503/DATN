@@ -1,4 +1,3 @@
-import React from "react";
 import FilterPlayingCinema from "../../../ClientComponents/FilterPlayingCinema/FilterPlayingCinema";
 import PlayingMain from "../../../ClientComponents/PlayingMain/PlayingMain";
 import ClientLayout from "../Layout";
@@ -15,7 +14,7 @@ const PlayingFilm = () => {
         <div className="playing-film-container">
             <ClientLayout>
                 <FilterPlayingCinema />
-                <PlayingMain showChill={handleMovieClick} />
+                <PlayingMain showChill={handleMovieClick}></PlayingMain>
             </ClientLayout>
         </div>
     );

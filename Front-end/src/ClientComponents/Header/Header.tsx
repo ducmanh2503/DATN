@@ -2,13 +2,8 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebookF, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { faFilm as faSolidFilm } from "@fortawesome/free-solid-svg-icons";
-import {
-    AudioOutlined,
-    DownOutlined,
-    LogoutOutlined,
-    UserOutlined,
-} from "@ant-design/icons";
-import { Avatar, Button, Dropdown, Input, Menu, message } from "antd";
+import { AudioOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
+import { Avatar, Dropdown, Input, message } from "antd";
 import type { GetProps } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import clsx from "clsx";
@@ -113,13 +108,13 @@ const Header: React.FC = () => {
                                 ) : (
                                     <>
                                         <Link
-                                            className="signUp"
+                                            className={clsx(styles.signUp)}
                                             to="/auth/login"
                                         >
                                             Đăng nhập
                                         </Link>
                                         <Link
-                                            className="signIn"
+                                            className={clsx(styles.signIn)}
                                             to="/auth/register"
                                         >
                                             Đăng ký

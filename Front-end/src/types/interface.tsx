@@ -58,9 +58,9 @@ export interface RoomSHowtimesType {
 }
 
 // onError: (error: any) => {
-//     messageApi.error(
-//         error?.response?.data?.message || "Có lỗi xảy ra!"
-//     );
+//     const errorMessage =
+//         JSON.parse(error.request.responseText) || "Có lỗi xảy ra";
+//     messageApi.error(errorMessage);
 // },
 
 export interface AuthResponse {
@@ -75,7 +75,8 @@ export interface BookingType {
     column: string;
     seatCode: string;
     seatType: string;
-    price: number;
+    price: string;
+    type: string;
     dayType: "weekday" | "weekend" | "holiday";
     status?: string;
     heldByCurrentUser?: boolean;

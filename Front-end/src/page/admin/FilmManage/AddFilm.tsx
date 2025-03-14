@@ -20,11 +20,12 @@ import {
 } from "../../../config/ApiConfig";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import "./AddFilm.css";
 import { FormData } from "../../../types/interface";
 import { VerticalAlignTopOutlined } from "@ant-design/icons";
 import SelectForm from "./SelectForm";
 import ListNameFilms from "./ListNameFilms";
+import clsx from "clsx";
+import styles from "../globalAdmin.module.css";
 
 const AddFilm = () => {
     const [messageApi, contextHolder] = message.useMessage();
@@ -140,10 +141,10 @@ const AddFilm = () => {
     };
 
     return (
-        <div className="container-addFilm">
-            <div className="form-addFilm">
+        <div className={clsx(styles.containerAddFilm)}>
+            <div className={clsx(styles.formAddFilm)}>
                 {contextHolder}
-                <h1 className="title-addFilm">Thêm mới phim</h1>
+                <h1 className={clsx(styles.titleAddFilm)}>Thêm mới phim</h1>
 
                 <Form
                     form={form}
@@ -155,7 +156,7 @@ const AddFilm = () => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Tiêu đề"
                                 name="title"
                                 rules={[
@@ -175,7 +176,7 @@ const AddFilm = () => {
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Trailer"
                                 name="trailer"
                             >
@@ -186,7 +187,7 @@ const AddFilm = () => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Poster"
                                 name="poster"
                             >
@@ -200,7 +201,7 @@ const AddFilm = () => {
                                     />
                                     <label
                                         htmlFor="uploadFile"
-                                        className="addImage"
+                                        className={clsx(styles.addImage)}
                                     >
                                         <VerticalAlignTopOutlined /> Thêm ảnh
                                     </label>
@@ -221,7 +222,7 @@ const AddFilm = () => {
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Diễn viên"
                                 name="name_actor"
                                 rules={[
@@ -246,7 +247,7 @@ const AddFilm = () => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Trạng thái"
                                 name="movie_status"
                                 rules={[
@@ -268,7 +269,7 @@ const AddFilm = () => {
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Đạo diễn"
                                 name="name_director"
                                 rules={[
@@ -296,7 +297,7 @@ const AddFilm = () => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 name="release_date"
                                 label="Ngày phát hành"
                                 rules={[
@@ -321,7 +322,7 @@ const AddFilm = () => {
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Thời lượng"
                                 name="running_time"
                             >
@@ -335,7 +336,7 @@ const AddFilm = () => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Giới hạn tuổi"
                                 name="rated"
                                 rules={[
@@ -351,7 +352,7 @@ const AddFilm = () => {
 
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Ngôn ngữ"
                                 name="language"
                                 rules={[
@@ -371,7 +372,7 @@ const AddFilm = () => {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="ID"
                                 name="genre_id"
                                 rules={[
@@ -386,7 +387,7 @@ const AddFilm = () => {
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                className="input-label"
+                                className={clsx(styles.inputLabel)}
                                 label="Thể loại"
                                 name="name_genres"
                                 rules={[
@@ -411,7 +412,7 @@ const AddFilm = () => {
                     <Row gutter={16}>
                         <Col span={24}>
                             <Form.Item
-                                className="input-labell"
+                                className={clsx(styles.inputLabel)}
                                 name="description"
                                 label="Description:"
                             >
@@ -435,7 +436,7 @@ const AddFilm = () => {
                     </Button>
                 </Form>
             </div>
-            <div className="list-addFilm">
+            <div className={clsx(styles.listAddFilm)}>
                 <ListNameFilms></ListNameFilms>
             </div>
         </div>

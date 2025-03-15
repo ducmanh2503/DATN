@@ -1,0 +1,86 @@
+/* OrderList.module.css */
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.searchContainer {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: flex-end;
+}
+
+.formGroup {
+  flex: 1;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.inputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  color: #666;
+}
+
+.searchInput {
+  padding-left: 40px !important;
+  height: 40px !important;
+}
+
+.searchButton {
+  height: 40px !important;
+}
+
+.orderTable {
+  margin-bottom: 24px;
+}
+
+.orderLink {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.orderLink:hover {
+  text-decoration: underline;
+}
+
+.backLink {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.homeLink {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.homeLink:hover {
+  text-decoration: underline;
+}
+.searchIcon {
+  vertical-align: middle;
+  margin-left: 8px;
+  cursor: pointer;
+}

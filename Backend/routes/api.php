@@ -78,7 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/room-type', RoomTypeController::class);
 
         // Seats
-        Route::post('/seats', [SeatController::class, 'store']);
+        Route::apiResource('/seats', SeatController::class);
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
 

@@ -1,46 +1,77 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
-import { message } from 'antd';
+import { useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 
 const GoogleCallbackHandler = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMounted = useRef(true); // Kiểm tra component có bị unmount không
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const code = params.get('code');
+    console.log("📌 [Google Callback] Component Mounted");
 
-    if (code) {
-      // Gửi yêu cầu đến endpoint API của server
-      axios
-        .get(`http://localhost:8000/api/auth/google/callback?code=${code}`, {
-          withCredentials: true, // Nếu server yêu cầu cookie hoặc thông tin xác thực
-        })
-        .then((response) => {
-          const { token, user } = response.data;
-          // Lưu thông tin vào localStorage
-          localStorage.setItem('auth_token', token);
-          localStorage.setItem('user_role', user.role);
-          message.success('Đăng nhập với Google thành công!');
-          // Chuyển hướng dựa trên vai trò người dùng
-          const redirectUrl = user.role === 'admin' ? '/admin' : '/';
-          navigate(redirectUrl, { replace: true });
-        })
-        .catch((error) => {
-          console.error('Lỗi khi xử lý callback Google:', error);
-          message.error('Đăng nhập với Google thất bại. Vui lòng thử lại.');
-          navigate('/auth/login', { replace: true });
-        });
-    } else {
-      message.error('Không tìm thấy mã xác thực.');
-      navigate('/auth/login', { replace: true });
+    const controller = new AbortController(); // Tạo signal để hủy request nếu cần
+    const signal = controller.signal;
+
+    const params = new URLSearchParams(location.search);
+    const code = params.get("code");
+    console.log("🔹 Google Code:", code);
+
+    if (!code) {
+      console.error("❌ Không tìm thấy mã xác thực từ Google");
+      navigate("/auth/login");
+      return;
     }
+
+    axios
+      .get(`http://localhost:8000/api/auth/google/callback?code=${code}`, {
+        withCredentials: true,
+        signal, // Truyền signal để có thể hủy request nếu cần
+      })
+      .then((response) => {
+        if (!response.data || typeof response.data !== "object") {
+          throw new Error("❌ Dữ liệu phản hồi không hợp lệ");
+        }
+
+        const { auth_token, user } = response.data;
+        if (!auth_token) throw new Error("❌ Không nhận được token");
+
+        // Lưu token vào localStorage
+        localStorage.setItem("auth_token", auth_token);
+        localStorage.setItem("user_role", user?.role || "user");
+
+        console.log("🔐 Token đã lưu:", localStorage.getItem("auth_token"));
+
+        // Dùng setTimeout để tránh lỗi điều hướng sớm
+        setTimeout(() => {
+          if (isMounted.current) {
+            console.log("🚀 Điều hướng tới trang chủ...");
+            navigate("/");
+          }
+        }, 100);
+      })
+      .catch((error) => {
+        if (axios.isCancel(error)) {
+          console.log("⚠️ Request bị hủy do component unmount");
+        } else {
+          console.error(
+            "❌ Lỗi khi xử lý callback:",
+            error?.response?.data || error.message
+          );
+          navigate("/auth/login");
+        }
+      });
+
+    return () => {
+      isMounted.current = false;
+      controller.abort(); // Hủy request khi component unmount
+    };
   }, [location, navigate]);
 
   return (
-    <div>
-      <p>Đang xử lý đăng nhập Google...</p>
+    <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <p>🔄 Đang xử lý đăng nhập...</p>
+      <div className="spinner"></div> {/* Hiển thị hiệu ứng loading */}
     </div>
   );
 };

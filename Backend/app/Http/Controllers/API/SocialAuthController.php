@@ -28,7 +28,7 @@ class SocialAuthController extends Controller
         try {
             // Cấu hình Guzzle cho Socialite
             $clientOptions = [
-                'verify' => env('CURL_CA_BUNDLE', 'E:\laragon\etc\ssl\cacert.pem.txt'),
+                'verify' => env('CURL_CA_BUNDLE', 'C:\laragon\etc\ssl\cacert.pem'),
             ];
 
 
@@ -64,14 +64,10 @@ class SocialAuthController extends Controller
 
             // Tạo token để ReactJS dùng
             $token = $user->createToken('auth_token')->plainTextToken;
-
+$redirectUrl = "http://localhost:8000/api/auth/callback?token=$token";
 
             // Chuyển hướng về frontend với token và role
-            return response()->json([
-                'message' => 'Đăng nhập thành công',
-                'auth_token' => $token,
-                'user' => $user
-            ]);
+            return redirect($redirectUrl);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }

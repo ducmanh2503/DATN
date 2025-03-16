@@ -69,6 +69,9 @@ const SiderAdmin = () => {
       getItem(<Link to="update-article">Cập nhật bài viết</Link>, "sub12-1"),
       getItem(<Link to="create-article">Thêm bài viết</Link>, "sub13-1"),
     ]),
+    getItem("Quản lý Khuyen mai", "sub12", <BarChartOutlined />, [
+      getItem(<Link to="discount-code">khuyen mai</Link>, "sub14-1"),
+    ]),
   ];
   return (
     <div>

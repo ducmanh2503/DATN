@@ -49,8 +49,13 @@ const GET_ARTICLE = `${BASE_URL}/article`;
 const CREATE_ARTICLE = `${BASE_URL}/article`;
 const UPDATE_ARTICLE = (id: number) => `${BASE_URL}/article/${id}`;
 const DELETE_ARTICLE = (id: number) => `${BASE_URL}/article/${id}`;
-
+const GET_DISCOUNT_CODE = `${BASE_URL}/discount-code`;
+const CREATE_DISCOUNT_CODE = `${BASE_URL}/discount-code`;
+const DELETE_DISCOUNT_CODE = (id: number) => `${BASE_URL}/discount-code/${id}`;
 export {
+  GET_DISCOUNT_CODE,
+  CREATE_DISCOUNT_CODE,
+  DELETE_DISCOUNT_CODE,
   UPDATE_USER_CLIENT,
   GET_USER,
   GET_ARTICLE,

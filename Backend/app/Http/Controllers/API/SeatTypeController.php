@@ -13,4 +13,6 @@ class SeatTypeController extends Controller
         $seatTypes = SeatType::all(['id', 'name', 'price']);
         return response()->json($seatTypes, 200);
     }
+
+    
 }

@@ -21,7 +21,8 @@ const ENDPOINTS = {
     CREATE_ROOM: `${BASE_URL}/room`, // POST: Create room
     GET_ROOM: (id: string | number) => `${BASE_URL}/room/${id}`, // GET: Show room
     UPDATE_ROOM: (id: string | number) => `${BASE_URL}/room/${id}`, // PUT: Update room
-    DELETE_ROOMS: `${BASE_URL}/room`, // DELETE: Soft delete rooms
+    DELETE_ROOM: (id: string | number) => `${BASE_URL}/room/${id}`, // DELETE: Soft delete one room
+    DELETE_ROOMS_BULK: `${BASE_URL}/room`, // DELETE with IDs in body
     RESTORE_ROOM: (id: string | number) => `${BASE_URL}/room/restore/${id}`, // POST: Restore room
 };
 
@@ -114,16 +115,44 @@ export const deleteRooms = async (data: RoomDeleteRequest): Promise<RoomDeleteRe
         throw new Error('No rooms selected for deletion');
     }
     const normalizedIds = data.ids.map(normalizeId);
+    
     try {
-        const response = await axios.delete<RoomDeleteResponse>(
-            ENDPOINTS.DELETE_ROOMS,
-            {
-                data: { ids: normalizedIds },
-                headers: { 'Content-Type': 'application/json' },
-            }
-        );
-        return response.data;
+        // Thử các phương pháp xóa phòng khác nhau, bắt đầu với phương pháp thông thường
+        
+        // Phương pháp 1: Sử dụng DELETE api/room với ids trong body (cách RoomController@destroy yêu cầu)
+        try {
+            const response = await axios.delete<RoomDeleteResponse>(
+                ENDPOINTS.DELETE_ROOMS_BULK,
+                {
+                    data: { ids: normalizedIds },
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            );
+            return response.data;
+        } catch (bulkError) {
+            console.log('Không thể xóa hàng loạt, thử xóa từng phòng một');
+            
+            // Phương pháp 2: Nếu xóa hàng loạt không hoạt động, thử xóa từng phòng
+            const results = await Promise.all(
+                normalizedIds.map(id => {
+                    console.log(`Xóa phòng: ${ENDPOINTS.DELETE_ROOM(id)}`);
+                    return axios.delete<RoomDeleteResponse>(ENDPOINTS.DELETE_ROOM(id));
+                })
+            );
+            
+            return {
+                message: 'Xóa các phòng thành công',
+                deletedCount: results.length,
+                deletedIds: normalizedIds
+            };
+        }
     } catch (error) {
+        console.error('Lỗi khi xóa phòng:', error);
+        
+        if (axios.isAxiosError(error) && error.response) {
+            console.error('Chi tiết lỗi:', error.response.data);
+        }
+        
         throw handleApiError(error);
     }
 };
@@ -146,7 +175,7 @@ const handleApiError = (error: unknown): ApiError => {
     if (axios.isAxiosError(error) && error.response) {
         const { data, status } = error.response;
         return {
-            error: data.error || 'An error occurred',
+            error: data.error || data.message || 'An error occurred',
             message: data.message,
             details: data.details || data.errors,
             status,

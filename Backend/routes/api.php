@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/seats', [SeatController::class, 'store']);
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
-
+        Route::get('/seat-types', [App\Http\Controllers\API\SeatTypeController::class, 'index']);
         // Showtimes
         Route::apiResource('showTime', ShowTimeController::class);
         Route::post('show-times/in-range', [ShowTimeController::class, 'getShowTimesInDateRange']); //danh sách ngày

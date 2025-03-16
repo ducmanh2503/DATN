@@ -24,10 +24,38 @@ import Login from './page/auth/Login';
 import Register from './page/auth/Register';
 import ForgotPassword from './page/auth/ForgotPassword';
 import authService from './services/auth.service';
-import OrderList from './page/admin/Order/OrderList';
-import OrderDetail from './page/admin/Order/OrderDetail';
+
+// Set up global axios interceptors for all requests
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token && config.url?.startsWith('http://localhost:8000/api')) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('[Global Axios] Token đã được gắn:', token);
+    }
+    return config;
+  },
+  (error) => {
+    console.error('[Global Axios] Lỗi trong interceptor request:', error);
+    return Promise.reject(error);
+  }
+);
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401 && error.config?.url?.startsWith('http://localhost:8000/api')) {
+      console.error('[Global Axios] Unauthorized - Chuyển hướng đến trang đăng nhập');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_role');
+      window.location.href = '/auth/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Cấu hình hai instance của Axios
-const protectedApi = axios.create({
+export const protectedApi = axios.create({
   baseURL: 'http://localhost:8000/api',
   headers: {
     'Content-Type': 'application/json',
@@ -35,7 +63,7 @@ const protectedApi = axios.create({
   },
 });
 
-const publicApi = axios.create({
+export const publicApi = axios.create({
   baseURL: 'http://localhost:8000/api',
   headers: {
     'Content-Type': 'application/json',
@@ -43,55 +71,42 @@ const publicApi = axios.create({
   },
 });
 
-// Hàm thiết lập interceptors cho protectedApi
-const setupAxiosInterceptors = (navigate: ReturnType<typeof useNavigate>) => {
-  const requestInterceptor = protectedApi.interceptors.request.use(
-    (config) => {
-      const token = authService.getToken();
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.log('[Protected API] Token đã được gắn:', token);
-      } else {
-        console.warn('[Protected API] Không tìm thấy token trong request');
-      }
-      return config;
-    },
-    (error) => {
-      console.error('[Protected API Request Error]:', error);
-      return Promise.reject(error);
+// Thiết lập interceptors ngay sau khi tạo instances
+protectedApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('[Protected API] Token đã được gắn:', token);
+    } else {
+      console.warn('[Protected API] Không tìm thấy token trong request');
     }
-  );
+    return config;
+  },
+  (error) => {
+    console.error('[Protected API Request Error]:', error);
+    return Promise.reject(error);
+  }
+);
 
-  const responseInterceptor = protectedApi.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      const { response } = error;
-      if (response) {
-        if (response.status === 401) {
-          console.error('Token hết hạn hoặc không hợp lệ');
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user_role');
-          navigate('/auth/login', { 
-            state: { message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' },
-            replace: true 
-          });
-        } else if (response.status === 403) {
-          console.error('Không có quyền truy cập');
-          navigate('/', { 
-            state: { message: 'Bạn không có quyền truy cập trang này.' },
-            replace: true 
-          });
-        }
+protectedApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const { response } = error;
+    if (response) {
+      if (response.status === 401) {
+        console.error('Token hết hạn hoặc không hợp lệ');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_role');
+        window.location.href = '/auth/login';
+      } else if (response.status === 403) {
+        console.error('Không có quyền truy cập');
+        window.location.href = '/';
       }
-      return Promise.reject(error);
     }
-  );
-
-  return () => {
-    protectedApi.interceptors.request.eject(requestInterceptor);
-    protectedApi.interceptors.response.eject(responseInterceptor);
-  };
-};
+    return Promise.reject(error);
+  }
+);
 
 // Component hiển thị khi đang tải
 const LoadingComponent = () => (
@@ -146,10 +161,7 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
           return;
         }
 
-        const cleanup = setupAxiosInterceptors(navigate);
         setLoading(false);
-
-        return cleanup;
       } catch (error) {
         console.error('Lỗi xác thực:', error);
         setIsAuthenticated(false);
@@ -315,14 +327,6 @@ export const router = createBrowserRouter([
             path: 'rooms',
             element: <RoomPage />,
           },
-          {
-             path: 'orders',
-            element: <OrderList />,
-          },
-          {
-            path: 'order-details',
-            element: <OrderDetail />,
-          },
         ],
       },
     ],
@@ -334,4 +338,3 @@ export const router = createBrowserRouter([
 ]);
 
 export default router;
-export { protectedApi, publicApi };

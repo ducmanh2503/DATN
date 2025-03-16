@@ -1,4 +1,9 @@
-// src/types/seat.types.ts
+// SeatType model
+export interface SeatType {
+    id: number;
+    name: string;
+    price: number;
+}
 
 // Response format for a list of seats in a room (matrix format)
 export interface SeatingMatrix {
@@ -25,14 +30,11 @@ export interface Seat {
     row: string;
     column: string;
     seat_type_id: number;
+    seat_status: 'available' | 'booked'; 
     created_at?: string;
     updated_at?: string;
     deleted_at?: string | null;
-    seatType?: {
-        id: number;
-        name: string;
-        price: number;
-    };
+    seatType?: SeatType;
 }
 
 // Request for creating a new seat
@@ -41,6 +43,7 @@ export interface SeatCreateRequest {
     row: string;
     column: string;
     seat_type_id: number;
+    seat_status?: 'available' | 'booked'; // Optional để tương thích với cả 2 loại API
 }
 
 // Request for updating an existing seat
@@ -48,13 +51,15 @@ export interface SeatUpdateRequest {
     row?: string;
     column?: string;
     seat_type_id?: number;
+    seat_status?: 'available' | 'booked';
 }
 
-// Response for seat status update (nếu không còn seat_status thì có thể loại bỏ nếu không cần)
+// Response for seat status update
 export interface SeatUpdateResponse {
     message: string;
     updated_seats: Array<{
         seat_id: number;
+        seat_status?: string;
     }>;
 }
 

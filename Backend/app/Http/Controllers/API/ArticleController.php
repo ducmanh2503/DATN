@@ -110,6 +110,7 @@ class ArticleController extends Controller
      */
     public function destroy(string $id)
     {
+        //Tìm bài viết theo id
         $article = Article::query()->findOrFail($id);
 
         if (!$article) {

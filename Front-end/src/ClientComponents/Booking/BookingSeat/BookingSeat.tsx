@@ -12,6 +12,10 @@ import { useFilmContext } from "../../UseContext/FIlmContext";
 import { useAuthContext } from "../../UseContext/TokenContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
 import { useComboContext } from "../../UseContext/CombosContext";
+import dayjs from "dayjs";
+import { Link } from "react-router-dom";
+import ChangeShowtimes from "../ChangeShowtimes/ChangeShowtimes";
+import UISeatsInfo from "../UISeatsInfo/UISeatsInfo";
 
 const BookingSeat = ({ className }: { className?: string }) => {
     const {
@@ -31,7 +35,12 @@ const BookingSeat = ({ className }: { className?: string }) => {
         holdSeatId,
     } = useSeatsContext();
     const { setTotalPrice, totalPrice } = useFinalPriceContext();
-    const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
+    const {
+        roomIdFromShowtimes,
+        showtimeIdFromBooking,
+        listShowtimes,
+        filmId,
+    } = useFilmContext();
     const { tokenUserId } = useAuthContext();
     const { setUserIdFromShowtimes, userIdFromShowtimes, currentStep } =
         useStepsContext();
@@ -129,7 +138,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
             // Nếu chưa có thì thêm vào mảng (chọn ghế mới)
             return [...holdSeatId, seat.id];
         });
-        // console.log("seat", holdSeatId);
 
         setTypeSeats((prevSeats: any[]) => {
             if (!Array.isArray(prevSeats)) prevSeats = [];
@@ -580,16 +588,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
     // };
     return (
         <div className={clsx(styles.boxMainLeft, className)}>
-            <div className={clsx(styles.boxShowtimes)}>
-                <span className={clsx(styles.changeShowtimes)}>
-                    Đổi suất chiếu:
-                </span>
-                <span>13:00</span>
-                <span>13:00</span>
-                <span>13:00</span>
-                <span>13:00</span>
-                <span>13:00</span>
-            </div>
+            <ChangeShowtimes></ChangeShowtimes>
             <div className={clsx(styles.bookingSeat)}>
                 <div>
                     <Card>
@@ -658,102 +657,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                     )
                                 )}
                         </div>
-                        <div className={clsx(styles.bookingSeatsInfo)}>
-                            <div className={clsx(styles.flexBooking)}>
-                                <div className={clsx(styles.seatsInfo)}>
-                                    <div
-                                        className={clsx(
-                                            styles.bookingSeats,
-                                            styles.seatsBooked
-                                        )}
-                                    />
-                                    <span
-                                        className={clsx(
-                                            styles.bookingSeatsName
-                                        )}
-                                    >
-                                        Ghế đã đặt
-                                    </span>
-                                </div>
-                                <div className={clsx(styles.seatsInfo)}>
-                                    <div
-                                        className={clsx(
-                                            styles.bookingSeats,
-                                            styles.seatsSelecting
-                                        )}
-                                    />
-                                    <span
-                                        className={clsx(
-                                            styles.bookingSeatsName
-                                        )}
-                                    >
-                                        Ghế đang chọn
-                                    </span>
-                                </div>
-                                <div className={clsx(styles.seatsInfo)}>
-                                    <div
-                                        className={clsx(
-                                            styles.bookingSeats,
-                                            styles.seatsHolding
-                                        )}
-                                    />
-                                    <span
-                                        className={clsx(
-                                            styles.bookingSeatsName
-                                        )}
-                                    >
-                                        Ghế đang được giữ
-                                    </span>
-                                </div>
-                            </div>
-                            <div className={clsx(styles.flexBooking)}>
-                                <div className={clsx(styles.seatsInfo)}>
-                                    <div
-                                        className={clsx(
-                                            styles.bookingSeats,
-                                            styles.seatsNormal
-                                        )}
-                                    />
-                                    <span
-                                        className={clsx(
-                                            styles.bookingSeatsName
-                                        )}
-                                    >
-                                        Ghế thường
-                                    </span>
-                                </div>
-                                <div className={clsx(styles.seatsInfo)}>
-                                    <div
-                                        className={clsx(
-                                            styles.bookingSeats,
-                                            styles.seatsVIP
-                                        )}
-                                    />
-                                    <span
-                                        className={clsx(
-                                            styles.bookingSeatsName
-                                        )}
-                                    >
-                                        Ghế VIP
-                                    </span>
-                                </div>
-                                <div className={clsx(styles.seatsInfo)}>
-                                    <div
-                                        className={clsx(
-                                            styles.bookingSeats,
-                                            styles.seatSweetbox
-                                        )}
-                                    />
-                                    <span
-                                        className={clsx(
-                                            styles.bookingSeatsName
-                                        )}
-                                    >
-                                        Ghế sweatbox
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                        <UISeatsInfo></UISeatsInfo>
                     </Card>
                 </div>
             </div>

@@ -23,6 +23,7 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
         setShowtimesDate,
         setRoomIdFromShowtimes,
         setShowtimeIdFromBooking,
+        setListShowtimes,
     } = useFilmContext();
 
     //lấy các ngày trong lịch chiếu của phim
@@ -69,6 +70,13 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
             staleTime: 1000 * 60,
             retry: false,
         });
+
+    //lưu các suất chiếu vào state
+    useEffect(() => {
+        if (LoadShowByFilmAndDate) {
+            setListShowtimes(LoadShowByFilmAndDate);
+        }
+    }, [LoadShowByFilmAndDate]);
 
     // format dữ liệu
     useEffect(() => {

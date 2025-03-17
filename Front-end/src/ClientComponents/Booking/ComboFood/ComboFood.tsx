@@ -59,7 +59,7 @@ const ComboFood = ({ className }: any) => {
             const newQuantity = (prev[key] || 0) + 1;
 
             // Cập nhật tổng số lượng combo
-            // setQuantityCombo((prevTotal: any) => prevTotal + 1);
+            setQuantityCombo((prevTotal: any) => prevTotal + 1);
 
             // Cập nhật danh sách tên combo
             setNameCombo((prevNames: any[]) => {

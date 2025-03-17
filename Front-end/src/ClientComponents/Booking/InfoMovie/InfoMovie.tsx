@@ -38,6 +38,7 @@ const InfoMovie = () => {
     useEffect(() => {
         setDataDetailFilm(detailFilm);
     }, [detailFilm]);
+
     return (
         <div className={clsx(styles.infoMovie)}>
             <div className={clsx(styles.bookingFilm)}>

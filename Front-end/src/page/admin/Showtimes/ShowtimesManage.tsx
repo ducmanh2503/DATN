@@ -8,6 +8,8 @@ import dayjs from "dayjs";
 import { useForm } from "antd/es/form/Form";
 import AddShowtimes from "./AddShowtimes";
 import ShowtimesAllRooms from "./ShowtimesAllRooms";
+import clsx from "clsx";
+import styles from "../globalAdmin.module.css";
 
 const contentStyle: React.CSSProperties = {
     paddingTop: 100,
@@ -98,7 +100,7 @@ const ShowtimesManage: React.FC = () => {
 
     return (
         <>
-            <div className="flex mb-4">
+            <div className={clsx(styles.flexbox)}>
                 <Form
                     name="basic"
                     onFinish={onFinish}

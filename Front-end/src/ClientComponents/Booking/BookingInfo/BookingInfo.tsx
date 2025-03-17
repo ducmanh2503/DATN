@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 import DetailBooking from "../DetailBooking/DetailBooking";
 import { useStepsContext } from "../../UseContext/StepsContext";
 const BookingInfo = ({ nextStep, prevStep, className }: any) => {
-    const { currentStep, paymentType } = useStepsContext();
     const [open, setOpen] = useState(false);
-    // console.log("check-type", paymentType);
     const [error, setError] = useState(false); // State để kiểm soát lỗi
+    const { currentStep, paymentType } = useStepsContext();
+    const { dataDetailFilm } = useStepsContext();
 
     // Reset lỗi khi quay lại bước trước (step < 3)
     useEffect(() => {
@@ -18,6 +18,7 @@ const BookingInfo = ({ nextStep, prevStep, className }: any) => {
         }
     }, [currentStep]);
 
+    // hiển thị thông báo lỗi khi chưa chọn hình thức thanh toán
     const handleNext = () => {
         if (currentStep === 3) {
             if (!paymentType) {
@@ -29,6 +30,13 @@ const BookingInfo = ({ nextStep, prevStep, className }: any) => {
         }
         nextStep();
     };
+
+    // lưu thông tin đặt vé vào local storage mỗi khi người dùng thay đổi
+    useEffect(() => {
+        if (currentStep === 1) {
+            localStorage.setItem("movieData", dataDetailFilm);
+        }
+    }, [currentStep, paymentType]);
     return (
         <>
             <div

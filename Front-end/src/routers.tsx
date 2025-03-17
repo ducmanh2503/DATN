@@ -28,6 +28,12 @@ import GoogleCallback from "./page/auth/GoogleCallback";
 import authService from "./services/auth.service";
 import Booking from "./page/client/Booking/Booking";
 import ForgotPassword from "./page/auth/ForgotPassword";
+import TicketsPrice from "./page/admin/TicketsPrice/TicketsPrice";
+import BoxNumbers from "./ClientComponents/CalendarMovies/BoxNumbers/BoxNumbers";
+import ArticleList from "./page/admin/Article/Article";
+import CreatePost from "./page/admin/Article/CreateArticle";
+import UserProfile from "./ClientComponents/UserProfile/UserProfile";
+import DiscountManagement from "./page/admin/DisCound-Code/DisCount-code";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -109,11 +115,11 @@ const LoadingComponent = () => (
       }}
     ></div>
     <style>{`
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `}</style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
   </div>
 );
 
@@ -311,6 +317,22 @@ export const router = createBrowserRouter([
           {
             path: "rooms",
             element: <RoomPage />,
+          },
+          {
+            path: "articlelist",
+            element: <ArticleList />,
+          },
+          {
+            path: "create-article",
+            element: <CreatePost />,
+          },
+          {
+            path: "discount-code",
+            element: <DiscountManagement />,
+          },
+          {
+            path: "ticketsPrice",
+            element: <TicketsPrice></TicketsPrice>,
           },
         ],
       },

@@ -11,7 +11,6 @@ import BoxDay from "./BoxDays/BoxDay";
 import styles from "./CalendarMovie.module.css";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useStepsContext } from "../UseContext/StepsContext";
-import { useAuthContext } from "../UseContext/tokenContext";
 
 const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
     const [searchDateRaw, setSearchDateRaw] = useState<string | null>(null);
@@ -19,12 +18,12 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
         string | null
     >(null);
     const { setCalendarShowtimeID } = useStepsContext();
-    const { setTokenUserId } = useAuthContext();
     const {
         setShowtimesTime,
         setShowtimesDate,
         setRoomIdFromShowtimes,
         setShowtimeIdFromBooking,
+        setListShowtimes,
     } = useFilmContext();
 
     //lấy các ngày trong lịch chiếu của phim
@@ -63,7 +62,7 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                 const { data } = await axios.get(
                     `${GET_SHOW_BY_FILM_DATE}/${id}/${searchDateRaw}`
                 );
-                console.log("test-data", data);
+                console.log("test-data", data.show_times);
 
                 return data.show_times;
             },
@@ -72,44 +71,49 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
             retry: false,
         });
 
+    //lưu các suất chiếu vào state
+    useEffect(() => {
+        if (LoadShowByFilmAndDate) {
+            setListShowtimes(LoadShowByFilmAndDate);
+        }
+    }, [LoadShowByFilmAndDate]);
+
     // format dữ liệu
     useEffect(() => {
         if (calendarMovie && calendarMovie.length > 0) {
             const firstDate = dayjs(calendarMovie[0]).format("YYYY-MM-DD");
-
+            console.log("First date from API:", firstDate);
             // Chỉ cập nhật nếu khác giá trị hiện tại
             if (searchDateRaw !== firstDate) {
                 setSearchDateRaw(firstDate);
                 setSearchDateFormatted(dayjs(firstDate).format("DD/MM"));
+                setShowtimesDate(dayjs(firstDate).format("DD/MM"));
             }
         }
-    }, [calendarMovie]);
+    }, [calendarMovie, id]);
 
-    // reset-data khi vào suất chiếu mới
-    // const resetBookingState = () => {
-    //     setNameSeats([]);
-    //     setCurrentStep(1);
-    //     setShouldRefetch(false);
-    //     setQuantitySeats(0);
-    //     setRoomIdFromShowtimes(null);
-    //     setShowtimeIdFromBooking(null);
-    // };
-
-    // useEffect(() => {
-    //     resetBookingState();
-    // }, [roomIdFromShowtimes]);
-
-    useEffect(() => {
-        const token = localStorage.getItem("auth_token");
-        if (token) {
-            setTokenUserId(token);
+    const handleShowtimeClick = (
+        item: any,
+        setCalendarShowtimeID: (id: number) => void,
+        setRoomIdFromShowtimes: (id: number) => void,
+        setShowtimeIdFromBooking: (id: number) => void,
+        setShowtimesTime: (time: string) => void
+    ) => {
+        if (!item.room_id) {
+            console.error("room_id is invalid!", item);
+            return;
         }
-    }, []);
+        console.log("check-item", item);
+
+        setCalendarShowtimeID(item.calendar_show_id);
+        setRoomIdFromShowtimes(item.room_id);
+        setShowtimeIdFromBooking(item.id);
+        setShowtimesTime(item.start_time);
+    };
 
     // loading website and get calendar_showtime_id
     useEffect(() => {
         if (LoadShowByFilmAndDate) {
-            setCalendarShowtimeID(LoadShowByFilmAndDate.calendar_show_id);
             isLoadingFilmAndDate; // Khi dữ liệu đã có, tắt loading
         }
     }, [LoadShowByFilmAndDate]);
@@ -173,25 +177,15 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                                             <BoxNumbers
                                                 key={index}
                                                 time={formattedTime}
-                                                onClick={() => {
-                                                    if (!item.room_id) {
-                                                        console.error(
-                                                            "room_id is invalid!",
-                                                            item
-                                                        );
-                                                        return;
-                                                    }
-                                                    setRoomIdFromShowtimes(
-                                                        item.room_id
-                                                    );
-                                                    setShowtimeIdFromBooking(
-                                                        item.id
-                                                    );
-                                                    setShowtimesTime(
-                                                        item.start_time
-                                                    );
-                                                    // setCurrentStep(1);
-                                                }}
+                                                onClick={() =>
+                                                    handleShowtimeClick(
+                                                        item,
+                                                        setCalendarShowtimeID,
+                                                        setRoomIdFromShowtimes,
+                                                        setShowtimeIdFromBooking,
+                                                        setShowtimesTime
+                                                    )
+                                                }
                                             />
                                         );
                                     })

@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { EditOutlined } from "@ant-design/icons";
 import { UPDATE_DIRECTORS } from "../../../config/ApiConfig";
+import clsx from "clsx";
+import styles from "../globalAdmin.module.css";
 
 const EditDirector = ({ id }: any) => {
     const [formShowtime] = Form.useForm();
@@ -79,7 +81,7 @@ const EditDirector = ({ id }: any) => {
                     initialValues={data}
                 >
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Tên đạo diễn"
                         name="name_director"
                         rules={[
@@ -97,7 +99,7 @@ const EditDirector = ({ id }: any) => {
                     </Form.Item>
 
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="ID"
                         name="id"
                         rules={[

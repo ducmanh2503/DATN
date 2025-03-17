@@ -5,6 +5,7 @@
     padding: 10px 20px;
     margin-top: 8px;
     margin-right: 10px;
+    cursor: pointer;
     clip-path: polygon(
         0% 15%,
         15% 15%,

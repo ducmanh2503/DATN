@@ -11,7 +11,6 @@ import {
     Input,
 } from "antd";
 import axios from "axios";
-import "../FilmManage/AddFilm.css";
 import {
     GET_CALENDAR,
     GET_DATES_BY_CALENDAR,
@@ -22,8 +21,9 @@ import {
 } from "../../../config/ApiConfig";
 import { useCallback, useState } from "react";
 import { PlusCircleOutlined } from "@ant-design/icons";
-import "./ShowtimesRoom.css";
 import dayjs from "dayjs";
+import clsx from "clsx";
+import styles from "../globalAdmin.module.css";
 
 const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
@@ -191,7 +191,11 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
     return (
         <>
             {contextHolder}
-            <Button type="primary" onClick={showModal} className="addShowtimes">
+            <Button
+                type="primary"
+                onClick={showModal}
+                className={clsx(styles.addBtnForm)}
+            >
                 <PlusCircleOutlined /> Thêm suất chiếu
             </Button>
             <Modal
@@ -209,7 +213,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                     onFinish={onFinish}
                 >
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Phòng chiếu"
                         name="room_id"
                         rules={[
@@ -224,7 +228,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                         />
                     </Form.Item>
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Phim chiếu"
                         name="title"
                         rules={[
@@ -266,7 +270,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                     </Form.Item>
 
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Ngày chiếu"
                         name="selected_date"
                         rules={[
@@ -296,7 +300,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                         />
                     </Form.Item>
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Hình thức chiếu"
                         name="room_type"
                     >
@@ -313,7 +317,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                         />
                     </Form.Item>
                     {/* <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Hình thức dịch"
                         name="id3"
                         rules={[
@@ -331,7 +335,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                         </Select>
                     </Form.Item> */}
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Thời gian bắt đầu"
                         name="start_time"
                         rules={[
@@ -347,7 +351,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                         ></TimePicker>
                     </Form.Item>
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Thời gian kết thúc"
                         name="end_time"
                         dependencies={["start_time"]}
@@ -383,7 +387,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                     </Form.Item>
 
                     <Form.Item
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="Trạng thái"
                         name="status"
                         rules={[
@@ -407,7 +411,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                     </Form.Item>
                     <Form.Item
                         style={{ display: "none" }}
-                        className="input-label"
+                        className={clsx(styles.inputLabel)}
                         label="ID"
                         name="calendar_show_id"
                     >

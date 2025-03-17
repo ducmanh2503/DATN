@@ -78,7 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/room-type', RoomTypeController::class);
 
         // Seats
-        Route::post('/seats', [SeatController::class, 'store']);
+        Route::apiResource('/seats', SeatController::class);
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
 
@@ -165,8 +165,9 @@ Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 
 
 //cart
-Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']); // lấy thẳng từ resquets
-// Route::middleware('auth:api')->post('/ticket-details', [TicketController::class, 'getTicketDetails']); kiểm tra đăng nhập
+// Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']); // lấy thẳng từ resquets
+Route::middleware('auth:sanctum')->post('/ticket-details', [TicketController::class, 'getTicketDetails']);
+// kiểm tra đăng nhập
 // Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
 // Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
 // Route::post('/cart/checkout', [CartItemController::class, 'checkout']);

@@ -9,7 +9,7 @@ export const StepsProvider = ({ children }: { children: React.ReactNode }) => {
     ); // id lịch chiếu của suất chiếu
     const [userIdFromShowtimes, setUserIdFromShowtimes] = useState<
         number | null
-    >(0); // user ID showtimes
+    >(0); // user ID
     const [dataDetailFilm, setDataDetailFilm] = useState({
         title: "",
         language: "",

@@ -15,28 +15,21 @@ const ComboInfo = () => {
         console.log(" useEffect chạy");
         console.log("tên combo", nameCombo);
 
-        const newTotalComboPrice = nameCombo.length
-            ? nameCombo.reduce(
-                  (sum: any, combo: any) =>
-                      sum + combo.defaultQuantityCombo * combo.price,
-                  0
-              )
-            : 0;
+        const newTotalComboPrice = nameCombo.reduce(
+            (sum: any, combo: any) =>
+                sum + combo.defaultQuantityCombo * combo.price,
+            0
+        );
 
         setTotalComboPrice(newTotalComboPrice);
-        // console.log("check-price-combo", newTotalComboPrice);
-        console.log(totalComboPrice);
 
-        setTotalPrice((prevTotalPrice: any) => {
-            const updatedTotal = totalSeatPrice + newTotalComboPrice;
-            // console.log("Total Price cũ:", prevTotalPrice);
-            // console.log("Total Price mới:", updatedTotal);
-            return prevTotalPrice !== updatedTotal
-                ? updatedTotal
-                : prevTotalPrice;
-        });
-    }, [nameCombo, totalSeatPrice]);
-
+        if (newTotalComboPrice !== 0) {
+            setTotalPrice(totalSeatPrice + newTotalComboPrice);
+        } else {
+            setTotalPrice(totalSeatPrice);
+        }
+    }, [nameCombo]);
+    // console.log("kiểm tra name combo", nameCombo);
     return (
         <div>
             <div className={clsx(styles.bookingCombo)}>

@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { GET_USER } from "../../config/ApiConfig";
-import { UPDATE_USER_CLIENT } from "../../config/ApiConfig";
-import styles from "./UserProfile.module.css";
+import { GET_USER, UPDATE_USER_CLIENT } from "../../config/ApiConfig";
+import { Modal, Button, Input } from "antd";
 
 const fetchUserProfile = async () => {
-  // Add Authorization header with bearer token
-  const token = localStorage.getItem("auth_token"); // Assuming you store your token in localStorage
+  const token = localStorage.getItem("auth_token");
   const { data } = await axios.get(`${GET_USER}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -27,11 +25,8 @@ const UserProfile = () => {
   });
 
   const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -49,14 +44,12 @@ const UserProfile = () => {
 
   const handleSave = async () => {
     try {
-      // Add Authorization header with bearer token for the PUT request as well
       const token = localStorage.getItem("auth_token");
       await axios.put(`${UPDATE_USER_CLIENT}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setEditMode(false);
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Lỗi khi cập nhật thông tin:", error);
     }
@@ -66,65 +59,69 @@ const UserProfile = () => {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className={styles.container}>
-      <h2>Hồ sơ người dùng</h2>
-      <div className={styles.field}>
-        <span className={styles.label}>Tên:</span>
-        {editMode ? (
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={styles.input}
-          />
-        ) : (
-          <span className={styles.value}>{user.name}</span>
-        )}
-      </div>
-      <div className={styles.field}>
-        <span className={styles.label}>Email:</span>
-        {editMode ? (
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className={styles.input}
-          />
-        ) : (
-          <span className={styles.value}>{user.email}</span>
-        )}
-      </div>
-      <div className={styles.field}>
-        <span className={styles.label}>Số điện thoại:</span>
-        {editMode ? (
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className={styles.input}
-          />
-        ) : (
-          <span className={styles.value}>{user.phone}</span>
-        )}
-      </div>
-      <div className={styles.field}>
-        <span className={styles.label}>Vai trò:</span>
-        <span className={styles.value}>{user.role}</span>
-      </div>
-      {user.role === "customer" &&
-        (editMode ? (
-          <button onClick={handleSave} className={styles.button}>
-            Lưu
-          </button>
-        ) : (
-          <button onClick={() => setEditMode(true)} className={styles.button}>
-            Chỉnh sửa
-          </button>
-        ))}
-    </div>
+    <>
+      <Button onClick={() => setIsModalOpen(true)}>Hồ sơ người dùng</Button>
+      <Modal
+        title="Hồ sơ người dùng"
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={null}
+      >
+        <div className="space-y-4">
+          <div>
+            <span className="font-semibold">Tên:</span>
+            {editMode ? (
+              <Input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+              />
+            ) : (
+              <p>{user.name}</p>
+            )}
+          </div>
+          <div>
+            <span className="font-semibold">Email:</span>
+            {editMode ? (
+              <Input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            ) : (
+              <p>{user.email}</p>
+            )}
+          </div>
+          <div>
+            <span className="font-semibold">Số điện thoại:</span>
+            {editMode ? (
+              <Input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+              />
+            ) : (
+              <p>{user.phone}</p>
+            )}
+          </div>
+          <div>
+            <span className="font-semibold">Vai trò:</span>
+            <p>{user.role}</p>
+          </div>
+          {user.role === "customer" && (
+            <Button
+              type="primary"
+              onClick={editMode ? handleSave : () => setEditMode(true)}
+            >
+              {editMode ? "Lưu" : "Chỉnh sửa"}
+            </Button>
+          )}
+        </div>
+      </Modal>
+    </>
   );
 };
 

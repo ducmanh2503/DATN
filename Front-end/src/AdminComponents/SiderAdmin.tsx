@@ -50,9 +50,6 @@ const SiderAdmin = () => {
       getItem(<Link to="ticketsPrice">Danh sách giá vé</Link>, "sub14-1"),
     ]),
 
-    getItem("Ghế ngồi", "sub4", <BuildOutlined />, [
-      getItem(<Link to="seats">Quản lý Ghế ngồi</Link>, "sub4-1"),
-    ]),
     getItem("Người dùng", "sub5", <TeamOutlined />, [
       getItem("Tự tạo", "sub5-1"),
     ]),
@@ -70,8 +67,10 @@ const SiderAdmin = () => {
     ]),
     getItem("Quản lý bài viết ", "sub11", <BarChartOutlined />, [
       getItem(<Link to="articlelist">Danh sách bài viết</Link>, "sub11-1"),
-      getItem(<Link to="update-article">Cập nhật bài viết</Link>, "sub12-1"),
       getItem(<Link to="create-article">Thêm bài viết</Link>, "sub13-1"),
+    ]),
+    getItem("Quản lý Khuyến Mãi", "sub12", <BarChartOutlined />, [
+      getItem(<Link to="discount-code">Khuyến mãi</Link>, "sub14-1"),
     ]),
     getItem("Quản lý đơn hàng", "sub11", <ShoppingOutlined />, [
       getItem(<Link to="orders">Danh sách đơn hàng</Link>, "sub11-1"),

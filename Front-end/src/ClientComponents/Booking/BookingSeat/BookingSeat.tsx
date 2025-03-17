@@ -11,22 +11,24 @@ import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
 import { useFilmContext } from "../../UseContext/FIlmContext";
 import { useAuthContext } from "../../UseContext/TokenContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
-import { useSeatSelection } from "../ValidateSeats/ValidateSeats";
 import { useComboContext } from "../../UseContext/CombosContext";
 
 const BookingSeat = ({ className }: { className?: string }) => {
     const {
         setNameSeats,
-        setQuantitySeats,
         nameSeats,
+        setQuantitySeats,
+        quantitySeats,
         setTotalSeatPrice,
         totalSeatPrice,
         setTypeSeats,
-        setHoldSeatId,
+        typeSeats,
         setSelectedSeatIds,
         seats,
         setSeats,
         setMatrixSeatsManage,
+        setHoldSeatId,
+        holdSeatId,
     } = useSeatsContext();
     const { setTotalPrice, totalPrice } = useFinalPriceContext();
     const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
@@ -119,7 +121,15 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
     // gán các giá trị của ghế để hiển thị
     const handleSeatClick = (seat: BookingType) => {
-        setHoldSeatId(seat.id);
+        setHoldSeatId((holdSeatId: any[]) => {
+            // Kiểm tra nếu id đã tồn tại, thì loại bỏ nó (bỏ chọn ghế)
+            if (holdSeatId.includes(seat.id)) {
+                return holdSeatId.filter((id) => id !== seat.id);
+            }
+            // Nếu chưa có thì thêm vào mảng (chọn ghế mới)
+            return [...holdSeatId, seat.id];
+        });
+        // console.log("seat", holdSeatId);
 
         setTypeSeats((prevSeats: any[]) => {
             if (!Array.isArray(prevSeats)) prevSeats = [];
@@ -129,11 +139,12 @@ const BookingSeat = ({ className }: { className?: string }) => {
                 (s) => s.type === seat.type
             );
 
+            let updatedSeats;
+
             if (existingSeatIndex !== -1) {
                 // Nếu ghế cùng loại đã có
-                const updatedSeats = prevSeats.map((s, index) => {
+                updatedSeats = prevSeats.map((s, index) => {
                     if (index === existingSeatIndex) {
-                        // Nếu ghế đã có, kiểm tra xem seatCode đã tồn tại chưa
                         const seatExists = s.seatCode
                             .split(", ")
                             .includes(seat.seatCode);
@@ -144,7 +155,9 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                 .split(", ")
                                 .filter((code: any) => code !== seat.seatCode)
                                 .join(", ");
-
+                            setSelectedSeatIds((prev: any) =>
+                                prev.filter((id: any) => id !== seat.id)
+                            );
                             return {
                                 ...s,
                                 quantitySeats: s.quantitySeats - 1,
@@ -153,6 +166,11 @@ const BookingSeat = ({ className }: { className?: string }) => {
                             };
                         } else {
                             // Nếu chưa tồn tại, thêm mới
+                            setSelectedSeatIds((prev: any) => [
+                                ...prev,
+                                seat.id,
+                            ]);
+
                             return {
                                 ...s,
                                 quantitySeats: s.quantitySeats + 1,
@@ -165,10 +183,10 @@ const BookingSeat = ({ className }: { className?: string }) => {
                 });
 
                 // Xoá ghế nếu số lượng bằng 0
-                return updatedSeats.filter((s) => s.quantitySeats > 0);
+                updatedSeats = updatedSeats.filter((s) => s.quantitySeats > 0);
             } else {
                 // Nếu ghế loại này chưa có, thêm mới
-                return [
+                updatedSeats = [
                     ...prevSeats,
                     {
                         quantitySeats: 1,
@@ -178,6 +196,15 @@ const BookingSeat = ({ className }: { className?: string }) => {
                     },
                 ];
             }
+
+            return updatedSeats; // Trả về giá trị mới của typeSeats
+        });
+
+        setNameSeats((prevSeats: any) => {
+            if (prevSeats.includes(seat.seatCode)) {
+                return prevSeats.filter((code: any) => code !== seat.seatCode);
+            }
+            return [...prevSeats, seat.seatCode];
         });
 
         // Kiểm tra trạng thái ghế đã giữ hay đã đặt chưa
@@ -189,35 +216,26 @@ const BookingSeat = ({ className }: { className?: string }) => {
             alert("Ghế này đã được giữ, không thể chọn");
             return;
         }
-
-        // Cập nhật danh sách ghế và tổng giá
-        setNameSeats((prevSeats: string[]) => {
-            let updatedSeats: string[];
-            let updatedTotalPrice: number = Number(totalSeatPrice);
-
-            if (prevSeats.includes(seat.seatCode)) {
-                // Bỏ chọn ghế
-                updatedSeats = prevSeats.filter(
-                    (seatCode: string) => seatCode !== seat.seatCode
-                );
-                updatedTotalPrice -= Number(seat.price);
-                setSelectedSeatIds((prev: any) =>
-                    prev.filter((id: any) => id !== seat.id)
-                );
-            } else {
-                // Chọn thêm ghế
-                updatedSeats = [...prevSeats, seat.seatCode];
-                updatedTotalPrice += Number(seat.price);
-                setSelectedSeatIds((prev: any) => [...prev, seat.id]);
-            }
-
-            setQuantitySeats(updatedSeats.length);
-
-            setTotalSeatPrice(updatedTotalPrice);
-
-            return updatedSeats;
-        });
     };
+
+    useEffect(() => {
+        if (!Array.isArray(typeSeats) || typeSeats.length === 0) {
+            setQuantitySeats(0);
+            setTotalSeatPrice(0);
+            return;
+        }
+        const totalSeats = typeSeats.reduce(
+            (sum: any, s: any) => sum + s.quantitySeats,
+            quantitySeats
+        );
+        const totalPrice = typeSeats.reduce(
+            (sum: any, s: any) => sum + s.price,
+            totalSeatPrice
+        );
+
+        setQuantitySeats(totalSeats);
+        setTotalSeatPrice(totalPrice);
+    }, [typeSeats]);
 
     const handleSeatUpdateEvent = useCallback(
         (event: CustomEvent) => {
@@ -243,11 +261,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
     );
     // gán tổng tiền ghế vào tiền tổng
     useEffect(() => {
-        if (totalComboPrice && currentStep === 1) {
-            setTotalPrice(totalPrice);
-        } else {
-            setTotalPrice(totalSeatPrice);
-        }
+        setTotalPrice(totalSeatPrice + totalComboPrice);
     }, [totalSeatPrice, totalComboPrice, currentStep]);
 
     useEffect(() => {

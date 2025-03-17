@@ -29,6 +29,7 @@ import authService from "./services/auth.service";
 import Booking from "./page/client/Booking/Booking";
 import ForgotPassword from "./page/auth/ForgotPassword";
 import TicketsPrice from "./page/admin/TicketsPrice/TicketsPrice";
+import BoxNumbers from "./ClientComponents/CalendarMovies/BoxNumbers/BoxNumbers";
 import ArticleList from "./page/admin/Article/Article";
 import CreatePost from "./page/admin/Article/CreateArticle";
 import UserProfile from "./ClientComponents/UserProfile/UserProfile";

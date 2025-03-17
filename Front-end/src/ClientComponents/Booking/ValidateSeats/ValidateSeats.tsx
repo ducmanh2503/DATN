@@ -1,64 +1,55 @@
-import { useState } from "react";
+import { useCallback } from "react";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 
-interface Seat {
-    id: number;
-    seatCode: string;
-    type: string;
-    status: string;
-}
+const useSeatValidation = () => {
+    const { selectedSeatIds } = useSeatsContext();
+    const validateSeats = useCallback(
+        (selectedSeatIds: any, seatMatrix: any) => {
+            for (let rowIndex = 0; rowIndex < seatMatrix.length; rowIndex++) {
+                const row = seatMatrix[rowIndex];
+                const seatPositions = Object.values(row);
 
-// Custom hook quản lý chọn ghế
-export const useSeatSelection = () => {
-    const { nameSeats, setNameSeats } = useSeatsContext();
-    const [seatType, setSeatType] = useState<string | null>(null);
+                // Lọc ra các ghế đã chọn trong hàng này
+                const selectedSeatsInRow = seatPositions.filter((seat) =>
+                    selectedSeatIds.includes(seat.id)
+                );
 
-    // Kiểm tra ghế có hợp lệ không
-    const isValidSeat = (seat: Seat) => {
-        if (seat.status === "held" || seat.status === "booked") return false;
+                // Nếu không có ghế nào được chọn trong hàng, bỏ qua
+                if (selectedSeatsInRow.length === 0) continue;
 
-        // 1. Kiểm tra hàng dọc
-        const selectedColumns = nameSeats.map((s: any) => s.seatCode.slice(1)); // Lấy số ghế
-        const newColumn = seat.seatCode.slice(1);
-        if (selectedColumns.includes(newColumn)) {
-            alert("Không được chọn ghế theo hàng dọc!");
-            return false;
-        }
+                // Kiểm tra ghế liền kề
+                for (let i = 0; i < seatPositions.length; i++) {
+                    const currentSeat = seatPositions[i];
+                    const leftSeat = seatPositions[i - 1];
+                    const rightSeat = seatPositions[i + 1];
 
-        // 2. Kiểm tra loại ghế
-        if (seatType && seat.type !== seatType) {
-            alert("Không được chọn ghế khác loại!");
-            return false;
-        }
+                    // Kiểm tra nếu ghế này được chọn
+                    if (selectedSeatIds.includes(currentSeat.id)) {
+                        // Kiểm tra trường hợp ghế trống lẻ
+                        const isLeftEmpty =
+                            leftSeat &&
+                            leftSeat.status === "available" &&
+                            !selectedSeatIds.includes(leftSeat.id);
 
-        return true;
-    };
+                        const isRightEmpty =
+                            rightSeat &&
+                            rightSeat.status === "available" &&
+                            !selectedSeatIds.includes(rightSeat.id);
 
-    // Xử lý khi chọn hoặc bỏ chọn ghế
-    const toggleSeat = (seat: Seat) => {
-        if (!isValidSeat(seat)) return;
+                        // Không cho phép nếu có ghế trống lẻ ở hai bên
+                        if (isLeftEmpty && isRightEmpty) {
+                            return false;
+                        }
+                    }
+                }
+            }
 
-        // Nếu đã chọn thì bỏ chọn, chưa chọn thì thêm vào
-        setNameSeats((prev: any) =>
-            prev.find((s: any) => s.id === seat.id)
-                ? prev.filter((s: any) => s.id !== seat.id)
-                : [...prev, seat]
-        );
+            return true; // Hợp lệ nếu không phát hiện ghế trống lẻ
+        },
+        []
+    );
 
-        // Cập nhật loại ghế khi chọn ghế đầu tiên
-        if (nameSeats.length === 0) setSeatType(seat.type);
-    };
-
-    // Reset trạng thái chọn ghế
-    const resetSelection = () => {
-        setNameSeats([]);
-        setSeatType(null);
-    };
-
-    return {
-        nameSeats,
-        toggleSeat,
-        resetSelection,
-        isValidSeat,
-    };
+    return { validateSeats };
 };
+
+export default useSeatValidation;

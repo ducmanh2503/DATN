@@ -7,7 +7,7 @@ export const CombosProvider = ({ children }: { children: React.ReactNode }) => {
     const [nameCombo, setNameCombo] = useState([]); // tên combo
     const [totalComboPrice, setTotalComboPrice] = useState<string | null>(null); // tổng số tiền combo
     const [quantityMap, setQuantityMap] = useState<Record<string, number>>({}); // giá trị mặc định của combo
-
+    const [holdComboID, setHoldComboID] = useState<string[]>([]); // id combo đã chọn
     return (
         <ComboContext.Provider
             value={{
@@ -19,6 +19,8 @@ export const CombosProvider = ({ children }: { children: React.ReactNode }) => {
                 setTotalComboPrice,
                 quantityMap,
                 setQuantityMap,
+                holdComboID,
+                setHoldComboID,
             }}
         >
             {children}

@@ -37,7 +37,7 @@ const DetailBooking = ({
 
   const onOk = () => {
     vnpay();
-    paymentTicket();
+    // paymentTicket();
     setOpen(false);
   };
 

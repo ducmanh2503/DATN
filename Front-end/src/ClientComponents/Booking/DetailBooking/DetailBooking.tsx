@@ -83,10 +83,21 @@ const DetailBooking = ({
     //thanh toán nếu bằng VNPay
     const { mutate: vnpay } = useMutation({
         mutationFn: async () => {
-            await axios.post(PAYMENT_WITH_VNPAY, {
-                totalPrice: totalPrice,
-                userId: setUserIdFromShowtimes,
-            });
+            const { data } = await axios.post(
+                PAYMENT_WITH_VNPAY,
+                {
+                    totalPrice: totalPrice,
+                    // userId: setUserIdFromShowtimes,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${tokenUserId}`,
+                    },
+                }
+            );
+            console.log(data);
+
+            return data.data;
         },
     });
     return (

@@ -19,7 +19,7 @@ class PaymentController extends Controller
         $vnp_TxnRef = time() . ""; //Mã đơn hàng. Trong thực tế Merchant cần insert đơn hàng vào DB và gửi mã này 
         $vnp_OrderInfo = $request->input('order_desc', 'order_desc');
         $vnp_OrderType = $request->input('order_type', 'order_type');
-        $vnp_Amount = ($request->input('amount', 10000)) * 100;
+        $vnp_Amount = ($request->input('totalPrice', 10000)) * 100;
         $vnp_Locale = 'vn';
         $vnp_BankCode = 'NCB';
         $vnp_IpAddr = $request->ip();

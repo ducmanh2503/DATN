@@ -48,6 +48,7 @@ const DetailBooking = ({
     const handleClick = () => {
         setIsSelected(!isSelected); // Toggle trạng thái chọn
     };
+    console.log("user-ID", setUserIdFromShowtimes);
 
     const { mutate: paymentTicket } = useMutation({
         mutationFn: async () => {
@@ -79,7 +80,6 @@ const DetailBooking = ({
         mutationFn: async () => {
             await axios.post(PAYMENT_WITH_VNPAY, {
                 totalPrice: totalPrice,
-                userId: setUserIdFromShowtimes,
             });
         },
     });

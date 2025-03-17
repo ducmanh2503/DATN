@@ -129,7 +129,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
             // Nếu chưa có thì thêm vào mảng (chọn ghế mới)
             return [...holdSeatId, seat.id];
         });
-        // console.log("seat", holdSeatId);
 
         setTypeSeats((prevSeats: any[]) => {
             if (!Array.isArray(prevSeats)) prevSeats = [];

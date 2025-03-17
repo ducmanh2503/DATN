@@ -11,6 +11,7 @@ import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useComboContext } from "../../UseContext/CombosContext";
 import { PAYMENT_WITH_VNPAY } from "../../../config/ApiConfig";
+import { useAuthContext } from "../../UseContext/TokenContext";
 
 const DetailBooking = ({
     open,
@@ -23,7 +24,7 @@ const DetailBooking = ({
         dataDetailFilm,
         calendarShowtimeID,
         paymentType,
-        setUserIdFromShowtimes,
+        // setUserIdFromShowtimes,
     } = useStepsContext();
     const { showtimesTime, showtimesDate, filmId, showtimeIdFromBooking } =
         useFilmContext();
@@ -31,7 +32,7 @@ const DetailBooking = ({
     const { nameSeats, totalSeatPrice, holdSeatId, typeSeats } =
         useSeatsContext();
     const { nameCombo, totalComboPrice, holdComboID } = useComboContext();
-
+    const { tokenUserId } = useAuthContext();
     const [isSelected, setIsSelected] = useState(false);
 
     const onOk = () => {
@@ -48,38 +49,43 @@ const DetailBooking = ({
     const handleClick = () => {
         setIsSelected(!isSelected); // Toggle trạng thái chọn
     };
-    console.log("user-ID", setUserIdFromShowtimes);
 
-    const { mutate: paymentTicket } = useMutation({
-        mutationFn: async () => {
-            const detailTicket = {
-                user_id: setUserIdFromShowtimes,
-                movie_id: filmId,
-                showtime_id: showtimeIdFromBooking,
-                calendar_show_id: calendarShowtimeID,
-                seat_ids: holdSeatId,
-                combo_ids: holdComboID,
-                pricing: {
-                    total_ticket_price: totalSeatPrice,
-                    total_combo_price: totalComboPrice,
-                    total_price: totalPrice,
-                },
-                payment_method: paymentType,
-            };
-            console.log(detailTicket);
+    //   const { mutate: paymentTicket } = useMutation({
+    //     mutationFn: async () => {
+    //       const detailTicket = {
+    //         // user_id: setUserIdFromShowtimes,
+    //         movie_id: filmId,
+    //         showtime_id: showtimeIdFromBooking,
+    //         calendar_show_id: calendarShowtimeID,
+    //         seat_ids: holdSeatId,
+    //         combo_ids: holdComboID,
+    //         pricing: {
+    //           total_ticket_price: totalSeatPrice,
+    //           total_combo_price: totalComboPrice,
+    //           total_price: totalPrice,
+    //         },
+    //         payment_method: paymentType,
+    //       };
+    //       console.log(detailTicket);
 
-            await axios.post(
-                `http://localhost:8000/api/ticket-details`,
-                detailTicket
-            );
-        },
-    });
+    //       await axios.post(
+    //         `http://localhost:8000/api/ticket-details`,
+    //         detailTicket,
+    //         {
+    //           headers: {
+    //             Authorization: `Bearer ${tokenUserId}`,
+    //           },
+    //         }
+    //       );
+    //     },
+    //   });
 
     //thanh toán nếu bằng VNPay
     const { mutate: vnpay } = useMutation({
         mutationFn: async () => {
             await axios.post(PAYMENT_WITH_VNPAY, {
                 totalPrice: totalPrice,
+                userId: setUserIdFromShowtimes,
             });
         },
     });

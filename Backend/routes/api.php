@@ -165,8 +165,9 @@ Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 
 
 //cart
-Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']); // lấy thẳng từ resquets
-// Route::middleware('auth:api')->post('/ticket-details', [TicketController::class, 'getTicketDetails']); kiểm tra đăng nhập
+// Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']); // lấy thẳng từ resquets
+Route::middleware('auth:sanctum')->post('/ticket-details', [TicketController::class, 'getTicketDetails']);
+// kiểm tra đăng nhập
 // Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
 // Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
 // Route::post('/cart/checkout', [CartItemController::class, 'checkout']);

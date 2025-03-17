@@ -7,6 +7,7 @@ import { GET_COMBOS } from "../../../config/ApiConfig";
 import CustomNotification from "../Notification/Notification";
 import { useComboContext } from "../../UseContext/CombosContext";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
+import { useStepsContext } from "../../UseContext/StepsContext";
 
 interface DataType {
     key: string;
@@ -25,7 +26,10 @@ const ComboFood = ({ className }: any) => {
         quantityMap,
         setQuantityMap,
         setNameCombo,
+        holdComboID,
+        setHoldComboID,
     } = useComboContext();
+    const { currentStep } = useStepsContext();
     const { quantitySeats } = useSeatsContext();
     const { openNotification, contextHolder } = CustomNotification();
 
@@ -47,17 +51,15 @@ const ComboFood = ({ className }: any) => {
             });
             return;
         }
+        //lấy ID của combo đã chọn
+        setHoldComboID((prev: any) => [...prev, record.id]);
+        console.log("holdComboID", holdComboID);
 
         setQuantityMap((prev: any) => {
             const newQuantity = (prev[key] || 0) + 1;
 
             // Cập nhật tổng số lượng combo
-            setQuantityCombo((prevTotal: any) => prevTotal + 1);
-
-            // Cập nhật tổng giá tiền combo
-            setTotalComboPrice(
-                (prev: string) => parseInt(prev) + parseInt(price)
-            );
+            // setQuantityCombo((prevTotal: any) => prevTotal + 1);
 
             // Cập nhật danh sách tên combo
             setNameCombo((prevNames: any[]) => {
@@ -97,22 +99,22 @@ const ComboFood = ({ className }: any) => {
 
     // Hàm giảm số lượng
     const decreaseQuantity = (key: string, price: string, record: any) => {
+        // giảm số lượng combo
+        setHoldComboID((prev: any) => prev.filter((id: string) => id !== key));
+        console.log("holdComboID", holdComboID);
+
         setQuantityMap((prev: any) => {
             if (!prev[key] || prev[key] <= 0) return prev;
 
             const newQuantity = prev[key] - 1;
 
-            // Cập nhật tổng số lượng combo
-            setQuantityCombo((prevTotal: any) => Math.max(prevTotal - 1, 0));
+            // setQuantityCombo((prevTotal: any) => Math.max(prevTotal - 1, 0));
+            // setTotalComboPrice((prevPrice: any) =>
+            //     Math.max(parseInt(prevPrice) - parseInt(price), 0)
+            // );
 
-            // Cập nhật tổng giá tiền combo
-            setTotalComboPrice((prevPrice: any) =>
-                Math.max(parseInt(prevPrice) - parseInt(price), 0)
-            );
-
-            // Cập nhật danh sách tên combo
             setNameCombo((prevNames: any[]) => {
-                return prevNames
+                let newArr = prevNames
                     .map((combo) =>
                         combo.name === record.name
                             ? {
@@ -122,7 +124,9 @@ const ComboFood = ({ className }: any) => {
                               }
                             : combo
                     )
-                    .filter((combo) => combo.defaultQuantityCombo > 0); // Loại bỏ combo có số lượng = 0
+                    .filter((combo) => combo.defaultQuantityCombo > 0);
+
+                return [...newArr];
             });
 
             return { ...prev, [key]: newQuantity };
@@ -196,12 +200,15 @@ const ComboFood = ({ className }: any) => {
         queryKey: ["optionsCombos"],
         queryFn: async () => {
             const { data } = await axios.get(GET_COMBOS);
+            console.log("loại combo", data.combos);
+
             return data.combos.map((record: any) => ({
                 ...record,
                 key: record.id,
             }));
         },
         staleTime: 1000 * 60 * 10,
+        enabled: currentStep >= 1,
     });
     return (
         <div className={clsx(className)}>
@@ -216,5 +223,4 @@ const ComboFood = ({ className }: any) => {
         </div>
     );
 };
-
 export default ComboFood;

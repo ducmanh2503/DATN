@@ -60,6 +60,8 @@ const DELETE_TICKETPRICE = (id: number) =>
     `${BASE_URL}/ticket-management/${id}`;
 const UPDATE_TICKETPRICE = (id: number) =>
     `${BASE_URL}/ticket-management/${id}`;
+
+const PAYMENT_WITH_VNPAY = `${BASE_URL}/VNPay/create`; // thanh toán bằng VNPay
 export {
     GOOGLE_CALLBACK,
     UPDATE_USER_CLIENT,
@@ -105,4 +107,5 @@ export {
     DELETE_TICKETPRICE,
     UPDATE_TICKETPRICE,
     DETAIL_TICKETPRICE,
+    PAYMENT_WITH_VNPAY,
 };

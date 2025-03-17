@@ -29,6 +29,7 @@ import authService from "./services/auth.service";
 import Booking from "./page/client/Booking/Booking";
 import ForgotPassword from "./page/auth/ForgotPassword";
 import TicketsPrice from "./page/admin/TicketsPrice/TicketsPrice";
+import BoxNumbers from "./ClientComponents/CalendarMovies/BoxNumbers/BoxNumbers";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";

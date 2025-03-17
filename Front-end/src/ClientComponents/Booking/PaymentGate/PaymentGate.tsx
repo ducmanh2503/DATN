@@ -96,7 +96,7 @@ const PaymentGate = ({ className }: any) => {
                     onChange={onChange}
                     value={paymentType}
                     options={[
-                        { value: "vnPay", label: "VN Pay" },
+                        { value: "VNpay", label: "VN Pay" },
                         { value: "MoMo", label: "Ví điện tử MoMo" },
                         { value: "ZaloPay", label: "Zalo Pay" },
                     ]}

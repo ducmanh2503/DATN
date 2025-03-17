@@ -191,6 +191,7 @@ const TicketsPrice = () => {
             dataIndex: "price",
             key: "price",
             sorter: (a: any, b: any) => a.price - b.price,
+            render: (value, record) => <span>{`${record.price} VNĐ`}</span>,
         },
         {
             title: "Hành động",

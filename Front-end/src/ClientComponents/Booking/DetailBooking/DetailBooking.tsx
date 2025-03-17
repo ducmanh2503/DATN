@@ -10,6 +10,7 @@ import { useFilmContext } from "../../UseContext/FIlmContext";
 import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useComboContext } from "../../UseContext/CombosContext";
+import { PAYMENT_WITH_VNPAY } from "../../../config/ApiConfig";
 
 const DetailBooking = ({
     open,
@@ -18,16 +19,23 @@ const DetailBooking = ({
     open: boolean;
     setOpen: (open: boolean) => void;
 }) => {
-    const { dataDetailFilm, calendarShowtimeID } = useStepsContext();
+    const {
+        dataDetailFilm,
+        calendarShowtimeID,
+        paymentType,
+        setUserIdFromShowtimes,
+    } = useStepsContext();
     const { showtimesTime, showtimesDate, filmId, showtimeIdFromBooking } =
         useFilmContext();
     const { totalPrice } = useFinalPriceContext();
-    const { nameSeats, totalSeatPrice } = useSeatsContext();
-    const { nameCombo, totalComboPrice } = useComboContext();
+    const { nameSeats, totalSeatPrice, holdSeatId, typeSeats } =
+        useSeatsContext();
+    const { nameCombo, totalComboPrice, holdComboID } = useComboContext();
 
     const [isSelected, setIsSelected] = useState(false);
 
     const onOk = () => {
+        vnpay();
         paymentTicket();
         setOpen(false);
     };
@@ -44,16 +52,18 @@ const DetailBooking = ({
     const { mutate: paymentTicket } = useMutation({
         mutationFn: async () => {
             const detailTicket = {
+                user_id: setUserIdFromShowtimes,
                 movie_id: filmId,
                 showtime_id: showtimeIdFromBooking,
                 calendar_show_id: calendarShowtimeID,
-                seat_ids: nameSeats,
-                combo_ids: nameCombo,
+                seat_ids: holdSeatId,
+                combo_ids: holdComboID,
                 pricing: {
                     total_ticket_price: totalSeatPrice,
                     total_combo_price: totalComboPrice,
                     total_price: totalPrice,
                 },
+                payment_method: paymentType,
             };
             console.log(detailTicket);
 
@@ -61,6 +71,16 @@ const DetailBooking = ({
                 `http://localhost:8000/api/ticket-details`,
                 detailTicket
             );
+        },
+    });
+
+    //thanh toán nếu bằng VNPay
+    const { mutate: vnpay } = useMutation({
+        mutationFn: async () => {
+            await axios.post(PAYMENT_WITH_VNPAY, {
+                totalPrice: totalPrice,
+                userId: setUserIdFromShowtimes,
+            });
         },
     });
     return (
@@ -104,18 +124,31 @@ const DetailBooking = ({
                         <div className={clsx(styles.cinemaRoom)}>RAP 2</div>
                         <div className={clsx(styles.showtime)}>
                             {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")} -{" "}
-                            {dayjs(showtimesDate, "MM/DD").format("MM/DD")}
+                            {showtimesDate}
                         </div>
                         <div className={clsx(styles.seatInfo)}>
-                            <span className={clsx(styles.seatLabel)}>
-                                Ghế:{" "}
-                            </span>
-                            <span className={clsx(styles.seatName)}>
-                                {nameSeats.join(",")}
-                            </span>
+                            {typeSeats?.map((item: any) => (
+                                <div key={item.id}>
+                                    <span className={clsx(styles.seatLabel)}>
+                                        Ghế {item.type}:{" "}
+                                    </span>
+                                    <span className={clsx(styles.seatName)}>
+                                        {item.seatCode}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                         <div className={clsx(styles.comboInfo)}>
-                            <span>1</span> x <span>Gói Combo đầu tiên</span>
+                            {nameCombo?.map((item: any) => (
+                                <div key={item.id}>
+                                    <span className={clsx(styles.comboLabel)}>
+                                        {item.defaultQuantityCombo}{" "}
+                                    </span>
+                                    <span className={clsx(styles.comboName)}>
+                                        x {item.name}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>

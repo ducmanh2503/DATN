@@ -12,6 +12,7 @@ import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useComboContext } from "../../UseContext/CombosContext";
 import { PAYMENT_WITH_VNPAY } from "../../../config/ApiConfig";
 import { useAuthContext } from "../../UseContext/TokenContext";
+import { Link } from "react-router-dom";
 
 const DetailBooking = ({
     open,
@@ -35,9 +36,12 @@ const DetailBooking = ({
     const { tokenUserId } = useAuthContext();
     const [isSelected, setIsSelected] = useState(false);
 
-    const onOk = () => {
-        vnpay();
-        paymentTicket();
+    const onOk = async () => {
+        vnpay.mutate(undefined, {
+            onSuccess: (data: any) => {
+                window.location.href = data; // Chuyển hướng đến link VNPay
+            },
+        });
         setOpen(false);
     };
 
@@ -81,13 +85,12 @@ const DetailBooking = ({
     //   });
 
     //thanh toán nếu bằng VNPay
-    const { mutate: vnpay } = useMutation({
+    const vnpay = useMutation({
         mutationFn: async () => {
             const { data } = await axios.post(
                 PAYMENT_WITH_VNPAY,
                 {
                     totalPrice: totalPrice,
-                    // userId: setUserIdFromShowtimes,
                 },
                 {
                     headers: {
@@ -95,7 +98,7 @@ const DetailBooking = ({
                     },
                 }
             );
-            console.log(data);
+            console.log(data.data);
 
             return data.data;
         },

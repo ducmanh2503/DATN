@@ -12,7 +12,7 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
     const [showtimeIdFromBooking, setShowtimeIdFromBooking] = useState<
         number | null
     >(); // id suất chiếu booking
-
+    const [listShowtimes, setListShowtimes] = useState<any[]>([]); // danh sách suất chiếu
     return (
         <FilmContext.Provider
             value={{
@@ -26,6 +26,8 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
                 setRoomIdFromShowtimes,
                 showtimeIdFromBooking,
                 setShowtimeIdFromBooking,
+                listShowtimes,
+                setListShowtimes,
             }}
         >
             {children}

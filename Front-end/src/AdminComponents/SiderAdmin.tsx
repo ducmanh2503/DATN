@@ -52,7 +52,9 @@ const SiderAdmin = () => {
             getItem(<Link to="seats">Quản lý Ghế ngồi</Link>, "sub4-1"),
         ]),
         getItem("Người dùng", "sub5", <TeamOutlined />, [
-            getItem("Tự tạo", "sub5-1"),
+            getItem(<Link to="users">Danh sách Người dùng</Link>,  "sub5-1"),
+            getItem(<Link to="userpage/useradd">Tạo người dùng</Link>,  "sub5-2"),
+
         ]),
         getItem("Thống kê", "sub6", <BarChartOutlined />, [
             getItem("Tự tạo", "sub6-1"),
@@ -69,7 +71,7 @@ const SiderAdmin = () => {
 
         getItem("Quản lý đơn hàng", "sub11", <ShoppingOutlined />, [
             getItem(<Link to="orders">Danh sách đơn hàng</Link>, "sub11-1"),
-            getItem(<Link to="/admin/order-details">Chi tiết đơn hàng</Link>, "sub11-2"),
+            getItem(<Link to="/admin/order/orderDetail">Chi tiết đơn hàng</Link>, "sub11-2"),
         ]),
     ];
     return (

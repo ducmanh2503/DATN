@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Room;
+use App\Models\Seat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -15,8 +16,6 @@ class RoomController extends Controller
      */
     public function index(Request $request)
     {
-
-
         // Lấy danh sách phòng và phân trang
         $rooms = Room::query()->latest('id')->get();
 
@@ -33,8 +32,6 @@ class RoomController extends Controller
      */
     public function store(Request $request)
     {
-
-
         try {
             // Lấy dữ liệu JSON từ request
             $data = $request->json()->all();
@@ -42,8 +39,8 @@ class RoomController extends Controller
             // Kiểm tra dữ liệu nhập vào
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name',
-                'capacity' => 'required|integer|min:1',
-                'room_type' => 'required|in:2D,3D,4D'
+                'room_type_id' => 'required|exists:room_types,id',
+                'capacity' => 'required|integer|min:1|max:999'
             ]);
 
             // Nếu có lỗi validate, trả về lỗi
@@ -52,7 +49,11 @@ class RoomController extends Controller
             }
 
             // Tạo phòng mới trong database
-            $room = Room::create($data);
+            $room = Room::create([
+                'name' => $data['name'],
+                'room_type_id' => $data['room_type_id'],
+                'capacity' => $data['capacity']
+            ]);
 
             // Trả về kết quả thành công
             return response()->json([
@@ -74,8 +75,6 @@ class RoomController extends Controller
      */
     public function show(string $id)
     {
-
-
         $room = Room::find($id);
 
         // Nếu không tìm thấy phòng
@@ -90,8 +89,6 @@ class RoomController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
-
         try {
             // Tìm phòng theo id
             $room = Room::find($id);
@@ -107,8 +104,8 @@ class RoomController extends Controller
             // Kiểm tra dữ liệu nhập vào
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name,' . $id,
-                'capacity' => 'required|integer|min:1',
-                'room_type' => 'required|in:2D,3D,4D'
+                'room_type_id' => 'required|exists:room_types,id',
+                'capacity' => 'required|integer|min:1|max:999'
             ]);
 
             // Nếu có lỗi validate, trả về lỗi
@@ -117,7 +114,11 @@ class RoomController extends Controller
             }
 
             // Cập nhật thông tin phòng
-            $room->update($data);
+            $room->update([
+                'name' => $data['name'],
+                'room_type_id' => $data['room_type_id'],
+                'capacity' => $data['capacity']
+            ]);
 
             // Trả về kết quả thành công
             return response()->json([
@@ -139,8 +140,6 @@ class RoomController extends Controller
      */
     public function destroy(Request $request)
     {
-
-
         $ids = $request->input('ids');
 
         if (empty($ids)) {

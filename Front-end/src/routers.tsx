@@ -24,7 +24,10 @@ import Login from './page/auth/Login';
 import Register from './page/auth/Register';
 import ForgotPassword from './page/auth/ForgotPassword';
 import authService from './services/auth.service';
-
+import OrderList from './page/admin/Order/OrderList';
+import OrderDetail from './page/admin/Order/Orderdetail';
+import Userlist from './page/admin/Userpage/Userlist';
+import Useradd from './page/admin/Userpage/Useradd';
 // Set up global axios interceptors for all requests
 axios.interceptors.request.use(
   (config) => {
@@ -326,6 +329,22 @@ export const router = createBrowserRouter([
           {
             path: 'rooms',
             element: <RoomPage />,
+          },
+          {
+            path: 'orders',
+            element: <OrderList />,
+          },
+          {
+            path: 'order/orderDetail',
+            element: <OrderDetail />,
+          },
+          {
+            path: 'users',
+            element: <Userlist />,
+          },
+          {
+            path : 'userpage/useradd',
+            element : <Useradd />,
           },
         ],
       },

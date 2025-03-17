@@ -1,0 +1,106 @@
+/* Container chính bao quanh toàn bộ nội dung */
+.orderDetailContainer {
+    background-color: #FFFFFF;
+    padding: 20px;
+    font-family: 'Roboto', sans-serif;
+    color: #000;
+  }
+  
+  /* Bố cục 3 cột */
+  .columnsContainer {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  /* Mỗi cột */
+  .column {
+    flex: 1;
+    background-color: #F9F9F9;
+    padding: 15px;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+  }
+  
+  /* Tiêu đề của từng cột */
+  .columnTitle {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  /* Danh sách thông tin (thay cho Descriptions) */
+  .infoList {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .infoList p {
+    margin: 5px 0; /* Khoảng cách giữa các dòng */
+    line-height: 1.5; /* Chiều cao dòng */
+  }
+  
+  .label {
+    font-weight: bold; /* Nhãn đậm */
+    margin-right: 10px; /* Khoảng cách giữa nhãn và giá trị */
+  }
+  
+  /* Breadcrumb ở góc trên bên trái */
+  .breadcrumb {
+    font-size: 12px;
+    color: #666;
+  }
+  
+  /* Phần cuối của breadcrumb */
+  .breadcrumbCurrent {
+    font-weight: bold;
+    color: #000;
+  }
+  
+  /* Văn bản tìm kiếm */
+  .searchText {
+    font-size: 12px;
+    color: #999;
+  }
+  
+  /* Màu cam cho ngày chiếu và giờ chiếu */
+  .showDate {
+    color: #FF6200;
+  }
+  
+  /* Màu xanh cyan cho tổng tiền */
+  .totalAmount {
+    color: #00C4B4;
+  }
+  
+  /* Định kiểu cho liên kết "Quay lại" */
+  .backLink {
+    margin-top: 20px;
+  }
+  
+  /* Liên kết đến danh sách đơn hàng */
+  .orderListLink {
+    color: #000;
+    text-decoration: underline;
+  }
+  
+  /* Định kiểu cho các thành phần Ant Design */
+  
+  /* Bảng - chiều rộng full trong cột */
+  :global(.ant-table) {
+    width: 100%;
+  }
+  
+  /* Đầu đề bảng */
+  :global(.ant-table-thead > tr > th) {
+    background-color: #F5F5F5;
+    font-weight: bold;
+    border: 1px solid #E0E0E0;
+  }
+  
+  /* Ô trong thân bảng */
+  :global(.ant-table-tbody > tr > td) {
+    padding: 5px;
+    border: 1px solid #E0E0E0;
+    text-align: center;
+  }

@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->string('name')->unique();
             $table->integer('capacity');
-            $table->enum('room_type', ['2D', '3D', '4D']);
+            $table->foreignId('room_type_id')->constrained('room_types');
             $table->softDeletes();
             $table->timestamps();
         });

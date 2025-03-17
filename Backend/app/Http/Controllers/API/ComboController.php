@@ -16,12 +16,11 @@ class ComboController extends Controller
     public function index(Request $request)
     {
 
-
-        // Lấy danh sách phòng và phân trang
+        // Lấy danh sách combo
         $combo = Combo::query()->latest('id')->get();
 
         return response()->json([
-            'message' => 'Danh Combo',
+            'message' => 'Danh sách Combo',
             'combo' => $combo,
 
         ], 200);
@@ -32,7 +31,6 @@ class ComboController extends Controller
      */
     public function store(Request $request)
     {
-
 
         try {
             $validated = $request->validate([
@@ -232,4 +230,36 @@ class ComboController extends Controller
 
         return response()->json(['message' => 'Không tìm thấy combo nào đã xóa mềm'], 404);
     }
+
+    //---------------------------------------------------client-----------------------------------------------------//
+
+    public function showCombosForClient(Request $request)
+    {
+        $combos = Combo::query()
+            ->select('id', 'name', 'description', 'quantity', 'price', 'image') //lựa chọn trường cần thiét
+            ->latest('id')->get();
+        return response()->json([
+            'message' => 'Danh sách combo',
+            'combos' => $combos,
+        ], 200);
+    }
+
+    // //thêm chức năng tìm kiếm
+    // public function showCombosForClient(Request $request)
+    // {
+    //     $searchTerm = $request->input('search', '');
+
+    //     $combos = Combo::query()
+    //         ->select('id', 'name', 'description', 'quantity', 'price', 'image')
+    //         ->where('name', 'LIKE', "%$searchTerm%") // Tìm kiếm theo tên
+    //         ->orWhere('description', 'LIKE', "%$searchTerm%") // Tìm kiếm theo mô tả
+    //         ->latest('id')
+    //         ->paginate(10)->get();
+
+    //     return response()->json([
+    //         'message' => 'Danh sách combo',
+    //         'combos' => $combos,
+    //     ], 200);
+    // }
+
 }

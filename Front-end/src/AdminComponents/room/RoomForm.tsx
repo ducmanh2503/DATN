@@ -1,40 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, InputNumber, Select, Button, Space } from 'antd';
+import { Form, Input, InputNumber, Select, Button, Space, Alert } from 'antd';
 import { Room, RoomCreateRequest, RoomUpdateRequest } from '../../types/room.types';
 
 const { Option } = Select;
 
 interface RoomFormProps {
   onSubmit: (values: RoomCreateRequest | RoomUpdateRequest) => void;
+  onCancel?: () => void;
   room?: Room | null;
+  roomTypes?: any[];
+  loading?: boolean;
 }
 
-const RoomForm: React.FC<RoomFormProps> = ({ onSubmit, room }) => {
+const RoomForm: React.FC<RoomFormProps> = ({ 
+  onSubmit, 
+  onCancel, 
+  room, 
+  roomTypes = [
+    { id: 1, name: '2D' },
+    { id: 2, name: '3D' },
+    { id: 3, name: '4D' }
+  ], 
+  loading = false 
+}) => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  // Initialize form with room data if editing
   useEffect(() => {
+    // Nếu có dữ liệu phòng, điền vào form
     if (room) {
       form.setFieldsValue({
         name: room.name,
-        capacity: room.capacity,
-        room_type: room.room_type,
+        capacity: room.capacity || 0,
+        room_type_id: room.room_type_id,
       });
     } else {
       form.resetFields();
     }
   }, [form, room]);
 
-  const handleSubmit = async (values: RoomCreateRequest | RoomUpdateRequest) => {
-    setLoading(true);
+  const handleSubmit = async (values: any) => {
+    setFormLoading(true);
+    setFormError(null);
     try {
       await onSubmit(values);
-      if (!room) {
-        form.resetFields();
-      }
+    } catch (error: any) {
+      setFormError(error.message || 'Đã xảy ra lỗi khi xử lý form');
+      console.error('Form submission error:', error);
     } finally {
-      setLoading(false);
+      setFormLoading(false);
     }
   };
 
@@ -45,14 +60,23 @@ const RoomForm: React.FC<RoomFormProps> = ({ onSubmit, room }) => {
       onFinish={handleSubmit}
       initialValues={{
         name: '',
-        capacity: 100,
-        room_type: '2D',
+        capacity: 0,
+        room_type_id: roomTypes.length > 0 ? roomTypes[0].id : '',
       }}
     >
+      {formError && (
+        <Form.Item>
+          <Alert message={formError} type="error" showIcon closable onClose={() => setFormError(null)} />
+        </Form.Item>
+      )}
+
       <Form.Item 
         name="name" 
         label="Tên Phòng"
-        rules={[{ required: true, message: 'Vui lòng nhập tên phòng!' }]}
+        rules={[
+          { required: true, message: 'Vui lòng nhập tên phòng!' },
+          { max: 50, message: 'Tên phòng không được vượt quá 50 ký tự!' }
+        ]}
       >
         <Input placeholder="Nhập tên phòng" maxLength={50} />
       </Form.Item>
@@ -60,7 +84,12 @@ const RoomForm: React.FC<RoomFormProps> = ({ onSubmit, room }) => {
       <Form.Item 
         name="capacity" 
         label="Sức Chứa"
-        rules={[{ required: true, message: 'Vui lòng nhập sức chứa phòng!' }]}
+        rules={[
+          { required: true, message: 'Vui lòng nhập sức chứa phòng!' },
+          { type: 'number', min: 1, message: 'Sức chứa phải lớn hơn 0!' },
+          { type: 'number', max: 999, message: 'Sức chứa không được vượt quá 999!' }
+        ]}
+        tooltip="Số lượng ghế tối đa trong phòng chiếu"
       >
         <InputNumber 
           min={1}
@@ -68,19 +97,19 @@ const RoomForm: React.FC<RoomFormProps> = ({ onSubmit, room }) => {
           style={{ width: '100%' }}
           placeholder="Nhập sức chứa phòng"
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          // parser={(value) => value ? value.replace(/\$\s?|(,*)/g, '') : ''}
         />
       </Form.Item>
 
       <Form.Item 
-        name="room_type" 
+        name="room_type_id" 
         label="Loại Phòng"
         rules={[{ required: true, message: 'Vui lòng chọn loại phòng!' }]}
+        tooltip="Loại phòng chiếu (2D, 3D, 4D)"
       >
         <Select placeholder="Chọn loại phòng">
-          <Option value="2D">2D</Option>
-          <Option value="3D">3D</Option>
-          <Option value="4D">4D</Option>
+          {roomTypes.map(type => (
+            <Option key={type.id} value={type.id}>{type.name}</Option>
+          ))}
         </Select>
       </Form.Item>
 
@@ -89,7 +118,7 @@ const RoomForm: React.FC<RoomFormProps> = ({ onSubmit, room }) => {
           <Button 
             type="primary" 
             htmlType="submit" 
-            loading={loading}
+            loading={loading || formLoading}
             style={{
               background: "var(--backgroud-product)",
               color: "var(--word-color)",
@@ -98,10 +127,10 @@ const RoomForm: React.FC<RoomFormProps> = ({ onSubmit, room }) => {
             {room ? 'Cập Nhật' : 'Thêm Mới'}
           </Button>
           <Button 
-            onClick={() => form.resetFields()}
-            disabled={loading}
+            onClick={onCancel || (() => form.resetFields())}
+            disabled={loading || formLoading}
           >
-            Làm Mới
+            {onCancel ? 'Hủy' : 'Làm Mới'}
           </Button>
         </Space>
       </Form.Item>

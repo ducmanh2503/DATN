@@ -18,4 +18,10 @@ class Combo extends Model
         'price',
         'image',
     ];
+
+
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }

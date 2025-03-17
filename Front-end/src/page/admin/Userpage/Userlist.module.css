@@ -1,0 +1,63 @@
+
+/* Tiêu đề */
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1a1a1a;
+}
+
+/* Phụ đề */
+.subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+/* Bảng danh sách */
+.orderTable {
+  margin-bottom: 24px;
+}
+
+/* Liên kết */
+.orderLink {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.orderLink:hover {
+  text-decoration: underline;
+}
+
+/* Liên kết quay lại */
+.backLink {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.homeLink {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.homeLink:hover {
+  text-decoration: underline;
+}
+
+/* Icon tìm kiếm trong tiêu đề cột */
+.searchIcon {
+  vertical-align: middle;
+  margin-left: 8px;
+  cursor: pointer;
+  color: #666;
+}
+
+/* Input trong modal tìm kiếm */
+.searchInput {
+  width: 100%;
+  padding: 8px 12px;
+  height: 40px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+}

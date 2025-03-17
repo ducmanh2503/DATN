@@ -1,60 +1,100 @@
-import { Descriptions, Table, Typography } from 'antd';
+import { Table, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import styles from './OrderDetail.module.css';
 
 // Định nghĩa type cho dữ liệu chi tiết đơn hàng
+type SeatType = {
+  seatNumber: string;
+  seatType: string;
+  price: number;
+};
+
+type ServiceType = {
+  name: string;
+  quantity: number;
+  price: number;
+};
+
 type OrderDetailType = {
   id: string;
   movieName: string;
   showTime: string;
+  showDate: string;
   room: string;
-  status: string;
-  total: number;
+  cinema: string;
   bookingDate: string;
   customer: {
     name: string;
-    email: string;
     phone: string;
+    email: string;
   };
-  seats: string[];
-  services: {
-    name: string;
-    quantity: number;
-    price: number;
-  }[];
-  ticketPrice: number; // Giá vé mỗi ghế
+  status: string;
+  seats: SeatType[];
+  services: ServiceType[];
+  discount: number;
 };
 
-// Dữ liệu giả cho chi tiết đơn hàng
 const mockOrderDetail: OrderDetailType = {
-  id: "ORDER001",
-  movieName: "Avengers: Endgame",
-  showTime: "14:00 - 16:30",
-  room: "Phòng 1",
-  status: "Đã thanh toán",
-  total: 150000,
-  bookingDate: "2025-03-14",
+  id: "98175515",
+  movieName: "Monkey Man Báo Thù",
+  showTime: "20:25 - 22:20",
+  showDate: "06-05-2024",
+  room: "IMAX",
+  cinema: "Cinema Aeon Hà Đông",
+  bookingDate: "06-05-2024",
   customer: {
     name: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
     phone: "0123456789",
+    email: "nguyenvana@example.com",
   },
-  seats: ["A1", "A2", "A3"],
+  status: "Đã thanh toán",
+  seats: [
+    { seatNumber: "A1", seatType: "VIP", price: 50000 },
+    { seatNumber: "A2", seatType: "Thường", price: 40000 },
+    { seatNumber: "A3", seatType: "Thường", price: 40000 },
+  ],
   services: [
     { name: "Popcorn", quantity: 1, price: 20000 },
     { name: "Coca", quantity: 1, price: 10000 },
   ],
-  ticketPrice: 40000, // Giá vé mỗi ghế là 40,000 VNĐ
+  discount: 10000,
 };
 
 const OrderDetail = () => {
   const order = mockOrderDetail;
   const { Title } = Typography;
 
-  // Tính toán tổng tiền vé và dịch vụ
-  const ticketTotal = order.seats.length * order.ticketPrice;
+  // Tính toán tổng tiền vé
+  const ticketTotal = order.seats.reduce((sum, seat) => sum + seat.price, 0);
+
+  // Tính toán tổng tiền dịch vụ
   const servicesTotal = order.services.reduce((sum, service) => sum + service.quantity * service.price, 0);
-  const grandTotal = ticketTotal + servicesTotal;
+
+  // Tổng tiền trước giảm giá
+  const totalBeforeDiscount = ticketTotal + servicesTotal;
+
+  // Tổng tiền sau giảm giá
+  const grandTotal = totalBeforeDiscount - order.discount;
+
+  // Cấu hình cột cho bảng ghế
+  const seatsColumns = [
+    {
+      title: 'Số ghế',
+      dataIndex: 'seatNumber',
+      key: 'seatNumber',
+    },
+    {
+      title: 'Loại ghế',
+      dataIndex: 'seatType',
+      key: 'seatType',
+    },
+    {
+      title: 'Giá tiền',
+      dataIndex: 'price',
+      key: 'price',
+      render: (value: number) => `${value.toLocaleString()} VNĐ`,
+    },
+  ];
 
   // Cấu hình cột cho bảng dịch vụ
   const servicesColumns = [
@@ -75,64 +115,80 @@ const OrderDetail = () => {
       render: (value: number) => `${value.toLocaleString()} VNĐ`,
     },
     {
-      title: 'Thành tiền',
+      title: 'Tổng tiền',
       key: 'subtotal',
-      render: (_: string, record: { quantity: number; price: number }) =>
+      render: (_: string, record: ServiceType) =>
         `${(record.quantity * record.price).toLocaleString()} VNĐ`,
     },
   ];
 
   return (
     <div className={styles.orderDetailContainer}>
+      {/* Tiêu đề và breadcrumb */}
       <Title level={2}>Chi tiết đơn hàng</Title>
+      <div className={styles.breadcrumb}>
+        Dashboard / Danh sách đơn hàng /{' '}
+        <span className={styles.breadcrumbCurrent}>Đơn hàng #{order.id}</span>
+      </div>
+      <div className={styles.searchText}>Tìm kiếm</div>
 
-      {/* Thông tin đơn hàng */}
-      <Descriptions title="Thông tin đơn hàng" bordered>
-        <Descriptions.Item label="Mã đơn">{order.id}</Descriptions.Item>
-        <Descriptions.Item label="Tên phim">{order.movieName}</Descriptions.Item>
-        <Descriptions.Item label="Xuất chiếu">{order.showTime}</Descriptions.Item>
-        <Descriptions.Item label="Phòng chiếu">{order.room}</Descriptions.Item>
-        <Descriptions.Item label="Trạng thái">{order.status}</Descriptions.Item>
-        <Descriptions.Item label="Tổng tiền">{order.total.toLocaleString()} VNĐ</Descriptions.Item>
-        <Descriptions.Item label="Ngày đặt">{order.bookingDate}</Descriptions.Item>
-      </Descriptions>
+      {/* Bố cục 3 cột */}
+      <div className={styles.columnsContainer}>
+        {/* Cột 1: Thông tin đơn hàng */}
+        <div className={styles.column}>
+          <div className={styles.columnTitle}>Thông tin đơn hàng</div>
+          <div className={styles.infoList}>
+            <p><span className={styles.label}>Mã đơn hàng:</span> {order.id}</p>
+            <p><span className={styles.label}>Phim:</span> {order.movieName}</p>
+            <p><span className={styles.label}>Giờ chiếu:</span> <span className={styles.showDate}>{order.showTime}</span></p>
+            <p><span className={styles.label}>Ngày chiếu:</span> <span className={styles.showDate}>{order.showDate}</span></p>
+            <p><span className={styles.label}>Phòng chiếu:</span> {order.room}</p>
+            <p><span className={styles.label}>Rạp chiếu:</span> {order.cinema}</p>
+            <p><span className={styles.label}>Ngày đặt:</span> {order.bookingDate}</p>
+          </div>
+        </div>
 
-      {/* Thông tin khách hàng */}
-      <Descriptions title="Thông tin khách hàng" bordered>
-        <Descriptions.Item label="Tên khách hàng">{order.customer.name}</Descriptions.Item>
-        <Descriptions.Item label="Email">{order.customer.email}</Descriptions.Item>
-        <Descriptions.Item label="Số điện thoại">{order.customer.phone}</Descriptions.Item>
-      </Descriptions>
+        {/* Cột 2: Thông tin khách hàng */}
+        <div className={styles.column}>
+          <div className={styles.columnTitle}>Thông tin khách hàng</div>
+          <div className={styles.infoList}>
+            <p><span className={styles.label}>Khách hàng:</span> {order.customer.name}</p>
+            <p><span className={styles.label}>Điện thoại:</span> {order.customer.phone}</p>
+            <p><span className={styles.label}>Email:</span> {order.customer.email}</p>
+            <p><span className={styles.label}>Trạng thái:</span> {order.status}</p>
+            <p><span className={styles.label}>Thành tiền:</span> {totalBeforeDiscount.toLocaleString()} VNĐ</p>
+            <p><span className={styles.label}>Giảm giá:</span> {order.discount.toLocaleString()} VNĐ</p>
+            <p><span className={styles.label}>Tổng tiền:</span> <span className={styles.totalAmount}>{grandTotal.toLocaleString()} VNĐ</span></p>
+          </div>
+        </div>
 
-      {/* Danh sách ghế */}
-      <Title level={4}>Danh sách ghế</Title>
-      <p>{order.seats.join(', ')}</p>
+        {/* Cột 3: Ghế & Dịch vụ */}
+        <div className={styles.column}>
+          <div className={styles.columnTitle}>Ghế & Dịch vụ</div>
+          {/* Danh sách ghế */}
+          <div>
+            <Title level={4}>Danh sách ghế</Title>
+            <Table
+              columns={seatsColumns}
+              dataSource={order.seats}
+              rowKey="seatNumber"
+              pagination={false}
+            />
+          </div>
+          {/* Dịch vụ */}
+          <div style={{ marginTop: '20px' }}>
+            <Title level={4}>Dịch vụ</Title>
+            <Table
+              columns={servicesColumns}
+              dataSource={order.services}
+              rowKey="name"
+              pagination={false}
+            />
+          </div>
+        </div>
+      </div>
 
-      {/* Dịch vụ */}
-      <Title level={4}>Dịch vụ</Title>
-      <Table
-        columns={servicesColumns}
-        dataSource={order.services}
-        rowKey="name"
-        pagination={false}
-      />
-
-      {/* Tóm tắt */}
-      <Title level={4}>Tóm tắt</Title>
-      <p>
-        Tổng tiền vé: {ticketTotal.toLocaleString()} VNĐ ({order.seats.length} ghế x{' '}
-        {order.ticketPrice.toLocaleString()} VNĐ)
-      </p>
-      <p>Tổng tiền dịch vụ: {servicesTotal.toLocaleString()} VNĐ</p>
-      <p>Tổng cộng: {grandTotal.toLocaleString()} VNĐ</p>
-
-      {/* Liên kết quay lại */}
-      <p className={styles.backLink}>
-        Quay lại{' '}
-        <Link to="/orders" className={styles.orderListLink}>
-          Danh sách đơn hàng
-        </Link>
-      </p>
+     
     </div>
   );
 };

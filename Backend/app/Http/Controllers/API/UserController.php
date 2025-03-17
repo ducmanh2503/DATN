@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -140,7 +141,7 @@ class UserController extends Controller
 
     public function updateProfile(Request $request)
     {
-        $user = User::user(); // Lấy thông tin người dùng hiện tại
+        $user = Auth::user(); // Lấy thông tin người dùng hiện tại
 
         // Kiểm tra nếu chưa đăng nhập
         if (!$user) {

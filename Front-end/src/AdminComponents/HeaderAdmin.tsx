@@ -28,18 +28,6 @@ const HeaderAdmin: React.FC = () => {
     navigate('/admin/profile'); // Giả sử có route /admin/profile
   };
 
-  // Menu cho dropdown
-  const menu = (
-    <Menu>
-      <Menu.Item key="profile" icon={<UserOutlined />} onClick={handleProfile}>
-        Profile
-      </Menu.Item>
-      <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
-        Đăng xuất
-      </Menu.Item>
-    </Menu>
-  );
-
   return (
     <div
       style={{
@@ -52,7 +40,25 @@ const HeaderAdmin: React.FC = () => {
         width: '100%',
       }}
     >
-      <Dropdown overlay={menu} trigger={['click']}>
+      <Dropdown 
+        menu={{ 
+          items: [
+            {
+              key: 'profile',
+              icon: <UserOutlined />,
+              label: 'Profile',
+              onClick: handleProfile
+            },
+            {
+              key: 'logout',
+              icon: <LogoutOutlined />,
+              label: 'Đăng xuất',
+              onClick: handleLogout
+            }
+          ]
+        }} 
+        trigger={['click']}
+      >
         <div
           style={{
             display: 'flex',

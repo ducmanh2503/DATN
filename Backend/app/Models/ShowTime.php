@@ -12,7 +12,7 @@ class ShowTime extends Model
         'start_time',
         'end_time',
         'status',
-        ];
+    ];
 
     // Quan hệ nhiều - một với model Room
     public function room()
@@ -28,5 +28,10 @@ class ShowTime extends Model
     public function showTimeDate()
     {
         return $this->hasMany(ShowTimeDate::class, 'show_time_id');
+    }
+
+    public function showTimeSeat()
+    {
+        return $this->hasMany(ShowTimeSeat::class);
     }
 }

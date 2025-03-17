@@ -6,39 +6,51 @@ import {
     RoomUpdateRequest, 
     RoomUpdateResponse, 
     RoomListResponse, 
-    RoomDeleteRequest, 
     RoomDeleteResponse, 
     RoomRestoreResponse, 
-    ApiError 
+    ApiError,
+    RoomType
 } from '../types/room.types';
 
-// Base URL for API
-const BASE_URL = "http://localhost:8000/api";
+// API base URL
+const BASE_URL = 'http://localhost:8000/api';
 
-// API endpoints matching Laravel routes
+// API endpoints
 const ENDPOINTS = {
-    GET_ROOMS: `${BASE_URL}/room`, // GET: List rooms
-    CREATE_ROOM: `${BASE_URL}/room`, // POST: Create room
-    GET_ROOM: (id: string | number) => `${BASE_URL}/room/${id}`, // GET: Show room
-    UPDATE_ROOM: (id: string | number) => `${BASE_URL}/room/${id}`, // PUT: Update room
-    DELETE_ROOM: (id: string | number) => `${BASE_URL}/room/${id}`, // DELETE: Soft delete one room
-    DELETE_ROOMS_BULK: `${BASE_URL}/room`, // DELETE with IDs in body
-    RESTORE_ROOM: (id: string | number) => `${BASE_URL}/room/restore/${id}`, // POST: Restore room
+    GET_ROOMS: `${BASE_URL}/room`,
+    GET_ROOM: (id: string | number) => `${BASE_URL}/room/${id}`,
+    CREATE_ROOM: `${BASE_URL}/room`,
+    UPDATE_ROOM: (id: string | number) => `${BASE_URL}/room/${id}`,
+    DELETE_ROOM: (id: string | number) => `${BASE_URL}/room/${id}`,
+    RESTORE_ROOM: (id: string | number) => `${BASE_URL}/room/restore/${id}`,
+    GET_ROOM_TYPES: `${BASE_URL}/room-types`,
 };
 
-// Utility to normalize and validate IDs
-const normalizeId = (id: string | number): string => {
-    const normalized = String(id).trim();
-    if (!normalized) {
-        throw new Error('Room ID cannot be empty');
+// Utility function to normalize ID (convert to string)
+const normalizeId = (id: string | number): string => String(id);
+
+// Handle API errors
+const handleApiError = (error: any): never => {
+    if (axios.isAxiosError(error) && error.response) {
+        const apiError: ApiError = {
+            error: error.response.data.error || 'Đã xảy ra lỗi',
+            message: error.response.data.message || error.message,
+            details: error.response.data.details,
+            status: error.response.status,
+        };
+        throw apiError;
     }
-    return normalized;
+    throw error;
 };
 
-// Get list of rooms
-export const getRooms = async (): Promise<RoomListResponse> => {
+// Lấy danh sách phòng
+export const getRooms = async (includeDeleted: boolean = false): Promise<RoomListResponse> => {
     try {
-        const response = await axios.get<RoomListResponse>(ENDPOINTS.GET_ROOMS);
+        const url = includeDeleted 
+            ? `${ENDPOINTS.GET_ROOMS}?include_deleted=1` 
+            : ENDPOINTS.GET_ROOMS;
+        
+        const response = await axios.get<RoomListResponse>(url);
         return {
             ...response.data,
             rooms: response.data.rooms.map(room => ({
@@ -51,41 +63,55 @@ export const getRooms = async (): Promise<RoomListResponse> => {
     }
 };
 
-// Get single room details
+// Lấy danh sách loại phòng
+export const getRoomTypes = async (): Promise<RoomType[]> => {
+    try {
+        const response = await axios.get<{ room_types: RoomType[] }>(ENDPOINTS.GET_ROOM_TYPES);
+        return response.data.room_types || [];
+    } catch (error) {
+        console.error('Error fetching room types:', error);
+        // Fallback to default room types if API fails
+        return [
+            { id: 1, name: '2D' },
+            { id: 2, name: '3D' },
+            { id: 3, name: '4D' }
+        ];
+    }
+};
+
+// Lấy thông tin chi tiết của một phòng
 export const getRoom = async (id: string | number): Promise<Room> => {
     const roomId = normalizeId(id);
     try {
         const response = await axios.get<Room>(ENDPOINTS.GET_ROOM(roomId));
-        return {
-            ...response.data,
-            id: normalizeId(response.data.id),
-        };
+        return { ...response.data, id: normalizeId(response.data.id) };
     } catch (error) {
         throw handleApiError(error);
     }
 };
 
-// Create a new room
+// Tạo phòng mới
 export const createRoom = async (data: RoomCreateRequest): Promise<RoomCreateResponse> => {
     try {
         const response = await axios.post<RoomCreateResponse>(
             ENDPOINTS.CREATE_ROOM,
-            data,
+            {
+                name: data.name,
+                room_type_id: data.room_type_id,
+                capacity: data.capacity,
+            },
             { headers: { 'Content-Type': 'application/json' } }
         );
         return {
             ...response.data,
-            room: {
-                ...response.data.room,
-                id: normalizeId(response.data.room.id),
-            },
+            room: { ...response.data.room, id: normalizeId(response.data.room.id) },
         };
     } catch (error) {
         throw handleApiError(error);
     }
 };
 
-// Update an existing room
+// Cập nhật phòng
 export const updateRoom = async (
     id: string | number,
     data: RoomUpdateRequest
@@ -94,75 +120,69 @@ export const updateRoom = async (
     try {
         const response = await axios.put<RoomUpdateResponse>(
             ENDPOINTS.UPDATE_ROOM(roomId),
-            data,
+            {
+                name: data.name,
+                room_type_id: data.room_type_id,
+                capacity: data.capacity,
+            },
             { headers: { 'Content-Type': 'application/json' } }
         );
         return {
             ...response.data,
-            room: {
-                ...response.data.room,
-                id: normalizeId(response.data.room.id),
-            },
+            room: { ...response.data.room, id: normalizeId(response.data.room.id) },
         };
     } catch (error) {
         throw handleApiError(error);
     }
 };
 
-// Soft delete multiple rooms
-export const deleteRooms = async (data: RoomDeleteRequest): Promise<RoomDeleteResponse> => {
-    if (!data.ids?.length) {
-        throw new Error('No rooms selected for deletion');
-    }
-    const normalizedIds = data.ids.map(normalizeId);
-    
+// Xóa một hoặc nhiều phòng (soft delete)
+export const deleteRooms = async (data: { ids: (string | number)[] }): Promise<RoomDeleteResponse> => {
     try {
-        // Thử các phương pháp xóa phòng khác nhau, bắt đầu với phương pháp thông thường
+        // Use the individual delete endpoint for each room
+        const deletePromises = data.ids.map(id => deleteRoom(id));
+        const results = await Promise.all(deletePromises);
         
-        // Phương pháp 1: Sử dụng DELETE api/room với ids trong body (cách RoomController@destroy yêu cầu)
-        try {
-            const response = await axios.delete<RoomDeleteResponse>(
-                ENDPOINTS.DELETE_ROOMS_BULK,
-                {
-                    data: { ids: normalizedIds },
-                    headers: { 'Content-Type': 'application/json' },
-                }
-            );
-            return response.data;
-        } catch (bulkError) {
-            console.log('Không thể xóa hàng loạt, thử xóa từng phòng một');
-            
-            // Phương pháp 2: Nếu xóa hàng loạt không hoạt động, thử xóa từng phòng
-            const results = await Promise.all(
-                normalizedIds.map(id => {
-                    console.log(`Xóa phòng: ${ENDPOINTS.DELETE_ROOM(id)}`);
-                    return axios.delete<RoomDeleteResponse>(ENDPOINTS.DELETE_ROOM(id));
-                })
-            );
-            
-            return {
-                message: 'Xóa các phòng thành công',
-                deletedCount: results.length,
-                deletedIds: normalizedIds
-            };
-        }
+        return {
+            message: 'Xóa phòng thành công',
+            deletedCount: results.length,
+            deletedIds: data.ids.map(String)
+        };
     } catch (error) {
-        console.error('Lỗi khi xóa phòng:', error);
-        
-        if (axios.isAxiosError(error) && error.response) {
-            console.error('Chi tiết lỗi:', error.response.data);
-        }
-        
         throw handleApiError(error);
     }
 };
 
-// Restore a soft-deleted room
+// Xóa một phòng (soft delete)
+export const deleteRoom = async (id: string | number): Promise<RoomDeleteResponse> => {
+    try {
+        // Using DELETE method with ids in the request body
+        const response = await axios.delete<RoomDeleteResponse>(`${BASE_URL}/room/${id}`, {
+            data: { ids: [id] }
+        });
+        return response.data;
+    } catch (error) {
+        throw handleApiError(error);
+    }
+};
+
+// Khôi phục phòng bị xóa mềm
 export const restoreRoom = async (id: string | number): Promise<RoomRestoreResponse> => {
     const roomId = normalizeId(id);
     try {
-        const response = await axios.post<RoomRestoreResponse>(
-            ENDPOINTS.RESTORE_ROOM(roomId)
+        const response = await axios.put<RoomRestoreResponse>(ENDPOINTS.RESTORE_ROOM(roomId));
+        return response.data;
+    } catch (error) {
+        throw handleApiError(error);
+    }
+};
+
+// Xóa vĩnh viễn một phòng (hard delete)
+export const permanentDeleteRoom = async (id: string | number): Promise<RoomDeleteResponse> => {
+    const roomId = normalizeId(id);
+    try {
+        const response = await axios.delete<RoomDeleteResponse>(
+            `${ENDPOINTS.DELETE_ROOM(roomId)}?permanent=1`
         );
         return response.data;
     } catch (error) {
@@ -170,28 +190,15 @@ export const restoreRoom = async (id: string | number): Promise<RoomRestoreRespo
     }
 };
 
-// Handle API errors
-const handleApiError = (error: unknown): ApiError => {
-    if (axios.isAxiosError(error) && error.response) {
-        const { data, status } = error.response;
-        return {
-            error: data.error || data.message || 'An error occurred',
-            message: data.message,
-            details: data.details || data.errors,
-            status,
-        };
-    }
-    return {
-        error: 'Unexpected error occurred',
-        message: String(error),
-    };
-};
-
+// Export all functions
 export default {
     getRooms,
     getRoom,
+    getRoomTypes,
     createRoom,
     updateRoom,
+    deleteRoom,
     deleteRooms,
     restoreRoom,
+    permanentDeleteRoom,
 };

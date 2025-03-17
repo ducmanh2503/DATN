@@ -348,8 +348,8 @@ class TicketController extends Controller
 
         // Lưu booking vào bảng bookings
         $booking = Booking::create([
-            // 'user_id' => auth()->id(), //lấy từ auth
-            'user_id' => $request->user_id, //lấy từ resquet FE gửi
+            'user_id' => auth()->id(), //lấy từ auth
+            // 'user_id' => $request->user_id, //lấy từ resquet FE gửi
             'showtime_id' => $request->showtime_id,
             'total_ticket_price' => $pricing['total_ticket_price'],
             'total_combo_price' => $pricing['total_combo_price'],

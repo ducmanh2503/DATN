@@ -74,3 +74,5 @@ export {
     UPDATE_ONE_SHOWTIMES,
     GET_ROOMS,
 };
+    GET_RANGE,
+};

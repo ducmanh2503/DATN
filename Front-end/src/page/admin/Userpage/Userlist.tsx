@@ -1,153 +1,131 @@
 import { useState, useEffect } from 'react';
-import { Button, Input, Table, message, Modal, Avatar } from 'antd';
-import { Search, Plus } from 'lucide-react';
+import { Button, Input, Table, message, Modal } from 'antd';
+import { Search, Plus, Edit, Delete } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import styles from './UserList.module.css';
-
-// Định nghĩa type cho dữ liệu người dùng
-type User = {
-  id: string;
-  avatar: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  role: string;
-  status: string;
-  createdAt: string;
-};
+import { User } from '../../../types/user.type';
+import { getUsers, searchUsers, deleteUser } from '../../../services/user.service';
 
 const UserList = () => {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [keyword, setKeyword] = useState('');
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [searchField, setSearchField] = useState<'fullName' | 'email'>('fullName');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchField, setSearchField] = useState<'name' | 'email'>('name');
 
-  // Dữ liệu giả
-  const mockUsers: User[] = [
-    {
-      id: "USER001",
-      avatar: "https://example.com/avatars/user1.jpg",
-      fullName: "Nguyễn Văn An",
-      email: "nguyenvanan@example.com",
-      phone: "0987654321",
-      role: "Admin",
-      status: "Hoạt động",
-      createdAt: "2025-01-15",
-    },
-    {
-      id: "USER002",
-      avatar: "https://example.com/avatars/user2.jpg",
-      fullName: "Trần Thị Bình",
-      email: "tranthibinh@example.com",
-      phone: "0912345678",
-      role: "Người dùng",
-      status: "Hoạt động",
-      createdAt: "2025-02-20",
-    },
-    {
-      id: "USER003",
-      avatar: "https://example.com/avatars/user3.jpg",
-      fullName: "Lê Minh Châu",
-      email: "leminhchau@example.com",
-      phone: "0934567890",
-      role: "Quản lý",
-      status: "Khóa",
-      createdAt: "2025-03-01",
-    },
-    {
-      id: "USER004",
-      avatar: "https://example.com/avatars/user4.jpg",
-      fullName: "Phạm Quốc Đạt",
-      email: "phamquocdat@example.com",
-      phone: "0971234567",
-      role: "Người dùng",
-      status: "Hoạt động",
-      createdAt: "2025-03-10",
-    },
-    {
-      id: "USER005",
-      avatar: "https://example.com/avatars/user5.jpg",
-      fullName: "Hoàng Thị E",
-      email: "hoangthie@example.com",
-      phone: "0945678901",
-      role: "Người dùng",
-      status: "Khóa",
-      createdAt: "2025-03-12",
-    },
-  ];
-
-  // Load dữ liệu ban đầu khi component mount
-  useEffect(() => {
-    setUsers(mockUsers);
-  }, []);
-
-  // Hàm mở modal tìm kiếm
-  const openSearchModal = (field: 'fullName' | 'email') => {
-    setSearchField(field);
-    setIsModalVisible(true);
-  };
-
-  // Hàm đóng modal
-  const handleCancel = () => {
-    setIsModalVisible(false);
-    setKeyword('');
-  };
-
-  // Xử lý tìm kiếm người dùng
-  const handleSearch = () => {
+  const fetchUsers = async () => {
     setLoading(true);
     try {
-      const filteredUsers = mockUsers.filter(user =>
-        user[searchField].toLowerCase().includes(keyword.toLowerCase())
-      );
-      setUsers(filteredUsers);
-      message.success('Tìm kiếm người dùng thành công!');
-      setIsModalVisible(false);
+      const userList = await getUsers();
+      console.log('Danh sách người dùng nhận được:', userList); // Debug
+      if (Array.isArray(userList)) {
+        setUsers(userList);
+        if (userList.length > 0) {
+          message.success('Tải danh sách người dùng thành công!');
+        } else {
+          message.info('Hiện tại không có người dùng nào trong hệ thống.');
+        }
+      } else {
+        setUsers([]);
+        message.error('Dữ liệu từ server không đúng định dạng (không phải mảng).');
+      }
     } catch (error: any) {
-      console.error('Error during search:', error);
-      message.error(error.message || 'Tìm kiếm thất bại. Vui lòng thử lại.');
+      console.error('Lỗi khi lấy dữ liệu:', error);
+      setUsers([]);
+      if (error.code === 'ERR_NETWORK') {
+        message.error('Không thể kết nối đến server. Vui lòng kiểm tra lại mạng hoặc server.');
+      } else if (error.response?.status === 404) {
+        message.error('Không tìm thấy endpoint API. Vui lòng kiểm tra backend.');
+      } else {
+        message.error('Tải danh sách thất bại: ' + (error.message || 'Lỗi không xác định'));
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Cấu hình cột cho bảng
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const openSearchModal = (field: 'name' | 'email') => {
+    setSearchField(field);
+    setIsModalOpen(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setKeyword('');
+  };
+
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const filteredUsers = await searchUsers(searchField, keyword);
+      console.log('Danh sách tìm kiếm nhận được:', filteredUsers); // Debug
+      if (Array.isArray(filteredUsers)) {
+        setUsers(filteredUsers);
+        if (filteredUsers.length > 0) {
+          message.success('Tìm kiếm người dùng thành công!');
+        } else {
+          message.info(`Không tìm thấy người dùng nào với ${searchField === 'name' ? 'tên' : 'email'} "${keyword}".`);
+        }
+      } else {
+        setUsers([]);
+        message.error('Dữ liệu tìm kiếm từ server không đúng định dạng.');
+      }
+      setIsModalOpen(false);
+    } catch (error: any) {
+      console.error('Lỗi khi tìm kiếm:', error);
+      setUsers([]);
+      if (error.code === 'ERR_NETWORK') {
+        message.error('Không thể kết nối đến server. Vui lòng kiểm tra lại mạng hoặc server.');
+      } else if (error.response?.status === 404) {
+        message.error('Không tìm thấy endpoint API. Vui lòng kiểm tra backend.');
+      } else {
+        message.error('Tìm kiếm thất bại: ' + (error.message || 'Lỗi không xác định'));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = (email: string) => {
+    Modal.confirm({
+      title: 'Xác nhận xóa',
+      content: 'Bạn có chắc chắn muốn xóa người dùng này?',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await deleteUser(email);
+          setUsers(users.filter(user => user.email !== email));
+          message.success('Xóa người dùng thành công!');
+        } catch (error: any) {
+          console.error('Lỗi khi xóa:', error);
+          message.error('Xóa thất bại: ' + (error.message || 'Lỗi không xác định'));
+        }
+      },
+    });
+  };
+
   const columns = [
-    {
-      title: 'Avatar',
-      dataIndex: 'avatar',
-      key: 'avatar',
-      render: (avatar: string) => <Avatar src={avatar} size={40} />,
-    },
     {
       title: (
         <div>
-          Họ tên
-          <Search
-            size={16}
-            onClick={() => openSearchModal('fullName')}
-            className={styles.searchIcon}
-          />
+          Tên
+          <Search size={16} onClick={() => openSearchModal('name')} className={styles.searchIcon} />
         </div>
       ),
-      dataIndex: 'fullName',
-      key: 'fullName',
-      render: (text: string, record: User) => (
-        <Link to={`/users/${record.id}`} className={styles.orderLink}>
-          {text}
-        </Link>
-      ),
+      dataIndex: 'name',
+      key: 'name',
     },
     {
       title: (
         <div>
           Email
-          <Search
-            size={16}
-            onClick={() => openSearchModal('email')}
-            className={styles.searchIcon}
-          />
+          <Search size={16} onClick={() => openSearchModal('email')} className={styles.searchIcon} />
         </div>
       ),
       dataIndex: 'email',
@@ -159,19 +137,36 @@ const UserList = () => {
       key: 'phone',
     },
     {
-      title: 'Quyền',
+      title: 'Xác minh',
+      dataIndex: 'is_verified',
+      key: 'is_verified',
+      render: (is_verified: number | boolean) => (is_verified ? 'Đã xác minh' : 'Chưa xác minh'),
+    },
+    {
+      title: 'Vai trò',
       dataIndex: 'role',
       key: 'role',
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-    },
-    {
-      title: 'Ngày tạo',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      title: 'Hành động',
+      key: 'action',
+      render: (_: any, record: User) => (
+        <div>
+          <Link to={`/admin/userpage/edit/${record.email}`}>
+            <Button type="link" icon={<Edit size={16} />} style={{ marginRight: 8 }}>
+              Sửa
+            </Button>
+          </Link>
+          <Button
+            type="link"
+            danger
+            icon={<Delete size={16} />}
+            onClick={() => handleDelete(record.email)}
+          >
+            Xóa
+          </Button>
+        </div>
+      ),
     },
   ];
 
@@ -181,38 +176,25 @@ const UserList = () => {
         <h2 className={styles.title}>Danh sách người dùng</h2>
         <p className={styles.subtitle}>Quản lý thông tin người dùng</p>
 
-        {/* Nút tạo user (liên kết đến trang UserAdd) */}
         <Link to="/admin/userpage/useradd">
-          <Button
-            type="primary"
-            icon={<Plus />}
-            style={{ marginBottom: 16 }}
-          >
-            Tạo user
+          <Button type="primary" icon={<Plus />} style={{ marginBottom: 16 }}>
+            Tạo người dùng
           </Button>
         </Link>
 
-        {/* Bảng danh sách người dùng */}
         <Table
           columns={columns}
-          dataSource={users}
-          rowKey="id"
+          dataSource={Array.isArray(users) ? users : []}
+          rowKey="email"
           loading={loading}
           className={styles.orderTable}
-          locale={{
-            emptyText: 'Không có người dùng nào được tìm thấy',
-          }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-          }}
+          locale={{ emptyText: 'Hiện tại không có người dùng nào trong hệ thống' }}
+          pagination={{ pageSize: 10, showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }}
         />
 
-        {/* Modal tìm kiếm */}
         <Modal
-          title={`Tìm kiếm theo ${searchField === 'fullName' ? 'Họ tên' : 'Email'}`}
-          visible={isModalVisible}
+          title={`Tìm kiếm theo ${searchField === 'name' ? 'Tên' : 'Email'}`}
+          open={isModalOpen}
           onCancel={handleCancel}
           footer={[
             <Button key="cancel" onClick={handleCancel}>
@@ -224,7 +206,7 @@ const UserList = () => {
           ]}
         >
           <Input
-            placeholder={`Nhập ${searchField === 'fullName' ? 'họ tên' : 'email'}`}
+            placeholder={`Nhập ${searchField === 'name' ? 'tên' : 'email'}`}
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             onPressEnter={handleSearch}

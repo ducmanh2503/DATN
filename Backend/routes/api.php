@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // Lấy thông tin user đã đăng nhập
@@ -54,7 +55,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //thanh toán VNPay
     Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
-    Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 
     //Sơ đồ ghế, giữ ghế, giải phóng ghế
     Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);

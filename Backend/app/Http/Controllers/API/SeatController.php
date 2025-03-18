@@ -116,8 +116,13 @@ class SeatController extends Controller
         }
 
         // Phát sự kiện cập nhật realtime
-        broadcast(new SeatHeldEvent($seats, $userId, $roomId, $showTimeId))
-            ->toOthers();
+        broadcast(new SeatHeldEvent(
+            $request->seat_ids,
+            $userId,
+            $roomId,
+            $showTimeId,
+            'held'
+        ))->toOthers();
 
         return response()->json(['message' => 'Ghế đã được giữ!', 'seats' => $seats, 'expires_at' => $expiresAt, 'user_id' => $userId]);
     }
@@ -186,8 +191,14 @@ class SeatController extends Controller
             ], 404);
         }
 
-        // Phát sự kiện giải phóng ghế
-        Broadcast(new SeatHeldEvent($releasedSeats, null, $roomId, $showTimeId));
+        // Phát sự kiện ghế đã được giải phóng
+        broadcast(new SeatHeldEvent(
+            $request->seat_ids,
+            null,
+            $roomId,
+            $showTimeId,
+            'released'
+        ))->toOthers();
 
         return response()->json([
             'message' => 'Ghế đã được giải phóng!',

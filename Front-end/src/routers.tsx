@@ -28,6 +28,8 @@ import OrderList from './page/admin/Order/OrderList';
 import OrderDetail from './page/admin/Order/Orderdetail';
 import Userlist from './page/admin/Userpage/Userlist';
 import Useradd from './page/admin/Userpage/Useradd';
+import UserDetail from './page/admin/Userpage/Userdetails';
+import Combo from './page/admin/ComboPage/ComboPage';
 // Set up global axios interceptors for all requests
 axios.interceptors.request.use(
   (config) => {
@@ -345,6 +347,14 @@ export const router = createBrowserRouter([
           {
             path : 'userpage/useradd',
             element : <Useradd />,
+          },
+          {
+            path : 'userpage/userdetail',
+            element : <UserDetail />,
+          },
+          {
+            path : 'combo',
+            element : <Combo />,
           },
         ],
       },

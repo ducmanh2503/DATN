@@ -7,7 +7,7 @@ import {
     SnippetsOutlined,
     TeamOutlined,
     VideoCameraAddOutlined,
-    ShoppingOutlined, // Thêm icon cho đơn hàng
+    ShoppingOutlined,
 } from "@ant-design/icons";
 import { Menu, type MenuProps } from "antd";
 import Sider from "antd/es/layout/Sider";
@@ -52,9 +52,8 @@ const SiderAdmin = () => {
             getItem(<Link to="seats">Quản lý Ghế ngồi</Link>, "sub4-1"),
         ]),
         getItem("Người dùng", "sub5", <TeamOutlined />, [
-            getItem(<Link to="users">Danh sách Người dùng</Link>,  "sub5-1"),
-            getItem(<Link to="userpage/useradd">Tạo người dùng</Link>,  "sub5-2"),
-
+            getItem(<Link to="users">Danh sách Người dùng</Link>, "sub5-1"),
+            getItem(<Link to="userpage/useradd">Tạo người dùng</Link>, "sub5-2"),
         ]),
         getItem("Thống kê", "sub6", <BarChartOutlined />, [
             getItem("Tự tạo", "sub6-1"),
@@ -68,12 +67,16 @@ const SiderAdmin = () => {
         getItem("Quản lý thể loại", "sub10", <BarChartOutlined />, [
             getItem(<Link to="genre">Danh sách thể loại</Link>, "sub10-1"),
         ]),
-
         getItem("Quản lý đơn hàng", "sub11", <ShoppingOutlined />, [
             getItem(<Link to="orders">Danh sách đơn hàng</Link>, "sub11-1"),
             getItem(<Link to="/admin/order/orderDetail">Chi tiết đơn hàng</Link>, "sub11-2"),
         ]),
+        // Thêm mục Quản lý combo
+        getItem("Quản lý combo", "sub12", <ShoppingOutlined />, [
+            getItem(<Link to="/admin/combo">Danh sách combo</Link>, "sub12-1"),
+        ]),
     ];
+
     return (
         <div>
             <Sider

@@ -3,6 +3,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Events\SeatHeldEvent;
 use App\Events\SeatUpdated;
 use App\Http\Controllers\Controller;
 use App\Mail\BookingConfirmation;
@@ -350,8 +351,7 @@ class TicketController extends Controller
     {
         // Lưu booking vào bảng bookings
         $booking = Booking::create([
-            'user_id' => auth()->id(), //lấy từ auth
-            // 'user_id' => $request->user_id, //lấy từ resquet FE gửi
+            'user_id' => $data['user_id'], // Lấy từ dữ liệu (đã lưu từ auth trong createVNPay)
             'showtime_id' => $data['showtime_id'],
             'total_ticket_price' => $data['pricing']['total_ticket_price'],
             'total_combo_price' => $data['pricing']['total_combo_price'],
@@ -360,18 +360,56 @@ class TicketController extends Controller
         ]);
 
         $pricePerSeat = $data['pricing']['total_ticket_price'] / count($data['seat_ids']); // Giá trung bình mỗi ghế
+
+        // Lấy thông tin phòng để phát sự kiện
+        $showTime = ShowTime::find($data['showtime_id']);
+        $roomId = $showTime->room_id;
+
         foreach ($data['seat_ids'] as $seatId) {
             BookingDetail::create([
                 'booking_id' => $booking->id,
                 'seat_id' => $seatId,
                 'price' => $pricePerSeat, // Giá mỗi ghế
             ]);
+
+            // Cập nhật trạng thái ghế thành booked
+            $showTimeSeat = ShowTimeSeat::where('show_time_id', $data['showtime_id'])
+                ->where('seat_id', $seatId)
+                ->first();
+
+            if ($showTimeSeat) {
+                $showTimeSeat->seat_status = 'booked';
+                $showTimeSeat->save();
+            } else {
+                // Tạo mới nếu chưa tồn tại
+                ShowTimeSeat::create([
+                    'show_time_id' => $data['showtime_id'],
+                    'seat_id' => $seatId,
+                    'seat_status' => 'booked'
+                ]);
+            }
+
+            // Xóa cache của ghế (vì đã booked)
+            $cacheKey = "seat_{$data['showtime_id']}_{$seatId}";
+            if (Cache::has($cacheKey)) {
+                Cache::forget($cacheKey);
+            }
         }
+        // Phát sự kiện ghế đã được đặt
+        broadcast(new SeatHeldEvent(
+            $data['seat_ids'],
+            $data['user_id'],
+            $roomId,
+            $data['showtime_id'],
+            'booked'
+        ))->toOthers();
+
+        // Vẫn phát sự kiện SeatUpdated để cập nhật toàn bộ ma trận ghế
+        $seatingMatrix = $this->getSeatingMatrix($roomId, $data['showtime_id']);
+        broadcast(new SeatUpdated($roomId, $data['showtime_id'], $seatingMatrix))->toOthers();
         return $booking;
     }
 
-
-    //cập nhật trạng thái ghế
     private function getSeatingMatrix($roomId, $showTimeId)
     {
         $seats = Seat::where('room_id', $roomId)
@@ -380,7 +418,7 @@ class TicketController extends Controller
             }])
             ->get();
 
-        $userId = auth()->id();
+        $userId = auth()->id() ?? request()->input('user_id', null); // Lấy từ auth hoặc request nếu có
         $currentDate = now()->toDateString();
         $seatingMatrix = [];
 
@@ -392,12 +430,15 @@ class TicketController extends Controller
             $showTimeSeat = $seat->showTimeSeat->first();
             $status = $showTimeSeat ? $showTimeSeat->seat_status : 'available';
 
-            $heldSeat = Cache::get("seat_{$showTimeId}_{$seat->id}");
+            $cacheKey = "seat_{$showTimeId}_{$seat->id}";
+            $heldSeat = Cache::get($cacheKey);
             $isHeld = !empty($heldSeat);
             $heldByUser = $isHeld && $heldSeat['user_id'] == $userId;
 
             if ($isHeld) {
                 $status = 'held';
+            } elseif ($status === 'booked') {
+                $status = 'booked';
             }
 
             $seatCode = $seat->row . $seat->column;
@@ -417,9 +458,9 @@ class TicketController extends Controller
         return array_values($seatingMatrix);
     }
 
-
     public function getTicketDetails(Request $request)
     {
+        Log::info('getTicketDetails Request Data: ' . json_encode($request->all()));
 
         $request->validate([
             'movie_id' => 'required|exists:movies,id',
@@ -435,20 +476,18 @@ class TicketController extends Controller
             'pricing.total_price' => 'required|numeric|min:0',
             'payment_method' => 'required|in:cash,VNpay,Momo,Zalopay',
             'is_payment_completed' => 'sometimes|boolean',
+            'user_id' => 'required|exists:users,id', // Đảm bảo user_id có trong request
         ]);
-
 
         // Lấy thông tin phim
         $movie = Movies::where('id', $request->movie_id)
             ->select('id', 'title', 'rated', 'language', 'poster')
             ->first();
 
-
         // Lấy thông tin lịch chiếu
         $calendarShow = CalendarShow::where('id', $request->calendar_show_id)
             ->select('id', 'movie_id', 'show_date', 'end_date')
             ->first();
-
 
         // Lấy thông tin suất chiếu
         $showTime = ShowTime::where('id', $request->showtime_id)
@@ -461,7 +500,6 @@ class TicketController extends Controller
             ->select('id', 'calendar_show_id', 'room_id', 'start_time', 'end_time', 'status')
             ->first();
 
-
         // Lấy thông tin ghế và loại ghế
         $seats = Seat::whereIn('id', $request->seat_ids)
             ->with(['seatType' => function ($query) {
@@ -469,7 +507,6 @@ class TicketController extends Controller
             }])
             ->select('id', 'room_id', 'row', 'column', 'seat_type_id')
             ->get();
-
 
         // Lấy thông tin combo (nếu có)
         $combos = collect([]);
@@ -479,11 +516,9 @@ class TicketController extends Controller
                 ->get();
         }
 
-
         // Lấy giá và phương thức thanh toán từ FE
         $pricing = $request->pricing;
         $paymentMethod = $request->payment_method;
-
 
         // Chuẩn bị dữ liệu trả về
         $ticketDetails = [
@@ -525,44 +560,29 @@ class TicketController extends Controller
         $isPaymentCompleted = $request->input('is_payment_completed', false);
         if ($isPaymentCompleted) {
             // Kiểm tra trạng thái ghế trước khi lưu
+            $userId = $request->user_id; // Lấy từ request (đã lưu từ auth trong createVNPay)
             foreach ($request->seat_ids as $seatId) {
                 $showTimeSeat = ShowTimeSeat::where('show_time_id', $request->showtime_id)
                     ->where('seat_id', $seatId)
                     ->first();
+
+                // Kiểm tra ghế đã được booked
                 if ($showTimeSeat && $showTimeSeat->seat_status === 'booked') {
                     return response()->json(['message' => 'Ghế đã được đặt bởi người khác'], 409);
                 }
-            }
 
+                // Kiểm tra ghế đang được giữ bởi người khác
+                $cacheKey = "seat_{$request->showtime_id}_{$seatId}";
+                $heldSeat = Cache::get($cacheKey);
+                if ($heldSeat && isset($heldSeat['user_id']) && $heldSeat['user_id'] != $userId) {
+                    return response()->json(['message' => 'Ghế đang được giữ bởi người khác'], 409);
+                }
+            }
 
             // Lưu booking vào bảng bookings
             $booking = $this->saveBooking($request->all(), 'confirmed');
 
-
-
-            // Cập nhật trạng thái ghế
-            foreach ($request->seat_ids as $seatId) {
-                $showTimeSeat = ShowTimeSeat::where('show_time_id', $request->showtime_id)
-                    ->where('seat_id', $seatId)
-                    ->first();
-                if ($showTimeSeat) {
-                    $showTimeSeat->seat_status = 'booked';
-                    $showTimeSeat->save();
-                }
-
-                // Xóa cache của ghế
-                $cacheKey = "seat_{$request->showtime_id}_{$seatId}";
-                if (Cache::has($cacheKey)) {
-                    Cache::forget($cacheKey);
-                }
-            }
-
-            // Phát sự kiện cập nhật trạng thái ghế
-            $roomId = $showTime->room_id;
-            $seatingMatrix = $this->getSeatingMatrix($roomId, $request->showtime_id);
-            broadcast(new SeatUpdated($roomId, $request->showtime_id, $seatingMatrix))->toOthers();
-
-
+            // Tạo QR code
             $qrData = "Mã đặt vé: {$booking->id}\n" .
                 "Phim: {$ticketDetails['movie']['title']}\n" .
                 "Ngày chiếu: {$ticketDetails['calendar_show']['show_date']}\n" .
@@ -571,16 +591,16 @@ class TicketController extends Controller
                 "Ghế: " . implode(', ', array_map(fn($seat) => "{$seat['row']}{$seat['column']} ({$seat['seat_type']})", $ticketDetails['seats']->toArray()));
             $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);
             $qrCode = base64_encode(file_get_contents($qrUrl));
-            // Log::info('QR Code Base64 (Controller): ' . $qrCode);
-            $ticketDetails['qr_code'] = $qrCode; // Thêm QR code vào dữ liệu trả về
+            $ticketDetails['qr_code'] = $qrCode;
 
-
-            $user = User::find(auth()->id());
+            // Gửi mail
+            $user = User::find($request->user_id);
             if ($user && $user->email) {
                 Mail::to($user->email)->send(new BookingConfirmation($booking, $ticketDetails));
             } else {
                 Log::warning('User ID ' . $request->user_id . ' does not have an email.');
             }
+
             // Trả về response với booking_id
             return response()->json([
                 'success' => true,

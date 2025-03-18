@@ -117,6 +117,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //Vé
         Route::get('/ticket-management', [TicketController::class, 'index']);
+        Route::get('/ticket-show/{id}', [TicketController::class, 'show']);
+        Route::delete('/ticket-delete/{id}', [TicketController::class, 'destroy']);
 
         // Thể loại phim, Diễn viên, Đạo diễn
         Route::apiResource('/genres', GenreController::class);

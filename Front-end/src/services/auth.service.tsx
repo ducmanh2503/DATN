@@ -26,17 +26,12 @@ interface ForgotPasswordRequest {
 }
 
 interface ResetPasswordRequest {
-<<<<<<< HEAD
-    email: string;
-    otp: string;
-    new_password: string;
-    new_password_confirmation: string;
-=======
+
   email: string;
   otp: string;
   new_password?: string;
   new_password_confirmation?: string;
->>>>>>> a7a96899de962f77cdb189d50462b3537566d3e4
+
 }
 
 interface AuthResponse {
@@ -186,28 +181,7 @@ const authService = {
         }
     },
 
-<<<<<<< HEAD
-    async resendVerificationEmail(email: string): Promise<AuthResponse> {
-        try {
-            console.log("[Auth Service] Resend Verification Request:", {
-                email,
-            });
-            const response = await api.post<AuthResponse>(
-                "/resend-verification",
-                {
-                    email,
-                }
-            );
-            console.log(
-                "[Auth Service] Resend Verification Response:",
-                response.data
-            );
-            return response.data;
-        } catch (error) {
-            throw handleAuthError(error);
-        }
-    },
-=======
+
   async resendVerificationEmail(email: string): Promise<AuthResponse> {
     try {
       console.log("[Auth Service] Resend Verification Request:", {
@@ -225,7 +199,7 @@ const authService = {
       throw handleAuthError(error);
     }
   },
->>>>>>> a7a96899de962f77cdb189d50462b3537566d3e4
+
 
     async verifyCode(data: VerifyCodeRequest): Promise<AuthResponse> {
         try {

@@ -438,7 +438,7 @@ class ShowTimeController extends Controller
 
         // Query các ShowTime
         $query = ShowTime::whereIn('id', $showTimeIds)
-            ->with(['calendarShow.movie', 'calendarShow', 'room']);
+            ->with(['calendarShow.movie', 'calendarShow', 'room.roomType']);
 
 
         // Lọc theo phòng nếu có

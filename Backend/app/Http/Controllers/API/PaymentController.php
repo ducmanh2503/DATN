@@ -53,6 +53,36 @@ class PaymentController extends Controller
         return response()->json(['code' => '00', 'message' => 'thanh toán thành công', 'data' => $vnp_Url]);
     }
 
+    // public function VNPayReturn(Request $request)
+    // {
+    //     Log::info('VNPay Return Request: ' . json_encode($request->all()));
+    //     $vnp_HashSecret = env('VNP_HASH_SECRET', 'Y7EVYR6BH7GXOWUSYIFLWW9JHZV5DK7E');
+    //     $vnp_SecureHash = $request->vnp_SecureHash;
+    //     $inputData = $request->except('vnp_SecureHash');
+
+    //     ksort($inputData);
+    //     $hashData = http_build_query($inputData);
+    //     $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
+
+    //     if ($secureHash === $vnp_SecureHash) {
+    //         if ($request->vnp_ResponseCode == '00') {
+    //             return response()->json([
+    //                 'message' => 'Thanh toán thành công',
+    //                 'data' => $request->all()
+    //             ]);
+    //         } else {
+    //             return response()->json(['message' => 'Thanh toán thất bại'], 400);
+    //         }
+    //     } else {
+    //         return response()->json(['message' => 'Dữ liệu không hợp lệ'], 400);
+    //     }
+    // }
+
+
+
+
+    //---------------------------test----------------------------//
+
     public function VNPayReturn(Request $request)
     {
         Log::info('VNPay Return Request: ' . json_encode($request->all()));
@@ -64,17 +94,22 @@ class PaymentController extends Controller
         $hashData = http_build_query($inputData);
         $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
-        if ($secureHash === $vnp_SecureHash) {
-            if ($request->vnp_ResponseCode == '00') {
-                return response()->json([
-                    'message' => 'Thanh toán thành công',
-                    'data' => $request->all()
-                ]);
-            } else {
-                return response()->json(['message' => 'Thanh toán thất bại'], 400);
-            }
+        if ($secureHash === $vnp_SecureHash && $request->vnp_ResponseCode == '00') {
+            $bookingData = session('booking_data');
+            $bookingData['is_payment_completed'] = true;
+
+            $ticketController = new TicketController();
+
+            $response = $ticketController->getTicketDetails(new Request($bookingData));
+
+            session()->forget('booking_data');
+            
+            return redirect()->away(
+                'http://localhost:8000/payment-result?status=success&booking_id=' . $response->getData()->booking_id
+            );
         } else {
-            return response()->json(['message' => 'Dữ liệu không hợp lệ'], 400);
+            return redirect()->away('http://localhost:3000/payment-result?status=failure');
         }
     }
+    //---------------------------end-test----------------------------//
 }

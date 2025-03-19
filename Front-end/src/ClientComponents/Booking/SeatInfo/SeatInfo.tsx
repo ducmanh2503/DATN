@@ -97,8 +97,12 @@ const SeatInfo = () => {
                     </div>
                 ))}
             </div>
-        </div>
-    );
+            <div className={clsx(styles.seatPrice)}>{seats.price}đ</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default SeatInfo;

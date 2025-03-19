@@ -6,22 +6,20 @@ import { useComboContext } from "../../UseContext/CombosContext";
 import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 const ComboInfo = () => {
-    const { nameCombo, setTotalComboPrice, totalComboPrice } =
-        useComboContext();
-    const { setTotalPrice } = useFinalPriceContext();
-    const { totalSeatPrice } = useSeatsContext(); // Giá ghế (nếu cần tính tổng)
+  const { nameCombo, setTotalComboPrice, totalComboPrice } = useComboContext();
+  const { setTotalPrice } = useFinalPriceContext();
+  const { totalSeatPrice } = useSeatsContext(); // Giá ghế (nếu cần tính tổng)
 
-    useEffect(() => {
-        console.log(" useEffect chạy");
-        console.log("tên combo", nameCombo);
+  useEffect(() => {
+    console.log(" useEffect chạy");
+    console.log("tên combo", nameCombo);
 
-        const newTotalComboPrice = nameCombo.reduce(
-            (sum: any, combo: any) =>
-                sum + combo.defaultQuantityCombo * combo.price,
-            0
-        );
+    const newTotalComboPrice = nameCombo.reduce(
+      (sum: any, combo: any) => sum + combo.defaultQuantityCombo * combo.price,
+      0
+    );
 
-        setTotalComboPrice(newTotalComboPrice);
+    setTotalComboPrice(newTotalComboPrice);
 
         if (newTotalComboPrice !== 0) {
             setTotalPrice(totalSeatPrice + newTotalComboPrice);
@@ -62,8 +60,11 @@ const ComboInfo = () => {
                     ))}
                 </div>
             </div>
+          ))}
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default ComboInfo;

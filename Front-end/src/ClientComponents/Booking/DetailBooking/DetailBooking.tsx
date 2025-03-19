@@ -107,6 +107,11 @@ const DetailBooking = ({
         PAYMENT_WITH_VNPAY,
         {
           totalPrice: totalPrice,
+          movie_id: filmId,
+          showtime_id: showtimeIdFromBooking,
+          calendar_show_id: calendarShowtimeID,
+          seats_id: selectedSeatIds,
+          combo_id: holdComboID,
         },
     });
     return (
@@ -187,8 +192,8 @@ const DetailBooking = ({
               ))}
             </div>
             <div className={clsx(styles.comboInfo)}>
-              {nameCombo?.map((item: any) => (
-                <div key={item.id}>
+              {nameCombo?.map((item: any, index: any) => (
+                <div key={index}>
                   <span className={clsx(styles.comboLabel)}>
                     {item.defaultQuantityCombo}{" "}
                   </span>

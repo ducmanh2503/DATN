@@ -107,6 +107,9 @@ const useIsolatedSeatChecker = () => {
                     }
                 }
             }
+          }
+        }
+      }
 
             return false; // Không có ghế lẻ
             // debugger;

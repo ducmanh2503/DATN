@@ -5,12 +5,12 @@ import styles from "./Notification.module.css";
 
 // Props cho component
 interface NotificationProps {
-    description: string;
-    pauseOnHover?: boolean; // Tùy chọn
+  description: string;
+  pauseOnHover?: boolean; // Tùy chọn
 }
 
 const CustomNotification = () => {
-    const [api, contextHolder] = notification.useNotification();
+  const [api, contextHolder] = notification.useNotification();
 
     const openNotification = ({
         description,
@@ -33,7 +33,7 @@ const CustomNotification = () => {
         });
     };
 
-    return { openNotification, contextHolder };
+  return { openNotification, contextHolder };
 };
 
 export default CustomNotification;

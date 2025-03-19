@@ -9,6 +9,7 @@ import useIsolatedSeatChecker from "../ValidateSeats/ValidateSeats";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 import CustomNotification from "../Notification/Notification";
 const BookingInfo = ({ nextStep, prevStep, className }: any) => {
+
     const [open, setOpen] = useState(false);
     const [error, setError] = useState(false); // State để kiểm soát lỗi
     const { currentStep, paymentType, dataDetailFilm } = useStepsContext();
@@ -19,12 +20,8 @@ const BookingInfo = ({ nextStep, prevStep, className }: any) => {
     // console.log("check-list", matrixSeatsManage);
     console.log("selectedSeatIds", selectedSeatIds);
 
-    // Reset lỗi khi quay lại bước trước (step < 3)
-    useEffect(() => {
-        if (currentStep < 3) {
-            setError(false); // Ẩn thông báo lỗi
-        }
-    }, [currentStep]);
+  // console.log("check-list", matrixSeatsManage);
+  console.log("selectedSeatIds", selectedSeatIds);
 
     // hiển thị thông báo lỗi khi chưa chọn hình thức thanh toán
     const handleNextPayment = () => {

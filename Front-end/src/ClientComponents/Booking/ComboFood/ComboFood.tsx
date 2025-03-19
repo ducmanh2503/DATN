@@ -19,28 +19,74 @@ interface DataType {
 }
 
 const ComboFood = ({ className }: any) => {
-    const {
-        setQuantityCombo,
-        quantityCombo,
-        quantityMap,
-        setQuantityMap,
-        setNameCombo,
-        holdComboID,
-        setHoldComboID,
-    } = useComboContext();
-    const { currentStep } = useStepsContext();
-    const { quantitySeats } = useSeatsContext();
-    const { openNotification, contextHolder } = CustomNotification();
+  const {
+    setQuantityCombo,
+    quantityCombo,
+    quantityMap,
+    setQuantityMap,
+    setNameCombo,
+    holdComboID,
+    setHoldComboID,
+  } = useComboContext();
+  const { currentStep } = useStepsContext();
+  const { quantitySeats } = useSeatsContext();
+  const { openNotification, contextHolder } = CustomNotification();
 
-    // Hàm tăng số lượng
-    const increaseQuantity = (key: string, price: string, record: any) => {
-        console.log("check-record", record);
-        if (quantityCombo >= quantitySeats) {
-            // Hiển thị thông báo khi vượt quá giới hạn với vé
-            openNotification({
-                description: "Số combo tối đa bằng số vé.",
-            });
-            return;
+  // Hàm tăng số lượng
+  const increaseQuantity = (key: string, price: string, record: any) => {
+    console.log("check-record", record);
+    if (quantityCombo >= quantitySeats) {
+      // Hiển thị thông báo khi vượt quá giới hạn với vé
+      openNotification({
+        description: "Số combo tối đa bằng số vé.",
+      });
+      return;
+    }
+
+    if (quantityCombo >= record.quantity) {
+      // Hiển thị thông báo khi vượt quá giới hạn kho
+      openNotification({
+        description: `Chỉ còn ${record.quantity} sản phẩm, vui lòng chọn nhỏ hơn hoặc bằng`,
+      });
+      return;
+    }
+    //lấy ID của combo đã chọn
+    setHoldComboID((prev: any) => [...prev, record.id]);
+    console.log("holdComboID", holdComboID);
+
+    setQuantityMap((prev: any) => {
+      const newQuantity = (prev[key] || 0) + 1;
+
+      // Cập nhật tổng số lượng combo
+      setQuantityCombo((prevTotal: any) => prevTotal + 1);
+
+      // Cập nhật danh sách tên combo
+      setNameCombo((prevNames: any[]) => {
+        if (!Array.isArray(prevNames)) prevNames = []; // Đảm bảo prevNames là mảng
+
+        const exists = prevNames.find((combo) => combo.name === record.name);
+
+        if (exists) {
+          // Nếu combo đã tồn tại, cập nhật quantity
+          return prevNames.map((combo) =>
+            combo.name === record.name
+              ? {
+                  name: record.name,
+                  price: parseInt(record.price),
+                  defaultQuantityCombo: newQuantity,
+                }
+              : combo
+          );
+        } else {
+          // Nếu combo chưa có, thêm mới với quantity = 1
+          return [
+            ...prevNames,
+            {
+              name: record.name,
+              defaultQuantityCombo: 1,
+              price: parseInt(record.price),
+            },
+          ];
         }
       });
 

@@ -72,7 +72,7 @@ export interface BookingType {
     id: number;
     roomId: number;
     row: string;
-    column: string;
+    column: number;
     seatCode: string;
     seatType: string;
     price: string;

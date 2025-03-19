@@ -5,11 +5,19 @@ import styles from "./BookingInfo.module.css";
 import { useEffect, useState } from "react";
 import DetailBooking from "../DetailBooking/DetailBooking";
 import { useStepsContext } from "../../UseContext/StepsContext";
+import useIsolatedSeatChecker from "../ValidateSeats/ValidateSeats";
+import { useSeatsContext } from "../../UseContext/SeatsContext";
+import CustomNotification from "../Notification/Notification";
 const BookingInfo = ({ nextStep, prevStep, className }: any) => {
     const [open, setOpen] = useState(false);
     const [error, setError] = useState(false); // State để kiểm soát lỗi
-    const { currentStep, paymentType } = useStepsContext();
-    const { dataDetailFilm } = useStepsContext();
+    const { currentStep, paymentType, dataDetailFilm } = useStepsContext();
+    const { nameSeats, matrixSeatsManage, selectedSeatIds } = useSeatsContext();
+    const { checkIsolatedSeat } = useIsolatedSeatChecker();
+    const { openNotification, contextHolder } = CustomNotification();
+
+    // console.log("check-list", matrixSeatsManage);
+    console.log("selectedSeatIds", selectedSeatIds);
 
     // Reset lỗi khi quay lại bước trước (step < 3)
     useEffect(() => {
@@ -19,7 +27,7 @@ const BookingInfo = ({ nextStep, prevStep, className }: any) => {
     }, [currentStep]);
 
     // hiển thị thông báo lỗi khi chưa chọn hình thức thanh toán
-    const handleNext = () => {
+    const handleNextPayment = () => {
         if (currentStep === 3) {
             if (!paymentType) {
                 setError(true); // Hiển thị lỗi khi chưa chọn phương thức
@@ -39,6 +47,7 @@ const BookingInfo = ({ nextStep, prevStep, className }: any) => {
     }, [currentStep, paymentType]);
     return (
         <>
+            {contextHolder}
             <div
                 className={clsx(styles.bookingInfo, className)}
                 style={currentStep === 1 ? { marginTop: "20px" } : {}}
@@ -54,7 +63,18 @@ const BookingInfo = ({ nextStep, prevStep, className }: any) => {
                     </button>
                     <button
                         className={clsx(styles.btnNext, styles.btnLink)}
-                        onClick={handleNext}
+                        onClick={() => {
+                            if (
+                                checkIsolatedSeat(nameSeats, matrixSeatsManage)
+                            ) {
+                                openNotification({
+                                    description:
+                                        "Không được để trống lẻ một ghế bên trái hay phải",
+                                });
+                                return;
+                            }
+                            handleNextPayment();
+                        }}
                     >
                         {currentStep === 3 ? "Thanh toán" : "Tiếp tục"}
                     </button>

@@ -22,7 +22,6 @@ const ComboFood = ({ className }: any) => {
     const {
         setQuantityCombo,
         quantityCombo,
-        setTotalComboPrice,
         quantityMap,
         setQuantityMap,
         setNameCombo,

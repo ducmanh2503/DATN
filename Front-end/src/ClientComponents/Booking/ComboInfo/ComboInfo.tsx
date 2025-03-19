@@ -33,7 +33,17 @@ const ComboInfo = () => {
     return (
         <div>
             <div className={clsx(styles.bookingCombo)}>
-                <Divider className={clsx(styles.dividerCustom)} dashed />
+                <Divider
+                    className={clsx(styles.dividerCustom)}
+                    style={{
+                        display: nameCombo.every(
+                            (combo: any) => combo.defaultQuantityCombo === 0
+                        )
+                            ? "none"
+                            : "block",
+                    }}
+                    dashed
+                />
                 <div className={clsx(styles.comboList)}>
                     {nameCombo.map((combo: any, index: any) => (
                         <div className={clsx(styles.comboItem)} key={index}>

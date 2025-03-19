@@ -103,7 +103,6 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
             console.error("room_id is invalid!", item);
             return;
         }
-        console.log("check-item", item);
 
         setCalendarShowtimeID(item.calendar_show_id);
         setRoomIdFromShowtimes(item.room_id);

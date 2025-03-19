@@ -8,3 +8,7 @@
 .notificationIcon {
     color: #e52020;
 }
+
+.notificationTitle {
+    font-weight: 600;
+}

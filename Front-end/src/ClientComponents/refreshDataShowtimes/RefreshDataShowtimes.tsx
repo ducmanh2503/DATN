@@ -6,7 +6,6 @@ import { useStepsContext } from "../UseContext/StepsContext";
 import axios from "axios";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useAuthContext } from "../UseContext/TokenContext";
-import { set } from "react-hook-form";
 
 const useShowtimeData = () => {
     const {
@@ -23,7 +22,7 @@ const useShowtimeData = () => {
         setQuantitySeats,
         setSeats,
         selectedSeatIds,
-        setHoldSeatId,
+        setSelectedSeatIds,
     } = useSeatsContext();
     const { setTotalPrice } = useFinalPriceContext();
     const { setCurrentStep, setCalendarShowtimeID } = useStepsContext();
@@ -43,7 +42,7 @@ const useShowtimeData = () => {
         setTotalPrice(0);
         setCurrentStep(1);
         setHoldComboID([]);
-        setHoldSeatId([]);
+        setSelectedSeatIds([]);
         setCalendarShowtimeID(null);
         // setShowtimesDate("");
     };
@@ -88,6 +87,7 @@ const useShowtimeData = () => {
         setQuantitySeats,
         setTotalPrice,
         setCurrentStep,
+        setSelectedSeatIds,
         resetDataShowtimes,
         releaseSeats,
     };

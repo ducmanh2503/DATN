@@ -347,14 +347,14 @@ class TicketController extends Controller
 
     //-------------------------test-------------------------------//
 
-    private function saveBooking(array $data, string $status, array $pricing)
+    private function saveBooking(array $data, string $status)
     {
         // Lưu booking vào bảng bookings
         $booking = Booking::create([
             'user_id' => $data['user_id'], // Lấy từ dữ liệu (đã lưu từ auth trong createVNPay)
             'showtime_id' => $data['showtime_id'],
-            'total_ticket_price' => $pricing['total_ticket_price'],
-            'total_combo_price' => $pricing['total_combo_price'],
+            'total_ticket_price' => $data['pricing']['total_ticket_price'],
+            'total_combo_price' => $data['pricing']['total_combo_price'],
             'status' => $status,
             'payment_method' => $data['payment_method'],
         ]);
@@ -370,8 +370,6 @@ class TicketController extends Controller
                 'booking_id' => $booking->id,
                 'seat_id' => $seatId,
                 'price' => $pricePerSeat, // Giá mỗi ghế
-                // 'combo_id' => null, // Không có combo cho ghế
-                // 'quantity' => 1,
             ]);
 
             // Cập nhật trạng thái ghế thành booked
@@ -396,29 +394,6 @@ class TicketController extends Controller
             if (Cache::has($cacheKey)) {
                 Cache::forget($cacheKey);
             }
-        }
-
-        //lưu thông tin combo
-        if (!empty($data['combo_ids'])) {
-            // Log::info('Combo IDs received: ' . json_encode($data['combo_ids']));
-            $comboQuantities = collect($data['combo_ids'])->groupBy(fn($id) => $id);
-            // Log::info('Combo Quantities: ' . json_encode($comboQuantities));
-            $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
-            // Log::info('Combos fetched: ' . json_encode($combos));
-
-            foreach ($combos as $combo) {
-                $quantity = $comboQuantities[$combo->id]->count();
-                $bookingDetail = BookingDetail::create([
-                    'booking_id' => $booking->id,
-                    'seat_id' => null,
-                    'price' => $combo->price,
-                    // 'combo_id' => $combo->id,
-                    // 'quantity' => $quantity,
-                ]);
-                // Log::info('Saved combo: ' . json_encode($bookingDetail));
-            }
-        } else {
-            // Log::info('No combo_ids provided');
         }
         // Phát sự kiện ghế đã được đặt
         broadcast(new SeatHeldEvent(
@@ -535,34 +510,14 @@ class TicketController extends Controller
 
         // Lấy thông tin combo (nếu có)
         $combos = collect([]);
-        $totalComboPrice = 0;
         if ($request->combo_ids) {
             $combos = Combo::whereIn('id', $request->combo_ids)
                 ->select('id', 'name', 'description', 'price', 'image')
                 ->get();
-            $totalComboPrice = $combos->sum(function ($combo) use ($request) {
-                $quantity = collect($request->combo_ids)->filter(fn($id) => $id == $combo->id)->count();
-                return $combo->price * $quantity;
-            });
         }
 
-        //tính tổng giá vé dựa trên số ghế và giá mỗi ghế
-
-        $seatCount = count($request->seats_id);
-        $pricePerSeat = $showTime->room->roomType->price;
-        $totalTicketPrice = $seatCount * $pricePerSeat;
-
-        //tổng tiền
-        $totalPrice = $totalTicketPrice + $totalComboPrice;
-
-        $pricing = [
-            'total_ticket_price' => $totalTicketPrice,
-            'total_combo_price' => $totalComboPrice,
-            'total_price' => $totalPrice,
-        ];
-
         // Lấy giá và phương thức thanh toán từ FE
-        // $pricing = $request->pricing;
+        $pricing = $request->pricing;
         $paymentMethod = $request->payment_method;
 
         // Chuẩn bị dữ liệu trả về
@@ -586,18 +541,19 @@ class TicketController extends Controller
                     'seat_type' => $seat->seatType->name,
                 ];
             }),
-            'combos' => $combos->map(function ($combo) use ($request) {
-                $quantity = collect($request->combo_ids)->filter(fn($id) => $id == $combo->id)->count();
+            'combos' => $combos->map(function ($combo) {
                 return [
                     'name' => $combo->name,
                     'description' => $combo->description,
                     'price' => $combo->price,
                     'image' => $combo->image,
-                    'quantity' => $quantity,
-                    'display' => "$combo->name x$quantity"
                 ];
             }),
-            'pricing' => $pricing,
+            'pricing' => [
+                'total_ticket_price' => $pricing['total_ticket_price'],
+                'total_combo_price' => $pricing['total_combo_price'],
+                'total_price' => $pricing['total_price'],
+            ],
             'payment_method' => $paymentMethod,
         ];
 
@@ -624,7 +580,7 @@ class TicketController extends Controller
             }
 
             // Lưu booking vào bảng bookings
-            $booking = $this->saveBooking($request->all(), 'confirmed', $pricing);
+            $booking = $this->saveBooking($request->all(), 'confirmed');
 
             // Tạo QR code
             $qrData = "Mã đặt vé: {$booking->id}\n" .

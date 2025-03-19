@@ -12,7 +12,6 @@ import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useComboContext } from "../../UseContext/CombosContext";
 import { PAYMENT_WITH_VNPAY } from "../../../config/ApiConfig";
 import { useAuthContext } from "../../UseContext/TokenContext";
-import { Link } from "react-router-dom";
 
 const DetailBooking = ({
   open,
@@ -21,22 +20,17 @@ const DetailBooking = ({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) => {
-  const {
-    dataDetailFilm,
-    calendarShowtimeID,
-    paymentType,
-    // setUserIdFromShowtimes,
-  } = useStepsContext();
+  const { dataDetailFilm, calendarShowtimeID, paymentType } = useStepsContext();
   const { showtimesTime, showtimesDate, filmId, showtimeIdFromBooking } =
     useFilmContext();
   const { totalPrice } = useFinalPriceContext();
-  const { nameSeats, totalSeatPrice, holdSeatId, typeSeats } =
-    useSeatsContext();
+  const { totalSeatPrice, typeSeats, selectedSeatIds } = useSeatsContext();
   const { nameCombo, totalComboPrice, holdComboID } = useComboContext();
   const { tokenUserId } = useAuthContext();
   const [isSelected, setIsSelected] = useState(false);
 
   const onOk = async () => {
+    // paymentTicket();
     vnpay.mutate(undefined, {
       onSuccess: (data: any) => {
         window.location.href = data; // Chuyển hướng đến link VNPay
@@ -54,35 +48,34 @@ const DetailBooking = ({
     setIsSelected(!isSelected); // Toggle trạng thái chọn
   };
 
-  //   const { mutate: paymentTicket } = useMutation({
+  // const { mutate: paymentTicket } = useMutation({
   //     mutationFn: async () => {
-  //       const detailTicket = {
-  //         // user_id: setUserIdFromShowtimes,
-  //         movie_id: filmId,
-  //         showtime_id: showtimeIdFromBooking,
-  //         calendar_show_id: calendarShowtimeID,
-  //         seat_ids: holdSeatId,
-  //         combo_ids: holdComboID,
-  //         pricing: {
-  //           total_ticket_price: totalSeatPrice,
-  //           total_combo_price: totalComboPrice,
-  //           total_price: totalPrice,
-  //         },
-  //         payment_method: paymentType,
-  //       };
-  //       console.log(detailTicket);
+  //         const detailTicket = {
+  //             movie_id: filmId,
+  //             showtime_id: showtimeIdFromBooking,
+  //             calendar_show_id: calendarShowtimeID,
+  //             seat_ids: selectedSeatIds,
+  //             combo_ids: holdComboID,
+  //             pricing: {
+  //                 total_ticket_price: totalSeatPrice,
+  //                 total_combo_price: totalComboPrice,
+  //                 total_price: totalPrice,
+  //             },
+  //             payment_method: paymentType,
+  //         };
+  //         console.log(detailTicket);
 
-  //       await axios.post(
-  //         `http://localhost:8000/api/ticket-details`,
-  //         detailTicket,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${tokenUserId}`,
-  //           },
-  //         }
-  //       );
+  //         await axios.post(
+  //             `http://localhost:8000/api/ticket-details`,
+  //             detailTicket,
+  //             {
+  //                 headers: {
+  //                     Authorization: `Bearer ${tokenUserId}`,
+  //                 },
+  //             }
+  //         );
   //     },
-  //   });
+  // });
 
   //thanh toán nếu bằng VNPay
   const vnpay = useMutation({
@@ -91,6 +84,11 @@ const DetailBooking = ({
         PAYMENT_WITH_VNPAY,
         {
           totalPrice: totalPrice,
+          movie_id: filmId,
+          showtime_id: showtimeIdFromBooking,
+          calendar_show_id: calendarShowtimeID,
+          seats_id: selectedSeatIds,
+          combo_id: holdComboID,
         },
         {
           headers: {
@@ -145,8 +143,8 @@ const DetailBooking = ({
               {showtimesDate}
             </div>
             <div className={clsx(styles.seatInfo)}>
-              {typeSeats?.map((item: any) => (
-                <div key={item.id}>
+              {typeSeats?.map((item: any, index: any) => (
+                <div key={index}>
                   <span className={clsx(styles.seatLabel)}>
                     Ghế {item.type}:{" "}
                   </span>
@@ -155,8 +153,8 @@ const DetailBooking = ({
               ))}
             </div>
             <div className={clsx(styles.comboInfo)}>
-              {nameCombo?.map((item: any) => (
-                <div key={item.id}>
+              {nameCombo?.map((item: any, index: any) => (
+                <div key={index}>
                   <span className={clsx(styles.comboLabel)}>
                     {item.defaultQuantityCombo}{" "}
                   </span>

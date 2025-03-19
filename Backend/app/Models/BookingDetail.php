@@ -13,5 +13,7 @@ class BookingDetail extends Model
         'booking_id',
         'seat_id',
         'price',
+        'combo_id',
+        'quantity',
     ];
 }

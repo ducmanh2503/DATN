@@ -22,7 +22,9 @@ const CustomNotification = () => {
                     <span className={clsx(styles.notificationIcon)}>
                         <CloseCircleOutlined />
                     </span>{" "}
-                    Không thể tiếp tục...
+                    <span className={clsx(styles.notificationTitle)}>
+                        Không thể tiếp tục...
+                    </span>
                 </>
             ),
             description,

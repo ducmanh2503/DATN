@@ -84,10 +84,8 @@ const InfoMovie = () => {
                 <span className={clsx(styles.detailDay)}> {showtimesDate}</span>
             </div>
 
-            <>
-                {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
-                {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
-            </>
+            {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
+            {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
 
             <div className={clsx(styles.bookingTotal)}>
                 <Divider className={clsx(styles.dividerCustom)} dashed />

@@ -5,13 +5,11 @@ import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useEffect } from "react";
 import { useComboContext } from "../../UseContext/CombosContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
-import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
 
 const SeatInfo = () => {
     const { typeSeats, setTotalSeatPrice } = useSeatsContext();
     const { totalComboPrice } = useComboContext();
     const { currentStep } = useStepsContext();
-    const { totalPrice } = useFinalPriceContext();
     useEffect(() => {
         const newTotalSeatsPrice = typeSeats.reduce(
             (sum: number, seat: any) => {
@@ -21,15 +19,10 @@ const SeatInfo = () => {
             0
         );
 
-        // if (totalComboPrice && currentStep === 1) {
-        //     console.log("check- back", totalPrice);
-
-        //     setTotalSeatPrice(totalPrice);
-        // } else {
-        //     setTotalSeatPrice(newTotalSeatsPrice);
-        // }
         setTotalSeatPrice(newTotalSeatsPrice);
     }, [typeSeats, totalComboPrice, currentStep]);
+
+    // console.log(typeSeats);
 
     return (
         <div>
@@ -51,7 +44,50 @@ const SeatInfo = () => {
                             <span className={clsx(styles.seatNumbers)}>
                                 <span>Ghế:</span>
                                 <span className={clsx(styles.seatName)}>
-                                    {seats.seatCode}
+                                    {(() => {
+                                        // Chuyển seatCode thành mảng các ghế
+                                        const seatArray = seats.seatCode
+                                            ? seats.seatCode
+                                                  .split(",")
+                                                  .map((seat: string) =>
+                                                      seat.trim()
+                                                  )
+                                            : [];
+
+                                        // Sắp xếp theo phần chữ trước, số sau
+                                        const sortedSeats = seatArray.sort(
+                                            (a: string, b: string) => {
+                                                const matchA =
+                                                    a.match(
+                                                        /^([A-Za-z]+)(\d+)$/
+                                                    );
+                                                const matchB =
+                                                    b.match(
+                                                        /^([A-Za-z]+)(\d+)$/
+                                                    );
+
+                                                if (!matchA || !matchB)
+                                                    return 0;
+
+                                                const [_, charA, numA] = matchA;
+                                                const [__, charB, numB] =
+                                                    matchB;
+
+                                                if (charA !== charB) {
+                                                    return charA.localeCompare(
+                                                        charB
+                                                    );
+                                                }
+
+                                                return (
+                                                    parseInt(numA) -
+                                                    parseInt(numB)
+                                                );
+                                            }
+                                        );
+
+                                        return sortedSeats.join(", ");
+                                    })()}
                                 </span>
                             </span>
                         </div>

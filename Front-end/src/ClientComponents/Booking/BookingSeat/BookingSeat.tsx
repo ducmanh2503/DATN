@@ -12,10 +12,9 @@ import { useFilmContext } from "../../UseContext/FIlmContext";
 import { useAuthContext } from "../../UseContext/TokenContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
 import { useComboContext } from "../../UseContext/CombosContext";
-import dayjs from "dayjs";
-import { Link } from "react-router-dom";
 import ChangeShowtimes from "../ChangeShowtimes/ChangeShowtimes";
 import UISeatsInfo from "../UISeatsInfo/UISeatsInfo";
+import CustomNotification from "../Notification/Notification";
 
 const BookingSeat = ({ className }: { className?: string }) => {
     const {
@@ -31,25 +30,24 @@ const BookingSeat = ({ className }: { className?: string }) => {
         seats,
         setSeats,
         setMatrixSeatsManage,
-        setHoldSeatId,
-        holdSeatId,
     } = useSeatsContext();
-    const { setTotalPrice, totalPrice } = useFinalPriceContext();
-    const {
-        roomIdFromShowtimes,
-        showtimeIdFromBooking,
-        listShowtimes,
-        filmId,
-    } = useFilmContext();
+    const { setTotalPrice } = useFinalPriceContext();
+    const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
     const { tokenUserId } = useAuthContext();
-    const { setUserIdFromShowtimes, userIdFromShowtimes, currentStep } =
-        useStepsContext();
+    const {
+        setUserIdFromShowtimes,
+        userIdFromShowtimes,
+        currentStep,
+        selectedSeatIds,
+    } = useStepsContext();
     const { totalComboPrice } = useComboContext();
+    const { openNotification, contextHolder } = CustomNotification();
 
     const queryClient = useQueryClient();
     const [isPusherRegistered, setIsPusherRegistered] = useState(false);
     const pusherEventHandlersRegistered = useRef(false);
     const pollingIntervalRef = useRef<number | null>(null);
+    const MAX_SEATS = 8;
 
     // api lấy userID
     const { data: getUserId } = useQuery({
@@ -130,23 +128,63 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
     // gán các giá trị của ghế để hiển thị
     const handleSeatClick = (seat: BookingType) => {
-        setHoldSeatId((holdSeatId: any[]) => {
-            // Kiểm tra nếu id đã tồn tại, thì loại bỏ nó (bỏ chọn ghế)
-            if (holdSeatId.includes(seat.id)) {
-                return holdSeatId.filter((id) => id !== seat.id);
-            }
-            // Nếu chưa có thì thêm vào mảng (chọn ghế mới)
-            return [...holdSeatId, seat.id];
-        });
-
         setTypeSeats((prevSeats: any[]) => {
             if (!Array.isArray(prevSeats)) prevSeats = [];
+
+            //validate ghế
+            // Kiểm tra tổng số lượng ghế đã chọn
+            const totalSeats = prevSeats.reduce(
+                (sum, s) => sum + s.quantitySeats,
+                0
+            );
+
+            // Nếu đạt giới hạn thì không cập nhật
+            if (
+                totalSeats >= MAX_SEATS &&
+                !prevSeats.some((s) => s.seatCode.includes(seat.seatCode))
+            ) {
+                openNotification({
+                    description: `Bạn chỉ được đặt tối đa ${MAX_SEATS} ghế!`,
+                });
+
+                return prevSeats;
+            } else {
+                // không bị validate sẽ thực hiện gán các giá trị dưới đây
+                setNameSeats((prevSeats: any) => {
+                    const updatedSeats = prevSeats.includes(seat.seatCode)
+                        ? prevSeats.filter(
+                              (code: any) => code !== seat.seatCode
+                          )
+                        : [...prevSeats, seat.seatCode];
+
+                    // Cập nhật selectedSeatIds
+                    setSelectedSeatIds((prev: any) => {
+                        return updatedSeats
+                            .map((code: any) => {
+                                // Tìm seatId tương ứng với seatCode
+                                for (const row in matrixSeats) {
+                                    for (const col in matrixSeats[row]) {
+                                        if (
+                                            matrixSeats[row][col].seatCode ===
+                                            code
+                                        ) {
+                                            return matrixSeats[row][col].id;
+                                        }
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter((id: number) => id !== null);
+                    });
+
+                    return updatedSeats;
+                });
+            }
 
             // Kiểm tra ghế đã tồn tại trong danh sách chưa
             const existingSeatIndex = prevSeats.findIndex(
                 (s) => s.type === seat.type
             );
-
             let updatedSeats;
 
             if (existingSeatIndex !== -1) {
@@ -156,16 +194,13 @@ const BookingSeat = ({ className }: { className?: string }) => {
                         const seatExists = s.seatCode
                             .split(", ")
                             .includes(seat.seatCode);
-
                         if (seatExists) {
                             // Nếu đã tồn tại, bỏ chọn (giảm số lượng và trừ giá)
                             const updatedSeatCodes = s.seatCode
                                 .split(", ")
                                 .filter((code: any) => code !== seat.seatCode)
                                 .join(", ");
-                            setSelectedSeatIds((prev: any) =>
-                                prev.filter((id: any) => id !== seat.id)
-                            );
+
                             return {
                                 ...s,
                                 quantitySeats: s.quantitySeats - 1,
@@ -174,11 +209,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
                             };
                         } else {
                             // Nếu chưa tồn tại, thêm mới
-                            setSelectedSeatIds((prev: any) => [
-                                ...prev,
-                                seat.id,
-                            ]);
-
                             return {
                                 ...s,
                                 quantitySeats: s.quantitySeats + 1,
@@ -208,13 +238,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
             return updatedSeats; // Trả về giá trị mới của typeSeats
         });
 
-        setNameSeats((prevSeats: any) => {
-            if (prevSeats.includes(seat.seatCode)) {
-                return prevSeats.filter((code: any) => code !== seat.seatCode);
-            }
-            return [...prevSeats, seat.seatCode];
-        });
-
         // Kiểm tra trạng thái ghế đã giữ hay đã đặt chưa
         if (
             seats[seat.seatCode]?.isHeld ||
@@ -226,6 +249,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
         }
     };
 
+    // tính tổng tiền và số lượng ghế
     useEffect(() => {
         if (!Array.isArray(typeSeats) || typeSeats.length === 0) {
             setQuantitySeats(0);
@@ -573,93 +597,83 @@ const BookingSeat = ({ className }: { className?: string }) => {
         };
     }, [refetchMatrix]);
 
-    // interface Seat {
-    //     id: number;
-    //     seatCode: string;
-    //     type: string;
-    //     status: string;
-    // }
+    // Hàm chuyển đổi số thành chữ cái
+    const numberToLetter = (num: any) => {
+        let result = "";
+        while (num > 0) {
+            num--; // Điều chỉnh chỉ số bắt đầu từ 1
+            result = String.fromCharCode(65 + (num % 26)) + result;
+            num = Math.floor(num / 26);
+        }
+        return result;
+    };
 
-    // interface SeatMatrixProps {
-    //     matrixSeats: Record<string, Seat[]>; // Dữ liệu ghế theo hàng
-    // }
-    // const SeatMatrix = ({ matrixSeats }: SeatMatrixProps) => {
-    //     const { selectedSeats, toggleSeat } = useSeatSelection();
-    // };
     return (
         <div className={clsx(styles.boxMainLeft, className)}>
+            {contextHolder}
             <ChangeShowtimes></ChangeShowtimes>
             <div className={clsx(styles.bookingSeat)}>
-                <div>
-                    <Card>
-                        <div className={clsx(styles.screen)}>MÀN HÌNH</div>
+                <Card>
+                    <div className={clsx(styles.screen)}>MÀN HÌNH</div>
 
-                        <div className={clsx(styles.matrixSeat)}>
-                            {matrixSeats &&
-                                Object.entries(matrixSeats).map(
-                                    ([rowLabel, rowData]: any, rowIndex) => (
-                                        <div
-                                            key={`row-${rowLabel}-${rowIndex}`}
-                                            className={clsx(styles.rowSeats)}
-                                        >
-                                            <div
-                                                className={clsx(
-                                                    styles.colSeats
-                                                )}
-                                            >
-                                                {rowLabel}
-                                            </div>
-                                            {Object.values(rowData).map(
-                                                (seat: any) => {
-                                                    const isSelected =
-                                                        nameSeats.includes(
-                                                            seat.seatCode
-                                                        );
-                                                    const seatState =
-                                                        seats[seat.seatCode] ||
-                                                        {};
-                                                    const isHeld =
-                                                        seatState.isHeld ||
-                                                        seat.status ===
-                                                            "held" ||
-                                                        seat.status ===
-                                                            "booked";
-
-                                                    return (
-                                                        <button
-                                                            className={clsx(
-                                                                styles.seatName,
-                                                                isHeld &&
-                                                                    styles.held,
-                                                                isSelected &&
-                                                                    styles.selected,
-                                                                seat.type ===
-                                                                    "VIP" &&
-                                                                    styles.vip,
-                                                                seat.type ===
-                                                                    "Sweetbox" &&
-                                                                    styles.sweetbox
-                                                            )}
-                                                            key={`seat-${seat.id}`}
-                                                            onClick={() =>
-                                                                handleSeatClick(
-                                                                    seat
-                                                                )
-                                                            }
-                                                            disabled={isHeld}
-                                                        >
-                                                            {seat.seatCode}
-                                                        </button>
-                                                    );
-                                                }
-                                            )}
+                    <div className={clsx(styles.matrixSeat)}>
+                        {matrixSeats &&
+                            Object.entries(matrixSeats).map(
+                                ([rowLabel, rowData]: any, rowIndex) => (
+                                    <div
+                                        key={`row-${rowLabel}-${rowIndex}`}
+                                        className={clsx(styles.rowSeats)}
+                                    >
+                                        <div className={clsx(styles.colSeats)}>
+                                            {numberToLetter(rowIndex + 1)}
                                         </div>
-                                    )
-                                )}
-                        </div>
-                        <UISeatsInfo></UISeatsInfo>
-                    </Card>
-                </div>
+                                        {Object.values(rowData).map(
+                                            (seat: any) => {
+                                                const isSelected =
+                                                    nameSeats.includes(
+                                                        seat.seatCode
+                                                    );
+                                                const seatState =
+                                                    seats[seat.seatCode] || {};
+                                                const isHeld =
+                                                    seatState.isHeld ||
+                                                    seat.status === "held" ||
+                                                    seat.status === "booked";
+
+                                                return (
+                                                    <button
+                                                        className={clsx(
+                                                            styles.seatName,
+                                                            isHeld &&
+                                                                styles.held,
+                                                            isSelected &&
+                                                                styles.selected,
+                                                            seat.type ===
+                                                                "VIP" &&
+                                                                styles.vip,
+                                                            seat.type ===
+                                                                "Sweetbox" &&
+                                                                styles.sweetbox
+                                                        )}
+                                                        key={`seat-${seat.id}`}
+                                                        onClick={() => {
+                                                            handleSeatClick(
+                                                                seat
+                                                            );
+                                                        }}
+                                                        disabled={isHeld}
+                                                    >
+                                                        {seat.seatCode}
+                                                    </button>
+                                                );
+                                            }
+                                        )}
+                                    </div>
+                                )
+                            )}
+                    </div>
+                    <UISeatsInfo></UISeatsInfo>
+                </Card>
             </div>
         </div>
     );

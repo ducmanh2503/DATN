@@ -12,6 +12,9 @@
 .flexBooking {
     display: flex;
     gap: 12px;
+    flex-wrap: wrap;
+    max-width: 280px;
+    justify-content: space-between;
 }
 
 .bookingSeats {
@@ -43,10 +46,16 @@
     border: 2px solid #8c8c8c;
 }
 
+.seatsMaintenance {
+    background-color: #3e3f5b;
+    border: 2px solid #3e3f5b;
+}
+
 .seatsInfo {
     display: flex;
     align-items: center;
     gap: 2px;
+    width: 130px;
 }
 
 .seatsVIP {

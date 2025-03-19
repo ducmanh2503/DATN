@@ -9,14 +9,15 @@ const UISeatsInfo = () => {
                     <div
                         className={clsx(
                             styles.bookingSeats,
-                            styles.seatsBooked
+                            styles.seatsHolding
                         )}
                     />
                     <span className={clsx(styles.bookingSeatsName)}>
-                        Ghế đã đặt
+                        Ghế đang được giữ
                     </span>
                 </div>
-                <div className={clsx(styles.seatsInfo)}>
+
+                <div className={clsx(styles.seatsInfo, styles.oneCss)}>
                     <div
                         className={clsx(
                             styles.bookingSeats,
@@ -31,11 +32,22 @@ const UISeatsInfo = () => {
                     <div
                         className={clsx(
                             styles.bookingSeats,
-                            styles.seatsHolding
+                            styles.seatsBooked
                         )}
                     />
                     <span className={clsx(styles.bookingSeatsName)}>
-                        Ghế đang được giữ
+                        Ghế đã được đặt
+                    </span>
+                </div>
+                <div className={clsx(styles.seatsInfo)}>
+                    <div
+                        className={clsx(
+                            styles.bookingSeats,
+                            styles.seatsMaintenance
+                        )}
+                    />
+                    <span className={clsx(styles.bookingSeatsName)}>
+                        Ghế đang bảo trì
                     </span>
                 </div>
             </div>

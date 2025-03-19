@@ -12,7 +12,6 @@ export const SeatsProvider = ({ children }: { children: React.ReactNode }) => {
         Record<string, { isHeld?: boolean; heldByUser?: boolean }>
     >({}); // ghế đã chọn trong showtimes
     const [shouldRefetch, setShouldRefetch] = useState(false); // Thêm state để theo dõi trạng thái refetch
-    const [holdSeatId, setHoldSeatId] = useState<string[]>([]); // id của hold-seat
     const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]); //  id ghế đã chọn
 
     return (
@@ -32,8 +31,6 @@ export const SeatsProvider = ({ children }: { children: React.ReactNode }) => {
                 setSeats,
                 shouldRefetch,
                 setShouldRefetch,
-                holdSeatId,
-                setHoldSeatId,
                 selectedSeatIds,
                 setSelectedSeatIds,
             }}

@@ -69,15 +69,15 @@ export interface AuthResponse {
 }
 
 export interface BookingType {
-  id: number;
-  roomId: number;
-  row: string;
-  column: number;
-  seatCode: string;
-  seatType: string;
-  price: string;
-  type: string;
-  dayType: "weekday" | "weekend" | "holiday";
-  status?: string;
-  heldByCurrentUser?: boolean;
+    id: number;
+    roomId: number;
+    row: string;
+    column: number;
+    seatCode: string;
+    seatType: string;
+    price: string;
+    type: string;
+    dayType: "weekday" | "weekend" | "holiday";
+    status?: string;
+    heldByCurrentUser?: boolean;
 }

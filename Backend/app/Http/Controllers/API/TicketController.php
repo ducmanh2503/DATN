@@ -370,8 +370,8 @@ class TicketController extends Controller
                 'booking_id' => $booking->id,
                 'seat_id' => $seatId,
                 'price' => $pricePerSeat, // Giá mỗi ghế
-                'combo_id' => null, // Không có combo cho ghế
-                'quantity' => 1,
+                // 'combo_id' => null, // Không có combo cho ghế
+                // 'quantity' => 1,
             ]);
 
             // Cập nhật trạng thái ghế thành booked
@@ -405,15 +405,15 @@ class TicketController extends Controller
             // Log::info('Combo Quantities: ' . json_encode($comboQuantities));
             $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
             // Log::info('Combos fetched: ' . json_encode($combos));
-    
+
             foreach ($combos as $combo) {
                 $quantity = $comboQuantities[$combo->id]->count();
                 $bookingDetail = BookingDetail::create([
                     'booking_id' => $booking->id,
                     'seat_id' => null,
                     'price' => $combo->price,
-                    'combo_id' => $combo->id,
-                    'quantity' => $quantity,
+                    // 'combo_id' => $combo->id,
+                    // 'quantity' => $quantity,
                 ]);
                 // Log::info('Saved combo: ' . json_encode($bookingDetail));
             }
@@ -548,7 +548,7 @@ class TicketController extends Controller
 
         //tính tổng giá vé dựa trên số ghế và giá mỗi ghế
 
-        $seatCount = count($request->seat_ids);
+        $seatCount = count($request->seats_id);
         $pricePerSeat = $showTime->room->roomType->price;
         $totalTicketPrice = $seatCount * $pricePerSeat;
 

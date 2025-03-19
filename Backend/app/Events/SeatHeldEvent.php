@@ -21,15 +21,22 @@ class SeatHeldEvent implements ShouldBroadcastNow
     public $userId;
     public $roomId;
     public $showTimeId;
+    public $actionType; // Thêm biến để xác định loại hành động
 
-    public function __construct($seats, $userId, $roomId, $showTimeId)
+    public function __construct($seats, $userId, $roomId, $showTimeId, $actionType = 'held')
     {
         $this->seats = $seats;
         $this->userId = $userId;
         $this->roomId = $roomId;
         $this->showTimeId = $showTimeId;
+        $this->actionType = $actionType; // 'held', 'booked', 'released'
         Log::info('Room ID: ' . $this->roomId); // Sửa thành \Log::info
         Log::info('Show Time ID: ' . $this->showTimeId);
+        Log::info('Action Type: ' . $this->actionType);
+
+        if ($actionType === 'booked') {
+            Log::info('Ghế đã được đặt:', ['seat_ids' => is_array($this->seats) ? $this->seats : [$this->seats]]);
+        }
     }
 
     public function broadcastOn()
@@ -40,6 +47,12 @@ class SeatHeldEvent implements ShouldBroadcastNow
     //định nghĩa tên sự kiện phát đi
     public function broadcastAs()
     {
-        return 'seat-held';
+        // Trả về tên sự kiện dựa trên loại hành động
+        return match ($this->actionType) {
+            'held' => 'seat-held',
+            'booked' => 'seat-booked',
+            'released' => 'seat-released',
+            default => 'seat-held'
+        };
     }
 }

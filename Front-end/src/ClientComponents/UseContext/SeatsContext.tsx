@@ -66,5 +66,5 @@ export const SeatsProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useSeatsContext = () => {
-    return useContext(SeatsContext);
+  return useContext(SeatsContext);
 };

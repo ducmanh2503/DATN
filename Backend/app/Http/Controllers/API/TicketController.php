@@ -196,8 +196,8 @@ class TicketController extends Controller
     //         'movie_id' => 'required|exists:movies,id',
     //         'showtime_id' => 'required|exists:show_times,id',
     //         'calendar_show_id' => 'required|exists:calendar_show,id',
-    //         'seat_ids' => 'required|array',
-    //         'seat_ids.*' => 'exists:seats,id',
+    //         'seats_id' => 'required|array',
+    //         'seats_id.*' => 'exists:seats,id',
     //         'combo_ids' => 'nullable|array',
     //         'combo_ids.*' => 'exists:combos,id',
     //         'pricing' => 'required|array',
@@ -359,13 +359,13 @@ class TicketController extends Controller
             'payment_method' => $data['payment_method'],
         ]);
 
-        $pricePerSeat = $data['pricing']['total_ticket_price'] / count($data['seat_ids']); // Giá trung bình mỗi ghế
+        $pricePerSeat = $data['pricing']['total_ticket_price'] / count($data['seats_id']); // Giá trung bình mỗi ghế
 
         // Lấy thông tin phòng để phát sự kiện
         $showTime = ShowTime::find($data['showtime_id']);
         $roomId = $showTime->room_id;
 
-        foreach ($data['seat_ids'] as $seatId) {
+        foreach ($data['seats_id'] as $seatId) {
             BookingDetail::create([
                 'booking_id' => $booking->id,
                 'seat_id' => $seatId,
@@ -397,7 +397,7 @@ class TicketController extends Controller
         }
         // Phát sự kiện ghế đã được đặt
         broadcast(new SeatHeldEvent(
-            $data['seat_ids'],
+            $data['seats_id'],
             $data['user_id'],
             $roomId,
             $data['showtime_id'],
@@ -466,10 +466,10 @@ class TicketController extends Controller
             'movie_id' => 'required|exists:movies,id',
             'showtime_id' => 'required|exists:show_times,id',
             'calendar_show_id' => 'required|exists:calendar_show,id',
-            'seat_ids' => 'required|array',
-            'seat_ids.*' => 'exists:seats,id',
-            'combo_ids' => 'nullable|array',
-            'combo_ids.*' => 'exists:combos,id',
+            'seats_id' => 'required|array',
+            'seats_id.*' => 'exists:seats,id',
+            'combo_id' => 'nullable|array',
+            'combo_id.*' => 'exists:combos,id',
             'pricing' => 'required|array',
             'pricing.total_ticket_price' => 'required|numeric|min:0',
             'pricing.total_combo_price' => 'required|numeric|min:0',
@@ -501,7 +501,7 @@ class TicketController extends Controller
             ->first();
 
         // Lấy thông tin ghế và loại ghế
-        $seats = Seat::whereIn('id', $request->seat_ids)
+        $seats = Seat::whereIn('id', $request->seats_id)
             ->with(['seatType' => function ($query) {
                 $query->select('id', 'name');
             }])
@@ -561,7 +561,7 @@ class TicketController extends Controller
         if ($isPaymentCompleted) {
             // Kiểm tra trạng thái ghế trước khi lưu
             $userId = $request->user_id; // Lấy từ request (đã lưu từ auth trong createVNPay)
-            foreach ($request->seat_ids as $seatId) {
+            foreach ($request->seats_id as $seatId) {
                 $showTimeSeat = ShowTimeSeat::where('show_time_id', $request->showtime_id)
                     ->where('seat_id', $seatId)
                     ->first();

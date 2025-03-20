@@ -34,6 +34,12 @@ import ArticleList from "./page/admin/Article/Article";
 import CreatePost from "./page/admin/Article/CreateArticle";
 import UserProfile from "./ClientComponents/UserProfile/UserProfile";
 import DiscountManagement from "./page/admin/DisCound-Code/DisCount-code";
+import OrderList from "./page/admin/Order/OrderList";
+import OrderDetail from "./page/admin/Order/Orderdetail";
+import Userlist from "./page/admin/Userpage/Userlist";
+import Useradd from "./page/admin/Userpage/Useradd";
+import UserDetail from "./page/admin/Userpage/Userdetails";
+import Combo from "./page/admin/ComboPage/ComboPage";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -333,6 +339,30 @@ export const router = createBrowserRouter([
           {
             path: "ticketsPrice",
             element: <TicketsPrice></TicketsPrice>,
+          },
+          {
+            path: "orders",
+            element: <OrderList />,
+          },
+          {
+            path: "order/orderDetail",
+            element: <OrderDetail />,
+          },
+          {
+            path: "users",
+            element: <Userlist />,
+          },
+          {
+            path: "userpage/useradd",
+            element: <Useradd />,
+          },
+          {
+            path: "userpage/userdetail",
+            element: <UserDetail />,
+          },
+          {
+            path: "combo",
+            element: <Combo />,
           },
         ],
       },

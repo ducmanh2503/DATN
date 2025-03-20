@@ -98,6 +98,7 @@ const InfoMovie = () => {
 
             {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
             {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
+
             {(quantityPromotion && <PromotionInfo />) === 0 ? (
                 ""
             ) : (

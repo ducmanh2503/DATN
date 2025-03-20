@@ -46,19 +46,17 @@ const useShowtimeData = () => {
         // setShowtimesDate("");
     };
 
-    //giải phóng ghế
-    const releaseSeatsMutation = useMutation({
-        mutationFn: async (seatIds: number[]) => {
-            await axios.post(
-                `http://localhost:8000/api/release-seats`, // API hủy ghế
-                {
-                    seats: seatIds,
-                    room_id: roomIdFromShowtimes,
-                    showtime_id: showtimeIdFromBooking,
-                },
-                { headers: { Authorization: `Bearer ${tokenUserId}` } }
-            );
+  //giải phóng ghế
+  const releaseSeatsMutation = useMutation({
+    mutationFn: async (seatIds: number[]) => {
+      await axios.post(
+        `http://localhost:8000/api/release-seats`, // API hủy ghế
+        {
+          seats: seatIds,
+          room_id: roomIdFromShowtimes,
+          showtime_id: showtimeIdFromBooking,
         },
+
         onSuccess: () => {
             // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
         },
@@ -68,6 +66,7 @@ const useShowtimeData = () => {
             releaseSeatsMutation.mutate(selectedSeatIds);
         }
     };
+
 
     return {
         setQuantityCombo,

@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { Button, Form, Input, Select, message } from 'antd';
 import { Link } from 'react-router-dom';
 import styles from './UserAdd.module.css';
+=======
+import { useState } from "react";
+import { Button, Form, Input, Select, message } from "antd";
+import { Link } from "react-router-dom";
+import styles from "./UserAdd.module.css";
+>>>>>>> main
 
 // Định nghĩa type cho dữ liệu người dùng
 type User = {
@@ -21,7 +28,14 @@ const UserAdd = () => {
     try {
       const values = await form.validateFields();
       const newUser: User = {
+<<<<<<< HEAD
         id: `USER${String(Math.floor(Math.random() * 1000) + 6).padStart(3, '0')}`, // ID ngẫu nhiên
+=======
+        id: `USER${String(Math.floor(Math.random() * 1000) + 6).padStart(
+          3,
+          "0"
+        )}`, // ID ngẫu nhiên
+>>>>>>> main
         fullName: values.fullName,
         email: values.email,
         phone: values.phone,
@@ -29,12 +43,23 @@ const UserAdd = () => {
         role: values.role,
       };
       // Lưu dữ liệu giả (trong thực tế, gửi đến API)
+<<<<<<< HEAD
       console.log('New User:', newUser);
       message.success('Tạo người dùng thành công!');
       form.resetFields();
     } catch (error: any) {
       console.error('Error creating user:', error);
       message.error(error.message || 'Tạo người dùng thất bại. Vui lòng thử lại.');
+=======
+      console.log("New User:", newUser);
+      message.success("Tạo người dùng thành công!");
+      form.resetFields();
+    } catch (error: any) {
+      console.error("Error creating user:", error);
+      message.error(
+        error.message || "Tạo người dùng thất bại. Vui lòng thử lại."
+      );
+>>>>>>> main
     }
   };
 
@@ -44,39 +69,80 @@ const UserAdd = () => {
         <h2 className={styles.title}>Thêm người dùng mới</h2>
         <p className={styles.subtitle}>Nhập thông tin để tạo người dùng</p>
 
+<<<<<<< HEAD
         <Form form={form} layout="vertical" name="addUserForm" onFinish={handleCreateUser}>
           <Form.Item
             name="fullName"
             label="Họ tên"
             rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
+=======
+        <Form
+          form={form}
+          layout="vertical"
+          name="addUserForm"
+          onFinish={handleCreateUser}
+        >
+          <Form.Item
+            name="fullName"
+            label="Họ tên"
+            rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
+>>>>>>> main
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="email"
             label="Email"
+<<<<<<< HEAD
             rules={[{ required: true, message: 'Vui lòng nhập email!' }, { type: 'email', message: 'Email không hợp lệ!' }]}
+=======
+            rules={[
+              { required: true, message: "Vui lòng nhập email!" },
+              { type: "email", message: "Email không hợp lệ!" },
+            ]}
+>>>>>>> main
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="phone"
             label="Số điện thoại"
+<<<<<<< HEAD
             rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }, { pattern: /^[0-9]{10}$/, message: 'Số điện thoại phải gồm 10 chữ số!' }]}
+=======
+            rules={[
+              { required: true, message: "Vui lòng nhập số điện thoại!" },
+              {
+                pattern: /^[0-9]{10}$/,
+                message: "Số điện thoại phải gồm 10 chữ số!",
+              },
+            ]}
+>>>>>>> main
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="password"
             label="Mật khẩu"
+<<<<<<< HEAD
             rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }, { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }]}
+=======
+            rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu!" },
+              { min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự!" },
+            ]}
+>>>>>>> main
           >
             <Input.Password />
           </Form.Item>
           <Form.Item
             name="role"
             label="Quyền"
+<<<<<<< HEAD
             rules={[{ required: true, message: 'Vui lòng chọn quyền!' }]}
+=======
+            rules={[{ required: true, message: "Vui lòng chọn quyền!" }]}
+>>>>>>> main
           >
             <Select>
               <Select.Option value="Admin">Admin</Select.Option>
@@ -100,4 +166,8 @@ const UserAdd = () => {
   );
 };
 
+<<<<<<< HEAD
 export default UserAdd;
+=======
+export default UserAdd;
+>>>>>>> main

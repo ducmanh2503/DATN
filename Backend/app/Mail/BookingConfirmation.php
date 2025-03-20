@@ -57,7 +57,7 @@ class BookingConfirmation extends Mailable
         $combos = '';
         if (!empty($this->ticketDetails['combos'])) {
             $combos = implode(', ', array_map(function ($combo) {
-                return "{$combo['name']} ({$combo['price']})";
+                return "{$combo['display']} - " . number_format($combo['price'], 0, ',', '.') . " VNĐ";
             }, $this->ticketDetails['combos']->toArray()));
         }
         $qrData = "Mã đặt vé: {$this->booking->id}\n" .
@@ -97,7 +97,7 @@ class BookingConfirmation extends Mailable
         <p><strong>Mã đặt vé:</strong> {$this->booking->id}</p>
 
         <h2>QR Code vé của bạn</h2>
-        <img src="data:image/png;base64,{$qrCode}" alt="QR Code">
+       
         <p>File QR code cũng được đính kèm dưới dạng PNG để bạn tải về nếu cần.</p>
 
         <p>Vui lòng giữ mã đặt vé hoặc QR code để kiểm tra tại rạp.</p>

@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { Layout, Breadcrumb, Button, Table, Modal, message, Spin, Tag } from "antd";
+=======
+import {
+  Layout,
+  Breadcrumb,
+  Button,
+  Table,
+  Modal,
+  message,
+  Spin,
+  Tag,
+} from "antd";
+>>>>>>> main
 import { ColumnsType } from "antd/es/table";
 import roomService from "../../../services/room.service";
 import seatService from "../../../services/seat.service";
@@ -36,6 +49,10 @@ const RoomPage: React.FC = () => {
   const [selectedSeat, setSelectedSeat] = useState<Seat | null | undefined>(null);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
   const seatTypes = [
     { id: 1, name: "Thường", price: 50000 },
     { id: 2, name: "VIP", price: 100000 },
@@ -47,6 +64,13 @@ const RoomPage: React.FC = () => {
     { id: 3, name: '4D' }
   ];
 
+  const roomTypes = [
+    { id: 1, name: "2D" },
+    { id: 2, name: "3D" },
+    { id: 3, name: "4D" },
+    { id: 4, name: "IMAX" },
+  ];
+
   useEffect(() => {
     fetchRooms();
   }, []);
@@ -55,9 +79,18 @@ const RoomPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await roomService.getRooms();
+<<<<<<< HEAD
       const roomsWithCapacity = response.rooms.map(room => ({
         ...room,
         capacity: room.capacity !== null && room.capacity !== undefined ? Number(room.capacity) : 0
+=======
+      const roomsWithCapacity = response.rooms.map((room) => ({
+        ...room,
+        capacity:
+          room.capacity !== null && room.capacity !== undefined
+            ? Number(room.capacity)
+            : 0,
+>>>>>>> main
       }));
       setRooms(roomsWithCapacity);
     } catch (error: any) {
@@ -151,9 +184,15 @@ const RoomPage: React.FC = () => {
     if (!selectedRoomId) return;
     setLoading(true);
     try {
+<<<<<<< HEAD
       console.log('Dữ liệu ghế chuẩn bị tạo:', newSeat);
       if (!newSeat.seat_status) {
         newSeat.seat_status = 'available';
+=======
+      console.log("Dữ liệu ghế chuẩn bị tạo:", newSeat);
+      if (!newSeat.seat_status) {
+        newSeat.seat_status = "available";
+>>>>>>> main
       }
       await seatService.createSeat(newSeat);
       message.success("Thêm ghế mới thành công");
@@ -161,12 +200,25 @@ const RoomPage: React.FC = () => {
       fetchSeats(selectedRoomId);
     } catch (error: any) {
       const errorMessage = error.message || "Lỗi khi tạo ghế";
+<<<<<<< HEAD
       console.error('Chi tiết lỗi tạo ghế:', error);
       if (error.status === 422) {
         if (error.details && error.details.seat_status) {
           message.error(`Lỗi: trường seat_status ${error.details.seat_status[0]}`);
         } else {
           message.error('Dữ liệu ghế không hợp lệ. Vui lòng kiểm tra thông tin ghế.');
+=======
+      console.error("Chi tiết lỗi tạo ghế:", error);
+      if (error.status === 422) {
+        if (error.details && error.details.seat_status) {
+          message.error(
+            `Lỗi: trường seat_status ${error.details.seat_status[0]}`
+          );
+        } else {
+          message.error(
+            "Dữ liệu ghế không hợp lệ. Vui lòng kiểm tra thông tin ghế."
+          );
+>>>>>>> main
         }
       } else {
         message.error(errorMessage);
@@ -180,12 +232,15 @@ const RoomPage: React.FC = () => {
     if (!selectedRoomId) return;
     setLoading(true);
     try {
+<<<<<<< HEAD
       if (selectedRoom) {
         const totalSeatsCount = getTotalSeatsCount() + newSeats.length;
         if (totalSeatsCount > selectedRoom.capacity) {
           throw new Error(`Không thể thêm. Tổng số ghế không được vượt quá sức chứa phòng (${selectedRoom.capacity})`);
         }
       }
+=======
+>>>>>>> main
       const responses = await Promise.all(
         newSeats.map((seat) => seatService.createSeat(seat))
       );
@@ -284,7 +339,11 @@ const RoomPage: React.FC = () => {
     }
     let count = 0;
     Object.keys(seats).forEach((row) => {
+<<<<<<< HEAD
       if (seats[row] && typeof seats[row] === 'object') {
+=======
+      if (seats[row] && typeof seats[row] === "object") {
+>>>>>>> main
         count += Object.keys(seats[row]).length;
       }
     });
@@ -311,11 +370,20 @@ const RoomPage: React.FC = () => {
       title: "Trạng Thái",
       dataIndex: "status",
       key: "status",
+<<<<<<< HEAD
       render: (status: string) => (
         status === 'active' 
           ? <Tag color="green">Hoạt động</Tag> 
           : <Tag color="red">Đang bảo trì</Tag>
       ),
+=======
+      render: (status: string) =>
+        status === "active" ? (
+          <Tag color="green">Hoạt động</Tag>
+        ) : (
+          <Tag color="red">Đang bảo trì</Tag>
+        ),
+>>>>>>> main
     },
     {
       title: "Hành Động",
@@ -325,7 +393,11 @@ const RoomPage: React.FC = () => {
         if (!room) return null;
         const isDeleted = !!room.deleted_at;
         return (
+<<<<<<< HEAD
           <div style={{ display: 'flex', gap: '8px' }}>
+=======
+          <div style={{ display: "flex", gap: "8px" }}>
+>>>>>>> main
             <Button
               onClick={() => showSeatModal(Number(room.id))}
               style={{
@@ -379,6 +451,7 @@ const RoomPage: React.FC = () => {
   ];
 
   const dataSource: RoomTableDataSource[] = rooms.map((room) => {
+<<<<<<< HEAD
     // Find the room type name based on room_type_id
     const roomType = roomTypes.find(type => type.id === room.room_type_id);
     return {
@@ -387,6 +460,15 @@ const RoomPage: React.FC = () => {
       capacity: Number(room.capacity) || 0, // Ensure capacity is a number
       room_type: roomType ? roomType.name : 'Unknown',
       status: room.deleted_at ? 'deleted' : 'active',
+=======
+    const roomType = roomTypes.find((type) => type.id === room.room_type_id);
+    return {
+      key: String(room.id),
+      name: room.name,
+      capacity: Number(room.capacity) || 0,
+      room_type: roomType ? roomType.name : "Unknown",
+      status: room.deleted_at ? "deleted" : "active",
+>>>>>>> main
     };
   });
 
@@ -429,15 +511,23 @@ const RoomPage: React.FC = () => {
       <div className="seat-matrix">
         {rows.map((row) => {
           const rowSeats = Object.values(seats[row] || {})
+<<<<<<< HEAD
             .filter(seat => seat && typeof seat === 'object')
             .sort((a, b) => {
               const getColumnNumber = (seatCode: string): number => {
                 if (!seatCode || typeof seatCode !== 'string') return 0;
+=======
+            .filter((seat) => seat && typeof seat === "object")
+            .sort((a, b) => {
+              const getColumnNumber = (seatCode: string): number => {
+                if (!seatCode || typeof seatCode !== "string") return 0;
+>>>>>>> main
                 const numberMatch = seatCode.match(/\d+$/);
                 return numberMatch ? parseInt(numberMatch[0], 10) : 0;
               };
               return getColumnNumber(a.seatCode) - getColumnNumber(b.seatCode);
             });
+<<<<<<< HEAD
           
           return (
             <div key={row} className="seat-row">
@@ -451,6 +541,31 @@ const RoomPage: React.FC = () => {
                     <div
                       key={seatCode}
                       className={`seat-item ${status === "booked" ? "seat-booked" : "seat-available"}`}
+=======
+
+          return (
+            <div key={row} className="seat-row">
+              <div className="seat-row-label">{row}</div>
+              <div
+                className="seat-row-items"
+                style={{ display: "flex", flexWrap: "wrap" }}
+              >
+                {rowSeats.map((seat) => {
+                  const seatCode =
+                    typeof seat.seatCode === "string"
+                      ? seat.seatCode
+                      : `${row}?`;
+                  const status =
+                    typeof seat.status === "string" ? seat.status : "available";
+                  const type =
+                    typeof seat.type === "string" ? seat.type : "Thường";
+                  return (
+                    <div
+                      key={seatCode}
+                      className={`seat-item ${
+                        status === "booked" ? "seat-booked" : "seat-available"
+                      }`}
+>>>>>>> main
                       style={{
                         backgroundColor: getSeatColor(type),
                         color: "white",
@@ -459,8 +574,13 @@ const RoomPage: React.FC = () => {
                         textAlign: "center",
                         margin: "4px",
                         cursor: "pointer",
+<<<<<<< HEAD
                         width: "40px",
                         height: "40px",
+=======
+                        width: "20px",
+                        height: "20px",
+>>>>>>> main
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -504,20 +624,36 @@ const RoomPage: React.FC = () => {
 
   return (
     <Layout className="full-page-layout">
+<<<<<<< HEAD
       <Content className="full-page-content" style={{ padding: '24px' }}>
+=======
+      <Content className="full-page-content" style={{ padding: "24px" }}>
+>>>>>>> main
         <Spin spinning={loading}>
           <Breadcrumb
             items={[
               { title: "Trang quản lý phòng chiếu" },
-              { title: "Hiển thị danh sách phòng chiếu (2D, 3D, 4D)" },
+              { title: "Hiển thị danh sách phòng chiếu (2D, 3D, 4D, IMAX)" },
             ]}
           />
+<<<<<<< HEAD
           <div className="room-page-header" style={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center',
             margin: '24px 0' 
           }}>
+=======
+          <div
+            className="room-page-header"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              margin: "24px 0",
+            }}
+          >
+>>>>>>> main
             <h2>Quản Lý Phòng Chiếu</h2>
             <div>
               <Button
@@ -536,7 +672,11 @@ const RoomPage: React.FC = () => {
               </Button>
             </div>
           </div>
+<<<<<<< HEAD
           
+=======
+
+>>>>>>> main
           <Table
             columns={columns}
             dataSource={dataSource}
@@ -577,7 +717,13 @@ const RoomPage: React.FC = () => {
           <Modal
             title={
               selectedRoomId
+<<<<<<< HEAD
                 ? `Quản lý ghế - Phòng ${selectedRoom?.name} (${getTotalSeatsCount()}/${selectedRoom?.capacity} ghế)`
+=======
+                ? `Quản lý ghế - Phòng ${
+                    selectedRoom?.name
+                  } (${getTotalSeatsCount()}/${selectedRoom?.capacity} ghế)`
+>>>>>>> main
                 : "Quản lý ghế"
             }
             open={isSeatModalOpen}
@@ -591,22 +737,38 @@ const RoomPage: React.FC = () => {
             width={800}
             destroyOnClose
           >
+<<<<<<< HEAD
             <div className="seat-page-header" style={{ marginBottom: "20px", display: 'flex', gap: '8px' }}>
+=======
+            <div
+              className="seat-page-header"
+              style={{ marginBottom: "20px", display: "flex", gap: "8px" }}
+            >
+>>>>>>> main
               <Button
                 onClick={() => setSelectedSeat(undefined)}
                 style={{
                   background: "var(--backgroud-product)",
                   color: "var(--word-color)",
                 }}
+<<<<<<< HEAD
                 // disabled={loading || (selectedRoom && getTotalSeatsCount() >= selectedRoom.capacity)}
+=======
+>>>>>>> main
               >
                 Thêm Ghế Mới
               </Button>
               <Button
                 onClick={handleDeleteAllSeats}
+<<<<<<< HEAD
                 style={{ 
                   background: "var(--normal-rank)", 
                   color: "var(--word-color)" 
+=======
+                style={{
+                  background: "var(--normal-rank)",
+                  color: "var(--word-color)",
+>>>>>>> main
                 }}
                 disabled={loading || getTotalSeatsCount() === 0}
               >
@@ -614,6 +776,7 @@ const RoomPage: React.FC = () => {
               </Button>
             </div>
 
+<<<<<<< HEAD
             {selectedRoomId && selectedRoom && getTotalSeatsCount() >= selectedRoom.capacity && (
               <div style={{ color: "orange", marginBottom: "10px" }}>
                 Đã đạt giới hạn sức chứa của phòng. Không thể thêm ghế mới.
@@ -643,6 +806,46 @@ const RoomPage: React.FC = () => {
                 renderSeatMatrix()
               ) : (
                 <div className="empty-seats">Chưa có ghế nào trong phòng này.</div>
+=======
+            <div
+              className="seat-matrix-container"
+              style={{
+                marginTop: "20px",
+                padding: "20px",
+                border: "1px solid #f0f0f0",
+                borderRadius: "4px",
+                backgroundColor: "#f9f9f9",
+              }}
+            >
+              <div
+                className="screen"
+                style={{
+                  height: "30px",
+                  backgroundColor: "#ddd",
+                  marginBottom: "30px",
+                  textAlign: "center",
+                  borderRadius: "4px",
+                  position: "relative",
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "40px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                  }}
+                >
+                  Màn hình
+                </span>
+              </div>
+              {seats && Object.keys(seats).length > 0 ? (
+                renderSeatMatrix()
+              ) : (
+                <div className="empty-seats">
+                  Chưa có ghế nào trong phòng này.
+                </div>
+>>>>>>> main
               )}
             </div>
           </Modal>
@@ -660,7 +863,15 @@ const RoomPage: React.FC = () => {
               roomId={selectedRoomId!}
               seatTypes={seatTypes}
               existingSeats={seats}
+<<<<<<< HEAD
               maxSeats={selectedRoomId && selectedRoom ? selectedRoom.capacity - getTotalSeatsCount() : 0}
+=======
+              maxSeats={
+                selectedRoomId && selectedRoom
+                  ? selectedRoom.capacity - getTotalSeatsCount()
+                  : 0
+              }
+>>>>>>> main
             />
           </Modal>
 

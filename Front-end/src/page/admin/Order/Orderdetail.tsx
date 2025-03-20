@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import { Table, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import styles from './OrderDetail.module.css';
+=======
+import { Table, Typography } from "antd";
+import { Link } from "react-router-dom";
+import styles from "./OrderDetail.module.css";
+>>>>>>> main
 
 // Định nghĩa type cho dữ liệu chi tiết đơn hàng
 type SeatType = {
@@ -68,7 +74,14 @@ const OrderDetail = () => {
   const ticketTotal = order.seats.reduce((sum, seat) => sum + seat.price, 0);
 
   // Tính toán tổng tiền dịch vụ
+<<<<<<< HEAD
   const servicesTotal = order.services.reduce((sum, service) => sum + service.quantity * service.price, 0);
+=======
+  const servicesTotal = order.services.reduce(
+    (sum, service) => sum + service.quantity * service.price,
+    0
+  );
+>>>>>>> main
 
   // Tổng tiền trước giảm giá
   const totalBeforeDiscount = ticketTotal + servicesTotal;
@@ -79,6 +92,7 @@ const OrderDetail = () => {
   // Cấu hình cột cho bảng ghế
   const seatsColumns = [
     {
+<<<<<<< HEAD
       title: 'Số ghế',
       dataIndex: 'seatNumber',
       key: 'seatNumber',
@@ -92,6 +106,21 @@ const OrderDetail = () => {
       title: 'Giá tiền',
       dataIndex: 'price',
       key: 'price',
+=======
+      title: "Số ghế",
+      dataIndex: "seatNumber",
+      key: "seatNumber",
+    },
+    {
+      title: "Loại ghế",
+      dataIndex: "seatType",
+      key: "seatType",
+    },
+    {
+      title: "Giá tiền",
+      dataIndex: "price",
+      key: "price",
+>>>>>>> main
       render: (value: number) => `${value.toLocaleString()} VNĐ`,
     },
   ];
@@ -115,8 +144,13 @@ const OrderDetail = () => {
       render: (value: number) => `${value.toLocaleString()} VNĐ`,
     },
     {
+<<<<<<< HEAD
       title: 'Tổng tiền',
       key: 'subtotal',
+=======
+      title: "Tổng tiền",
+      key: "subtotal",
+>>>>>>> main
       render: (_: string, record: ServiceType) =>
         `${(record.quantity * record.price).toLocaleString()} VNĐ`,
     },
@@ -127,7 +161,11 @@ const OrderDetail = () => {
       {/* Tiêu đề và breadcrumb */}
       <Title level={2}>Chi tiết đơn hàng</Title>
       <div className={styles.breadcrumb}>
+<<<<<<< HEAD
         Dashboard / Danh sách đơn hàng /{' '}
+=======
+        Dashboard / Danh sách đơn hàng /{" "}
+>>>>>>> main
         <span className={styles.breadcrumbCurrent}>Đơn hàng #{order.id}</span>
       </div>
       <div className={styles.searchText}>Tìm kiếm</div>
@@ -138,6 +176,7 @@ const OrderDetail = () => {
         <div className={styles.column}>
           <div className={styles.columnTitle}>Thông tin đơn hàng</div>
           <div className={styles.infoList}>
+<<<<<<< HEAD
             <p><span className={styles.label}>Mã đơn hàng:</span> {order.id}</p>
             <p><span className={styles.label}>Phim:</span> {order.movieName}</p>
             <p><span className={styles.label}>Giờ chiếu:</span> <span className={styles.showDate}>{order.showTime}</span></p>
@@ -145,6 +184,32 @@ const OrderDetail = () => {
             <p><span className={styles.label}>Phòng chiếu:</span> {order.room}</p>
             <p><span className={styles.label}>Rạp chiếu:</span> {order.cinema}</p>
             <p><span className={styles.label}>Ngày đặt:</span> {order.bookingDate}</p>
+=======
+            <p>
+              <span className={styles.label}>Mã đơn hàng:</span> {order.id}
+            </p>
+            <p>
+              <span className={styles.label}>Phim:</span> {order.movieName}
+            </p>
+            <p>
+              <span className={styles.label}>Giờ chiếu:</span>{" "}
+              <span className={styles.showDate}>{order.showTime}</span>
+            </p>
+            <p>
+              <span className={styles.label}>Ngày chiếu:</span>{" "}
+              <span className={styles.showDate}>{order.showDate}</span>
+            </p>
+            <p>
+              <span className={styles.label}>Phòng chiếu:</span> {order.room}
+            </p>
+            <p>
+              <span className={styles.label}>Rạp chiếu:</span> {order.cinema}
+            </p>
+            <p>
+              <span className={styles.label}>Ngày đặt:</span>{" "}
+              {order.bookingDate}
+            </p>
+>>>>>>> main
           </div>
         </div>
 
@@ -152,6 +217,7 @@ const OrderDetail = () => {
         <div className={styles.column}>
           <div className={styles.columnTitle}>Thông tin khách hàng</div>
           <div className={styles.infoList}>
+<<<<<<< HEAD
             <p><span className={styles.label}>Khách hàng:</span> {order.customer.name}</p>
             <p><span className={styles.label}>Điện thoại:</span> {order.customer.phone}</p>
             <p><span className={styles.label}>Email:</span> {order.customer.email}</p>
@@ -159,6 +225,37 @@ const OrderDetail = () => {
             <p><span className={styles.label}>Thành tiền:</span> {totalBeforeDiscount.toLocaleString()} VNĐ</p>
             <p><span className={styles.label}>Giảm giá:</span> {order.discount.toLocaleString()} VNĐ</p>
             <p><span className={styles.label}>Tổng tiền:</span> <span className={styles.totalAmount}>{grandTotal.toLocaleString()} VNĐ</span></p>
+=======
+            <p>
+              <span className={styles.label}>Khách hàng:</span>{" "}
+              {order.customer.name}
+            </p>
+            <p>
+              <span className={styles.label}>Điện thoại:</span>{" "}
+              {order.customer.phone}
+            </p>
+            <p>
+              <span className={styles.label}>Email:</span>{" "}
+              {order.customer.email}
+            </p>
+            <p>
+              <span className={styles.label}>Trạng thái:</span> {order.status}
+            </p>
+            <p>
+              <span className={styles.label}>Thành tiền:</span>{" "}
+              {totalBeforeDiscount.toLocaleString()} VNĐ
+            </p>
+            <p>
+              <span className={styles.label}>Giảm giá:</span>{" "}
+              {order.discount.toLocaleString()} VNĐ
+            </p>
+            <p>
+              <span className={styles.label}>Tổng tiền:</span>{" "}
+              <span className={styles.totalAmount}>
+                {grandTotal.toLocaleString()} VNĐ
+              </span>
+            </p>
+>>>>>>> main
           </div>
         </div>
 
@@ -176,7 +273,11 @@ const OrderDetail = () => {
             />
           </div>
           {/* Dịch vụ */}
+<<<<<<< HEAD
           <div style={{ marginTop: '20px' }}>
+=======
+          <div style={{ marginTop: "20px" }}>
+>>>>>>> main
             <Title level={4}>Dịch vụ</Title>
             <Table
               columns={servicesColumns}
@@ -187,8 +288,11 @@ const OrderDetail = () => {
           </div>
         </div>
       </div>
+<<<<<<< HEAD
 
      
+=======
+>>>>>>> main
     </div>
   );
 };

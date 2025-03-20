@@ -1,3 +1,6 @@
+/* RoomPage.css */
+
+/* Định dạng layout chính */
 .full-page-layout {
   min-height: 100%; /* Đảm bảo chiều cao tối thiểu là toàn bộ viewport */
   min-width: 100%;
@@ -15,6 +18,7 @@
   border: 1px solid var(--border-color);
 }
 
+/* Header của trang */
 .room-page-header {
   display: flex;
   justify-content: space-between;
@@ -33,6 +37,7 @@
   margin: 0;
 }
 
+/* Định dạng bảng */
 .full-page-table {
   margin-top: 20px;
   width: 100%; /* Đảm bảo bảng full width */
@@ -55,6 +60,7 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+/* Định dạng nút */
 .ant-btn-primary {
   background-color: var(--primary-color) !important;
   border-color: var(--border-color) !important;
@@ -77,6 +83,7 @@
   border-color: var(--border-color) !important;
 }
 
+/* Định dạng form */
 .ant-form {
   background-color: var(--mainBase-color);
   padding: 20px;
@@ -94,19 +101,100 @@
   background-color: var(--word-color) !important;
 }
 
-.ant-btn-primary {
-  background-color: var(--backgroud-product) !important;
-  border-color: var(--border-color) !important;
-  color: var(--word-color) !important;
-}
-
-.ant-btn-primary:hover,
-.ant-btn-primary:focus {
-  background-color: var(--primary-color) !important;
-  border-color: var(--border-color) !important;
-}
-
+/* Định dạng Spin */
 .ant-spin {
   display: block;
   margin: 0 auto;
+}
+
+/* Định dạng container chứa ma trận ghế */
+.seat-matrix-container {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Căn giữa theo chiều ngang */
+  min-height: 300px; /* Đảm bảo đủ không gian để căn giữa */
+}
+
+/* Định dạng màn hình */
+.screen {
+  height: 30px;
+  width: 80%; /* Giới hạn chiều rộng màn hình */
+  background-color: #ddd;
+  margin-bottom: 30px;
+  text-align: center;
+  border-radius: 4px;
+  position: relative;
+}
+
+.screen span {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Định dạng ma trận ghế */
+.seat-matrix {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Căn giữa các hàng theo chiều ngang */
+  gap: 20px; /* Khoảng cách giữa các hàng */
+}
+
+/* Định dạng mỗi hàng ghế */
+.seat-row {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Căn giữa các ghế trong hàng */
+  gap: 10px; /* Khoảng cách giữa các ghế */
+}
+
+/* Định dạng nhãn hàng */
+.seat-row-label {
+  width: 50px;
+  text-align: right;
+  margin-right: 15px;
+  font-weight: bold;
+  color: var(--normal-rank);
+}
+
+/* Định dạng từng ghế */
+.seat-item {
+  background-color: var(--normal-rank); /* Màu mặc định, sẽ được override bởi getSeatColor */
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  text-align: center;
+  margin: 4px;
+  cursor: pointer;
+  width: 40px; /* Kích thước ghế */
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s; /* Hiệu ứng khi hover */
+}
+
+.seat-item:hover {
+  transform: scale(1.1); /* Phóng to nhẹ khi hover */
+}
+
+.seat-booked {
+  opacity: 0.6; /* Ghế đã đặt mờ hơn */
+}
+
+.seat-available {
+  opacity: 1; /* Ghế trống rõ nét */
+}
+
+/* Định dạng khi không có ghế */
+.empty-seats {
+  text-align: center;
+  color: var(--normal-rank);
+  font-size: 16px;
 }

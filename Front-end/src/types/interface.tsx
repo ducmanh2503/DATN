@@ -44,6 +44,10 @@ export interface RefreshBtnProps {
 
 export interface FieldType {
   room_id: string;
+<<<<<<< HEAD
+=======
+  room_type_id: string;
+>>>>>>> main
   show_date: string;
   date: string;
 }
@@ -65,4 +69,21 @@ export interface RoomSHowtimesType {
 export interface AuthResponse {
   token: string;
   role: string; // Thêm thuộc tính role vào đây
+<<<<<<< HEAD
+=======
+}
+
+export interface BookingType {
+    id: number;
+    roomId: number;
+    row: string;
+    column: number;
+    seatCode: string;
+    seatType: string;
+    price: string;
+    type: string;
+    dayType: "weekday" | "weekend" | "holiday";
+    status?: string;
+    heldByCurrentUser?: boolean;
+>>>>>>> main
 }

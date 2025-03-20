@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // Lấy thông tin user đã đăng nhập
@@ -54,7 +55,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //thanh toán VNPay
     Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
-    Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 
     //Sơ đồ ghế, giữ ghế, giải phóng ghế
     Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
@@ -114,6 +114,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //Vé
         Route::get('/ticket-management', [TicketController::class, 'index']);
+        Route::get('/ticket-show/{id}', [TicketController::class, 'show']);
+        Route::delete('/ticket-delete/{id}', [TicketController::class, 'destroy']);
 
         // Thể loại phim, Diễn viên, Đạo diễn
         Route::apiResource('/genres', GenreController::class);
@@ -130,6 +132,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
         Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
         Route::post('/restore-user', [UserController::class, 'restore']);
+        Route::get('/user/rank-points', [UserController::class, 'getUserRankAndPoints']);
     });
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -162,8 +165,9 @@ Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 
 
 //cart
-Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']); // lấy thẳng từ resquets
-// Route::middleware('auth:api')->post('/ticket-details', [TicketController::class, 'getTicketDetails']); kiểm tra đăng nhập
+// Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']); // lấy thẳng từ resquets
+Route::middleware('auth:sanctum')->post('/ticket-details', [TicketController::class, 'getTicketDetails']);
+// kiểm tra đăng nhập
 // Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
 // Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
 // Route::post('/cart/checkout', [CartItemController::class, 'checkout']);

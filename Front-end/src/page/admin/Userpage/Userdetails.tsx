@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Avatar, Button, Input, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import styles from './UserDetail.module.css';
+=======
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { Avatar, Button, Input, message } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import styles from "./UserDetail.module.css";
+>>>>>>> main
 
 // Định nghĩa type cho dữ liệu người dùng
 type User = {
@@ -20,7 +28,11 @@ const Userdetails = () => {
   const { id } = useParams<{ id: string }>(); // Lấy id từ URL
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+<<<<<<< HEAD
   const [newAvatar, setNewAvatar] = useState<string>('');
+=======
+  const [newAvatar, setNewAvatar] = useState<string>("");
+>>>>>>> main
 
   // Dữ liệu giả từ mockUsers
   const mockUsers: User[] = [
@@ -83,7 +95,11 @@ const Userdetails = () => {
     if (foundUser) {
       setUser(foundUser);
     } else {
+<<<<<<< HEAD
       message.error('Không tìm thấy người dùng!');
+=======
+      message.error("Không tìm thấy người dùng!");
+>>>>>>> main
     }
     setLoading(false);
   }, [id]);
@@ -91,13 +107,22 @@ const Userdetails = () => {
   // Xử lý thay đổi avatar
   const handleAvatarChange = () => {
     if (!newAvatar) {
+<<<<<<< HEAD
       message.error('Vui lòng nhập URL ảnh mới!');
+=======
+      message.error("Vui lòng nhập URL ảnh mới!");
+>>>>>>> main
       return;
     }
     if (user) {
       setUser({ ...user, avatar: newAvatar });
+<<<<<<< HEAD
       message.success('Thay đổi avatar thành công!');
       setNewAvatar('');
+=======
+      message.success("Thay đổi avatar thành công!");
+      setNewAvatar("");
+>>>>>>> main
     }
   };
 
@@ -127,6 +152,7 @@ const Userdetails = () => {
           </Button>
         </div>
         <div className={styles.infoSection}>
+<<<<<<< HEAD
           <p><strong>Họ tên:</strong> {user.fullName}</p>
           <p><strong>Email:</strong> {user.email}</p>
           <p><strong>Số điện thoại:</strong> {user.phone}</p>
@@ -137,6 +163,30 @@ const Userdetails = () => {
       </div>
       <p className={styles.backLink}>
         Quay lại{' '}
+=======
+          <p>
+            <strong>Họ tên:</strong> {user.fullName}
+          </p>
+          <p>
+            <strong>Email:</strong> {user.email}
+          </p>
+          <p>
+            <strong>Số điện thoại:</strong> {user.phone}
+          </p>
+          <p>
+            <strong>Quyền:</strong> {user.role}
+          </p>
+          <p>
+            <strong>Trạng thái:</strong> {user.status}
+          </p>
+          <p>
+            <strong>Ngày tạo:</strong> {user.createdAt}
+          </p>
+        </div>
+      </div>
+      <p className={styles.backLink}>
+        Quay lại{" "}
+>>>>>>> main
         <Link to="/admin/userpage" className={styles.homeLink}>
           Danh sách người dùng
         </Link>
@@ -145,4 +195,8 @@ const Userdetails = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Userdetails;
+=======
+export default Userdetails;
+>>>>>>> main

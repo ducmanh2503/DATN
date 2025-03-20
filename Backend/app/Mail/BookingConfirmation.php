@@ -57,7 +57,7 @@ class BookingConfirmation extends Mailable
         $combos = '';
         if (!empty($this->ticketDetails['combos'])) {
             $combos = implode(', ', array_map(function ($combo) {
-                return "{$combo['name']} ({$combo['price']})";
+                return "{$combo['display']} - " . number_format($combo['price'], 0, ',', '.') . " VNĐ";
             }, $this->ticketDetails['combos']->toArray()));
         }
         $qrData = "Mã đặt vé: {$this->booking->id}\n" .

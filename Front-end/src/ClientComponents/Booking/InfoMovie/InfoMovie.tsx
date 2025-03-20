@@ -15,6 +15,7 @@ import { useComboContext } from "../../UseContext/CombosContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
 
 const InfoMovie = () => {
+
     const { filmId, showtimesTime, showtimesDate } = useFilmContext();
     const { quantityCombo } = useComboContext();
     const { quantitySeats } = useSeatsContext();
@@ -93,19 +94,18 @@ const InfoMovie = () => {
                 <span className={clsx(styles.detailDay)}> {showtimesDate}</span>
             </div>
 
+
             {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
             {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
 
-            <div className={clsx(styles.bookingTotal)}>
-                <Divider className={clsx(styles.dividerCustom)} dashed />
-                <div className={clsx(styles.totalInfo)}>
-                    <div className={clsx(styles.totalLabel)}>Tổng cộng</div>
-                    <div className={clsx(styles.totalPrice)}>
-                        {parseInt(totalPrice)}đ
-                    </div>
-                </div>
-            </div>
+      <div className={clsx(styles.bookingTotal)}>
+        <Divider className={clsx(styles.dividerCustom)} dashed />
+        <div className={clsx(styles.totalInfo)}>
+          <div className={clsx(styles.totalLabel)}>Tổng cộng</div>
+          <div className={clsx(styles.totalPrice)}>{parseInt(totalPrice)}đ</div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 export default InfoMovie;

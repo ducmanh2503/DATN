@@ -1,70 +1,84 @@
 // src/types/room.types.ts
 
-// Room model interface
+// Giao diện cho mô hình Room, khớp với Room model trong backend
 export interface Room {
-  id: string;
+  id: string | number;
   name: string;
   capacity: number;
-  room_type: string;
+  room_type_id: number;
+  room_type?: string; // Tên loại phòng (có thể được thêm vào từ frontend)
   created_at?: string;
   updated_at?: string;
-  deleted_at?: string | null;
+  deleted_at?: string | null; // Hỗ trợ soft delete từ backend
 }
 
-// Request for creating a new room
+// Giao diện cho loại phòng
+export interface RoomType {
+  id: number;
+  name: string;
+}
+
+// Giao diện cho loại ghế
+export interface SeatType {
+  id: number;
+  name: string;
+  price: number;
+}
+
+// Yêu cầu tạo phòng mới
 export interface RoomCreateRequest {
   name: string;
   capacity: number;
-  room_type: string;
+  room_type_id: number;
 }
 
-// Response for room creation
+// Phản hồi khi tạo phòng
 export interface RoomCreateResponse {
   message: string;
   room: Room;
 }
 
-// Request for updating a room
+// Yêu cầu cập nhật phòng
 export interface RoomUpdateRequest {
   name?: string;
   capacity?: number;
-  room_type?: string;
+  room_type_id?: number;
 }
 
-// Response for room update
+// Phản hồi khi cập nhật phòng
 export interface RoomUpdateResponse {
   message: string;
   room: Room;
 }
 
-// Response for room listing
+// Phản hồi danh sách phòng
 export interface RoomListResponse {
   message?: string;
   rooms: Room[];
 }
 
-// Request for deleting rooms
+// Yêu cầu xóa nhiều phòng
 export interface RoomDeleteRequest {
   ids: (string | number)[];
 }
 
-// Response for room deletion
+// Phản hồi khi xóa phòng
 export interface RoomDeleteResponse {
   message: string;
   deletedCount?: number;
   deletedIds?: (string | number)[];
 }
 
-// Response for restoring a room
+// Phản hồi khi khôi phục phòng
 export interface RoomRestoreResponse {
   message: string;
   room?: Room;
 }
 
-// API Error response format
+// Định dạng lỗi API từ backend
 export interface ApiError {
   error: string;
   message?: string;
-  details?: Record<string, string[]>;
+  details?: Record<string, string[]>; // Chi tiết lỗi validation từ backend
   status?: number;
 }

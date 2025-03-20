@@ -39,6 +39,7 @@ interface RoomTableDataSource {
 }
 
 const RoomPage: React.FC = () => {
+
     const [rooms, setRooms] = useState<Room[]>([]);
     const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
     const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
@@ -87,6 +88,7 @@ const RoomPage: React.FC = () => {
     };
 
     const fetchSeats = async (roomId: number) => {
+
         setLoading(true);
         try {
             const data = await seatService.getSeats(roomId);
@@ -468,6 +470,7 @@ const RoomPage: React.FC = () => {
         onChange: (newSelectedRowKeys: React.Key[]) => {
             setSelectedRowKeys(newSelectedRowKeys.map(String));
         },
+
         getCheckboxProps: (record: RoomTableDataSource) => ({
             disabled:
                 rooms.find((r) => String(r.id) === String(record.key))
@@ -484,6 +487,7 @@ const RoomPage: React.FC = () => {
                 </div>
             );
         }
+
 
         return (
             <div className="seat-matrix">
@@ -568,6 +572,7 @@ const RoomPage: React.FC = () => {
                 })}
             </div>
         );
+
     };
 
     const getSeatColor = (type: string) => {
@@ -607,6 +612,7 @@ const RoomPage: React.FC = () => {
                             },
                         ]}
                     />
+
                     <div
                         className="room-page-header"
                         style={{
@@ -646,6 +652,7 @@ const RoomPage: React.FC = () => {
                             </Button>
                         </div>
                     </div>
+
 
                     <Table
                         columns={columns}
@@ -839,6 +846,7 @@ const RoomPage: React.FC = () => {
             </Content>
         </Layout>
     );
+
 };
 
 export default RoomPage;

@@ -15,88 +15,78 @@ import { useComboContext } from "../../UseContext/CombosContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
 
 const InfoMovie = () => {
+  const { filmId, showtimesTime, showtimesDate } = useFilmContext();
+  const { quantityCombo } = useComboContext();
+  const { quantitySeats } = useSeatsContext();
+  const { setDataDetailFilm, dataDetailFilm } = useStepsContext();
+  const { totalPrice } = useFinalPriceContext();
 
-    const { filmId, showtimesTime, showtimesDate } = useFilmContext();
-    const { quantityCombo } = useComboContext();
-    const { quantitySeats } = useSeatsContext();
-    const { setDataDetailFilm, dataDetailFilm } = useStepsContext();
-    const { totalPrice } = useFinalPriceContext();
+  // lấy detail film
+  const { data: detailFilm } = useQuery({
+    queryKey: ["film", filmId],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `http://localhost:8000/api/movie-details-booking/${filmId}`
+      );
+      // console.log("detail-id", data.data);
 
-    // lấy detail film
-    const { data: detailFilm } = useQuery({
-        queryKey: ["film", filmId],
-        queryFn: async () => {
-            const { data } = await axios.get(
-                `http://localhost:8000/api/movie-details-booking/${filmId}`
-            );
-            // console.log("detail-id", data.data);
+      return data.data;
+    },
 
-            return data.data;
-        },
+    staleTime: 1000 * 60 * 10,
+  });
 
-        staleTime: 1000 * 60 * 10,
-    });
+  // Gán data detail film vào state để quản lý
+  useEffect(() => {
+    setDataDetailFilm(detailFilm);
+  }, [detailFilm]);
 
-    // Gán data detail film vào state để quản lý
-    useEffect(() => {
-        setDataDetailFilm(detailFilm);
-    }, [detailFilm]);
+  // lấy dữ liệu từ sessionStorage
+  const check = sessionStorage.getItem("dataDetailFilm");
 
-    // lấy dữ liệu từ sessionStorage
-    const check = sessionStorage.getItem("dataDetailFilm");
+  //chuyển đổi về dạng obj
+  const chuyendoi = check ? JSON.parse(check) : null;
 
-    //chuyển đổi về dạng obj
-    const chuyendoi = check ? JSON.parse(check) : null;
+  // console.log(sessionStorage.getItem("dataDetailFilm"));
+  return (
+    <div className={clsx(styles.infoMovie)}>
+      <div className={clsx(styles.bookingFilm)}>
+        <div className={clsx(styles.filmImage)}>
+          <Image
+            className={clsx(styles.filmThumbnail)}
+            src={`${URL_IMAGE}${detailFilm?.poster}`}
+          />
+        </div>
+        <div className={clsx(styles.filmInfo)}>
+          <div className={clsx(styles.infoTitle, "cliptextTitle")}>
+            {chuyendoi?.title}
+          </div>
+          <div className={clsx(styles.infoGenres)}>
+            {chuyendoi?.genres.map((genre: any, index: number) => (
+              <span key={index} className={clsx(styles.genreItem)}>
+                {genre.name_genre}
+              </span>
+            ))}
+          </div>
+          <div className={clsx(styles.infoSub)}>
+            <span className={clsx(styles.subRoomType)}>2D</span>
+            <span className={clsx(styles.subForm)}>{chuyendoi?.language}</span>
+            <div className={clsx(styles.subRated)}>{chuyendoi?.rated}</div>
+          </div>
+        </div>
+      </div>
+      <div className={clsx(styles.bookingDetail)}>
+        <span>
+          Suất:{" "}
+          <span className={clsx(styles.detailTime)}>
+            {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")}
+          </span>
+        </span>{" "}
+        -<span className={clsx(styles.detailDay)}> {showtimesDate}</span>
+      </div>
 
-    // console.log(sessionStorage.getItem("dataDetailFilm"));
-    return (
-        <div className={clsx(styles.infoMovie)}>
-            <div className={clsx(styles.bookingFilm)}>
-                <div className={clsx(styles.filmImage)}>
-                    <Image
-                        className={clsx(styles.filmThumbnail)}
-                        src={`${URL_IMAGE}${detailFilm?.poster}`}
-                    />
-                </div>
-                <div className={clsx(styles.filmInfo)}>
-                    <div className={clsx(styles.infoTitle, "cliptextTitle")}>
-                        {chuyendoi?.title}
-                    </div>
-                    <div className={clsx(styles.infoGenres)}>
-                        {chuyendoi?.genres.map((genre: any, index: number) => (
-                            <span
-                                key={index}
-                                className={clsx(styles.genreItem)}
-                            >
-                                {genre.name_genre}
-                            </span>
-                        ))}
-                    </div>
-                    <div className={clsx(styles.infoSub)}>
-                        <span className={clsx(styles.subRoomType)}>2D</span>
-                        <span className={clsx(styles.subForm)}>
-                            {chuyendoi?.language}
-                        </span>
-                        <div className={clsx(styles.subRated)}>
-                            {chuyendoi?.rated}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div className={clsx(styles.bookingDetail)}>
-                <span>
-                    Suất:{" "}
-                    <span className={clsx(styles.detailTime)}>
-                        {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")}
-                    </span>
-                </span>{" "}
-                -
-                <span className={clsx(styles.detailDay)}> {showtimesDate}</span>
-            </div>
-
-
-            {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
-            {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
+      {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
+      {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
 
       <div className={clsx(styles.bookingTotal)}>
         <Divider className={clsx(styles.dividerCustom)} dashed />

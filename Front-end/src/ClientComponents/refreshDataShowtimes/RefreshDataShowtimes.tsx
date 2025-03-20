@@ -8,43 +8,43 @@ import { useFilmContext } from "../UseContext/FIlmContext";
 import { useAuthContext } from "../UseContext/TokenContext";
 
 const useShowtimeData = () => {
-    const {
-        setQuantityCombo,
-        setNameCombo,
-        setTotalComboPrice,
-        setQuantityMap,
-        setHoldComboID,
-    } = useComboContext();
-    const {
-        setTypeSeats,
-        setNameSeats,
-        setTotalSeatPrice,
-        setQuantitySeats,
-        selectedSeatIds,
-        setSelectedSeatIds,
-    } = useSeatsContext();
-    const { setTotalPrice } = useFinalPriceContext();
-    const { setCurrentStep, setCalendarShowtimeID } = useStepsContext();
-    const { roomIdFromShowtimes, showtimeIdFromBooking, setShowtimesDate } =
-        useFilmContext();
-    const { tokenUserId } = useAuthContext();
-    // Hàm reset dữ liệu
-    const resetDataShowtimes = () => {
-        setQuantitySeats(0);
-        setTypeSeats(null);
-        setNameSeats([]);
-        setTotalSeatPrice(0);
-        setQuantityCombo(0);
-        setNameCombo([]);
-        setTotalComboPrice(0);
-        setQuantityMap({});
-        setTotalPrice(0);
-        setCurrentStep(1);
-        setHoldComboID([]);
-        setSelectedSeatIds([]);
-        setCalendarShowtimeID(null);
-        // setShowtimesDate("");
-    };
+  const {
+    setQuantityCombo,
+    setNameCombo,
+    setTotalComboPrice,
+    setQuantityMap,
+    setHoldComboID,
+  } = useComboContext();
+  const {
+    setTypeSeats,
+    setNameSeats,
+    setTotalSeatPrice,
+    setQuantitySeats,
+    selectedSeatIds,
+    setSelectedSeatIds,
+  } = useSeatsContext();
+  const { setTotalPrice } = useFinalPriceContext();
+  const { setCurrentStep, setCalendarShowtimeID } = useStepsContext();
+  const { roomIdFromShowtimes, showtimeIdFromBooking, setShowtimesDate } =
+    useFilmContext();
+  const { tokenUserId } = useAuthContext();
+  // Hàm reset dữ liệu
+  const resetDataShowtimes = () => {
+    setQuantitySeats(0);
+    setTypeSeats(null);
+    setNameSeats([]);
+    setTotalSeatPrice(0);
+    setQuantityCombo(0);
+    setNameCombo([]);
+    setTotalComboPrice(0);
+    setQuantityMap({});
+    setTotalPrice(0);
+    setCurrentStep(1);
+    setHoldComboID([]);
+    setSelectedSeatIds([]);
+    setCalendarShowtimeID(null);
+    // setShowtimesDate("");
+  };
 
   //giải phóng ghế
   const releaseSeatsMutation = useMutation({
@@ -56,33 +56,34 @@ const useShowtimeData = () => {
           room_id: roomIdFromShowtimes,
           showtime_id: showtimeIdFromBooking,
         },
+        { headers: { Authorization: `Bearer ${tokenUserId}` } }
+      );
+    },
+    onSuccess: () => {
+      // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
+    },
+  });
+  const releaseSeats = () => {
+    if (selectedSeatIds.length > 0) {
+      releaseSeatsMutation.mutate(selectedSeatIds);
+    }
+  };
 
-        onSuccess: () => {
-            // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
-        },
-    });
-    const releaseSeats = () => {
-        if (selectedSeatIds.length > 0) {
-            releaseSeatsMutation.mutate(selectedSeatIds);
-        }
-    };
-
-
-    return {
-        setQuantityCombo,
-        setNameCombo,
-        setTotalComboPrice,
-        setQuantityMap,
-        setTypeSeats,
-        setNameSeats,
-        setTotalSeatPrice,
-        setQuantitySeats,
-        setTotalPrice,
-        setCurrentStep,
-        setSelectedSeatIds,
-        resetDataShowtimes,
-        releaseSeats,
-    };
+  return {
+    setQuantityCombo,
+    setNameCombo,
+    setTotalComboPrice,
+    setQuantityMap,
+    setTypeSeats,
+    setNameSeats,
+    setTotalSeatPrice,
+    setQuantitySeats,
+    setTotalPrice,
+    setCurrentStep,
+    setSelectedSeatIds,
+    resetDataShowtimes,
+    releaseSeats,
+  };
 };
 
 export default useShowtimeData;

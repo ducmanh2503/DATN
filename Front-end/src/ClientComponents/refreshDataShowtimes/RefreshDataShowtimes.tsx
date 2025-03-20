@@ -20,7 +20,6 @@ const useShowtimeData = () => {
         setNameSeats,
         setTotalSeatPrice,
         setQuantitySeats,
-        setSeats,
         selectedSeatIds,
         setSelectedSeatIds,
     } = useSeatsContext();
@@ -57,24 +56,17 @@ const useShowtimeData = () => {
           room_id: roomIdFromShowtimes,
           showtime_id: showtimeIdFromBooking,
         },
-        { headers: { Authorization: `Bearer ${tokenUserId}` } }
-      );
-    },
-    onSuccess: () => {
-      // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
 
-      setSeats((prevSeats: any) => {
-        const updatedSeats = { ...prevSeats };
+        onSuccess: () => {
+            // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
+        },
+    });
+    const releaseSeats = () => {
+        if (selectedSeatIds.length > 0) {
+            releaseSeatsMutation.mutate(selectedSeatIds);
+        }
+    };
 
-        return updatedSeats;
-      });
-    },
-  });
-  const releaseSeats = () => {
-    if (selectedSeatIds.length > 0) {
-      releaseSeatsMutation.mutate(selectedSeatIds);
-    }
-  };
 
     return {
         setQuantityCombo,

@@ -17,104 +17,58 @@ import UISeatsInfo from "../UISeatsInfo/UISeatsInfo";
 import CustomNotification from "../Notification/Notification";
 
 const BookingSeat = ({ className }: { className?: string }) => {
-  const {
-    setNameSeats,
-    nameSeats,
-    setQuantitySeats,
-    quantitySeats,
-    setTotalSeatPrice,
-    totalSeatPrice,
-    setTypeSeats,
-    typeSeats,
-    setSelectedSeatIds,
-    seats,
-    setSeats,
-    setMatrixSeatsManage,
-  } = useSeatsContext();
-  const { setTotalPrice } = useFinalPriceContext();
-  const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
-  const { tokenUserId } = useAuthContext();
-  const {
-    setUserIdFromShowtimes,
-    userIdFromShowtimes,
-    currentStep,
-    selectedSeatIds,
-  } = useStepsContext();
-  const { totalComboPrice } = useComboContext();
-  const { openNotification, contextHolder } = CustomNotification();
 
-  const queryClient = useQueryClient();
-  const [isPusherRegistered, setIsPusherRegistered] = useState(false);
-  const pusherEventHandlersRegistered = useRef(false);
-  const pollingIntervalRef = useRef<number | null>(null);
-  const MAX_SEATS = 8;
+    const {
+        setNameSeats,
+        nameSeats,
+        setQuantitySeats,
+        quantitySeats,
+        setTotalSeatPrice,
+        totalSeatPrice,
+        setTypeSeats,
+        typeSeats,
+        setSelectedSeatIds,
+        setMatrixSeatsManage,
+    } = useSeatsContext();
+    const { setTotalPrice } = useFinalPriceContext();
+    const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
+    const { tokenUserId } = useAuthContext();
+    const { setUserIdFromShowtimes, userIdFromShowtimes, currentStep } =
+        useStepsContext();
+    const { totalComboPrice } = useComboContext();
+    const { openNotification, contextHolder } = CustomNotification();
 
-  // api lấy userID
-  const { data: getUserId } = useQuery({
-    queryKey: ["getUserId"],
-    queryFn: async () => {
-      try {
-        const { data } = await axios.get("http://localhost:8000/api/user", {
-          headers: { Authorization: `Bearer ${tokenUserId}` },
-        });
-        return data.id;
-      } catch (error) {
-        console.error("Lỗi khi lấy userId:", error);
-        return null;
-      }
-    },
-    enabled: !!tokenUserId, // Chỉ chạy khi có token
-  });
+    const queryClient = useQueryClient();
+    const [isPusherRegistered, setIsPusherRegistered] = useState(false);
+    const pusherEventHandlersRegistered = useRef(false);
+    const pollingIntervalRef = useRef<number | null>(null);
+    const MAX_SEATS = 8;
 
-  // Cập nhật userId khi getUserId có dữ liệu
-  useEffect(() => {
-    if (getUserId !== undefined) {
-      setUserIdFromShowtimes(getUserId ?? null);
-    }
-  }, [getUserId]);
+    // api lấy userID
+    const { data: getUserId } = useQuery({
+        queryKey: ["getUserId"],
+        queryFn: async () => {
+            try {
+                const { data } = await axios.get(
+                    "http://localhost:8000/api/user",
+                    {
+                        headers: { Authorization: `Bearer ${tokenUserId}` },
+                    }
+                );
+                return data.id;
+            } catch (error) {
+                console.error("Lỗi khi lấy userId:", error);
+                return null;
+            }
+        },
+        enabled: !!tokenUserId, // Chỉ chạy khi có token
+    });
 
-  // api lấy ma trận ghế
-  const { data: matrixSeats, refetch: refetchMatrix } = useQuery({
-    queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
-    queryFn: async () => {
-      if (!roomIdFromShowtimes || !showtimeIdFromBooking) {
-        return null;
-      }
-      try {
-        const { data } = await axios.get(
-          `http://localhost:8000/api/get-seats-for-booking/${roomIdFromShowtimes}/${showtimeIdFromBooking}`,
-          {
-            headers: { Authorization: `Bearer ${tokenUserId}` },
-          }
-        );
-        // console.log("ma trận ghế", data);
+    // Cập nhật userId khi getUserId có dữ liệu
+    useEffect(() => {
+        if (getUserId !== undefined) {
+            setUserIdFromShowtimes(getUserId ?? null);
 
-        return data;
-      } catch (error) {
-        console.error("🚨 Lỗi khi lấy thông tin ghế:", error);
-        return null;
-      }
-    },
-    staleTime: 1000 * 60,
-    enabled: !!roomIdFromShowtimes && !!showtimeIdFromBooking && !!tokenUserId,
-  });
-
-  useEffect(() => {
-    if (matrixSeats !== undefined) {
-      setMatrixSeatsManage(matrixSeats ?? null);
-    }
-  }, [matrixSeats]);
-
-  const findSeatCodeById = useCallback(
-    (seatId: number): string | null => {
-      if (!matrixSeats) return null;
-      for (const rowKey in matrixSeats) {
-        const row = matrixSeats[rowKey];
-        for (const seatKey in row) {
-          const seat = row[seatKey];
-          if (seat.id === seatId) {
-            return seat.seatCode;
-          }
         }
       }
       return null;
@@ -206,23 +160,8 @@ const BookingSeat = ({ className }: { className?: string }) => {
           return s;
         });
 
-        // Xoá ghế nếu số lượng bằng 0
-        updatedSeats = updatedSeats.filter((s) => s.quantitySeats > 0);
-      } else {
-        // Nếu ghế loại này chưa có, thêm mới
-        updatedSeats = [
-          ...prevSeats,
-          {
-            quantitySeats: 1,
-            type: seat.type,
-            seatCode: seat.seatCode,
-            price: parseInt(seat.price),
-          },
-        ];
-      }
+    };
 
-      return updatedSeats; // Trả về giá trị mới của typeSeats
-    });
 
     // Kiểm tra trạng thái ghế đã giữ hay đã đặt chưa
     if (
@@ -319,13 +258,49 @@ const BookingSeat = ({ className }: { className?: string }) => {
                 break;
               }
             }
-          }
+
+        }
+
+        setNameSeats((prevNameSeats: string[]) => {
+            const updatedSeats = prevNameSeats.filter(
+                (seatCode) =>
+                    !initialSeats[seatCode]?.isHeld ||
+                    initialSeats[seatCode]?.heldByUser
+            );
+
+            return updatedSeats;
         });
-        setTotalSeatPrice(newPrice);
-        setQuantitySeats(updatedSeats.length);
-      }
-      return updatedSeats;
-    });
+        setTypeSeats((prevTypeSeats: any[]) => {
+            if (!prevTypeSeats) return [];
+
+            return prevTypeSeats
+                .map((seat) => {
+                    // Tách danh sách mã ghế
+                    const seatCodes = seat.seatCode.split(", ");
+
+                    // Lọc bỏ các ghế đã bị giữ bởi người khác
+                    const availableSeatCodes = seatCodes.filter(
+                        (code: any) =>
+                            !initialSeats[code]?.isHeld ||
+                            initialSeats[code]?.heldByUser
+                    );
+
+                    // Nếu không còn ghế hợp lệ, loại bỏ khỏi danh sách
+                    if (availableSeatCodes.length === 0) return null;
+
+                    // Nếu có ghế còn lại, cập nhật lại thông tin ghế
+                    return {
+                        ...seat,
+                        seatCode: availableSeatCodes.join(", "),
+                        quantitySeats: availableSeatCodes.length,
+                        price:
+                            (seat.price / seatCodes.length) *
+                            availableSeatCodes.length,
+                    };
+                })
+                .filter(Boolean); // Loại bỏ các phần tử null
+        });
+
 
     setSelectedSeatIds((prev: any) => {
       const validIds = prev.filter((id: any) => {
@@ -447,25 +422,37 @@ const BookingSeat = ({ className }: { className?: string }) => {
                   return true;
                 });
 
-                if (updatedSeats.length !== prevNameSeats.length) {
-                  setQuantitySeats(updatedSeats.length);
-                  let newPrice = 0;
-                  updatedSeats.forEach((seatCode: any) => {
-                    if (matrixSeats) {
-                      for (const row in matrixSeats) {
-                        for (const col in matrixSeats[row]) {
-                          const seat = matrixSeats[row][col];
-                          if (seat.seatCode === seatCode) {
-                            newPrice += Number(seat.price);
-                          }
+
+                    if (seatsArray.length > 0) {
+                        if (data.userId !== userIdFromShowtimes) {
+                            // Thông báo ghế vừa bị giữ
+                            const seatCodes = seatsArray
+                                .map((seatId) => findSeatCodeById(seatId))
+                                .filter(Boolean)
+                                .join(", ");
+                            if (seatCodes) {
+                                message.info(
+                                    `Ghế ${seatCodes} vừa được người khác chọn`
+                                );
+                            }
+
+                            // Cập nhật lại ma trận ghế
+                            refetchMatrix();
+
                         }
                       }
                     }
-                  });
-                  setTotalSeatPrice(newPrice);
-                }
-                return updatedSeats;
-              });
+
+                });
+
+                pusherEventHandlersRegistered.current = true;
+            }
+        });
+
+        channel.bind("pusher:subscription_error", (error: any) => {
+            console.error(`🚨 Lỗi khi đăng ký kênh ${channelName}:`, error);
+        });
+
 
               setSelectedSeatIds((prev: any) =>
                 prev.filter((id: any) => !seatsArray.includes(id))
@@ -549,37 +536,70 @@ const BookingSeat = ({ className }: { className?: string }) => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("focus", handleFocus);
     };
-  }, [refetchMatrix]);
 
-  // Hàm chuyển đổi số thành chữ cái
-  const numberToLetter = (num: any) => {
-    let result = "";
-    while (num > 0) {
-      num--; // Điều chỉnh chỉ số bắt đầu từ 1
-      result = String.fromCharCode(65 + (num % 26)) + result;
-      num = Math.floor(num / 26);
-    }
-    return result;
-  };
 
-  return (
-    <div className={clsx(styles.boxMainLeft, className)}>
-      {contextHolder}
-      <ChangeShowtimes></ChangeShowtimes>
-      <div className={clsx(styles.bookingSeat)}>
-        <Card>
-          <div className={clsx(styles.screen)}>MÀN HÌNH</div>
+    return (
+        <div className={clsx(styles.boxMainLeft, className)}>
+            {contextHolder}
+            <ChangeShowtimes></ChangeShowtimes>
+            <div className={clsx(styles.bookingSeat)}>
+                <Card>
+                    <div className={clsx(styles.screen)}>MÀN HÌNH</div>
 
-          <div className={clsx(styles.matrixSeat)}>
-            {matrixSeats &&
-              Object.entries(matrixSeats).map(
-                ([rowLabel, rowData]: any, rowIndex) => (
-                  <div
-                    key={`row-${rowLabel}-${rowIndex}`}
-                    className={clsx(styles.rowSeats)}
-                  >
-                    <div className={clsx(styles.colSeats)}>
-                      {numberToLetter(rowIndex + 1)}
+                    <div className={clsx(styles.matrixSeat)}>
+                        {matrixSeats &&
+                            Object.entries(matrixSeats).map(
+                                ([rowLabel, rowData]: any, rowIndex) => (
+                                    <div
+                                        key={`row-${rowLabel}-${rowIndex}`}
+                                        className={clsx(styles.rowSeats)}
+                                    >
+                                        <div className={clsx(styles.colSeats)}>
+                                            {numberToLetter(rowIndex + 1)}
+                                        </div>
+
+                                        {Object.values(rowData).map(
+                                            (seat: any) => {
+                                                const isSelected =
+                                                    nameSeats.includes(
+                                                        seat.seatCode
+                                                    );
+                                                const isHeld =
+                                                    seat.status === "held" ||
+                                                    seat.status === "booked";
+
+                                                return (
+                                                    <button
+                                                        className={clsx(
+                                                            styles.seatName,
+                                                            isHeld &&
+                                                                styles.held,
+                                                            isSelected &&
+                                                                styles.selected,
+                                                            seat.type ===
+                                                                "VIP" &&
+                                                                styles.vip,
+                                                            seat.type ===
+                                                                "Sweetbox" &&
+                                                                styles.sweetbox
+                                                        )}
+                                                        key={`seat-${seat.id}`}
+                                                        onClick={() => {
+                                                            handleSeatClick(
+                                                                seat
+                                                            );
+                                                        }}
+                                                        disabled={isHeld}
+                                                    >
+                                                        {seat.seatCode}
+                                                    </button>
+                                                );
+                                            }
+                                        )}
+                                    </div>
+                                )
+                            )}
+
                     </div>
                     {Object.values(rowData).map((seat: any) => {
                       const isSelected = nameSeats.includes(seat.seatCode);

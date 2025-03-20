@@ -1,0 +1,42 @@
+.promotionCollapse {
+    margin-left: -12px;
+}
+
+.yourPoint {
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: var(--border-color);
+}
+
+.inputNumber {
+    width: 175px;
+}
+
+.promotionNote {
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.promotionInfo {
+    margin-top: 10px;
+}
+
+.promotionRate {
+    font-weight: 500;
+    margin-left: 15px;
+}
+
+.range {
+    /* color: var(--border-color); */
+    font-weight: 600;
+}
+
+.promotionMember {
+    margin-left: 15px;
+}
+
+.warning {
+    display: block;
+    color: red;
+}

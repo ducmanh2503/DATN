@@ -25,24 +25,6 @@
     margin-top: 18px;
 }
 
-.promotionNote {
-    margin-top: 10px;
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.promotionInfo {
-    margin-top: 10px;
-}
-
-.promotionRate {
-    font-weight: 500;
-    margin-left: 15px;
-}
-
-.promotionMember {
-    margin-left: 15px;
-}
 .paymentMethod {
     background-color: white;
     padding: 15px 25px;

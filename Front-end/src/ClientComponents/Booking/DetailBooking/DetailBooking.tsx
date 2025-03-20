@@ -14,11 +14,11 @@ import { PAYMENT_WITH_VNPAY } from "../../../config/ApiConfig";
 import { useAuthContext } from "../../UseContext/TokenContext";
 
 const DetailBooking = ({
-  open,
-  setOpen,
+    open,
+    setOpen,
 }: {
-  open: boolean;
-  setOpen: (open: boolean) => void;
+    open: boolean;
+    setOpen: (open: boolean) => void;
 }) => {
     const { dataDetailFilm, calendarShowtimeID, paymentType } =
         useStepsContext();
@@ -45,10 +45,9 @@ const DetailBooking = ({
         setIsSelected(false);
     };
 
-  const onCancel = () => {
-    setOpen(false);
-    setIsSelected(false);
-  };
+    const handleClick = () => {
+        setIsSelected(!isSelected); // Toggle trạng thái chọn
+    };
 
     // const { mutate: paymentTicket } = useMutation({
     //     mutationFn: async () => {
@@ -100,13 +99,7 @@ const DetailBooking = ({
             );
             console.log(data.data);
 
-  //thanh toán nếu bằng VNPay
-  const vnpay = useMutation({
-    mutationFn: async () => {
-      const { data } = await axios.post(
-        PAYMENT_WITH_VNPAY,
-        {
-          totalPrice: totalPrice,
+            return data.data;
         },
     });
     return (
@@ -184,37 +177,19 @@ const DetailBooking = ({
                         {totalPrice} VNĐ
                     </div>
                 </div>
-              ))}
             </div>
-            <div className={clsx(styles.comboInfo)}>
-              {nameCombo?.map((item: any) => (
-                <div key={item.id}>
-                  <span className={clsx(styles.comboLabel)}>
-                    {item.defaultQuantityCombo}{" "}
-                  </span>
-                  <span className={clsx(styles.comboName)}>x {item.name}</span>
-                </div>
-              ))}
+            <div className={clsx(styles.checked)}>
+                <span className={clsx(styles.paragraph)}>
+                    Tôi xác nhận thông tin đặt vé là chính xác
+                </span>{" "}
+                <span
+                    className={clsx(styles.selectButton, {
+                        [styles.active]: isSelected,
+                    })}
+                    onClick={handleClick}
+                ></span>
             </div>
-          </div>
-        </div>
-        <div className={clsx(styles.allInfo)}>
-          <h2 className={clsx(styles.all)}>Tổng</h2>
-          <div className={clsx(styles.totalPrice)}>{totalPrice} VNĐ</div>
-        </div>
-      </div>
-      <div className={clsx(styles.checked)}>
-        <span className={clsx(styles.paragraph)}>
-          Tôi xác nhận thông tin đặt vé là chính xác
-        </span>{" "}
-        <span
-          className={clsx(styles.selectButton, {
-            [styles.active]: isSelected,
-          })}
-          onClick={handleClick}
-        ></span>
-      </div>
-    </Modal>
-  );
+        </Modal>
+    );
 };
 export default DetailBooking;

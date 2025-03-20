@@ -28,7 +28,6 @@ export interface SeatType {
 // Yêu cầu tạo phòng mới
 export interface RoomCreateRequest {
   name: string;
-  capacity: number;
   room_type_id: number;
 }
 
@@ -41,7 +40,6 @@ export interface RoomCreateResponse {
 // Yêu cầu cập nhật phòng
 export interface RoomUpdateRequest {
   name?: string;
-  capacity?: number;
   room_type_id?: number;
 }
 

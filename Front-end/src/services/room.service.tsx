@@ -79,6 +79,7 @@ export const getRoomTypes = async (): Promise<RoomType[]> => {
       { id: 1, name: "2D" },
       { id: 2, name: "3D" },
       { id: 3, name: "4D" },
+      { id: 4, name: "IMAX" },
     ];
   }
 };
@@ -104,7 +105,7 @@ export const createRoom = async (
       {
         name: data.name,
         room_type_id: data.room_type_id,
-        capacity: data.capacity,
+        capacity: 0, // Gán mặc định capacity = 0 để tương thích backend
       },
       { headers: { "Content-Type": "application/json" } }
     );
@@ -129,7 +130,6 @@ export const updateRoom = async (
       {
         name: data.name,
         room_type_id: data.room_type_id,
-        capacity: data.capacity,
       },
       { headers: { "Content-Type": "application/json" } }
     );

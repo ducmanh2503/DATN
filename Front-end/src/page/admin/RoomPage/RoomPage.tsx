@@ -44,40 +44,41 @@ const RoomPage: React.FC = () => {
   const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [seats, setSeats] = useState<SeatingMatrix>({});
   const [selectedSeat, setSelectedSeat] = useState<Seat | null | undefined>(
     null
   );
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
-  const seatTypes = [
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [seatTypes, setSeatTypes] = useState<SeatType[]>([
     { id: 1, name: "Thường", price: 50000 },
     { id: 2, name: "VIP", price: 100000 },
     { id: 3, name: "Sweetbox", price: 150000 },
-  ];
-  const roomTypes = [
-    { id: 1, name: "2D" },
-    { id: 2, name: "3D" },
-    { id: 3, name: "4D" },
-  ];
+  ]);
 
   useEffect(() => {
     fetchRooms();
+    fetchSeatTypes();
   }, []);
+
+  const fetchSeatTypes = async () => {
+    try {
+      const data = await seatService.getSeatTypes();
+      if (data && Array.isArray(data) && data.length > 0) {
+        setSeatTypes(data);
+      }
+    } catch (error) {
+      console.error("Error fetching seat types:", error);
+      // Giữ lại danh sách seat types mặc định nếu có lỗi
+    }
+  };
 
   const fetchRooms = async () => {
     setLoading(true);
     try {
       const response = await roomService.getRooms();
-      const roomsWithCapacity = response.rooms.map((room) => ({
-        ...room,
-        capacity:
-          room.capacity !== null && room.capacity !== undefined
-            ? Number(room.capacity)
-            : 0,
-      }));
-      setRooms(roomsWithCapacity);
+      setRooms(response.rooms);
     } catch (error: any) {
       message.error(error.message || "Lỗi khi tải danh sách phòng");
     } finally {
@@ -100,11 +101,7 @@ const RoomPage: React.FC = () => {
   const handleCreateRoom = async (newRoom: RoomCreateRequest) => {
     setLoading(true);
     try {
-      const roomData = {
-        ...newRoom,
-        capacity: Number(newRoom.capacity),
-      };
-      const response = await roomService.createRoom(roomData);
+      const response = await roomService.createRoom(newRoom);
       await fetchRooms();
       setIsRoomModalOpen(false);
       message.success(response.message || "Thêm phòng mới thành công");
@@ -121,14 +118,7 @@ const RoomPage: React.FC = () => {
   ) => {
     setLoading(true);
     try {
-      const roomData = {
-        ...updatedRoom,
-        capacity:
-          updatedRoom.capacity !== undefined
-            ? Number(updatedRoom.capacity)
-            : undefined,
-      };
-      const response = await roomService.updateRoom(roomId, roomData);
+      const response = await roomService.updateRoom(roomId, updatedRoom);
       await fetchRooms();
       setIsRoomModalOpen(false);
       setEditingRoom(null);
@@ -176,17 +166,24 @@ const RoomPage: React.FC = () => {
     setLoading(true);
     try {
       console.log("Dữ liệu ghế chuẩn bị tạo:", newSeat);
+
+      // Đảm bảo seat_status được gửi đi
       if (!newSeat.seat_status) {
         newSeat.seat_status = "available";
       }
+
       await seatService.createSeat(newSeat);
       message.success("Thêm ghế mới thành công");
       setSelectedSeat(null);
       fetchSeats(selectedRoomId);
     } catch (error: any) {
+      // Hiển thị thông báo lỗi
       const errorMessage = error.message || "Lỗi khi tạo ghế";
       console.error("Chi tiết lỗi tạo ghế:", error);
+
+      // Phân tích thông báo lỗi chi tiết
       if (error.status === 422) {
+        // Lỗi validation
         if (error.details && error.details.seat_status) {
           message.error(
             `Lỗi: trường seat_status ${error.details.seat_status[0]}`
@@ -208,6 +205,7 @@ const RoomPage: React.FC = () => {
     if (!selectedRoomId) return;
     setLoading(true);
     try {
+      // Check if adding these seats would exceed room capacity
       if (selectedRoom) {
         const totalSeatsCount = getTotalSeatsCount() + newSeats.length;
         if (totalSeatsCount > selectedRoom.capacity) {
@@ -216,6 +214,7 @@ const RoomPage: React.FC = () => {
           );
         }
       }
+
       const responses = await Promise.all(
         newSeats.map((seat) => seatService.createSeat(seat))
       );
@@ -271,6 +270,7 @@ const RoomPage: React.FC = () => {
 
   const handleDeleteAllSeats = async () => {
     if (!selectedRoomId) return;
+
     Modal.confirm({
       title: "Xác nhận xóa tất cả ghế",
       content:
@@ -302,8 +302,8 @@ const RoomPage: React.FC = () => {
   const showSeatModal = (roomId: number) => {
     const room = rooms.find((r) => Number(r.id) === roomId);
     if (room) {
-      setSelectedRoomId(roomId);
       setSelectedRoom(room);
+      setSelectedRoomId(roomId);
       fetchSeats(roomId);
       setIsSeatModalOpen(true);
       setSelectedSeat(null);
@@ -312,12 +312,16 @@ const RoomPage: React.FC = () => {
     }
   };
 
+  // Count all seats in the matrix - xử lý tốt hơn các trường hợp đặc biệt
   const getTotalSeatsCount = (): number => {
+    // Kiểm tra seats có tồn tại và không rỗng
     if (!seats || Object.keys(seats).length === 0) {
       return 0;
     }
+
     let count = 0;
     Object.keys(seats).forEach((row) => {
+      // Kiểm tra hàng có tồn tại
       if (seats[row] && typeof seats[row] === "object") {
         count += Object.keys(seats[row]).length;
       }
@@ -358,7 +362,9 @@ const RoomPage: React.FC = () => {
       render: (_: any, record: RoomTableDataSource) => {
         const room = rooms.find((r) => String(r.id) === String(record.key));
         if (!room) return null;
+
         const isDeleted = !!room.deleted_at;
+
         return (
           <div style={{ display: "flex", gap: "8px" }}>
             <Button
@@ -413,17 +419,13 @@ const RoomPage: React.FC = () => {
     },
   ];
 
-  const dataSource: RoomTableDataSource[] = rooms.map((room) => {
-    // Find the room type name based on room_type_id
-    const roomType = roomTypes.find((type) => type.id === room.room_type_id);
-    return {
-      key: String(room.id),
-      name: room.name,
-      capacity: Number(room.capacity) || 0, // Ensure capacity is a number
-      room_type: roomType ? roomType.name : "Unknown",
-      status: room.deleted_at ? "deleted" : "active",
-    };
-  });
+  const dataSource: RoomTableDataSource[] = rooms.map((room) => ({
+    key: String(room.id),
+    name: room.name,
+    capacity: room.capacity,
+    room_type: room.room_type,
+    status: room.deleted_at ? "deleted" : "active",
+  }));
 
   const paginationConfig = {
     pageSize: 10,
@@ -454,6 +456,18 @@ const RoomPage: React.FC = () => {
     });
   };
 
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (newSelectedRowKeys: React.Key[]) => {
+      setSelectedRowKeys(newSelectedRowKeys.map(String));
+    },
+    getCheckboxProps: (record: RoomTableDataSource) => ({
+      disabled:
+        rooms.find((r) => String(r.id) === String(record.key))?.deleted_at !==
+        null,
+    }),
+  };
+
   const renderSeatMatrix = () => {
     const rows = Object.keys(seats).sort();
     if (rows.length === 0) {
@@ -465,8 +479,10 @@ const RoomPage: React.FC = () => {
     return (
       <div className="seat-matrix">
         {rows.map((row) => {
+          // Chuyển đổi đối tượng thành mảng và sắp xếp theo cột
+          // Đảm bảo các thuộc tính và giá trị đều an toàn để hiển thị
           const rowSeats = Object.values(seats[row] || {})
-            .filter((seat) => seat && typeof seat === "object")
+            .filter((seat) => seat && typeof seat === "object") // Đảm bảo seat là đối tượng hợp lệ
             .sort((a, b) => {
               const getColumnNumber = (seatCode: string): number => {
                 if (!seatCode || typeof seatCode !== "string") return 0;
@@ -484,6 +500,7 @@ const RoomPage: React.FC = () => {
                 style={{ display: "flex", flexWrap: "wrap" }}
               >
                 {rowSeats.map((seat) => {
+                  // Đảm bảo tất cả dữ liệu đều an toàn để hiển thị
                   const seatCode =
                     typeof seat.seatCode === "string"
                       ? seat.seatCode
@@ -492,6 +509,7 @@ const RoomPage: React.FC = () => {
                     typeof seat.status === "string" ? seat.status : "available";
                   const type =
                     typeof seat.type === "string" ? seat.type : "Thường";
+
                   return (
                     <div
                       key={seatCode}
@@ -558,7 +576,9 @@ const RoomPage: React.FC = () => {
           <Breadcrumb
             items={[
               { title: "Trang quản lý phòng chiếu" },
-              { title: "Hiển thị danh sách phòng chiếu (2D, 3D, 4D)" },
+              {
+                title: "Hiển thị danh sách phòng chiếu (2D, 3D, 4D)",
+              },
             ]}
           />
           <div
@@ -586,6 +606,16 @@ const RoomPage: React.FC = () => {
               >
                 Thêm Phòng Mới
               </Button>
+              <Button
+                onClick={() => showDeleteConfirm(selectedRowKeys)}
+                style={{
+                  background: "var(--normal-rank)",
+                  color: "var(--word-color)",
+                }}
+                disabled={loading || !selectedRowKeys.length}
+              >
+                Xóa Nhiều Phòng
+              </Button>
             </div>
           </div>
 
@@ -593,13 +623,19 @@ const RoomPage: React.FC = () => {
             columns={columns}
             dataSource={dataSource}
             pagination={paginationConfig}
-            loading={loading}
-            rowKey="key"
+            rowSelection={rowSelection}
+            className="full-page-table"
+            rowClassName={(record) => {
+              const room = rooms.find(
+                (r) => String(r.id) === String(record.key)
+              );
+              return room?.deleted_at ? "deleted-row" : "";
+            }}
           />
 
           {/* Room Modal */}
           <Modal
-            title={editingRoom ? "Cập nhật phòng" : "Thêm phòng mới"}
+            title={editingRoom ? "Cập Nhật Phòng" : "Thêm Phòng Mới"}
             open={isRoomModalOpen}
             onCancel={() => {
               setIsRoomModalOpen(false);
@@ -620,22 +656,16 @@ const RoomPage: React.FC = () => {
                   : (data) => handleCreateRoom(data as RoomCreateRequest)
               }
               room={editingRoom}
-              roomTypes={roomTypes}
-              loading={loading}
-              onCancel={() => {
-                setIsRoomModalOpen(false);
-                setEditingRoom(null);
-              }}
             />
           </Modal>
 
           {/* Seat Matrix Modal */}
           <Modal
             title={
-              selectedRoomId
+              selectedRoom
                 ? `Quản lý ghế - Phòng ${
-                    selectedRoom?.name
-                  } (${getTotalSeatsCount()}/${selectedRoom?.capacity} ghế)`
+                    selectedRoom.name
+                  } (${getTotalSeatsCount()}/${selectedRoom.capacity} ghế)`
                 : "Quản lý ghế"
             }
             open={isSeatModalOpen}
@@ -651,7 +681,11 @@ const RoomPage: React.FC = () => {
           >
             <div
               className="seat-page-header"
-              style={{ marginBottom: "20px", display: "flex", gap: "8px" }}
+              style={{
+                marginBottom: "20px",
+                display: "flex",
+                gap: "8px",
+              }}
             >
               <Button
                 onClick={() => setSelectedSeat(undefined)}
@@ -675,13 +709,16 @@ const RoomPage: React.FC = () => {
               </Button>
             </div>
 
-            {selectedRoomId &&
-              selectedRoom &&
-              getTotalSeatsCount() >= selectedRoom.capacity && (
-                <div style={{ color: "orange", marginBottom: "10px" }}>
-                  Đã đạt giới hạn sức chứa của phòng. Không thể thêm ghế mới.
-                </div>
-              )}
+            {selectedRoom && getTotalSeatsCount() >= selectedRoom.capacity && (
+              <div
+                style={{
+                  color: "orange",
+                  marginBottom: "10px",
+                }}
+              >
+                Đã đạt giới hạn sức chứa của phòng. Không thể thêm ghế mới.
+              </div>
+            )}
 
             <div
               className="seat-matrix-container"
@@ -715,13 +752,7 @@ const RoomPage: React.FC = () => {
                   Màn hình
                 </span>
               </div>
-              {seats && Object.keys(seats).length > 0 ? (
-                renderSeatMatrix()
-              ) : (
-                <div className="empty-seats">
-                  Chưa có ghế nào trong phòng này.
-                </div>
-              )}
+              {renderSeatMatrix()}
             </div>
           </Modal>
 
@@ -739,9 +770,7 @@ const RoomPage: React.FC = () => {
               seatTypes={seatTypes}
               existingSeats={seats}
               maxSeats={
-                selectedRoomId && selectedRoom
-                  ? selectedRoom.capacity - getTotalSeatsCount()
-                  : 0
+                selectedRoom ? selectedRoom.capacity - getTotalSeatsCount() : 0
               }
             />
           </Modal>

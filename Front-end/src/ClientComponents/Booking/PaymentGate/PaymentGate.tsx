@@ -1,58 +1,28 @@
-import { Button, Collapse, Input, Radio, RadioChangeEvent, Space } from "antd";
+import { Button, Input, Radio, RadioChangeEvent, Space } from "antd";
 import clsx from "clsx";
 
 import styles from "./PaymentGate.module.css";
 import { useStepsContext } from "../../UseContext/StepsContext";
+import { useState } from "react";
+import UICollapse from "../Promotion/UICollapse/UICollapse";
 
 const PaymentGate = ({ className }: any) => {
-  const { setPaymentType, paymentType, currentStep } = useStepsContext();
+  const [promoCode, setPromoCode] = useState<string>(""); // lấy dữ liệu mã khuyến mãi
+  const { setPaymentType, paymentType } = useStepsContext();
 
-  const onChange = (e: RadioChangeEvent) => {
+  // Set cách tính tiền vào state
+  const onChangePaymentOptions = (e: RadioChangeEvent) => {
     setPaymentType(e.target.value);
   };
 
-  const items = [
-    {
-      key: "1",
-      label: "Áp dụng điểm thành viên",
-      children: (
-        <div className={clsx(styles.promotionContent)}>
-          <Space.Compact>
-            <Input placeholder="Nhập điểm stars" />
-            <Button type="primary">Thêm</Button>
-          </Space.Compact>
+  // set khuyến mãi
+  const onChangePromotion = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPromoCode(e.target.value);
+  };
 
-          <div className={clsx(styles.promotionNote)}>Lưu ý:</div>
-          <div className={clsx(styles.promotionInfo)}>
-            Điểm Stars có thể quy đổi thành tiền để mua vé hoặc bắp/nước tại các
-            cụm rạp Forest Cinema.
-          </div>
-
-          <div className={clsx(styles.promotionRate)}>1 Stars = 1,000 VNĐ</div>
-
-          <div className={clsx(styles.promotionTransaction)}>
-            Stars quy định trên 1 giao dịch: tối thiểu là 20 điểm và tối đa là
-            100 điểm.
-          </div>
-
-          <div className={clsx(styles.promotionAccumulation)}>
-            Stars là điểm tích lũy dựa trên giá trị giao dịch bởi thành viên
-            giao dịch tại Forest Cinema. Cơ chế tích lũy stars, như sau:
-          </div>
-
-          <div className={clsx(styles.promotionMember, styles.pro)}>
-            Thành viên Star: 3% trên tổng giá trị/ số tiền giao dịch.
-          </div>
-          <div className={clsx(styles.promotionMember, styles.pro)}>
-            Thành viên G-Star: 5% trên tổng giá trị/ số tiền giao dịch.
-          </div>
-          <div className={clsx(styles.promotionMember, styles.pro)}>
-            Thành viên X-Star: 10% trên tổng giá trị/ số tiền giao dịch.
-          </div>
-        </div>
-      ),
-    },
-  ];
+  const handleAddPromotion = () => {
+    console.log(promoCode);
+  };
 
   return (
     <div className={clsx(styles.paymentGateContainer, className)}>
@@ -61,22 +31,23 @@ const PaymentGate = ({ className }: any) => {
         <div className={clsx(styles.promotionInput)}>
           <h3 className={clsx(styles.title)}>Mã khuyến mãi</h3>
           <Space.Compact>
-            <Input placeholder="Nhập mã khuyến mãi" />
-            <Button type="primary">Thêm</Button>
+            <Input
+              value={promoCode}
+              onChange={onChangePromotion}
+              placeholder="Nhập mã khuyến mãi"
+            />
+            <Button type="primary" onClick={handleAddPromotion}>
+              Thêm
+            </Button>
           </Space.Compact>
         </div>
-        <Collapse
-          defaultActiveKey={["1"]}
-          ghost
-          className={clsx(styles.promotionCollapse)}
-          items={items}
-        />
+        <UICollapse></UICollapse>
       </div>
 
       <div className={clsx(styles.paymentMethod)}>
         <h1 className={clsx(styles.methodTitle)}>Hình thức thanh toán</h1>
         <Radio.Group
-          onChange={onChange}
+          onChange={onChangePaymentOptions}
           value={paymentType}
           options={[
             { value: "VNpay", label: "VN Pay" },

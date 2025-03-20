@@ -1,70 +1,52 @@
 .paymentGateContainer {
-    margin-top: 40px;
+  margin-top: 40px;
 }
 
 .promotionSection {
-    background-color: white;
-    padding: 15px 25px;
+  background-color: white;
+  padding: 15px 25px;
 }
 
 .promotionTitle {
-    font-size: 18px;
-    color: #4a4a04;
+  font-size: 18px;
+  color: #4a4a04;
 }
 
 .promotionInput {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 .title {
-    margin-bottom: 5px;
+  margin-bottom: 5px;
 }
 
 .promotionPanel {
-    margin-left: -18px;
-    margin-top: 18px;
+  margin-left: -18px;
+  margin-top: 18px;
 }
 
-.promotionNote {
-    margin-top: 10px;
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.promotionInfo {
-    margin-top: 10px;
-}
-
-.promotionRate {
-    font-weight: 500;
-    margin-left: 15px;
-}
-
-.promotionMember {
-    margin-left: 15px;
-}
 .paymentMethod {
-    background-color: white;
-    padding: 15px 25px;
-    margin-top: 20px;
+  background-color: white;
+  padding: 15px 25px;
+  margin-top: 20px;
 }
 
 .methodTitle {
-    font-size: 18px;
-    color: #4a4a04;
+  font-size: 18px;
+  color: #4a4a04;
 }
 
 .paymentRadioGroup {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
 }
 .moreInfo {
-    font-size: 12px;
-    margin-top: 15px;
+  font-size: 12px;
+  margin-top: 15px;
 }
 
 .danger {
-    color: red;
+  color: red;
 }

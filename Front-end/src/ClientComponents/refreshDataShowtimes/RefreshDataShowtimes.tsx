@@ -55,12 +55,12 @@ const useShowtimeData = () => {
           seats: seatIds,
           room_id: roomIdFromShowtimes,
           showtime_id: showtimeIdFromBooking,
-        },
-
+        }),
+    },
         onSuccess: () => {
             // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
         },
-    });
+});
     const releaseSeats = () => {
         if (selectedSeatIds.length > 0) {
             releaseSeatsMutation.mutate(selectedSeatIds);

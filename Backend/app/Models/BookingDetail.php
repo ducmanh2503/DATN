@@ -16,4 +16,19 @@ class BookingDetail extends Model
         'combo_id',
         'quantity',
     ];
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class, 'booking_id');
+    }
+
+    public function seat()
+    {
+        return $this->belongsTo(Seat::class, 'seat_id');
+    }
+
+    public function combo()
+    {
+        return $this->belongsTo(Combo::class, 'combo_id');
+    }
 }

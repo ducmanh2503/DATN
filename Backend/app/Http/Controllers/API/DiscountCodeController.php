@@ -4,11 +4,38 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\DiscountCode;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class DiscountCodeController extends Controller
 {
+    public function applyDiscountCode(Request $request)
+    {
+        $request->validate([
+            'name_code' => 'required|string',
+        ]);
+
+        $DiscountCode = DiscountCode::where('name_code', $request->name_code)
+            ->where('status', 'active')
+            ->where('quantity', '>', 0)
+            ->where('start_date', '<=', Carbon::now())
+            ->where('end_date', '>=', Carbon::now())
+            ->first();
+
+        if (!$DiscountCode) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mã khuyến mãi không hợp lệ hoặc đã hết hạn.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'discount_percent' => $DiscountCode->percent,
+            'message' => 'Áp dụng mã khuyến mãi thành công!',
+        ]);
+    }
     /**
      * Display a listing of the resource.
      */

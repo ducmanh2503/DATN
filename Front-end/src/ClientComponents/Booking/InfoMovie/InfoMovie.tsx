@@ -18,7 +18,7 @@ const InfoMovie = () => {
     const { filmId, showtimesTime, showtimesDate } = useFilmContext();
     const { quantityCombo } = useComboContext();
     const { quantitySeats } = useSeatsContext();
-    const { setDataDetailFilm } = useStepsContext();
+    const { setDataDetailFilm, dataDetailFilm } = useStepsContext();
     const { totalPrice } = useFinalPriceContext();
 
     // lấy detail film
@@ -28,17 +28,26 @@ const InfoMovie = () => {
             const { data } = await axios.get(
                 `http://localhost:8000/api/movie-details-booking/${filmId}`
             );
-            console.log("http://localhost:8000", data);
-            console.log("detail-id", data.data);
+            // console.log("detail-id", data.data);
 
             return data.data;
         },
+
         staleTime: 1000 * 60 * 10,
     });
+
+    // Gán data detail film vào state để quản lý
     useEffect(() => {
         setDataDetailFilm(detailFilm);
     }, [detailFilm]);
 
+    // lấy dữ liệu từ sessionStorage
+    const check = sessionStorage.getItem("dataDetailFilm");
+
+    //chuyển đổi về dạng obj
+    const chuyendoi = check ? JSON.parse(check) : null;
+
+    // console.log(sessionStorage.getItem("dataDetailFilm"));
     return (
         <div className={clsx(styles.infoMovie)}>
             <div className={clsx(styles.bookingFilm)}>
@@ -50,10 +59,10 @@ const InfoMovie = () => {
                 </div>
                 <div className={clsx(styles.filmInfo)}>
                     <div className={clsx(styles.infoTitle, "cliptextTitle")}>
-                        {detailFilm?.title}
+                        {chuyendoi?.title}
                     </div>
                     <div className={clsx(styles.infoGenres)}>
-                        {detailFilm?.genres.map((genre: any, index: number) => (
+                        {chuyendoi?.genres.map((genre: any, index: number) => (
                             <span
                                 key={index}
                                 className={clsx(styles.genreItem)}
@@ -65,10 +74,10 @@ const InfoMovie = () => {
                     <div className={clsx(styles.infoSub)}>
                         <span className={clsx(styles.subRoomType)}>2D</span>
                         <span className={clsx(styles.subForm)}>
-                            {detailFilm?.language}
+                            {chuyendoi?.language}
                         </span>
                         <div className={clsx(styles.subRated)}>
-                            {detailFilm?.rated}
+                            {chuyendoi?.rated}
                         </div>
                     </div>
                 </div>

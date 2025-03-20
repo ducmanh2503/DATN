@@ -30,7 +30,7 @@ const PlayingMain = ({ showChill }: any) => {
 
     const handleClick = (filmId: number) => {
         setFilmId(filmId);
-        console.log("check-id", filmId);
+        // console.log("check-id", filmId);
     };
     //itemMain
     return (

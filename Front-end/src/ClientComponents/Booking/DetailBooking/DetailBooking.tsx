@@ -87,8 +87,8 @@ const DetailBooking = ({
           movie_id: filmId,
           showtime_id: showtimeIdFromBooking,
           calendar_show_id: calendarShowtimeID,
-          seat_ids: selectedSeatIds,
-          combo_ids: holdComboID,
+          seats_id: selectedSeatIds,
+          combo_id: holdComboID,
         },
         {
           headers: {

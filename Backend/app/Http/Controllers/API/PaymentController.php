@@ -3,7 +3,13 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\CalendarShow;
+use App\Models\Combo;
+use App\Models\Seat;
+use App\Models\SeatTypePrice;
 use App\Models\ShowTime;
+use App\Models\ShowTimeDate;
+use App\Services\UserRankService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -11,6 +17,14 @@ use Illuminate\Support\Facades\Redis;
 
 class PaymentController extends Controller
 {
+
+    private $userRankService;
+
+    public function __construct(UserRankService $userRankService)
+    {
+        $this->userRankService = $userRankService;
+    }
+
     public function createVNPay(Request $request)
     {
         // Đảm bảo người dùng đã đăng nhập
@@ -23,22 +37,57 @@ class PaymentController extends Controller
             'movie_id' => 'required|exists:movies,id',
             'showtime_id' => 'required|exists:show_times,id',
             'calendar_show_id' => 'required|exists:calendar_show,id',
-            'seats_id' => 'required|array',
-            'seats_id.*' => 'exists:seats,id',
-            'combo_id' => 'nullable|array',
-            'combo_id.*' => 'exists:combos,id',
+            'seat_ids' => 'required|array',
+            'seat_ids.*' => 'exists:seats,id',
+            'combo_ids' => 'nullable|array',
+            'combo_ids.*' => 'exists:combos,id',
             'order_desc' => 'nullable|string',
             'order_type' => 'nullable|string',
         ]);
 
         $bookingData = $request->all();
-        $bookingData['pricing'] = [
-            'total_price' => $request->totalPrice,
-            'total_ticket_price' => $request->totalPrice,
-            'total_combo_price' => $request->combo_ids ? 50 : 0,
-        ];
         $bookingData['payment_method'] = 'VNpay';
         $bookingData['user_id'] = auth()->id(); // Lấy user_id từ auth
+
+        // Lấy ngày chiếu từ ShowTimeDate
+        $showDate = ShowTimeDate::where('show_time_id', $request->showtime_id)
+            ->value('show_date');
+
+        // Tính giá ghế từ DB
+        $seats = Seat::whereIn('id', $request->seat_ids)
+            ->with('seatType')
+            ->get();
+        $totalTicketPrice = $seats->sum(function ($seat) use ($showDate) {
+            return SeatTypePrice::getPriceByDate($seat->seat_type_id, $showDate) ?? $seat->seatType->price ?? 0;
+        });
+
+        // Tính giá combo từ DB
+        $totalComboPrice = 0;
+        if (!empty($request->combo_id)) {
+            $comboQuantities = collect($request->combo_id)->groupBy(fn($id) => $id);
+            $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
+            $totalComboPrice = $combos->sum(function ($combo) use ($comboQuantities) {
+                $quantity = $comboQuantities[$combo->id]->count();
+                return $combo->price * $quantity;
+            });
+        }
+
+        // Tổng giá thực tế từ DB
+        $totalPrice = $totalTicketPrice + $totalComboPrice;
+
+        // Ghi dữ liệu giá vào bookingData
+        $bookingData['pricing'] = [
+            'total_ticket_price' => $totalTicketPrice,
+            'total_combo_price' => $totalComboPrice,
+            'total_price' => $totalPrice,
+        ];
+
+        // So sánh với totalPrice từ request (nếu cần kiểm tra)
+        if ($request->totalPrice != $totalPrice) {
+            Log::warning('Total price mismatch: Request = ' . $request->totalPrice . ', Calculated = ' . $totalPrice);
+            // Có thể trả về lỗi nếu cần:
+            // return response()->json(['message' => 'Total price mismatch'], 400);
+        }
 
         $vnp_TxnRef = time() . "";
         Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData)); // Lưu trong Redis 1 giờ
@@ -102,7 +151,7 @@ class PaymentController extends Controller
             $bookingData['is_payment_completed'] = true;
             Log::info('Merged Booking Data: ' . json_encode($bookingData));
 
-            $ticketController = new TicketController();
+            $ticketController = new TicketController(app(UserRankService::class));
             $response = $ticketController->getTicketDetails(new Request($bookingData));
 
             Redis::del("booking:$request->vnp_TxnRef");

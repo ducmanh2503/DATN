@@ -43,6 +43,8 @@
 .infoTitle {
   font-weight: 700;
   width: 220px;
+  height: 20px;
+  line-height: 1.4;
   letter-spacing: 1px;
 }
 
@@ -82,6 +84,11 @@
 .seatName,
 .totalLabel {
   font-weight: 700;
+}
+
+.totalLabel {
+  height: 20px;
+  line-height: 1.4;
 }
 
 .detailDay {

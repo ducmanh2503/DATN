@@ -27,19 +27,13 @@ const BookingSeat = ({ className }: { className?: string }) => {
     setTypeSeats,
     typeSeats,
     setSelectedSeatIds,
-    seats,
-    setSeats,
     setMatrixSeatsManage,
   } = useSeatsContext();
   const { setTotalPrice } = useFinalPriceContext();
   const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
   const { tokenUserId } = useAuthContext();
-  const {
-    setUserIdFromShowtimes,
-    userIdFromShowtimes,
-    currentStep,
-    selectedSeatIds,
-  } = useStepsContext();
+  const { setUserIdFromShowtimes, userIdFromShowtimes, currentStep } =
+    useStepsContext();
   const { totalComboPrice } = useComboContext();
   const { openNotification, contextHolder } = CustomNotification();
 
@@ -223,16 +217,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
       return updatedSeats; // Trả về giá trị mới của typeSeats
     });
-
-    // Kiểm tra trạng thái ghế đã giữ hay đã đặt chưa
-    if (
-      seats[seat.seatCode]?.isHeld ||
-      seat.status === "held" ||
-      seat.status === "booked"
-    ) {
-      alert("Ghế này đã được giữ, không thể chọn");
-      return;
-    }
   };
 
   // tính tổng tiền và số lượng ghế
@@ -299,32 +283,40 @@ const BookingSeat = ({ className }: { className?: string }) => {
       }
     }
 
-    setSeats(initialSeats);
-
     setNameSeats((prevNameSeats: string[]) => {
       const updatedSeats = prevNameSeats.filter(
         (seatCode) =>
           !initialSeats[seatCode]?.isHeld || initialSeats[seatCode]?.heldByUser
       );
 
-      if (updatedSeats.length !== prevNameSeats.length) {
-        let newPrice = 0;
-        updatedSeats.forEach((seatCode) => {
-          for (const rowKey in matrixSeats) {
-            const row = matrixSeats[rowKey];
-            for (const seatKey in row) {
-              const seat = row[seatKey];
-              if (seat.seatCode === seatCode) {
-                newPrice += Number(seat.price);
-                break;
-              }
-            }
-          }
-        });
-        setTotalSeatPrice(newPrice);
-        setQuantitySeats(updatedSeats.length);
-      }
       return updatedSeats;
+    });
+    setTypeSeats((prevTypeSeats: any[]) => {
+      if (!prevTypeSeats) return [];
+
+      return prevTypeSeats
+        .map((seat) => {
+          // Tách danh sách mã ghế
+          const seatCodes = seat.seatCode.split(", ");
+
+          // Lọc bỏ các ghế đã bị giữ bởi người khác
+          const availableSeatCodes = seatCodes.filter(
+            (code: any) =>
+              !initialSeats[code]?.isHeld || initialSeats[code]?.heldByUser
+          );
+
+          // Nếu không còn ghế hợp lệ, loại bỏ khỏi danh sách
+          if (availableSeatCodes.length === 0) return null;
+
+          // Nếu có ghế còn lại, cập nhật lại thông tin ghế
+          return {
+            ...seat,
+            seatCode: availableSeatCodes.join(", "),
+            quantitySeats: availableSeatCodes.length,
+            price: (seat.price / seatCodes.length) * availableSeatCodes.length,
+          };
+        })
+        .filter(Boolean); // Loại bỏ các phần tử null
     });
 
     setSelectedSeatIds((prev: any) => {
@@ -412,6 +404,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
           if (seatsArray.length > 0) {
             if (data.userId !== userIdFromShowtimes) {
+              // Thông báo ghế vừa bị giữ
               const seatCodes = seatsArray
                 .map((seatId) => findSeatCodeById(seatId))
                 .filter(Boolean)
@@ -419,60 +412,13 @@ const BookingSeat = ({ className }: { className?: string }) => {
               if (seatCodes) {
                 message.info(`Ghế ${seatCodes} vừa được người khác chọn`);
               }
+
+              // Cập nhật lại ma trận ghế
               refetchMatrix();
-            }
-
-            setSeats((prevSeats: any) => {
-              const newSeats = { ...prevSeats };
-              seatsArray.forEach((seatId) => {
-                const seatCode = findSeatCodeById(seatId);
-                if (seatCode) {
-                  newSeats[seatCode] = {
-                    isHeld: true,
-                    heldByUser: data.userId === userIdFromShowtimes,
-                  };
-                }
-              });
-              return newSeats;
-            });
-
-            if (data.userId !== userIdFromShowtimes) {
-              setNameSeats((prevNameSeats: any) => {
-                const updatedSeats = prevNameSeats.filter((seatCode: any) => {
-                  for (const seatId of seatsArray) {
-                    if (findSeatCodeById(seatId) === seatCode) {
-                      return false;
-                    }
-                  }
-                  return true;
-                });
-
-                if (updatedSeats.length !== prevNameSeats.length) {
-                  setQuantitySeats(updatedSeats.length);
-                  let newPrice = 0;
-                  updatedSeats.forEach((seatCode: any) => {
-                    if (matrixSeats) {
-                      for (const row in matrixSeats) {
-                        for (const col in matrixSeats[row]) {
-                          const seat = matrixSeats[row][col];
-                          if (seat.seatCode === seatCode) {
-                            newPrice += Number(seat.price);
-                          }
-                        }
-                      }
-                    }
-                  });
-                  setTotalSeatPrice(newPrice);
-                }
-                return updatedSeats;
-              });
-
-              setSelectedSeatIds((prev: any) =>
-                prev.filter((id: any) => !seatsArray.includes(id))
-              );
             }
           }
         });
+
         pusherEventHandlersRegistered.current = true;
       }
     });
@@ -581,13 +527,11 @@ const BookingSeat = ({ className }: { className?: string }) => {
                     <div className={clsx(styles.colSeats)}>
                       {numberToLetter(rowIndex + 1)}
                     </div>
+
                     {Object.values(rowData).map((seat: any) => {
                       const isSelected = nameSeats.includes(seat.seatCode);
-                      const seatState = seats[seat.seatCode] || {};
                       const isHeld =
-                        seatState.isHeld ||
-                        seat.status === "held" ||
-                        seat.status === "booked";
+                        seat.status === "held" || seat.status === "booked";
 
                       return (
                         <button

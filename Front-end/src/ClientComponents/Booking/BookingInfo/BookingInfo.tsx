@@ -12,10 +12,12 @@ const BookingInfo = ({ nextStep, prevStep, className }: any) => {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(false); // State để kiểm soát lỗi
   const { currentStep, paymentType, dataDetailFilm } = useStepsContext();
-  const { nameSeats, matrixSeatsManage, selectedSeatIds, typeSeats } =
-    useSeatsContext();
+  const { nameSeats, matrixSeatsManage, selectedSeatIds } = useSeatsContext();
   const { checkIsolatedSeat } = useIsolatedSeatChecker();
   const { openNotification, contextHolder } = CustomNotification();
+
+  // console.log("check-list", matrixSeatsManage);
+  console.log("selectedSeatIds", selectedSeatIds);
 
   // console.log("check-list", matrixSeatsManage);
   // console.log("selectedSeatIds", selectedSeatIds);
@@ -41,6 +43,12 @@ const BookingInfo = ({ nextStep, prevStep, className }: any) => {
     nextStep();
   };
 
+  // lưu thông tin đặt vé vào local storage mỗi khi người dùng thay đổi
+  useEffect(() => {
+    if (currentStep === 1) {
+      localStorage.setItem("movieData", dataDetailFilm);
+    }
+  }, [currentStep, paymentType]);
   return (
     <>
       {contextHolder}

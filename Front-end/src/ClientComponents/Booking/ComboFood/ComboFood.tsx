@@ -1,4 +1,4 @@
-import { Image, Skeleton, Table, TableProps } from "antd";
+import { Image, Table, TableProps } from "antd";
 import clsx from "clsx";
 import styles from "./ComboFood.module.css";
 import { useQuery } from "@tanstack/react-query";
@@ -106,6 +106,9 @@ const ComboFood = ({ className }: any) => {
       const newQuantity = prev[key] - 1;
 
       // setQuantityCombo((prevTotal: any) => Math.max(prevTotal - 1, 0));
+      // setTotalComboPrice((prevPrice: any) =>
+      //     Math.max(parseInt(prevPrice) - parseInt(price), 0)
+      // );
 
       setNameCombo((prevNames: any[]) => {
         let newArr = prevNames
@@ -180,7 +183,7 @@ const ComboFood = ({ className }: any) => {
     },
   ];
 
-  const { data: optionsCombos, isLoading } = useQuery({
+  const { data: optionsCombos } = useQuery({
     queryKey: ["optionsCombos"],
     queryFn: async () => {
       const { data } = await axios.get(GET_COMBOS);
@@ -194,20 +197,16 @@ const ComboFood = ({ className }: any) => {
     staleTime: 1000 * 60 * 10,
     enabled: currentStep >= 1,
   });
-
   return (
     <div className={clsx(className)}>
       {contextHolder}
       <h2 className={clsx(styles.titleOffer)}>Combo Ưu đãi</h2>
-
-      <Skeleton loading={isLoading} active>
-        <Table<DataType>
-          columns={columns}
-          dataSource={optionsCombos}
-          pagination={false}
-          showHeader={false}
-        />
-      </Skeleton>
+      <Table<DataType>
+        columns={columns}
+        dataSource={optionsCombos}
+        pagination={false}
+        showHeader={false}
+      />
     </div>
   );
 };

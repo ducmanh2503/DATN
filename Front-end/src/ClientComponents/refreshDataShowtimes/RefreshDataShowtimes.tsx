@@ -20,6 +20,7 @@ const useShowtimeData = () => {
     setNameSeats,
     setTotalSeatPrice,
     setQuantitySeats,
+    setSeats,
     selectedSeatIds,
     setSelectedSeatIds,
   } = useSeatsContext();
@@ -61,6 +62,12 @@ const useShowtimeData = () => {
     },
     onSuccess: () => {
       // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
+
+      setSeats((prevSeats: any) => {
+        const updatedSeats = { ...prevSeats };
+
+        return updatedSeats;
+      });
     },
   });
   const releaseSeats = () => {

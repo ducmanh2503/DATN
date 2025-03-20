@@ -1,63 +1,21 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 const StepsContext = createContext<any>(null);
 
 export const StepsProvider = ({ children }: { children: React.ReactNode }) => {
-  const [currentStep, setCurrentStep] = useState(() => {
-    const storedCurrentStep = sessionStorage.getItem("currentStep");
-    return storedCurrentStep ? JSON.parse(storedCurrentStep) : 1;
-  }); // step payment
+  const [currentStep, setCurrentStep] = useState(1); // step payment
   const [calendarShowtimeID, setCalendarShowtimeID] = useState<string | null>(
-    () => {
-      const storedCalendarShowtimeID =
-        sessionStorage.getItem("calendarShowtimeID");
-      return storedCalendarShowtimeID
-        ? JSON.parse(storedCalendarShowtimeID)
-        : null;
-    }
+    null
   ); // id lịch chiếu của suất chiếu
   const [userIdFromShowtimes, setUserIdFromShowtimes] = useState<number | null>(
-    () => {
-      const storedUserIdFromShowtimes = sessionStorage.getItem(
-        "userIdFromShowtimes"
-      );
-      return storedUserIdFromShowtimes
-        ? JSON.parse(storedUserIdFromShowtimes)
-        : 0;
-    }
+    0
   ); // user ID
-  const [dataDetailFilm, setDataDetailFilm] = useState(() => {
-    const storedDetailFilm = sessionStorage.getItem("dataDetailFilm");
-    return storedDetailFilm
-      ? JSON.parse(storedDetailFilm)
-      : {
-          title: "",
-          language: "",
-          rated: "",
-          genres: [],
-        };
+  const [dataDetailFilm, setDataDetailFilm] = useState({
+    title: "",
+    language: "",
+    rated: "",
   }); // lưu tạm thời data 1 phim
   const [paymentType, setPaymentType] = useState<number | null>(); //hình thức thanh toán
-
-  // thay đổi state dataDetailFilm thì lấy ở sessionStorage
-  useEffect(() => {
-    if (dataDetailFilm) {
-      sessionStorage.setItem("dataDetailFilm", JSON.stringify(dataDetailFilm));
-    }
-  }, [dataDetailFilm]);
-
-  // thay đổi các state khác thì lấy ở sessionStorage
-  useEffect(() => {
-    sessionStorage.setItem("currentStep", JSON.stringify(currentStep));
-    sessionStorage.setItem(
-      "calendarShowtimeID",
-      JSON.stringify(calendarShowtimeID)
-    );
-    sessionStorage.setItem(
-      "userIdFromShowtimes",
-      JSON.stringify(userIdFromShowtimes)
-    );
-  }, [currentStep, calendarShowtimeID, userIdFromShowtimes]);
 
   return (
     <StepsContext.Provider

@@ -18,7 +18,7 @@ import { useAuthContext } from "../UseContext/TokenContext";
 import useShowtimeData from "../refreshDataShowtimes/RefreshDataShowtimes";
 
 const BookingMain = () => {
-  const { quantitySeats, selectedSeatIds, setShouldRefetch } =
+  const { quantitySeats, selectedSeatIds, setSeats, setShouldRefetch } =
     useSeatsContext();
   const { currentStep, setCurrentStep, userIdFromShowtimes } =
     useStepsContext();
@@ -99,6 +99,12 @@ const BookingMain = () => {
     onSuccess: () => {
       // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
       message.success("Giải phóng ghế thành công!");
+
+      setSeats((prevSeats: any) => {
+        const updatedSeats = { ...prevSeats };
+
+        return updatedSeats;
+      });
     },
   });
 

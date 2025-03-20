@@ -25,6 +25,9 @@ class User extends Authenticatable
         'phone',
         'is_verified',
         'role',
+        'total_spent',
+        'rank',
+        'points',
     ];
 
     /**
@@ -45,7 +48,33 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'total_spent' => 'decimal:2', 
+        'points' => 'integer', 
     ];
 
     protected $dates = ['deleted_at'];
+
+    /**
+     * Quan hệ với bảng user_points (lịch sử tích điểm).
+     */
+    public function pointsHistory()
+    {
+        return $this->hasMany(UserPoint::class);
+    }
+
+    /**
+     * Quan hệ với bảng user_ranks (lịch sử phân hạng).
+     */
+    public function rankHistory()
+    {
+        return $this->hasMany(UserRank::class);
+    }
+
+    /**
+     * Quan hệ với bảng bookings (các đơn đặt vé của người dùng).
+     */
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

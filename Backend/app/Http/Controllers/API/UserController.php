@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\UserRankService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -13,9 +14,12 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    private $userRankService;
+
+    public function __construct(UserRankService $userRankService){
+        $this->userRankService = $userRankService;
+    }
+
     public function index()
     {
 
@@ -174,6 +178,27 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Thông tin tài khoản đã được cập nhật thành công!',
             'user' => $user
+        ], 200);
+    }
+
+    /**
+     * Lấy thông tin hạng và điểm của người dùng
+     */
+    public function getUserRankAndPoints(Request $request)
+    {
+        $userId = $request->user_id ?? Auth::id();
+        if (!$userId) {
+            return response()->json(['message' => 'Vui lòng cung cấp user_id hoặc đăng nhập'], 401);
+        }
+
+        $userData = $this->userRankService->getRankAndPoints($userId);
+        if ($userData === false) {
+            return response()->json(['message' => 'Không tìm thấy người dùng'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $userData,
         ], 200);
     }
 }

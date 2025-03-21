@@ -73,7 +73,6 @@ export const searchUsers = async (
   }
 };
 
-// Khóa mềm người dùng
 export const deleteUser = async (id: number): Promise<void> => {
   try {
     await axios.delete(`${API_URL}/${id}`);
@@ -83,10 +82,9 @@ export const deleteUser = async (id: number): Promise<void> => {
   }
 };
 
-// Mở khóa người dùng - Sửa để khớp với route PUT /api/user-management/restore/{id}
 export const restoreUser = async (id: number): Promise<void> => {
   try {
-    await axios.put(`${API_URL}/restore/${id}`); // Thay đổi từ /{id}/restore thành /restore/{id}
+    await axios.put(`${API_URL}/restore/${id}`);
   } catch (error: any) {
     console.error("Lỗi khi khôi phục người dùng:", error);
     throw error;

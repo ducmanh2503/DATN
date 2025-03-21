@@ -6,6 +6,7 @@ import { useFilmContext } from "../../UseContext/FIlmContext";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useAuthContext } from "../../UseContext/TokenContext";
+import useShowtimeData from "../../refreshDataShowtimes/RefreshDataShowtimes";
 const ChangeShowtimes = () => {
     const {
         listShowtimes,
@@ -14,8 +15,10 @@ const ChangeShowtimes = () => {
         showtimeIdFromBooking,
         roomIdFromShowtimes,
         setShowtimesTime,
+        setRoomNameShowtimes,
     } = useFilmContext();
     const { tokenUserId } = useAuthContext();
+    const { resetDataShowtimes } = useShowtimeData();
 
     const {
         data: matrixSeats,
@@ -47,9 +50,13 @@ const ChangeShowtimes = () => {
             !!roomIdFromShowtimes && !!showtimeIdFromBooking && !!tokenUserId,
     });
 
-    const handleClick = (id: number, start_time: string) => {
+    const handleClick = (id: number, start_time: string, name: string) => {
         setShowtimeIdFromBooking(id); // tahy đổi dữ liệu để chạy lại api lấy ghế
         setShowtimesTime(start_time); // Cập nhật giá trị ở thông tin phim
+        setRoomNameShowtimes(name);
+
+        //reset data ghế nếu có đang chọn
+        resetDataShowtimes();
         refetchMatrix();
     };
     return (
@@ -79,7 +86,11 @@ const ChangeShowtimes = () => {
                             )}
                             to={`/booking/${filmId}`}
                             onClick={() =>
-                                handleClick(item.id, item.start_time)
+                                handleClick(
+                                    item.id,
+                                    item.start_time,
+                                    item.room.room_type.name
+                                )
                             }
                         >
                             {dayjs(item.start_time, "HH:mm:ss").format("HH:mm")}

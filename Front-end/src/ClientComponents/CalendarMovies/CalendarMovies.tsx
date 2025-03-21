@@ -11,8 +11,9 @@ import BoxDay from "./BoxDays/BoxDay";
 import styles from "./CalendarMovie.module.css";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useStepsContext } from "../UseContext/StepsContext";
+import { Showtime } from "../../types/interface";
 
-const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
+const CalendarMovies = ({ id }: any) => {
     const [searchDateRaw, setSearchDateRaw] = useState<string | null>(null);
     const [searchDateFormatted, setSearchDateFormatted] = useState<
         string | null
@@ -24,9 +25,10 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
         setRoomIdFromShowtimes,
         setShowtimeIdFromBooking,
         setListShowtimes,
+        setRoomNameShowtimes,
     } = useFilmContext();
 
-    //lấy các ngày trong lịch chiếu của phim
+    // lấy danh sách lịch chiếu
     const { data: calendarMovie, isLoading: isLoadingCalendarMovie } = useQuery(
         {
             queryKey: ["calendarMovie", id],
@@ -34,15 +36,13 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                 const { data } = await axios.get(
                     `http://localhost:8000/api/calendar-show/date-range/${id}`
                 );
-                console.log("check-calendar", data);
-
                 return data.show_dates;
             },
             staleTime: 1000 * 60 * 10,
-            // enabled: setIsModalOpen2,
         }
     );
 
+    // list ngày để hiện ngày thực tế
     const daysOfWeek = [
         "Chủ Nhật",
         "Thứ Hai",
@@ -53,7 +53,7 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
         "Thứ Bảy",
     ];
 
-    // tìm suất chiếu với ngày trong lịch chiếu
+    // lấy danh sách các suất chiếu
     const { data: LoadShowByFilmAndDate, isLoading: isLoadingFilmAndDate } =
         useQuery({
             queryKey: ["LoadShowByFilmAndDate", searchDateRaw, id],
@@ -62,28 +62,27 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                 const { data } = await axios.get(
                     `${GET_SHOW_BY_FILM_DATE}/${id}/${searchDateRaw}`
                 );
-                console.log("test-data", data.show_times);
-
-                return data.show_times;
+                return data.show_times.map((item: any) => ({
+                    ...item,
+                    key: item.id,
+                }));
             },
-            enabled: !!searchDateRaw, // Chỉ gọi API khi có ngày hợp lệ
+            enabled: !!searchDateRaw,
             staleTime: 1000 * 60,
             retry: false,
         });
 
-    //lưu các suất chiếu vào state
+    // lấy danh sách suất chiếu lưu vào state
     useEffect(() => {
         if (LoadShowByFilmAndDate) {
             setListShowtimes(LoadShowByFilmAndDate);
         }
     }, [LoadShowByFilmAndDate]);
 
-    // format dữ liệu
+    //  tìm kiếm mặc định suất chiếu đầu tiên khi đặt vé
     useEffect(() => {
         if (calendarMovie && calendarMovie.length > 0) {
             const firstDate = dayjs(calendarMovie[0]).format("YYYY-MM-DD");
-            console.log("First date from API:", firstDate);
-            // Chỉ cập nhật nếu khác giá trị hiện tại
             if (searchDateRaw !== firstDate) {
                 setSearchDateRaw(firstDate);
                 setSearchDateFormatted(dayjs(firstDate).format("DD/MM"));
@@ -92,30 +91,35 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
         }
     }, [calendarMovie, id]);
 
+    // xử lý gán các giá trị vào state
     const handleShowtimeClick = (
         item: any,
         setCalendarShowtimeID: (id: number) => void,
         setRoomIdFromShowtimes: (id: number) => void,
+        setRoomNameShowtimes: (id: string) => void,
         setShowtimeIdFromBooking: (id: number) => void,
         setShowtimesTime: (time: string) => void
     ) => {
-        if (!item.room_id) {
-            console.error("room_id is invalid!", item);
-            return;
-        }
+        // console.log("item-check", item);
 
         setCalendarShowtimeID(item.calendar_show_id);
         setRoomIdFromShowtimes(item.room_id);
+        setRoomNameShowtimes(item.room.room_type.name);
         setShowtimeIdFromBooking(item.id);
         setShowtimesTime(item.start_time);
     };
 
-    // loading website and get calendar_showtime_id
-    useEffect(() => {
-        if (LoadShowByFilmAndDate) {
-            isLoadingFilmAndDate; // Khi dữ liệu đã có, tắt loading
-        }
-    }, [LoadShowByFilmAndDate]);
+    // nhóm các suất chiếu có cùng 1 phòng chiếu
+    const groupByRoom = (showtimes: Showtime[]): Record<string, Showtime[]> => {
+        return showtimes.reduce((acc: any, item: any) => {
+            const roomName = item.room.room_type.name;
+            if (!acc[roomName]) {
+                acc[roomName] = [];
+            }
+            acc[roomName].push(item);
+            return acc;
+        }, {});
+    };
 
     return (
         <div>
@@ -124,7 +128,6 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
             ) : (
                 <>
                     <div className={clsx(styles.calendarDays)}>
-                        {/* {console.log("check array", calendarMovie)} */}
                         {calendarMovie?.map((item: any, index: any) => {
                             const dayIndex = new Date(item).getDay();
                             const formatted = dayjs(item).format("DD/MM");
@@ -145,7 +148,6 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                             );
                         })}
                     </div>
-                    <div className={clsx(styles.filmRoom)}>Phòng chiếu</div>
                     {isLoadingFilmAndDate ? (
                         <div className={clsx(styles.loadingTime)}>
                             <Spin />
@@ -154,40 +156,43 @@ const CalendarMovies = ({ id, setIsModalOpen2 }: any) => {
                         <div className={clsx(styles.calendarNumbers)}>
                             {LoadShowByFilmAndDate &&
                             LoadShowByFilmAndDate.length > 0 ? (
-                                [...LoadShowByFilmAndDate] // Sao chép mảng để tránh thay đổi trực tiếp
-                                    .sort(
-                                        (a, b) =>
-                                            dayjs(
-                                                a.start_time,
-                                                "HH:mm:ss"
-                                            ).unix() -
-                                            dayjs(
-                                                b.start_time,
-                                                "HH:mm:ss"
-                                            ).unix()
-                                    )
-                                    .map((item: any, index: any) => {
-                                        const formattedTime = dayjs(
-                                            item.start_time,
-                                            "HH:mm:ss"
-                                        ).format("HH:mm");
-
-                                        return (
-                                            <BoxNumbers
-                                                key={index}
-                                                time={formattedTime}
-                                                onClick={() =>
-                                                    handleShowtimeClick(
-                                                        item,
-                                                        setCalendarShowtimeID,
-                                                        setRoomIdFromShowtimes,
-                                                        setShowtimeIdFromBooking,
-                                                        setShowtimesTime
-                                                    )
-                                                }
-                                            />
-                                        );
-                                    })
+                                Object.entries(
+                                    groupByRoom(LoadShowByFilmAndDate)
+                                ).map(([roomName, showtimes]) => (
+                                    <div
+                                        key={roomName}
+                                        className={clsx(styles.groupByRoom)}
+                                    >
+                                        <div className={clsx(styles.filmRoom)}>
+                                            {roomName}
+                                        </div>
+                                        <div
+                                            className={clsx(
+                                                styles.showtimesRow
+                                            )}
+                                        >
+                                            {showtimes.map((item: any) => (
+                                                <BoxNumbers
+                                                    key={item.id}
+                                                    time={dayjs(
+                                                        item.start_time,
+                                                        "HH:mm:ss"
+                                                    ).format("HH:mm")}
+                                                    onClick={() =>
+                                                        handleShowtimeClick(
+                                                            item,
+                                                            setCalendarShowtimeID,
+                                                            setRoomIdFromShowtimes,
+                                                            setRoomNameShowtimes,
+                                                            setShowtimeIdFromBooking,
+                                                            setShowtimesTime
+                                                        )
+                                                    }
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))
                             ) : (
                                 <p className={clsx(styles.noShowtimes)}>
                                     *Chưa có suất chiếu nào cho ngày đã chọn.

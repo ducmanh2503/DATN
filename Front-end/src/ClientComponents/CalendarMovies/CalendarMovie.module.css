@@ -8,16 +8,25 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-top: 50px;
 }
 
-.filmRoom {
-    margin-top: 20px;
+.showtimesRender {
+    display: flex;
+    flex-direction: column;
 }
 
 .calendarNumbers {
-    margin-top: 30px;
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.groupByRoom {
+    margin-top: 15px;
 }
 
 .noShowtimes {
+    margin-top: 15px;
     color: red;
 }

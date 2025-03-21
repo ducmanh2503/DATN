@@ -16,16 +16,23 @@ import { useSeatsContext } from "../UseContext/SeatsContext";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useAuthContext } from "../UseContext/TokenContext";
 import useShowtimeData from "../refreshDataShowtimes/RefreshDataShowtimes";
+import { usePromotionContextContext } from "../UseContext/PromotionContext";
+import { useFinalPriceContext } from "../UseContext/FinalPriceContext";
+import { useComboContext } from "../UseContext/CombosContext";
 
 const BookingMain = () => {
-  const { quantitySeats, selectedSeatIds, setShouldRefetch } =
+  const { quantitySeats, selectedSeatIds, setShouldRefetch, totalSeatPrice } =
     useSeatsContext();
+  const { totalComboPrice } = useComboContext();
   const { currentStep, setCurrentStep, userIdFromShowtimes } =
     useStepsContext();
   const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
   const { tokenUserId } = useAuthContext();
-  const { resetDataShowtimes } = useShowtimeData();
+  const { setUsedPoints, setTotalPricePoint, setQuantityPromotion } =
+    usePromotionContextContext();
+  const { setTotalPrice } = useFinalPriceContext();
 
+  const { resetDataShowtimes } = useShowtimeData();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   // Thông báo phải đặt ghế để tiếp tục
@@ -120,12 +127,19 @@ const BookingMain = () => {
   };
   // Xử lý khi ấn quay lại
   const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+
     if (currentStep === 2 && selectedSeatIds.length > 0) {
       releaseSeatsMutation.mutate(selectedSeatIds);
     }
 
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+    if (currentStep <= 3) {
+      setTotalPricePoint(0);
+      setUsedPoints(0);
+      setQuantityPromotion(0);
+      setTotalPrice(totalSeatPrice + totalComboPrice);
     }
   };
 

@@ -90,9 +90,9 @@ class BookingConfirmation extends Mailable
         <p><strong>Phòng:</strong> {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})</p>
         <p><strong>Ghế:</strong> {$seats}</p>
         <p><strong>Combo:</strong> {$combos}</p>
-        <p><strong>Tổng giá vé:</strong> {$this->ticketDetails['pricing']['total_ticket_price']}</p>
-        <p><strong>Tổng giá combo:</strong> {$this->ticketDetails['pricing']['total_combo_price']}</p>
-        <p><strong>Tổng cộng:</strong> {$this->ticketDetails['pricing']['total_price']}</p>
+        <p><strong>Tổng giá vé:</strong> {$this->ticketDetails['pricing']['total_ticket_price']} VNĐ</p>
+        <p><strong>Tổng giá combo:</strong> {$this->ticketDetails['pricing']['total_combo_price']} VNĐ</p>
+        <p><strong>Tổng cộng:</strong> {$this->ticketDetails['pricing']['total_price']} VNĐ</p>
         <p><strong>Phương thức thanh toán:</strong> {$this->ticketDetails['payment_method']}</p>
         <p><strong>Mã đặt vé:</strong> {$this->booking->id}</p>
 

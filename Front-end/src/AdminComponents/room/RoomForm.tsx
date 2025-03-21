@@ -1,6 +1,10 @@
 import React from "react";
 import { Form, Input, Select, Button } from "antd";
-import { Room, RoomCreateRequest, RoomUpdateRequest } from "../../../types/room.types";
+import {
+  Room,
+  RoomCreateRequest,
+  RoomUpdateRequest,
+} from "../../../types/room.types";
 
 const { Option } = Select;
 

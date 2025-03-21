@@ -23,10 +23,11 @@
 .showtimesItem:hover {
   background: var(--border-color);
   transition: all 0.7s ease;
+  border: 1px solid transparent;
 }
 
 .active {
-  border: none;
+  border: 1px solid transparent;
   background-color: var(--border-color);
   color: white;
 }

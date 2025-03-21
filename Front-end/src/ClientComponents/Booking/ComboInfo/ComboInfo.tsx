@@ -11,9 +11,6 @@ const ComboInfo = () => {
   const { totalSeatPrice } = useSeatsContext(); // Giá ghế (nếu cần tính tổng)
 
   useEffect(() => {
-    console.log(" useEffect chạy");
-    console.log("tên combo", nameCombo);
-
     const newTotalComboPrice = nameCombo.reduce(
       (sum: any, combo: any) => sum + combo.defaultQuantityCombo * combo.price,
       0

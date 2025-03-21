@@ -4,20 +4,19 @@ import styles from "./PromotionInfo.module.css";
 import { usePromotionContextContext } from "../../../UseContext/PromotionContext";
 
 const PromotionInfo = () => {
-  const { totalPricePromotion, totalPricePoint, pointsNumber } =
-    usePromotionContextContext();
+  const { totalPricePoint, totalPriceVoucher } = usePromotionContextContext();
 
   return (
     <>
       <Divider />
-      {totalPricePromotion === 0 ? (
+      {totalPriceVoucher === 0 ? (
         ""
       ) : (
         <div className={clsx(styles.promotionBox, styles.flexBox)}>
           <h3 className={clsx(styles.promotionTitle)}>Ưu đãi:</h3>
           <div className={clsx(styles.promotionPrice)}>
             {" "}
-            - {totalPricePromotion}đ
+            - {totalPriceVoucher}đ
           </div>
         </div>
       )}

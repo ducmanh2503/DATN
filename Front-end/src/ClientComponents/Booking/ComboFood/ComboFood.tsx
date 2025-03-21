@@ -8,15 +8,7 @@ import CustomNotification from "../Notification/Notification";
 import { useComboContext } from "../../UseContext/CombosContext";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
-
-interface DataType {
-  key: string;
-  image: string;
-  title: string;
-  price: string;
-  description: string;
-  quantity: number;
-}
+import { ComboFoodType } from "../../../types/interface";
 
 const ComboFood = ({ className }: any) => {
   const {
@@ -25,7 +17,6 @@ const ComboFood = ({ className }: any) => {
     quantityMap,
     setQuantityMap,
     setNameCombo,
-    holdComboID,
     setHoldComboID,
   } = useComboContext();
   const { currentStep } = useStepsContext();
@@ -34,7 +25,6 @@ const ComboFood = ({ className }: any) => {
 
   // Hàm tăng số lượng
   const increaseQuantity = (key: string, price: string, record: any) => {
-    console.log("check-record", record);
     if (quantityCombo >= quantitySeats) {
       // Hiển thị thông báo khi vượt quá giới hạn với vé
       openNotification({
@@ -52,7 +42,6 @@ const ComboFood = ({ className }: any) => {
     }
     //lấy ID của combo đã chọn
     setHoldComboID((prev: any) => [...prev, record.id]);
-    console.log("holdComboID", holdComboID);
 
     setQuantityMap((prev: any) => {
       const newQuantity = (prev[key] || 0) + 1;
@@ -98,14 +87,13 @@ const ComboFood = ({ className }: any) => {
   const decreaseQuantity = (key: string, price: string, record: any) => {
     // giảm số lượng combo
     setHoldComboID((prev: any) => prev.filter((id: string) => id !== key));
-    console.log("holdComboID", holdComboID);
 
     setQuantityMap((prev: any) => {
       if (!prev[key] || prev[key] <= 0) return prev;
 
       const newQuantity = prev[key] - 1;
 
-      // setQuantityCombo((prevTotal: any) => Math.max(prevTotal - 1, 0));
+      setQuantityCombo((prevTotal: any) => Math.max(prevTotal - 1, 0));
 
       setNameCombo((prevNames: any[]) => {
         let newArr = prevNames
@@ -127,7 +115,7 @@ const ComboFood = ({ className }: any) => {
     });
   };
 
-  const columns: TableProps<DataType>["columns"] = [
+  const columns: TableProps<ComboFoodType>["columns"] = [
     {
       dataIndex: "image",
       key: "image",
@@ -184,7 +172,6 @@ const ComboFood = ({ className }: any) => {
     queryKey: ["optionsCombos"],
     queryFn: async () => {
       const { data } = await axios.get(GET_COMBOS);
-      console.log("loại combo", data.combos);
 
       return data.combos.map((record: any) => ({
         ...record,
@@ -201,7 +188,7 @@ const ComboFood = ({ className }: any) => {
       <h2 className={clsx(styles.titleOffer)}>Combo Ưu đãi</h2>
 
       <Skeleton loading={isLoading} active>
-        <Table<DataType>
+        <Table<ComboFoodType>
           columns={columns}
           dataSource={optionsCombos}
           pagination={false}

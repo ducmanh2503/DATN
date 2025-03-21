@@ -73,14 +73,7 @@ export const getRoomTypes = async (): Promise<RoomType[]> => {
     );
     return response.data.room_types || [];
   } catch (error) {
-    console.error("Error fetching room types:", error);
-    // Fallback to default room types if API fails
-    return [
-      { id: 1, name: "2D" },
-      { id: 2, name: "3D" },
-      { id: 3, name: "4D" },
-      { id: 4, name: "IMAX" },
-    ];
+    throw handleApiError(error); // Sử dụng hàm handleApiError để xử lý lỗi
   }
 };
 

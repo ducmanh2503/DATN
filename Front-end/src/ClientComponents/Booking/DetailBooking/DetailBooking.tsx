@@ -12,6 +12,7 @@ import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useComboContext } from "../../UseContext/CombosContext";
 import { PAYMENT_WITH_VNPAY } from "../../../config/ApiConfig";
 import { useAuthContext } from "../../UseContext/TokenContext";
+import { usePromotionContextContext } from "../../UseContext/PromotionContext";
 
 const DetailBooking = ({
   open,
@@ -27,6 +28,7 @@ const DetailBooking = ({
   const { totalSeatPrice, typeSeats, selectedSeatIds } = useSeatsContext();
   const { nameCombo, totalComboPrice, holdComboID } = useComboContext();
   const { tokenUserId } = useAuthContext();
+  const { usedPoints } = usePromotionContextContext();
   const [isSelected, setIsSelected] = useState(false);
 
   const onOk = async () => {
@@ -89,6 +91,7 @@ const DetailBooking = ({
           calendar_show_id: calendarShowtimeID,
           seat_ids: selectedSeatIds,
           combo_ids: holdComboID,
+          usedPoints: usedPoints,
         },
         {
           headers: {

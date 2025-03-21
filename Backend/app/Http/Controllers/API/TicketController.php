@@ -442,7 +442,7 @@ class TicketController extends Controller
         $pointDiscount = $usedPoints * 1000;
         $usedPoints = $this->userRankService->getRankAndPoints($request->user_id)['points'] ?? 0;
 
-        if($usedPoints > $usedPoints){
+        if ($usedPoints > $usedPoints) {
             return response()->json(['message' => 'Số điểm sử dụng vượt quá số điểm hiện có']);
         }
         $totalPriceBeforeDiscount = $totalTicketPrice + $totalComboPrice;

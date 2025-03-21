@@ -9,9 +9,10 @@ class SeatType extends Model
 {
     use HasFactory;
 
+    protected $table = 'seat_types';
+
     protected $fillable = [
         'name',
-        'price',
     ];
 
     //Quan hệ với ghế

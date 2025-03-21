@@ -371,6 +371,7 @@ class TicketController extends Controller
             'payment_method' => 'required|in:cash,VNpay,Momo,Zalopay',
             'is_payment_completed' => 'sometimes|boolean',
             'user_id' => 'required|exists:users,id',
+            'usedPoints' => 'nullable|integer|min:0',
         ]);
 
         if (empty($request->seat_ids) || !is_array($request->seat_ids)) {
@@ -436,11 +437,25 @@ class TicketController extends Controller
             });
         }
 
-        $totalPrice = $totalTicketPrice + $totalComboPrice;
+        //tính giá giảm từ điểm
+        $usedPoints = $request->input('usedPoints', 0);
+        $pointDiscount = $usedPoints * 1000;
+        $usedPoints = $this->userRankService->getRankAndPoints($request->user_id)['points'] ?? 0;
+
+        if($usedPoints > $usedPoints){
+            return response()->json(['message' => 'Số điểm sử dụng vượt quá số điểm hiện có']);
+        }
+        $totalPriceBeforeDiscount = $totalTicketPrice + $totalComboPrice;
+        $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount);
+
+        // $totalPrice = $totalTicketPrice + $totalComboPrice;
         $pricing = [
             'total_ticket_price' => $totalTicketPrice,
             'total_combo_price' => $totalComboPrice,
+            'total_price_before_discount' => $totalPriceBeforeDiscount,
+            'point_discount' => $pointDiscount,
             'total_price' => $totalPrice,
+            'usedPoints' => $usedPoints,
         ];
 
         $paymentMethod = $request->payment_method;
@@ -496,6 +511,12 @@ class TicketController extends Controller
 
             // Dùng $pricing tính từ DB thay vì từ request
             $booking = $this->saveBooking($request->all(), 'confirmed', $pricing);
+            if ($usedPoints > 0) {
+                $success = $this->userRankService->deductPoints($request->user_id, $usedPoints);
+                if (!$success) {
+                    Log::warning("Không thể trừ $usedPoints điểm cho user_id = {$request->user_id}");
+                }
+            }
 
             $qrData = "Mã đặt vé: {$booking->id}\n" .
                 "Phim: {$ticketDetails['movie']['title']}\n" .

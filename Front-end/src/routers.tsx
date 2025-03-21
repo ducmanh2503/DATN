@@ -40,7 +40,7 @@ import Userlist from "./page/admin/Userpage/Userlist";
 import Useradd from "./page/admin/Userpage/Useradd";
 import UserDetail from "./page/admin/Userpage/Userdetails";
 import Combo from "./page/admin/ComboPage/ComboPage";
-
+import ProfilePage from "./page/admin/Profilepage/Profilepage";
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
 
@@ -363,6 +363,10 @@ export const router = createBrowserRouter([
           {
             path: "combo",
             element: <Combo />,
+          },
+          {
+            path: "profile",
+            element: <ProfilePage />,
           },
         ],
       },

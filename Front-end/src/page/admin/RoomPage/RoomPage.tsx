@@ -51,15 +51,18 @@ const RoomPage: React.FC = () => {
   );
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+
   const seatTypes = [
     { id: 1, name: "Thường", price: 50000 },
     { id: 2, name: "VIP", price: 100000 },
     { id: 3, name: "Sweetbox", price: 150000 },
   ];
+
   const roomTypes = [
     { id: 1, name: "2D" },
     { id: 2, name: "3D" },
     { id: 3, name: "4D" },
+    { id: 4, name: "IMAX" },
   ];
 
   useEffect(() => {
@@ -100,11 +103,7 @@ const RoomPage: React.FC = () => {
   const handleCreateRoom = async (newRoom: RoomCreateRequest) => {
     setLoading(true);
     try {
-      const roomData = {
-        ...newRoom,
-        capacity: Number(newRoom.capacity),
-      };
-      const response = await roomService.createRoom(roomData);
+      const response = await roomService.createRoom(newRoom);
       await fetchRooms();
       setIsRoomModalOpen(false);
       message.success(response.message || "Thêm phòng mới thành công");
@@ -121,14 +120,7 @@ const RoomPage: React.FC = () => {
   ) => {
     setLoading(true);
     try {
-      const roomData = {
-        ...updatedRoom,
-        capacity:
-          updatedRoom.capacity !== undefined
-            ? Number(updatedRoom.capacity)
-            : undefined,
-      };
-      const response = await roomService.updateRoom(roomId, roomData);
+      const response = await roomService.updateRoom(roomId, updatedRoom);
       await fetchRooms();
       setIsRoomModalOpen(false);
       setEditingRoom(null);
@@ -208,14 +200,6 @@ const RoomPage: React.FC = () => {
     if (!selectedRoomId) return;
     setLoading(true);
     try {
-      if (selectedRoom) {
-        const totalSeatsCount = getTotalSeatsCount() + newSeats.length;
-        if (totalSeatsCount > selectedRoom.capacity) {
-          throw new Error(
-            `Không thể thêm. Tổng số ghế không được vượt quá sức chứa phòng (${selectedRoom.capacity})`
-          );
-        }
-      }
       const responses = await Promise.all(
         newSeats.map((seat) => seatService.createSeat(seat))
       );
@@ -414,12 +398,11 @@ const RoomPage: React.FC = () => {
   ];
 
   const dataSource: RoomTableDataSource[] = rooms.map((room) => {
-    // Find the room type name based on room_type_id
     const roomType = roomTypes.find((type) => type.id === room.room_type_id);
     return {
       key: String(room.id),
       name: room.name,
-      capacity: Number(room.capacity) || 0, // Ensure capacity is a number
+      capacity: Number(room.capacity) || 0,
       room_type: roomType ? roomType.name : "Unknown",
       status: room.deleted_at ? "deleted" : "active",
     };
@@ -506,8 +489,8 @@ const RoomPage: React.FC = () => {
                         textAlign: "center",
                         margin: "4px",
                         cursor: "pointer",
-                        width: "40px",
-                        height: "40px",
+                        width: "30px",
+                        height: "30px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -558,7 +541,7 @@ const RoomPage: React.FC = () => {
           <Breadcrumb
             items={[
               { title: "Trang quản lý phòng chiếu" },
-              { title: "Hiển thị danh sách phòng chiếu (2D, 3D, 4D)" },
+              { title: "Hiển thị danh sách phòng chiếu (2D, 3D, 4D, IMAX)" },
             ]}
           />
           <div
@@ -659,7 +642,6 @@ const RoomPage: React.FC = () => {
                   background: "var(--backgroud-product)",
                   color: "var(--word-color)",
                 }}
-                // disabled={loading || (selectedRoom && getTotalSeatsCount() >= selectedRoom.capacity)}
               >
                 Thêm Ghế Mới
               </Button>
@@ -674,14 +656,6 @@ const RoomPage: React.FC = () => {
                 Xóa Tất Cả Ghế
               </Button>
             </div>
-
-            {selectedRoomId &&
-              selectedRoom &&
-              getTotalSeatsCount() >= selectedRoom.capacity && (
-                <div style={{ color: "orange", marginBottom: "10px" }}>
-                  Đã đạt giới hạn sức chứa của phòng. Không thể thêm ghế mới.
-                </div>
-              )}
 
             <div
               className="seat-matrix-container"

@@ -136,6 +136,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //người dùng
         Route::apiResource('/user-management', UserController::class);
+        Route::put('/user-management/profile/{user_management}', [UserController::class, 'show']);
         Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
         Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
         Route::post('/restore-user', [UserController::class, 'restore']);

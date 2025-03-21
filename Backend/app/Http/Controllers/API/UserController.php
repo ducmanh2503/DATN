@@ -16,7 +16,8 @@ class UserController extends Controller
 {
     private $userRankService;
 
-    public function __construct(UserRankService $userRankService){
+    public function __construct(UserRankService $userRankService)
+    {
         $this->userRankService = $userRankService;
     }
 
@@ -44,7 +45,7 @@ class UserController extends Controller
         // Tìm người dùng theo id
         $user = User::find($id);
 
-        // Nếu không tìm thấy diễn viên
+        // Nếu không tìm thấy người dùng
         if (!$user) {
             return response()->json(['message' => 'Người dùng không tồn tại'], 404);
         }

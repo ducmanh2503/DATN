@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
-import { Button, Input, Table, message, Modal, Form } from "antd";
-import { Search, Plus, Edit, Lock, Unlock } from "lucide-react";
+import { Button, Input, Table, message, Modal, Form, Select } from "antd";
+import { Search, Edit, Lock, Unlock } from "lucide-react";
 import { Link } from "react-router-dom";
 import styles from "./UserList.module.css";
 import { User } from "../../../types/user.type";
 import {
   getUsers,
   searchUsers,
-  deleteUser, // Khóa mềm
+  deleteUser,
   updateUser,
-  restoreUser, // Mở khóa
+  restoreUser,
 } from "../../../services/user.service";
+
+const { Option } = Select;
 
 const UserList = () => {
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,6 @@ const UserList = () => {
     setLoading(true);
     try {
       const response = await getUsers();
-      // Kết hợp users và trashedUsers thành một danh sách duy nhất
       const allUsers = [
         ...response.users.map(user => ({ ...user, is_deleted: false })),
         ...response.trashedUsers.map(user => ({ ...user, is_deleted: true })),
@@ -82,7 +83,6 @@ const UserList = () => {
     }
   };
 
-  // Sửa người dùng
   const openEditModal = (user: User) => {
     setSelectedUser(user);
     form.setFieldsValue(user);
@@ -113,7 +113,6 @@ const UserList = () => {
     }
   };
 
-  // Khóa mềm người dùng
   const handleSoftDelete = (id: number) => {
     Modal.confirm({
       title: "Xác nhận khóa tài khoản",
@@ -124,7 +123,6 @@ const UserList = () => {
       onOk: async () => {
         try {
           await deleteUser(id);
-          // Cập nhật is_deleted mà không xóa khỏi danh sách
           setUsers(users.map((user) => (user.id === id ? { ...user, is_deleted: true } : user)));
           message.success("Khóa tài khoản người dùng thành công!");
         } catch (error: any) {
@@ -134,7 +132,6 @@ const UserList = () => {
     });
   };
 
-  // Mở khóa người dùng
   const handleRestore = (id: number) => {
     Modal.confirm({
       title: "Xác nhận mở khóa tài khoản",
@@ -145,7 +142,6 @@ const UserList = () => {
       onOk: async () => {
         try {
           await restoreUser(id);
-          // Cập nhật is_deleted mà không xóa khỏi danh sách
           setUsers(users.map((user) => (user.id === id ? { ...user, is_deleted: false } : user)));
           message.success("Mở khóa tài khoản người dùng thành công!");
         } catch (error: any) {
@@ -193,13 +189,33 @@ const UserList = () => {
       title: "Xác minh",
       dataIndex: "is_verified",
       key: "is_verified",
-      render: (_: boolean, record: User) => 
-        record.is_deleted ? "Đã khóa" : (record.is_verified ? "Đã xác minh" : "Chưa xác minh"),
+      render: (_: boolean, record: User) => (
+        <span
+          className={
+            record.is_deleted
+              ? styles.verificationLocked
+              : record.is_verified
+              ? styles.verificationVerified
+              : styles.verificationUnverified
+          }
+        >
+          {record.is_deleted
+            ? "Đã khóa"
+            : record.is_verified
+            ? "Đã xác minh"
+            : "Chưa xác minh"}
+        </span>
+      ),
     },
     {
       title: "Vai trò",
       dataIndex: "role",
       key: "role",
+      render: (role: string) => (
+        <span>
+          {role.toLowerCase() === "customer" ? "Customer" : role.toLowerCase() === "staff" ? "Staff" : role}
+        </span>
+      ),
     },
     {
       title: "Hành động",
@@ -245,12 +261,6 @@ const UserList = () => {
         <h2 className={styles.title}>Danh sách người dùng</h2>
         <p className={styles.subtitle}>Quản lý thông tin người dùng</p>
 
-        <Link to="/admin/userpage/useradd">
-          <Button type="primary" icon={<Plus />} style={{ marginBottom: 16 }}>
-            Tạo người dùng
-          </Button>
-        </Link>
-
         <Table
           columns={columns}
           dataSource={users.map((user) => ({ ...user, key: user.id }))}
@@ -267,7 +277,6 @@ const UserList = () => {
           }}
         />
 
-        {/* Search Modal */}
         <Modal
           title={`Tìm kiếm theo ${searchField === "name" ? "Tên" : "Email"}`}
           open={isSearchModalOpen}
@@ -290,7 +299,6 @@ const UserList = () => {
           />
         </Modal>
 
-        {/* Edit Modal */}
         <Modal
           title="Sửa thông tin người dùng"
           open={isEditModalOpen}
@@ -329,6 +337,16 @@ const UserList = () => {
               rules={[{ required: true, message: "Vui lòng nhập số điện thoại!" }]}
             >
               <Input />
+            </Form.Item>
+            <Form.Item
+              name="role"
+              label="Vai trò"
+              rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
+            >
+              <Select placeholder="Chọn vai trò">
+                <Option value="customer">Customer</Option>
+                <Option value="staff">Staff</Option>
+              </Select>
             </Form.Item>
           </Form>
         </Modal>

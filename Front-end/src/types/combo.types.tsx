@@ -4,7 +4,7 @@ export interface Combo {
   description: string;
   quantity: number;
   price: number;
-  image: string;
+  image: string; // Vẫn là string vì server trả về URL sau khi upload
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;
@@ -15,7 +15,7 @@ export interface ComboCreateRequest {
   description: string;
   quantity: number;
   price: number;
-  image: string | File;
+  image: File; // Thay string thành File
 }
 
 export interface ComboCreateResponse {
@@ -28,7 +28,7 @@ export interface ComboUpdateRequest {
   description?: string;
   quantity?: number;
   price?: number;
-  image?: string | File;
+  image?: File; // Thay string thành File
 }
 
 export interface ComboUpdateResponse {
@@ -38,7 +38,7 @@ export interface ComboUpdateResponse {
 
 export interface ComboListResponse {
   message?: string;
-  combo: Combo[]; // Đổi từ 'combos' thành 'combo' để khớp với backend
+  combo: Combo[];
 }
 
 export interface ComboDeleteRequest {

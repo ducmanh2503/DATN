@@ -27,7 +27,6 @@ const ENDPOINTS = {
 
 const normalizeId = (id: string | number): string => String(id);
 
-// Lấy token từ localStorage (nếu cần auth)
 const getAuthToken = () => localStorage.getItem("token");
 
 const handleApiError = (error: any): never => {
@@ -109,19 +108,16 @@ export const createCombo = async (
 
 export const updateCombo = async (
   id: string | number,
-  data: ComboUpdateRequest | FormData
+  data: FormData
 ): Promise<ComboUpdateResponse> => {
   const comboId = normalizeId(id);
   try {
-    const isFormData = data instanceof FormData;
     const response = await axios.put<ComboUpdateResponse>(
       ENDPOINTS.UPDATE_COMBO(comboId),
       data,
       {
         headers: {
-          "Content-Type": isFormData
-            ? "multipart/form-data"
-            : "application/json",
+          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${getAuthToken()}`,
         },
       }
@@ -236,7 +232,7 @@ export const permanentDeleteCombo = async (
 
 export default {
   getCombos,
-  getCombo,
+  getCombo, // THÊM VÀO ĐÂY
   createCombo,
   updateCombo,
   deleteCombo,

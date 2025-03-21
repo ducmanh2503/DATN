@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, Input, message, Tooltip } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Button, Modal, Input, message, Tooltip, Upload } from "antd";
+import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from "@ant-design/icons";
 import comboService from "../../../services/combo.service";
 import { Combo } from "../../../types/combo.types";
 import styles from "./Combo.module.css";
@@ -16,8 +16,8 @@ const ComboPage = () => {
     description: "",
     quantity: 0,
     price: 0,
-    image: "", // Đây sẽ là URL dạng chuỗi
   });
+  const [fileList, setFileList] = useState<any[]>([]);
 
   useEffect(() => {
     fetchCombos();
@@ -27,8 +27,13 @@ const ComboPage = () => {
     setLoading(true);
     try {
       const response = await comboService.getCombos();
-      console.log("API Response:", response);
-      setCombos(response.combo);
+      console.log("Fetched combos response:", JSON.stringify(response, null, 2));
+      // Bỏ qua image từ backend, giữ nguyên các trường khác
+      const processedCombos = response.combo.map((combo) => ({
+        ...combo,
+        image: combo.image === "undefined" ? null : combo.image, // Xử lý "undefined"
+      }));
+      setCombos(processedCombos);
     } catch (error) {
       message.error("Không thể tải danh sách combo");
       console.error("Error fetching combos:", error);
@@ -45,8 +50,8 @@ const ComboPage = () => {
         description: combo.description,
         quantity: combo.quantity,
         price: combo.price,
-        image: combo.image,
       });
+      setFileList([]);
     } else {
       setIsEditMode(false);
       setCurrentCombo(null);
@@ -55,8 +60,8 @@ const ComboPage = () => {
         description: "",
         quantity: 0,
         price: 0,
-        image: "",
       });
+      setFileList([]);
     }
     setIsModalVisible(true);
   };
@@ -68,27 +73,41 @@ const ComboPage = () => {
       description: "",
       quantity: 0,
       price: 0,
-      image: "",
     });
+    setFileList([]);
   };
 
   const handleCreate = async () => {
-    if (!formData.name || !formData.price || !formData.image) {
-      message.error("Vui lòng nhập đầy đủ thông tin, bao gồm URL ảnh!");
+    if (!formData.name || !formData.price || fileList.length === 0) {
+      message.error("Vui lòng nhập đầy đủ thông tin, bao gồm file ảnh!");
       return;
     }
     try {
-      const dataToSend = {
+      const imageUrl = URL.createObjectURL(fileList[0].originFileObj); // URL cục bộ cho ảnh
+      const newCombo: Combo = {
+        id: Date.now().toString(), // ID tạm thời
         name: formData.name,
         description: formData.description,
         quantity: formData.quantity,
         price: formData.price,
-        image: formData.image, // Chuỗi URL
+        image: imageUrl,
       };
+      console.log("New combo:", newCombo);
 
-      await comboService.createCombo(dataToSend);
+      // Gửi dữ liệu với image là chuỗi giả để thỏa mãn backend
+      const dataToSend = new FormData();
+      dataToSend.append("name", formData.name);
+      dataToSend.append("description", formData.description);
+      dataToSend.append("quantity", String(formData.quantity));
+      dataToSend.append("price", String(formData.price));
+      dataToSend.append("image", "placeholder.jpg"); // Chuỗi giả cho backend
+
+      const response = await comboService.createCombo(dataToSend);
+      console.log("Create combo response:", response);
+
+      // Sử dụng image cục bộ thay vì từ backend
+      setCombos([...combos, { ...response.combo, image: imageUrl }]);
       message.success("Thêm combo thành công!");
-      fetchCombos();
       handleCancel();
     } catch (error: any) {
       if (error.status === 422 && error.details) {
@@ -104,17 +123,37 @@ const ComboPage = () => {
   const handleUpdate = async () => {
     if (!currentCombo) return;
     try {
-      const dataToSend = {
+      let imageUrl = currentCombo.image;
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+        imageUrl = URL.createObjectURL(fileList[0].originFileObj); // Cập nhật ảnh mới
+      }
+
+      const updatedCombo: Combo = {
+        ...currentCombo,
         name: formData.name,
         description: formData.description,
         quantity: formData.quantity,
         price: formData.price,
-        image: formData.image, // Chuỗi URL
+        image: imageUrl,
       };
+      console.log("Updated combo:", updatedCombo);
 
-      await comboService.updateCombo(currentCombo.id, dataToSend);
+      // Gửi dữ liệu với image là chuỗi giả
+      const dataToSend = new FormData();
+      dataToSend.append("name", formData.name);
+      dataToSend.append("description", formData.description);
+      dataToSend.append("quantity", String(formData.quantity));
+      dataToSend.append("price", String(formData.price));
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+        dataToSend.append("image", "placeholder.jpg"); // Chuỗi giả khi có ảnh mới
+      }
+
+      const response = await comboService.updateCombo(currentCombo.id, dataToSend);
+      console.log("Update combo response:", response);
+
+      // Cập nhật state với image cục bộ
+      setCombos(combos.map((combo) => (combo.id === currentCombo.id ? { ...response.combo, image: imageUrl } : combo)));
       message.success("Cập nhật combo thành công!");
-      fetchCombos();
       handleCancel();
     } catch (error: any) {
       if (error.status === 422 && error.details) {
@@ -134,8 +173,8 @@ const ComboPage = () => {
       async onOk() {
         try {
           await comboService.deleteCombo(id);
+          setCombos(combos.filter((combo) => combo.id !== id));
           message.success("Xóa combo thành công!");
-          fetchCombos();
         } catch (error) {
           message.error("Không thể xóa combo");
           console.error(error);
@@ -159,9 +198,20 @@ const ComboPage = () => {
       title: "Hình ảnh",
       dataIndex: "image",
       key: "image",
-      render: (image: string) => (
-        <img src={image} alt="combo" className={styles.tableImage} />
-      ),
+      render: (image: string) => {
+        console.log("Image URL in table:", image);
+        const isValidUrl = image && (image.startsWith("http") || image.startsWith("blob:"));
+        return isValidUrl ? (
+          <img
+            src={image}
+            alt="combo"
+            className={styles.tableImage}
+            onError={(e) => console.error("Image load error:", image)}
+          />
+        ) : (
+          <span>Không có ảnh</span>
+        );
+      },
     },
     {
       title: "Hành động",
@@ -186,6 +236,19 @@ const ComboPage = () => {
       ),
     },
   ];
+
+  const uploadProps = {
+    onRemove: () => {
+      setFileList([]);
+    },
+    beforeUpload: (file: any) => {
+      setFileList([file]);
+      console.log("File selected:", file);
+      return false;
+    },
+    fileList,
+    maxCount: 1,
+  };
 
   return (
     <div className={styles.comboContainer}>
@@ -233,7 +296,7 @@ const ComboPage = () => {
               setFormData({ ...formData, quantity: Number(e.target.value) })
             }
             style={{ marginBottom: 16 }}
-            min={1} // Giới hạn giá trị nhỏ nhất
+            min={1}
           />
         </Tooltip>
         <Tooltip title="Giá phải là số lớn hơn hoặc bằng 0 (VNĐ)">
@@ -245,15 +308,12 @@ const ComboPage = () => {
               setFormData({ ...formData, price: Number(e.target.value) })
             }
             style={{ marginBottom: 16 }}
-            min={0} // Giới hạn giá trị nhỏ nhất
+            min={0}
           />
         </Tooltip>
-        <Input
-          placeholder="URL ảnh combo"
-          value={formData.image}
-          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-          style={{ marginBottom: 16 }}
-        />
+        <Upload {...uploadProps}>
+          <Button icon={<UploadOutlined />}>Tải lên ảnh combo</Button>
+        </Upload>
       </Modal>
     </div>
   );

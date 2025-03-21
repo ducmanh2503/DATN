@@ -60,3 +60,19 @@
   border: 1px solid #d9d9d9;
   border-radius: 4px;
 }
+
+/* Verification column styles */
+.verificationVerified {
+  color: #52c41a; /* Green color for "Đã xác minh" */
+  font-weight: 500;
+}
+
+.verificationUnverified {
+  color: #faad14; /* Orange color for "Chưa xác minh" */
+  font-weight: 500;
+}
+
+.verificationLocked {
+  color: #f5222d; /* Red color for "Đã khóa" */
+  font-weight: 500;
+}

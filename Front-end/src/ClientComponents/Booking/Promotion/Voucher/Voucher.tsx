@@ -67,7 +67,7 @@ const VoucherInfo = () => {
             }
         },
 
-        onError: (error) => {
+        onError: () => {
             openNotification({
                 description: "Mã không đúng hoặc không hợp lệ",
             });

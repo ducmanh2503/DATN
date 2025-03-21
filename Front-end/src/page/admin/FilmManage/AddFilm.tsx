@@ -370,7 +370,7 @@ const AddFilm = () => {
                         </Col>
                     </Row>
                     <Row gutter={16}>
-                        <Col span={12}>
+                        {/* <Col span={12}>
                             <Form.Item
                                 className={clsx(styles.inputLabel)}
                                 label="ID"
@@ -384,7 +384,7 @@ const AddFilm = () => {
                             >
                                 <Input placeholder="Nhập ID sản phẩm" />
                             </Form.Item>
-                        </Col>
+                        </Col> */}
                         <Col span={12}>
                             <Form.Item
                                 className={clsx(styles.inputLabel)}

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('booking_id')->constrained('bookings');
-            $table->decimal('amount', 8, 2);
+            $table->decimal('amount', 15, 2);
             $table->string('payment_method');
             $table->enum('status', ['pending', 'completed', 'failed']);
             

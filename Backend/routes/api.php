@@ -143,7 +143,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //Đơn hàng
         Route::get('/order', [OrderController::class, 'index']);
-        Route::get('/order/{id}', [OrderController::class, 'show']);
+        Route::get('/order/{bookingId}/order-details', [OrderController::class, 'show']);
     });
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);

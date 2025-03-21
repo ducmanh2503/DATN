@@ -17,7 +17,8 @@ import PromotionInfo from "../Promotion/PromotionInfo/PromotionInfo";
 import { usePromotionContextContext } from "../../UseContext/PromotionContext";
 
 const InfoMovie = () => {
-  const { filmId, showtimesTime, showtimesDate } = useFilmContext();
+  const { filmId, showtimesTime, showtimesDate, roomNameShowtimes } =
+    useFilmContext();
   const { quantityCombo } = useComboContext();
   const { quantitySeats } = useSeatsContext();
   const { setDataDetailFilm, dataDetailFilm } = useStepsContext();
@@ -72,7 +73,9 @@ const InfoMovie = () => {
             ))}
           </div>
           <div className={clsx(styles.infoSub)}>
-            <span className={clsx(styles.subRoomType)}>2D</span>
+            <span className={clsx(styles.subRoomType)}>
+              {roomNameShowtimes}
+            </span>
             <span className={clsx(styles.subForm)}>{chuyendoi?.language}</span>
             <div className={clsx(styles.subRated)}>{chuyendoi?.rated}</div>
           </div>
@@ -90,11 +93,7 @@ const InfoMovie = () => {
 
       {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
       {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
-
-
-
       {(quantityPromotion && <PromotionInfo />) === 0 ? "" : <PromotionInfo />}
-
       <div className={clsx(styles.bookingTotal)}>
         <Divider className={clsx(styles.dividerCustom)} dashed />
         <div className={clsx(styles.totalInfo)}>

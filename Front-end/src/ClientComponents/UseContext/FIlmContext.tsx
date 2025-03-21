@@ -25,6 +25,10 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
         : 0;
     }
   ); // id room_id booking
+  const [roomNameShowtimes, setRoomNameShowtimes] = useState<string>(() => {
+    const storedRoomNameShowtimes = sessionStorage.getItem("roomNameShowtimes");
+    return storedRoomNameShowtimes ? JSON.parse(storedRoomNameShowtimes) : "";
+  }); // name room booking
   const [showtimeIdFromBooking, setShowtimeIdFromBooking] = useState<
     number | null
   >(() => {
@@ -50,6 +54,10 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
       JSON.stringify(roomIdFromShowtimes)
     );
     sessionStorage.setItem(
+      "roomNameShowtimes",
+      JSON.stringify(roomNameShowtimes)
+    );
+    sessionStorage.setItem(
       "showtimeIdFromBooking",
       JSON.stringify(showtimeIdFromBooking)
     );
@@ -59,6 +67,7 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
     showtimesTime,
     showtimesDate,
     roomIdFromShowtimes,
+    roomNameShowtimes,
     listShowtimes,
   ]);
   return (
@@ -76,6 +85,8 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
         setShowtimeIdFromBooking,
         listShowtimes,
         setListShowtimes,
+        roomNameShowtimes,
+        setRoomNameShowtimes,
       }}
     >
       {children}

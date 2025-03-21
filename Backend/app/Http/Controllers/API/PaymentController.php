@@ -74,12 +74,12 @@ class PaymentController extends Controller
         }
 
         $usedPoints = $request->input('used_points', 0);
-    $pointDiscount = $usedPoints * 1000;
-    $userData = $this->userRankService->getRankAndPoints(auth()->id());
-    if ($usedPoints > $userData['points']) {
-        return response()->json(['message' => 'Số điểm sử dụng vượt quá điểm tích lũy'], 400);
-    }
-    $totalPriceBeforeDiscount = $totalTicketPrice + $totalComboPrice;
+        $pointDiscount = $usedPoints * 1000;
+        $userData = $this->userRankService->getRankAndPoints(auth()->id());
+        if ($usedPoints > $userData['points']) {
+            return response()->json(['message' => 'Số điểm sử dụng vượt quá điểm tích lũy'], 400);
+        }
+        $totalPriceBeforeDiscount = $totalTicketPrice + $totalComboPrice;
 
         // Tổng giá thực tế từ DB
         $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount);
@@ -87,11 +87,11 @@ class PaymentController extends Controller
         // Ghi dữ liệu giá vào bookingData
         $bookingData['pricing'] = [
             'total_ticket_price' => $totalTicketPrice,
-        'total_combo_price' => $totalComboPrice,
-        'total_price_before_discount' => $totalPriceBeforeDiscount,
-        'point_discount' => $pointDiscount,
-        'total_price' => $totalPrice,
-        'used_points' => $usedPoints,
+            'total_combo_price' => $totalComboPrice,
+            'total_price_before_discount' => $totalPriceBeforeDiscount,
+            'point_discount' => $pointDiscount,
+            'total_price' => $totalPrice,
+            'used_points' => $usedPoints,
         ];
 
         // So sánh với totalPrice từ request (nếu cần kiểm tra)
@@ -168,12 +168,12 @@ class PaymentController extends Controller
 
             //trừ điểm nếu sử dụng
             $usedPoints = $bookingData['pricing']['used_points'] ?? 0;
-        if ($usedPoints > 0) {
-            $success = $this->userRankService->deductPoints($bookingData['user_id'], $usedPoints);
-            if (!$success) {
-                Log::warning("Không thể trừ $usedPoints điểm cho user_id = {$bookingData['user_id']}");
+            if ($usedPoints > 0) {
+                $success = $this->userRankService->deductPoints($bookingData['user_id'], $usedPoints);
+                if (!$success) {
+                    Log::warning("Không thể trừ $usedPoints điểm cho user_id = {$bookingData['user_id']}");
+                }
             }
-        }
 
             Redis::del("booking:$request->vnp_TxnRef");
 

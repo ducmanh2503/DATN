@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Card, message } from "antd";
+import { Card, message, Spin } from "antd";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import pusher from "../../../utils/pusher";
@@ -15,6 +15,8 @@ import { useComboContext } from "../../UseContext/CombosContext";
 import ChangeShowtimes from "../ChangeShowtimes/ChangeShowtimes";
 import UISeatsInfo from "../UISeatsInfo/UISeatsInfo";
 import CustomNotification from "../Notification/Notification";
+import { GET_USER } from "../../../config/ApiConfig";
+import { usePromotionContextContext } from "../../UseContext/PromotionContext";
 
 const BookingSeat = ({ className }: { className?: string }) => {
   const {
@@ -35,6 +37,8 @@ const BookingSeat = ({ className }: { className?: string }) => {
   const { setUserIdFromShowtimes, userIdFromShowtimes, currentStep } =
     useStepsContext();
   const { totalComboPrice } = useComboContext();
+  const { setRankUser, setUserPoints, totalPricePoint } =
+    usePromotionContextContext();
   const { openNotification, contextHolder } = CustomNotification();
 
   const queryClient = useQueryClient();
@@ -48,10 +52,12 @@ const BookingSeat = ({ className }: { className?: string }) => {
     queryKey: ["getUserId"],
     queryFn: async () => {
       try {
-        const { data } = await axios.get("http://localhost:8000/api/user", {
+        const { data } = await axios.get(GET_USER, {
           headers: { Authorization: `Bearer ${tokenUserId}` },
         });
-        return data.id;
+        // console.log("check id", data);
+
+        return data;
       } catch (error) {
         console.error("Lỗi khi lấy userId:", error);
         return null;
@@ -63,12 +69,18 @@ const BookingSeat = ({ className }: { className?: string }) => {
   // Cập nhật userId khi getUserId có dữ liệu
   useEffect(() => {
     if (getUserId !== undefined) {
-      setUserIdFromShowtimes(getUserId ?? null);
+      setUserIdFromShowtimes(getUserId.id ?? null);
+      setRankUser(getUserId.rank);
+      setUserPoints(getUserId.points);
     }
   }, [getUserId]);
 
   // api lấy ma trận ghế
-  const { data: matrixSeats, refetch: refetchMatrix } = useQuery({
+  const {
+    data: matrixSeats,
+    refetch: refetchMatrix,
+    isLoading: isLoadingMatrix,
+  } = useQuery({
     queryKey: ["matrixSeats", roomIdFromShowtimes, showtimeIdFromBooking],
     queryFn: async () => {
       if (!roomIdFromShowtimes || !showtimeIdFromBooking) {
@@ -227,9 +239,10 @@ const BookingSeat = ({ className }: { className?: string }) => {
       return;
     }
     const totalSeats = typeSeats.reduce(
-      (sum: any, s: any) => sum + s.quantitySeats,
-      quantitySeats
+      (sum: number, s: { quantitySeats: number }) => sum + s.quantitySeats,
+      0
     );
+
     const totalPrice = typeSeats.reduce(
       (sum: any, s: any) => sum + s.price,
       totalSeatPrice
@@ -390,7 +403,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
     channel.bind("pusher:subscription_succeeded", () => {
       setIsPusherRegistered(true);
-
       if (!pusherEventHandlersRegistered.current) {
         channel.bind("seat-held", (data: any) => {
           let seatsArray: number[] = [];
@@ -419,6 +431,25 @@ const BookingSeat = ({ className }: { className?: string }) => {
           }
         });
 
+        // Xử lý sự kiện seat-booked
+        channel.bind("seat-booked", (data: any) => {
+          let seatsArray: number[] = [];
+          if (Array.isArray(data.seats)) {
+            seatsArray = data.seats;
+          } else if (data.seats && Array.isArray(data.seats.seats)) {
+            seatsArray = data.seats.seats;
+          } else if (Array.isArray(data)) {
+            seatsArray = data;
+          }
+
+          setTypeSeats((prev: any) => ({
+            ...prev,
+            status: "Booked",
+          }));
+
+          refetchMatrix();
+        });
+
         pusherEventHandlersRegistered.current = true;
       }
     });
@@ -429,6 +460,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
     return () => {
       channel.unbind("seat-held");
+      channel.unbind("seat-booked");
       pusher.unsubscribe(channelName);
       setIsPusherRegistered(false);
       pusherEventHandlersRegistered.current = false;
@@ -517,7 +549,10 @@ const BookingSeat = ({ className }: { className?: string }) => {
           <div className={clsx(styles.screen)}>MÀN HÌNH</div>
 
           <div className={clsx(styles.matrixSeat)}>
-            {matrixSeats &&
+            {isLoadingMatrix ? (
+              <Spin />
+            ) : (
+              matrixSeats &&
               Object.entries(matrixSeats).map(
                 ([rowLabel, rowData]: any, rowIndex) => (
                   <div
@@ -530,23 +565,21 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
                     {Object.values(rowData).map((seat: any) => {
                       const isSelected = nameSeats.includes(seat.seatCode);
-                      const isHeld =
-                        seat.status === "held" || seat.status === "booked";
-
+                      const isHeld = seat.status === "held";
+                      const isBooked = seat.status === "Booked";
                       return (
                         <button
                           className={clsx(
                             styles.seatName,
                             isHeld && styles.held,
+                            isBooked && styles.booked,
                             isSelected && styles.selected,
                             seat.type === "VIP" && styles.vip,
                             seat.type === "Sweetbox" && styles.sweetbox
                           )}
                           key={`seat-${seat.id}`}
-                          onClick={() => {
-                            handleSeatClick(seat);
-                          }}
-                          disabled={isHeld}
+                          onClick={() => handleSeatClick(seat)}
+                          disabled={isHeld || isBooked}
                         >
                           {seat.seatCode}
                         </button>
@@ -554,7 +587,8 @@ const BookingSeat = ({ className }: { className?: string }) => {
                     })}
                   </div>
                 )
-              )}
+              )
+            )}
           </div>
           <UISeatsInfo></UISeatsInfo>
         </Card>

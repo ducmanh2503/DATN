@@ -69,15 +69,34 @@ export interface AuthResponse {
 }
 
 export interface BookingType {
-    id: number;
-    roomId: number;
-    row: string;
-    column: number;
-    seatCode: string;
-    seatType: string;
-    price: string;
-    type: string;
-    dayType: "weekday" | "weekend" | "holiday";
-    status?: string;
-    heldByCurrentUser?: boolean;
+  id: number;
+  roomId: number;
+  row: string;
+  column: number;
+  seatCode: string;
+  seatType: string;
+  price: string;
+  type: string;
+  dayType: "weekday" | "weekend" | "holiday";
+  status?: string;
+  heldByCurrentUser?: boolean;
+}
+
+export interface Showtime {
+  id: number;
+  start_time: string;
+  room: {
+    room_type: {
+      name: string;
+    };
+  };
+}
+
+export interface ComboFoodType {
+  key: string;
+  image: string;
+  title: string;
+  price: string;
+  description: string;
+  quantity: number;
 }

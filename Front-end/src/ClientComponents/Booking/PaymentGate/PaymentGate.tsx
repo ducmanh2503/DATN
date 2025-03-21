@@ -1,13 +1,12 @@
-import { Button, Input, Radio, RadioChangeEvent, Space } from "antd";
+import { Radio, RadioChangeEvent } from "antd";
 import clsx from "clsx";
 
-import styles from "./PaymentGate.module.css";
 import { useStepsContext } from "../../UseContext/StepsContext";
-import { useState } from "react";
 import UICollapse from "../Promotion/UICollapse/UICollapse";
+import styles from "./PaymentGate.module.css";
+import VoucherInfo from "../Promotion/Voucher/Voucher";
 
 const PaymentGate = ({ className }: any) => {
-  const [promoCode, setPromoCode] = useState<string>(""); // lấy dữ liệu mã khuyến mãi
   const { setPaymentType, paymentType } = useStepsContext();
 
   // Set cách tính tiền vào state
@@ -15,32 +14,11 @@ const PaymentGate = ({ className }: any) => {
     setPaymentType(e.target.value);
   };
 
-  // set khuyến mãi
-  const onChangePromotion = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPromoCode(e.target.value);
-  };
-
-  const handleAddPromotion = () => {
-    console.log(promoCode);
-  };
-
   return (
     <div className={clsx(styles.paymentGateContainer, className)}>
       <div className={clsx(styles.promotionSection)}>
         <h1 className={clsx(styles.promotionTitle)}>Khuyến mãi</h1>
-        <div className={clsx(styles.promotionInput)}>
-          <h3 className={clsx(styles.title)}>Mã khuyến mãi</h3>
-          <Space.Compact>
-            <Input
-              value={promoCode}
-              onChange={onChangePromotion}
-              placeholder="Nhập mã khuyến mãi"
-            />
-            <Button type="primary" onClick={handleAddPromotion}>
-              Thêm
-            </Button>
-          </Space.Compact>
-        </div>
+        <VoucherInfo></VoucherInfo>
         <UICollapse></UICollapse>
       </div>
 

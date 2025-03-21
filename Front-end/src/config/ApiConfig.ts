@@ -1,3 +1,5 @@
+import { useMutation } from "@tanstack/react-query";
+
 const BASE_URL = "http://localhost:8000/api";
 const URL_IMAGE = "http://localhost:8000";
 
@@ -43,7 +45,7 @@ const GET_RANGE = `${BASE_URL}/show-times/in-range`;
 const GET_ROOMS = `${BASE_URL}/room`;
 const GET_SHOW_BY_FILM_DATE = `${BASE_URL}/showtimes-client/by-date`; // lấy suất chiếu qua ngày chiếu
 
-const GET_USER = `${BASE_URL}/user`;
+const GET_USER = `${BASE_URL}/user`; // lấy thông tin user
 const UPDATE_USER_CLIENT = `${BASE_URL}/update-profile`;
 const GET_ARTICLE = `${BASE_URL}/article`;
 const CREATE_ARTICLE = `${BASE_URL}/article`;
@@ -63,8 +65,12 @@ const ADD_TICKETSPRICE = `${BASE_URL}/ticket-management`;
 const DELETE_TICKETPRICE = (id: number) =>
   `${BASE_URL}/ticket-management/${id}`;
 const UPDATE_TICKETPRICE = (id: number) =>
-    `${BASE_URL}/ticket-management/${id}`;
+  `${BASE_URL}/ticket-management/${id}`;
 const PAYMENT_WITH_VNPAY = `${BASE_URL}/VNPay/create`; // thanh toán bằng VNPay
+
+const GET_VOUCHER = (code: string) =>
+  `${BASE_URL}/apply-discount-code?name_code=${encodeURIComponent(code)}`; // nhập voucher giảm giá
+
 export {
   GET_DISCOUNT_CODE,
   CREATE_DISCOUNT_CODE,
@@ -114,4 +120,5 @@ export {
   UPDATE_TICKETPRICE,
   DETAIL_TICKETPRICE,
   PAYMENT_WITH_VNPAY,
+  GET_VOUCHER,
 };

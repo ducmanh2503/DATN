@@ -9,13 +9,13 @@ const parseSeatCode = (seatCode: string) => {
 
 const useIsolatedSeatChecker = () => {
   // Hàm tính maxCol của từng hàng
-  const getMaxCols = (allSeats: any) => {
-    return Object.keys(allSeats).reduce((acc: Record<number, number>, row) => {
-      const cols = Object.keys(allSeats[row]).map(Number);
-      acc[Number(row)] = Math.max(...cols) + 1; // +1 vì index bắt đầu từ 0
-      return acc;
-    }, {});
-  };
+  // const getMaxCols = (allSeats: any) => {
+  //   return Object.keys(allSeats).reduce((acc: Record<number, number>, row) => {
+  //     const cols = Object.keys(allSeats[row]).map(Number);
+  //     acc[Number(row)] = Math.max(...cols) + 1; // +1 vì index bắt đầu từ 0
+  //     return acc;
+  //   }, {});
+  // };
   const checkIsolatedSeat = useCallback(
     (selectedSeats: string[], allSeats: any) => {
       // debugger;
@@ -40,7 +40,7 @@ const useIsolatedSeatChecker = () => {
           selectedSeats.includes(`${String.fromCharCode(65 + r)}${c}`) ||
           allSeats[r][c].isHeld ||
           allSeats[r][c].status === "held" ||
-          allSeats[r][c].status === "booked"
+          allSeats[r][c].status === "Booked"
         );
       };
 

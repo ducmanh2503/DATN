@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Collapse, InputNumber, Button, Space } from "antd";
 import clsx from "clsx";
 import styles from "./UICollapse.module.css";
@@ -9,17 +9,18 @@ import CustomNotification from "../../Notification/Notification";
 const UICollapse = () => {
   const [activeKey, setActiveKey] = useState<string>(""); // state của Collapse
   const [prevPointsNumber, setPrevPointsNumber] = useState<number>(0); // Lưu trữ điểm cũ
-  const [usedPoints, setUsedPoints] = useState<number>(0); // Lưu điểm đã sử dụng
   const [pointsNumber, setPointsNumber] = useState<number | null>(null);
   const { openNotification, contextHolder } = CustomNotification();
 
   const { setTotalPrice } = useFinalPriceContext();
   const {
-    totalPricePoint,
     setTotalPricePoint,
-    setUserPoint,
-    userPoint,
+    userPoints,
     setQuantityPromotion,
+    usedPoints,
+    setUsedPoints,
+    setTotalPriceVoucher,
+    rankUser,
   } = usePromotionContextContext();
 
   // quản lý ẩn hiện tích điểm
@@ -36,6 +37,7 @@ const UICollapse = () => {
     }
   };
 
+  // hàm thêm points khi click
   const handleAddPoint = () => {
     if (!pointsNumber || pointsNumber < 20 || pointsNumber > 100) {
       openNotification({
@@ -44,8 +46,8 @@ const UICollapse = () => {
       return;
     }
 
-    // Kiểm tra điểm còn lại khả dụng (userPoint - usedPoints)
-    if (userPoint - usedPoints < pointsNumber) {
+    // Kiểm tra điểm còn lại khả dụng (userPoints - usedPoints)
+    if (userPoints - usedPoints < pointsNumber) {
       openNotification({
         description: "Bạn không đủ điểm để sử dụng!",
       });
@@ -63,8 +65,26 @@ const UICollapse = () => {
     setTotalPricePoint(newPointValue);
     setQuantityPromotion(1);
 
+    // cập nhật điểm đã xử dụng
+    setUsedPoints(pointsNumber);
     // Lưu lại điểm trước đó
     setPrevPointsNumber(pointsNumber);
+  };
+
+  // Hàm xử lý sự kiện KeyDown
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace") {
+      setTotalPrice((prev: number) => prev + prevPointsNumber * 1000);
+
+      setPointsNumber(null);
+      setPrevPointsNumber(0);
+      setTotalPricePoint(0);
+      setUsedPoints(0);
+    }
+
+    if (e.key === "Enter") {
+      handleAddPoint();
+    }
   };
 
   // hàm xử lý khi xóa input
@@ -78,6 +98,8 @@ const UICollapse = () => {
     setPrevPointsNumber(0);
     setTotalPricePoint(0);
     setQuantityPromotion(0);
+    setUsedPoints(0);
+    sessionStorage.removeItem("usedPoints");
   };
 
   const items = [
@@ -88,15 +110,25 @@ const UICollapse = () => {
         <div className={clsx(styles.promotionContent)}>
           <div className={clsx(styles.yourPoint)}>
             Điểm của bạn:{" "}
-            <span className={clsx(styles.currentpoint)}>{userPoint}</span> -{" "}
+            <span className={clsx(styles.currentpoint)}>{userPoints}</span> -{" "}
             <span> Hạng: </span>
-            <span>Star</span>
+            <span
+              className={clsx(
+                styles.rankUser,
+                rankUser === "regular" && styles.normalRank,
+                rankUser === "gold" && styles.goldRank,
+                rankUser === "diamond" && styles.diamondRank
+              )}
+            >
+              {rankUser}
+            </span>
           </div>
 
           <Space.Compact>
             <InputNumber
               className={clsx(styles.inputNumber)}
               value={pointsNumber}
+              onKeyDown={handleKeyDown}
               onChange={onChangePoint}
               placeholder="Điểm Stars"
             />
@@ -128,13 +160,18 @@ const UICollapse = () => {
           </div>
 
           <div className={clsx(styles.promotionMember, styles.pro)}>
-            - Thành viên Star: 3% trên tổng giá trị/ số tiền giao dịch.
+            - Thành viên{" "}
+            <span className={clsx(styles.normalRank)}>Regular</span>: 3% trên
+            tổng giá trị/ số tiền giao dịch.
           </div>
           <div className={clsx(styles.promotionMember, styles.pro)}>
-            - Thành viên G-Star: 5% trên tổng giá trị/ số tiền giao dịch.
+            - Thành viên <span className={clsx(styles.goldRank)}>Gold</span>: 5%
+            trên tổng giá trị/ số tiền giao dịch.
           </div>
           <div className={clsx(styles.promotionMember, styles.pro)}>
-            - Thành viên X-Star: 10% trên tổng giá trị/ số tiền giao dịch.
+            - Thành viên{" "}
+            <span className={clsx(styles.diamondRank)}>Diamond</span>: 10% trên
+            tổng giá trị/ số tiền giao dịch.
           </div>
         </div>
       ),

@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\UserPoint;
+use App\Models\UserRank;
 
 class UserRankService
 {
@@ -45,6 +47,25 @@ class UserRankService
         // Lưu thay đổi
         $user->save();
 
+        // Ghi điểm kiếm được vào user_points
+        if ($pointsEarned > 0) {
+            UserPoint::create([
+                'user_id' => $userId,
+                'booking_id' => $bookingId,
+                'points_earned' => $pointsEarned,
+                'description' => "Kiếm $pointsEarned điểm từ booking #$bookingId",
+            ]);
+        }
+
+        // Ghi lịch sử thay đổi hạng vào user_ranks
+        if ($oldRank !== $user->rank) {
+            UserRank::create([
+                'user_id' => $userId,
+                'rank' => $user->rank,
+                'total_spent_at_rank' => $user->total_spent,
+            ]);
+        }
+
         return [
             'points_earned' => $pointsEarned,
             'total_points' => $user->points,
@@ -74,5 +95,33 @@ class UserRankService
             'rank' => $user->rank,
             'points' => $user->points,
         ];
+    }
+
+    /**
+     * Trừ điểm tích lũy của người dùng
+     *
+     * @param int $userId ID của người dùng
+     * @param int $points Số điểm cần trừ
+     * @return bool Trả về true nếu thành công, false nếu thất bại
+     */
+    public function deductPoints($userId, $points)
+    {
+        $user = User::find($userId);
+        if (!$user || $user->points < $points) {
+            return false;
+        }
+
+        $user->points -= $points;
+        $user->save();
+
+        // Ghi log trừ điểm vào user_points
+        UserPoint::create([
+            'user_id' => $userId,
+            'booking_id' => null,
+            'points_earned' => -$points,
+            'description' => "Sử dụng $points điểm để giảm giá",
+        ]);
+
+        return true;
     }
 }

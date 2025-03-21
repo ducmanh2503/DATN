@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('discount_code', function (Blueprint $table) {
             $table->id();
             $table->string('name_code')->unique();
-            $table->decimal('percent', 5, 2);
+            $table->decimal('percent', 15, 2);
             $table->unsignedBigInteger('quantity');
             $table->enum('status', ['active', 'inactive']);
             $table->date('start_date');

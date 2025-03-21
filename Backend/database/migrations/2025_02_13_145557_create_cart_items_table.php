@@ -18,9 +18,9 @@ return new class extends Migration
             $table->foreignId('seat_id')->constrained('seats');
             $table->foreignId('combo_id')->constrained('combos');
 
-            $table->decimal('price_SATOBK',8,2);
-            $table->decimal('price_FATOBK',8,2);
-            $table->decimal('total_price', 8, 2);
+            $table->decimal('price_SATOBK',15,2);
+            $table->decimal('price_FATOBK',15,2);
+            $table->decimal('total_price', 15, 2);
             
             $table->timestamps();
         });

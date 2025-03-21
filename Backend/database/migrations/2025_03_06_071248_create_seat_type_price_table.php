@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('seat_type_id')->constrained('seat_types');
-            $table->decimal('price', 8, 2);
+            $table->decimal('price', 15, 2);
             $table->enum('day_type', ['weekday', 'weekend', 'holiday'])->default('weekday');
             
             $table->timestamps();

@@ -90,7 +90,11 @@ const InfoMovie = () => {
 
       {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
       {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
+
+
+
       {(quantityPromotion && <PromotionInfo />) === 0 ? "" : <PromotionInfo />}
+
       <div className={clsx(styles.bookingTotal)}>
         <Divider className={clsx(styles.dividerCustom)} dashed />
         <div className={clsx(styles.totalInfo)}>

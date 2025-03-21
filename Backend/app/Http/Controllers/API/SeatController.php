@@ -23,6 +23,20 @@ class SeatController extends Controller
     //hiển thị ghế theo thời gian thực
     public function getSeatsForBooking($room_id, $show_time_id)
     {
+        // Lấy thông tin suất chiếu và ngày suất chiếu từ show_time_id
+        $showtime = ShowTime::with('showTimeDate')
+            ->find($show_time_id);
+        if (!$showtime) {
+            return response()->json(['error' => 'Showtime not found'], 404);
+        }
+
+        // Lấy ngày suất chiếu từ bảng show_time_date
+        $showtimeDateRecord = $showtime->showTimeDate->first();
+        if (!$showtimeDateRecord) {
+            return response()->json(['error' => 'Showtime date not found'], 404);
+        }
+        $showtimeDate = $showtimeDateRecord->show_date; // Lấy show_date từ bảng show_time_date
+
         // Lấy tất cả ghế trong phòng và liên kết với loại ghế
         $seats = Seat::where('room_id', $room_id)
             ->with(['seatType', 'showTimeSeat' => function ($query) use ($show_time_id) {
@@ -30,7 +44,6 @@ class SeatController extends Controller
             }])
             ->get();
         $userId = auth()->id();
-        $currentDate = now()->toDateString();
 
         // Tạo ma trận ghế ngồi theo hàng và cột
         $seatingMatrix = [];
@@ -58,7 +71,7 @@ class SeatController extends Controller
             $seatCode = $seat->row . $seat->column;
 
             // Lấy giá ghế theo ngày hiện tại
-            $price = SeatTypePrice::getPriceByDate($seat->seat_type_id, $currentDate) ?? 0;
+            $price = SeatTypePrice::getPriceByDate($seat->seat_type_id, $showtimeDate) ?? 0;
 
             $seatingMatrix[$seat->row][$seat->column] = [
                 'id' => $seat->id,

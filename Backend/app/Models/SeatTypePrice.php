@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class SeatTypePrice extends Model
 {
     use HasFactory;
 
     protected $table = 'seat_type_price';
-
 
     protected $fillable = [
         'seat_type_id',
@@ -24,25 +24,6 @@ class SeatTypePrice extends Model
         return $this->belongsTo(SeatType::class, 'seat_type_id');
     }
 
-    //Lấy giá của loại ghế
-    //  public function getPriceAttribute()
-    // {
-    //     // Trả về giá theo thuộc tính 'price'
-    //     return $this->attributes['price'] ?? 0;
-    // }
-
-    // // Nếu bạn muốn xác định giá theo 'day_type' (ví dụ: ngày lễ, ngày thường, v.v...)
-    // public function getPriceByDayType($dayType)
-    // {
-    //     if ($this->day_type == $dayType) {
-    //         return $this->price;
-    //     }
-
-    //     return 0;  // Trả về 0 nếu không khớp với day_type
-    // }
-
-    //////////////---------------------carbon-----------------/////////////////////
-
     /**
      * Xác định loại ngày: ngày thường, cuối tuần, ngày lễ
      */
@@ -50,13 +31,24 @@ class SeatTypePrice extends Model
     {
         $date = Carbon::parse($date);
 
-        if ($date->isWeekend()) {
+        // Kiểm tra nếu là thứ 6, thứ 7 hoặc chủ nhật (coi thứ 6 là cuối tuần)
+        if ($date->isFriday() || $date->isWeekend()) {
             return 'weekend';
         }
 
-        // Danh sách ngày lễ (có thể lấy từ DB)
-        $holidays = ['2025-01-01', '2025-04-30', '2025-05-01', '2025-09-02'];
-        if (in_array($date->toDateString(), $holidays)) {
+        // Danh sách ngày lễ không phụ thuộc năm (chỉ lấy tháng và ngày)
+        $holidays = [
+            '01-01', // Tết Dương lịch
+            '04-30', // Ngày Giải phóng miền Nam
+            '05-01', // Ngày Quốc tế Lao động
+            '09-02', // Quốc khánh
+        ];
+
+        // Lấy tháng và ngày từ $date để so sánh
+        $monthDay = $date->format('m-d');
+
+        // Kiểm tra nếu ngày hiện tại nằm trong danh sách ngày lễ
+        if (in_array($monthDay, $holidays)) {
             return 'holiday';
         }
 
@@ -64,58 +56,17 @@ class SeatTypePrice extends Model
     }
 
     /**
-     * Lấy giá vé theo ngày cụ thể
+     * Lấy giá vé theo ngày cụ thể của suất chiếu
      */
-    public static function getPriceByDate($seatTypeId, $date)
+    public static function getPriceByDate($seatTypeId, $showtimeDate)
     {
-        $dayType = self::getDayType($date);
+        Log::info("Showtime Date: " . $showtimeDate);
+        $dayType = self::getDayType($showtimeDate);
 
         return self::where('seat_type_id', $seatTypeId)
             ->where('day_type', $dayType)
             ->value('price'); // Trả về giá hoặc null nếu không có
     }
-    //////////////---------------------end-carbon-----------------/////////////////////
-
-
-    //////////////---------------------carbon V2-----------------/////////////////////
-
-    // public static function getDayType($date)
-    // {
-    //     // Chuyển đổi chuỗi ngày thành đối tượng Carbon
-    //     $date = Carbon::parse($date);
-
-    //     // Kiểm tra nếu ngày là cuối tuần (thứ 7 hoặc chủ nhật)
-    //     if ($date->isWeekend()) {
-    //         return 'weekend';
-    //     }
-
-    //     // Bạn có thể gọi một API từ server hoặc kiểm tra với Pusher để xác định ngày lễ (nếu có)
-    //     // Ví dụ: Lấy danh sách ngày lễ từ API hoặc event từ Pusher (hoặc cơ sở dữ liệu của bạn)
-    //     $holidays = self::getHolidays();  // Giả sử bạn có phương thức để lấy danh sách ngày lễ từ DB hoặc API
-
-    //     // Nếu ngày trùng với một trong các ngày lễ
-    //     if (in_array($date->toDateString(), $holidays)) {
-    //         return 'holiday';
-    //     }
-
-    //     // Nếu không phải cuối tuần và không phải ngày lễ, mặc định là ngày thường
-    //     return 'weekday';
-    // }
-
-    // // Phương thức giả sử để lấy danh sách ngày lễ từ cơ sở dữ liệu hoặc từ API
-    // public static function getHolidays()
-    // {
-    //     // Ví dụ lấy danh sách ngày lễ từ cơ sở dữ liệu hoặc một nguồn dữ liệu động
-    //     // Có thể tích hợp API Pusher hoặc từ DB để lấy thông tin về ngày lễ theo thời gian thực
-    //     return [
-    //         '2025-01-01',
-    //         '2025-04-30',
-    //         '2025-05-01',
-    //         '2025-09-02' // Ngày lễ mẫu
-    //     ];
-    // }
-
-    //////////////---------------------end-carbon V2-----------------/////////////////////
 
     public function getFormattedPriceAttribute()
     {

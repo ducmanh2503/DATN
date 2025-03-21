@@ -62,7 +62,7 @@ class BookingConfirmation extends Mailable
         }
         $qrData = "Mã đặt vé: {$this->booking->id}\n" .
             "Phim: {$this->ticketDetails['movie']['title']}\n" .
-            "Ngày chiếu: {$this->ticketDetails['calendar_show']['show_date']}\n" .
+            "Ngày chiếu: {$this->ticketDetails['show_date']}\n" .
             "Giờ chiếu: {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}\n" .
             "Phòng: {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})\n" .
             "Ghế: {$seats}";
@@ -85,7 +85,7 @@ class BookingConfirmation extends Mailable
 
         <h2>Thông tin vé</h2>
         <p><strong>Phim:</strong> {$this->ticketDetails['movie']['title']}</p>
-        <p><strong>Ngày chiếu:</strong> {$this->ticketDetails['calendar_show']['show_date']}</p>
+        <p><strong>Ngày chiếu:</strong> {$this->ticketDetails['show_date']}</p>
         <p><strong>Giờ chiếu:</strong> {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}</p>
         <p><strong>Phòng:</strong> {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})</p>
         <p><strong>Ghế:</strong> {$seats}</p>

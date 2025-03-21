@@ -21,10 +21,6 @@ class UserRankService
             return false;
         }
 
-        // Tích điểm: 3% tổng số tiền (làm tròn xuống)
-        $pointsEarned = floor($totalPrice * 0.03);
-        $user->points += $pointsEarned;
-
         // Cập nhật tổng chi tiêu
         $user->total_spent += $totalPrice;
 
@@ -32,11 +28,19 @@ class UserRankService
         $oldRank = $user->rank;
         if ($user->total_spent >= 4000000) {
             $user->rank = 'diamond';
+            // Tích điểm: 10% tổng số tiền (làm tròn xuống)
+            $pointsEarned = floor($totalPrice * 0.1 / 1000);
         } elseif ($user->total_spent >= 2000000) {
             $user->rank = 'gold';
+            // Tích điểm: 5% tổng số tiền (làm tròn xuống)
+            $pointsEarned = floor($totalPrice * 0.05 / 1000);
         } else {
             $user->rank = 'regular';
+            // Tích điểm: 3% tổng số tiền (làm tròn xuống)
+            $pointsEarned = floor($totalPrice * 0.03 / 1000);
         }
+
+        $user->points += $pointsEarned;
 
         // Lưu thay đổi
         $user->save();

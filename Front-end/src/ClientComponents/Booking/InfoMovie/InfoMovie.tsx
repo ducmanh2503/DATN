@@ -13,6 +13,8 @@ import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useComboContext } from "../../UseContext/CombosContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
+import PromotionInfo from "../Promotion/PromotionInfo/PromotionInfo";
+import { usePromotionContextContext } from "../../UseContext/PromotionContext";
 
 const InfoMovie = () => {
   const { filmId, showtimesTime, showtimesDate } = useFilmContext();
@@ -20,6 +22,7 @@ const InfoMovie = () => {
   const { quantitySeats } = useSeatsContext();
   const { setDataDetailFilm, dataDetailFilm } = useStepsContext();
   const { totalPrice } = useFinalPriceContext();
+  const { quantityPromotion } = usePromotionContextContext();
 
   // lấy detail film
   const { data: detailFilm } = useQuery({
@@ -87,6 +90,10 @@ const InfoMovie = () => {
 
       {(quantitySeats && <SeatInfo />) === 0 ? "" : <SeatInfo />}
       {(quantityCombo && <ComboInfo />) === 0 ? "" : <ComboInfo />}
+
+
+
+      {(quantityPromotion && <PromotionInfo />) === 0 ? "" : <PromotionInfo />}
 
       <div className={clsx(styles.bookingTotal)}>
         <Divider className={clsx(styles.dividerCustom)} dashed />

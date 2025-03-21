@@ -15,9 +15,9 @@ class ShowTimeDate extends Model
     ];
     protected $table = 'show_time_date';
 
-       // Quan hệ nhiều - một với model ShowTime
-       public function showTime()
-       {
-           return $this->belongsTo(ShowTime::class);
-       }
+    // Quan hệ nhiều - một với model ShowTime
+    public function showTime()
+    {
+        return $this->belongsTo(ShowTime::class);
+    }
 }

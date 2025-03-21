@@ -13,6 +13,7 @@ use App\Http\Controllers\API\DirectorController;
 use App\Http\Controllers\API\DiscountCodeController;
 use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\MoviesController;
+use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\RoomTypeController;
@@ -52,6 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     //thông tin và cập nhật khách hàng
     Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
     Route::put('/update-profile', [UserController::class, 'updateProfile']);
+
+    //Áp dụng mã giảm giá
+    Route::post('/apply-discount-code', [DiscountCodeController::class, 'applyDiscountCode']);
 
     //thanh toán VNPay
     Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
@@ -136,6 +140,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
         Route::post('/restore-user', [UserController::class, 'restore']);
         Route::get('/user/rank-points', [UserController::class, 'getUserRankAndPoints']);
+
+        //Đơn hàng
+        Route::get('/order', [OrderController::class, 'index']);
+        Route::get('/order/{bookingId}/order-details', [OrderController::class, 'show']);
     });
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);

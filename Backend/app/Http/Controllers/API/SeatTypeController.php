@@ -10,7 +10,8 @@ class SeatTypeController extends Controller
 {
     public function index()
     {
-        $seatTypes = SeatType::all(['id', 'name', 'price']);
+        $seatTypes = SeatType::query()->latest('id')->with(['seatTypePrice:id,price,day_type,seat_type_id'])->get();
+
         return response()->json($seatTypes, 200);
     }
 }

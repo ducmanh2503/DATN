@@ -18,6 +18,7 @@ use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\RoomTypeController;
 use App\Http\Controllers\API\SeatController;
+use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
 use App\Http\Controllers\API\TicketController;
@@ -85,6 +86,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/seats', SeatController::class);
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
+
+        //seat_type
+        Route::get('/seat-type', [SeatTypeController::class, 'index']);
 
 
 

@@ -202,4 +202,58 @@ class UserController extends Controller
             'data' => $userData,
         ], 200);
     }
+
+    /**
+     * Tìm kiếm người dùng theo email
+     */
+    public function searchByEmail(Request $request)
+    {
+        // Validate dữ liệu đầu vào
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Tìm kiếm người dùng theo email
+        $users = User::where('email', $request->email)->get();
+
+        if ($users->isEmpty()) {
+            return response()->json(['message' => 'Không tìm thấy người dùng với email này'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Kết quả tìm kiếm theo email',
+            'data' => $users
+        ], 200);
+    }
+
+    /**
+     * Tìm kiếm người dùng theo tên
+     */
+    public function searchByName(Request $request)
+    {
+        // Validate dữ liệu đầu vào
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Tìm kiếm người dùng có tên chứa chuỗi đầu vào (không phân biệt hoa thường)
+        $users = User::where('name', 'LIKE', '%' . $request->name . '%')->get();
+
+        if ($users->isEmpty()) {
+            return response()->json(['message' => 'Không tìm thấy người dùng với tên này'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Kết quả tìm kiếm theo tên',
+            'data' => $users
+        ], 200);
+    }
 }

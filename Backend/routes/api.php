@@ -145,6 +145,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
         Route::post('/restore-user', [UserController::class, 'restore']);
         Route::get('/user/rank-points', [UserController::class, 'getUserRankAndPoints']);
+        Route::post('/user-management/search/email', [UserController::class, 'searchByEmail']);
+        Route::post('/user-management/search/name', [UserController::class, 'searchByName']);
 
         //Đơn hàng
         Route::get('/order', [OrderController::class, 'index']);

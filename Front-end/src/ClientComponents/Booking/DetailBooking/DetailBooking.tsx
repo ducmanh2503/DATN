@@ -22,14 +22,21 @@ const DetailBooking = ({
   setOpen: (open: boolean) => void;
 }) => {
   const { dataDetailFilm, calendarShowtimeID, paymentType } = useStepsContext();
-  const { showtimesTime, showtimesDate, filmId, showtimeIdFromBooking } =
-    useFilmContext();
+  const {
+    showtimesTime,
+    showtimesDate,
+    filmId,
+    showtimeIdFromBooking,
+    roomTypeShowtimes,
+  } = useFilmContext();
   const { totalPrice } = useFinalPriceContext();
   const { totalSeatPrice, typeSeats, selectedSeatIds } = useSeatsContext();
   const { nameCombo, totalComboPrice, holdComboID } = useComboContext();
+
   const { tokenUserId } = useAuthContext();
   const { usedPoints } = usePromotionContextContext();
   const [isSelected, setIsSelected] = useState(false);
+  const currentYear = dayjs().year();
 
   const onOk = async () => {
     // paymentTicket();
@@ -99,7 +106,7 @@ const DetailBooking = ({
           },
         }
       );
-      console.log(data.data);
+      // console.log(data.data);
 
       return data.data;
     },
@@ -126,7 +133,7 @@ const DetailBooking = ({
           <div className={clsx(styles.subBox)}>
             <h3 className={clsx(styles.movieTitle)}>{dataDetailFilm?.title}</h3>
             <div className={clsx(styles.movieDetails)}>
-              <span className={clsx(styles.format)}>2D</span>
+              <span className={clsx(styles.format)}>{roomTypeShowtimes}</span>
               {"  "}
               <span className={clsx(styles.language)}>
                 {dataDetailFilm?.language}
@@ -143,7 +150,9 @@ const DetailBooking = ({
             <div className={clsx(styles.cinemaRoom)}>RAP 2</div>
             <div className={clsx(styles.showtime)}>
               {dayjs(showtimesTime, "HH:mm:ss").format("HH:mm")} -{" "}
-              {showtimesDate}
+              {dayjs(`${showtimesDate}/${currentYear}`, "DD/MM/YYYY").format(
+                "YYYY/MM/DD"
+              )}
             </div>
             <div className={clsx(styles.seatInfo)}>
               {typeSeats?.map((item: any, index: any) => (

@@ -30,6 +30,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
     typeSeats,
     setSelectedSeatIds,
     setMatrixSeatsManage,
+    seatRoomPrice,
   } = useSeatsContext();
   const { setTotalPrice } = useFinalPriceContext();
   const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
@@ -93,7 +94,8 @@ const BookingSeat = ({ className }: { className?: string }) => {
             headers: { Authorization: `Bearer ${tokenUserId}` },
           }
         );
-        // console.log("ma trận ghế", data);
+
+        // console.log("matrix-seats", matrixSeats);
 
         return data;
       } catch (error) {
@@ -106,10 +108,26 @@ const BookingSeat = ({ className }: { className?: string }) => {
   });
 
   useEffect(() => {
-    if (matrixSeats !== undefined) {
+    if (matrixSeats) {
       setMatrixSeatsManage(matrixSeats ?? null);
+      // Tạo bản sao để cập nhật giá
+      const updatedMatrix = { ...matrixSeats };
+
+      Object.keys(updatedMatrix).forEach((outerKey) => {
+        Object.keys(updatedMatrix[outerKey]).forEach((innerKey) => {
+          const currentPrice = parseFloat(
+            updatedMatrix[outerKey][innerKey].price
+          );
+          updatedMatrix[outerKey][innerKey].price = (
+            currentPrice + seatRoomPrice
+          ).toFixed(2);
+        });
+      });
+
+      // Cập nhật lại giá trị đã xử lý
+      setMatrixSeatsManage(updatedMatrix);
     }
-  }, [matrixSeats]);
+  }, [matrixSeats, seatRoomPrice]);
 
   const findSeatCodeById = useCallback(
     (seatId: number): string | null => {

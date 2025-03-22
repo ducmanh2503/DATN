@@ -24,6 +24,9 @@ const VoucherInfo = () => {
   const [promoCode, setPromoCode] = useState<string>(""); // lấy dữ liệu mã khuyến mãi
   const [isVoucherUsed, setIsVoucherUsed] = useState<boolean>(false); // ktra dùng hay chưa
 
+  // làm tạm thời
+  sessionStorage.setItem("promoCode", JSON.stringify(promoCode));
+
   // set khuyến mãi
   const onChangePromotion = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPromoCode(e.target.value);

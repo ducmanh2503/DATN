@@ -50,30 +50,6 @@ const useShowtimeData = () => {
     setQuantityPromotion(0);
     setUsedPoints(0);
     setTotalPricePoint(0);
-
-    // xóa trong session
-    // sessionStorage.removeItem("calendarShowtimeID");
-    // sessionStorage.removeItem("currentStep");
-    // sessionStorage.removeItem("dataDetailFilm");
-    // sessionStorage.removeItem("filmId");
-    // sessionStorage.removeItem("holdComboID");
-    // sessionStorage.removeItem("listShowtimes");
-    // sessionStorage.removeItem("nameCombo");
-    // sessionStorage.removeItem("nameSeats");
-    // sessionStorage.removeItem("quantityCombo");
-    // sessionStorage.removeItem("quantityMap");
-    // sessionStorage.removeItem("quantitySeats");
-    // sessionStorage.removeItem("roomIdFromShowtimes");
-    // sessionStorage.removeItem("selectedSeatIds");
-    // sessionStorage.removeItem("showtimeIdFromBooking");
-    // sessionStorage.removeItem("showtimesDate");
-    // sessionStorage.removeItem("showtimesTime");
-    // sessionStorage.removeItem("totalComboPrice");
-    // sessionStorage.removeItem("totalPrice");
-    // sessionStorage.removeItem("totalSeatPrice");
-    // sessionStorage.removeItem("typeSeats");
-    // sessionStorage.removeItem("usedPoints");
-    // sessionStorage.removeItem("userIdFromShowtimes");
   };
 
   //giải phóng ghế

@@ -17,7 +17,7 @@ import PromotionInfo from "../Promotion/PromotionInfo/PromotionInfo";
 import { usePromotionContextContext } from "../../UseContext/PromotionContext";
 
 const InfoMovie = () => {
-  const { filmId, showtimesTime, showtimesDate, roomNameShowtimes } =
+  const { filmId, showtimesTime, showtimesDate, roomTypeShowtimes } =
     useFilmContext();
   const { quantityCombo } = useComboContext();
   const { quantitySeats } = useSeatsContext();
@@ -74,7 +74,7 @@ const InfoMovie = () => {
           </div>
           <div className={clsx(styles.infoSub)}>
             <span className={clsx(styles.subRoomType)}>
-              {roomNameShowtimes}
+              {roomTypeShowtimes}
             </span>
             <span className={clsx(styles.subForm)}>{chuyendoi?.language}</span>
             <div className={clsx(styles.subRated)}>{chuyendoi?.rated}</div>

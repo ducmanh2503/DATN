@@ -40,7 +40,11 @@ import Userlist from "./page/admin/Userpage/Userlist";
 import Useradd from "./page/admin/Userpage/Useradd";
 import UserDetail from "./page/admin/Userpage/Userdetails";
 import Combo from "./page/admin/ComboPage/ComboPage";
+import SuccesResult from "./ClientComponents/Booking/ResultPayment/SuccesResult/SuccesResult";
+import ErrorResult from "./ClientComponents/Booking/ResultPayment/ErrorResult/ErrorResult";
+import LayoutPaymentResult from "./ClientComponents/Booking/ResultPayment/LayoutPaymentResult";
 import ProfilePage from "./page/admin/Profilepage/Profilepage";
+
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
 
@@ -250,7 +254,13 @@ export const router = createBrowserRouter([
   },
   {
     path: "/booking/:id",
-    element: <Booking></Booking>,
+    element: <Booking />,
+    children: [
+      {
+        path: "payment-result",
+        element: <LayoutPaymentResult />,
+      },
+    ],
   },
   {
     element: <PublicRoute />,

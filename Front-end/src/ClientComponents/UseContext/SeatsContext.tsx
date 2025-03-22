@@ -25,6 +25,10 @@ export const SeatsProvider = ({ children }: { children: React.ReactNode }) => {
     const storedSelectedSeatIds = sessionStorage.getItem("selectedSeatIds");
     return storedSelectedSeatIds ? JSON.parse(storedSelectedSeatIds) : [];
   }); //  id ghế đã chọn
+  const [seatRoomPrice, setSeatRoomPrice] = useState(() => {
+    const storedSeatRoomPrice = sessionStorage.getItem("seatRoomPrice");
+    return storedSeatRoomPrice ? JSON.parse(storedSeatRoomPrice) : "";
+  }); // giá tiền ghế theo phòng
 
   // cập nhât sessionStorage khi các state thay đổi
   useEffect(() => {
@@ -33,7 +37,15 @@ export const SeatsProvider = ({ children }: { children: React.ReactNode }) => {
     sessionStorage.setItem("nameSeats", JSON.stringify(nameSeats));
     sessionStorage.setItem("totalSeatPrice", JSON.stringify(totalSeatPrice));
     sessionStorage.setItem("selectedSeatIds", JSON.stringify(selectedSeatIds));
-  }, [quantitySeats, typeSeats, nameSeats, totalSeatPrice, selectedSeatIds]);
+    sessionStorage.setItem("seatRoomPrice", JSON.stringify(seatRoomPrice));
+  }, [
+    quantitySeats,
+    typeSeats,
+    nameSeats,
+    totalSeatPrice,
+    selectedSeatIds,
+    seatRoomPrice,
+  ]);
 
   return (
     <SeatsContext.Provider
@@ -52,6 +64,8 @@ export const SeatsProvider = ({ children }: { children: React.ReactNode }) => {
         setShouldRefetch,
         selectedSeatIds,
         setSelectedSeatIds,
+        seatRoomPrice,
+        setSeatRoomPrice,
       }}
     >
       {children}

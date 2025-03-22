@@ -11,6 +11,12 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
     const storedShowtimesTime = sessionStorage.getItem("showtimesTime");
     return storedShowtimesTime ? JSON.parse(storedShowtimesTime) : null;
   }); // thời gian suất chiếu
+  const [showtimesEndTime, setShowtimesEndTime] = useState<string | null>(
+    () => {
+      const storedShowtimesEndTime = sessionStorage.getItem("showtimesEndTime");
+      return storedShowtimesEndTime ? JSON.parse(storedShowtimesEndTime) : null;
+    }
+  ); // thời gian kết thúc suất chiếu
   const [showtimesDate, setShowtimesDate] = useState<string | null>(() => {
     const storedShowtimesDate = sessionStorage.getItem("showtimesDate");
     return storedShowtimesDate ? JSON.parse(storedShowtimesDate) : "";
@@ -29,6 +35,10 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
     const storedRoomNameShowtimes = sessionStorage.getItem("roomNameShowtimes");
     return storedRoomNameShowtimes ? JSON.parse(storedRoomNameShowtimes) : "";
   }); // name room booking
+  const [roomTypeShowtimes, setRoomTypeShowtimes] = useState<string>(() => {
+    const storedRoomTypeShowtimes = sessionStorage.getItem("roomTypeShowtimes");
+    return storedRoomTypeShowtimes ? JSON.parse(storedRoomTypeShowtimes) : "";
+  }); // type room booking
   const [showtimeIdFromBooking, setShowtimeIdFromBooking] = useState<
     number | null
   >(() => {
@@ -48,6 +58,10 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     sessionStorage.setItem("filmId", JSON.stringify(filmId));
     sessionStorage.setItem("showtimesTime", JSON.stringify(showtimesTime));
+    sessionStorage.setItem(
+      "showtimesEndTime",
+      JSON.stringify(showtimesEndTime)
+    );
     sessionStorage.setItem("showtimesDate", JSON.stringify(showtimesDate));
     sessionStorage.setItem(
       "roomIdFromShowtimes",
@@ -58,6 +72,10 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
       JSON.stringify(roomNameShowtimes)
     );
     sessionStorage.setItem(
+      "roomTypeShowtimes",
+      JSON.stringify(roomTypeShowtimes)
+    );
+    sessionStorage.setItem(
       "showtimeIdFromBooking",
       JSON.stringify(showtimeIdFromBooking)
     );
@@ -65,9 +83,11 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
   }, [
     filmId,
     showtimesTime,
+    showtimesEndTime,
     showtimesDate,
     roomIdFromShowtimes,
     roomNameShowtimes,
+    roomTypeShowtimes,
     listShowtimes,
   ]);
   return (
@@ -77,6 +97,8 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
         setFilmId,
         showtimesTime,
         setShowtimesTime,
+        showtimesEndTime,
+        setShowtimesEndTime,
         showtimesDate,
         setShowtimesDate,
         roomIdFromShowtimes,
@@ -85,6 +107,8 @@ export const FilmsProvider = ({ children }: { children: React.ReactNode }) => {
         setShowtimeIdFromBooking,
         listShowtimes,
         setListShowtimes,
+        roomTypeShowtimes,
+        setRoomTypeShowtimes,
         roomNameShowtimes,
         setRoomNameShowtimes,
       }}

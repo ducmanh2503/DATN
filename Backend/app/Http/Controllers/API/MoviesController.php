@@ -39,6 +39,52 @@ class MoviesController extends Controller
         ], 200);
     }
 
+    /**
+     * Lấy danh sách phim cho client
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getMoviesForClient(Request $request)
+    {
+        // Lấy các tham số từ query string
+        $status = $request->query('status'); // Lọc theo trạng thái (now_showing, coming_soon)
+        $genres = $request->query('genres'); // Lọc theo thể loại
+        $sort = $request->query('sort', 'latest'); // Sắp xếp (mặc định: mới nhất)
+
+        // Khởi tạo query cơ bản
+        $query = Movies::query()
+            ->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director']);
+
+        // Lọc theo trạng thái nếu có
+        if ($status) {
+            $query->where('movie_status', $status);
+        }
+
+        // Lọc theo thể loại nếu có
+        if ($genres) {
+            $genreList = explode(',', $genres);
+            $query->whereHas('genres', function ($q) use ($genreList) {
+                $q->whereIn('name_genre', $genreList);
+            });
+        }
+
+        // Sắp xếp
+        if ($sort === 'latest') {
+            $query->latest('id');
+        } elseif ($sort === 'oldest') {
+            $query->oldest('id');
+        }
+
+        // Lấy danh sách phim
+        $movies = $query->get();
+
+        // Trả về danh sách phim
+        return response()->json([
+            'message' => 'Danh sách phim',
+            'data' => $movies,
+        ], 200);
+    }
+
     public function store(Request $request)
     {
 
@@ -338,5 +384,113 @@ class MoviesController extends Controller
 
         // Trả về phản hồi thành công
         return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
+    }
+
+    /**
+     * Tìm kiếm phim theo tên phim
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    /**
+     * Tìm kiếm phim theo tiêu đề, diễn viên hoặc đạo diễn
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function searchMovies(Request $request)
+    {
+        // Lấy từ khóa tìm kiếm từ query string
+        $keyword = $request->query('keyword');
+        $status = $request->query('status'); // Lọc theo trạng thái nếu có
+
+        // Kiểm tra nếu không có từ khóa
+        if (empty($keyword)) {
+            return response()->json(['message' => 'Vui lòng nhập từ khóa tìm kiếm'], 400);
+        }
+
+        // Khởi tạo query tìm kiếm
+        $query = Movies::query()
+            ->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director']);
+
+        // Tìm kiếm theo tiêu đề, diễn viên hoặc đạo diễn
+        $query->where(function ($q) use ($keyword) {
+            $q->where('title', 'LIKE', '%' . $keyword . '%')
+                ->orWhereHas('actors', function ($q) use ($keyword) {
+                    $q->where('name_actor', 'LIKE', '%' . $keyword . '%');
+                })
+                ->orWhereHas('directors', function ($q) use ($keyword) {
+                    $q->where('name_director', 'LIKE', '%' . $keyword . '%');
+                });
+        });
+
+        // Lọc theo trạng thái nếu có
+        if ($status) {
+            $query->where('movie_status', $status);
+        }
+
+        // Lấy danh sách phim
+        $movies = $query->get();
+
+        // Nếu không tìm thấy phim
+        if ($movies->isEmpty()) {
+            return response()->json(['message' => 'Không tìm thấy phim nào khớp với từ khóa'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Kết quả tìm kiếm phim',
+            'data' => $movies,
+        ], 200);
+    }
+
+    /**
+     * Lọc phim theo nhiều tiêu chí
+     * 
+     */
+    public function filterMovies(Request $request)
+    {
+        // Lấy các tham số từ query string
+        $genres = $request->query('genres'); // Lọc theo thể loại
+        $status = $request->query('status'); // Lọc theo trạng thái (now_showing, coming_soon)
+        $releaseYear = $request->query('release_year'); // Lọc theo năm phát hành
+        $language = $request->query('language'); // Lọc theo ngôn ngữ
+
+        // Khởi tạo query cơ bản
+        $query = Movies::query()
+            ->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director']);
+
+        // Lọc theo thể loại nếu có
+        if ($genres) {
+            $genreList = explode(',', $genres);
+            $query->whereHas('genres', function ($q) use ($genreList) {
+                $q->whereIn('name_genre', $genreList);
+            });
+        }
+
+        // Lọc theo trạng thái nếu có
+        if ($status) {
+            $query->where('movie_status', $status);
+        }
+
+        // Lọc theo năm phát hành nếu có
+        if ($releaseYear) {
+            $query->whereYear('release_date', $releaseYear);
+        }
+
+        // Lọc theo ngôn ngữ nếu có
+        if ($language) {
+            $query->where('language', $language);
+        }
+
+        // Lấy danh sách phim
+        $movies = $query->latest('id')->get();
+
+        // Nếu không tìm thấy phim
+        if ($movies->isEmpty()) {
+            return response()->json(['message' => 'Không tìm thấy phim nào khớp với tiêu chí lọc'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Danh sách phim theo tiêu chí lọc',
+            'data' => $movies,
+        ], 200);
     }
 }

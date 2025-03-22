@@ -1,26 +1,26 @@
-import { useState, useEffect } from "react";
-import { Button, Input, Table, message, Modal, Form, Select } from "antd";
-import { Search, Edit, Lock, Unlock } from "lucide-react";
-import { Link } from "react-router-dom";
-import styles from "./UserList.module.css";
-import { User } from "../../../types/user.type";
+import { useState, useEffect } from 'react';
+import { Button, Input, Table, message, Modal, Form, Select } from 'antd';
+import { Search, Edit, Lock, Unlock } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import styles from './UserList.module.css';
+import { User } from '../../../types/user.type';
 import {
   getUsers,
   searchUsers,
   deleteUser,
   updateUser,
   restoreUser,
-} from "../../../services/user.service";
+} from '../../../services/user.service';
 
 const { Option } = Select;
 
 const UserList = () => {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState('');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [searchField, setSearchField] = useState<"name" | "email">("name");
+  const [searchField, setSearchField] = useState<'name' | 'email'>('name');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [form] = Form.useForm();
 
@@ -29,18 +29,18 @@ const UserList = () => {
     try {
       const response = await getUsers();
       const allUsers = [
-        ...response.users.map(user => ({ ...user, is_deleted: false })),
-        ...response.trashedUsers.map(user => ({ ...user, is_deleted: true })),
+        ...response.users.map((user) => ({ ...user, is_deleted: false })),
+        ...response.trashedUsers.map((user) => ({ ...user, is_deleted: true })),
       ];
       setUsers(allUsers);
       if (allUsers.length > 0) {
-        message.success("Tải danh sách người dùng thành công!");
+        message.success('Tải danh sách người dùng thành công!');
       } else {
-        message.info("Hiện tại không có người dùng nào trong hệ thống.");
+        message.info('Hiện tại không có người dùng nào trong hệ thống.');
       }
     } catch (error: any) {
       setUsers([]);
-      message.error("Tải danh sách thất bại: " + (error.message || "Lỗi không xác định"));
+      message.error('Tải danh sách thất bại: ' + (error.message || 'Lỗi không xác định'));
     } finally {
       setLoading(false);
     }
@@ -50,14 +50,14 @@ const UserList = () => {
     fetchUsers();
   }, []);
 
-  const openSearchModal = (field: "name" | "email") => {
+  const openSearchModal = (field: 'name' | 'email') => {
     setSearchField(field);
     setIsSearchModalOpen(true);
   };
 
   const handleSearchCancel = () => {
     setIsSearchModalOpen(false);
-    setKeyword("");
+    setKeyword('');
   };
 
   const handleSearch = async () => {
@@ -66,18 +66,16 @@ const UserList = () => {
       const filteredUsers = await searchUsers(searchField, keyword);
       setUsers(filteredUsers);
       if (filteredUsers.length > 0) {
-        message.success("Tìm kiếm người dùng thành công!");
+        message.success('Tìm kiếm người dùng thành công!');
       } else {
         message.info(
-          `Không tìm thấy người dùng nào với ${
-            searchField === "name" ? "tên" : "email"
-          } "${keyword}".`
+          `Không tìm thấy người dùng nào với ${searchField === 'name' ? 'tên' : 'email'} "${keyword}".`
         );
       }
       setIsSearchModalOpen(false);
     } catch (error: any) {
       setUsers([]);
-      message.error("Tìm kiếm thất bại: " + (error.message || "Lỗi không xác định"));
+      message.error('Tìm kiếm thất bại: ' + (error.message || 'Lỗi không xác định'));
     } finally {
       setLoading(false);
     }
@@ -101,13 +99,15 @@ const UserList = () => {
     setLoading(true);
     try {
       const updatedUser = await updateUser(selectedUser.id, values);
-      setUsers(users.map((user) => (user.id === selectedUser.id ? { ...user, ...updatedUser } : user)));
-      message.success("Cập nhật người dùng thành công!");
+      setUsers(
+        users.map((user) => (user.id === selectedUser.id ? { ...user, ...updatedUser } : user))
+      );
+      message.success('Cập nhật người dùng thành công!');
       setIsEditModalOpen(false);
       setSelectedUser(null);
       form.resetFields();
     } catch (error: any) {
-      message.error("Cập nhật thất bại: " + (error.message || "Lỗi không xác định"));
+      message.error('Cập nhật thất bại: ' + (error.message || 'Lỗi không xác định'));
     } finally {
       setLoading(false);
     }
@@ -115,18 +115,18 @@ const UserList = () => {
 
   const handleSoftDelete = (id: number) => {
     Modal.confirm({
-      title: "Xác nhận khóa tài khoản",
-      content: "Bạn có chắc chắn muốn khóa người dùng này?",
-      okText: "Khóa",
-      okType: "danger",
-      cancelText: "Hủy",
+      title: 'Xác nhận khóa tài khoản',
+      content: 'Bạn có chắc chắn muốn khóa người dùng này?',
+      okText: 'Khóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
       onOk: async () => {
         try {
           await deleteUser(id);
           setUsers(users.map((user) => (user.id === id ? { ...user, is_deleted: true } : user)));
-          message.success("Khóa tài khoản người dùng thành công!");
+          message.success('Khóa tài khoản người dùng thành công!');
         } catch (error: any) {
-          message.error("Khóa thất bại: " + (error.message || "Lỗi không xác định"));
+          message.error('Khóa thất bại: ' + (error.message || 'Lỗi không xác định'));
         }
       },
     });
@@ -134,18 +134,18 @@ const UserList = () => {
 
   const handleRestore = (id: number) => {
     Modal.confirm({
-      title: "Xác nhận mở khóa tài khoản",
-      content: "Bạn có chắc chắn muốn mở khóa người dùng này?",
-      okText: "Mở khóa",
-      okType: "primary",
-      cancelText: "Hủy",
+      title: 'Xác nhận mở khóa tài khoản',
+      content: 'Bạn có chắc chắn muốn mở khóa người dùng này?',
+      okText: 'Mở khóa',
+      okType: 'primary',
+      cancelText: 'Hủy',
       onOk: async () => {
         try {
           await restoreUser(id);
           setUsers(users.map((user) => (user.id === id ? { ...user, is_deleted: false } : user)));
-          message.success("Mở khóa tài khoản người dùng thành công!");
+          message.success('Mở khóa tài khoản người dùng thành công!');
         } catch (error: any) {
-          message.error("Mở khóa thất bại: " + (error.message || "Lỗi không xác định"));
+          message.error('Mở khóa thất bại: ' + (error.message || 'Lỗi không xác định'));
         }
       },
     });
@@ -158,13 +158,13 @@ const UserList = () => {
           Tên
           <Search
             size={16}
-            onClick={() => openSearchModal("name")}
+            onClick={() => openSearchModal('name')}
             className={styles.searchIcon}
           />
         </div>
       ),
-      dataIndex: "name",
-      key: "name",
+      dataIndex: 'name',
+      key: 'name',
     },
     {
       title: (
@@ -172,23 +172,23 @@ const UserList = () => {
           Email
           <Search
             size={16}
-            onClick={() => openSearchModal("email")}
+            onClick={() => openSearchModal('email')}
             className={styles.searchIcon}
           />
         </div>
       ),
-      dataIndex: "email",
-      key: "email",
+      dataIndex: 'email',
+      key: 'email',
     },
     {
-      title: "Số điện thoại",
-      dataIndex: "phone",
-      key: "phone",
+      title: 'Số điện thoại',
+      dataIndex: 'phone',
+      key: 'phone',
     },
     {
-      title: "Xác minh",
-      dataIndex: "is_verified",
-      key: "is_verified",
+      title: 'Xác minh',
+      dataIndex: 'is_verified',
+      key: 'is_verified',
       render: (_: boolean, record: User) => (
         <span
           className={
@@ -200,55 +200,65 @@ const UserList = () => {
           }
         >
           {record.is_deleted
-            ? "Đã khóa"
+            ? 'Đã khóa'
             : record.is_verified
-            ? "Đã xác minh"
-            : "Chưa xác minh"}
+            ? 'Đã xác minh'
+            : 'Chưa xác minh'}
         </span>
       ),
     },
     {
-      title: "Vai trò",
-      dataIndex: "role",
-      key: "role",
+      title: 'Vai trò',
+      dataIndex: 'role',
+      key: 'role',
       render: (role: string) => (
-        <span>
-          {role.toLowerCase() === "customer" ? "Customer" : role.toLowerCase() === "staff" ? "Staff" : role}
+        <span
+          className={
+            role.toLowerCase() === 'admin'
+              ? styles.roleAdmin
+              : role.toLowerCase() === 'staff'
+              ? styles.roleStaff
+              : styles.roleCustomer
+          }
+        >
+          {role.toLowerCase() === 'customer' ? 'Customer' : role.toLowerCase() === 'staff' ? 'Staff' : 'Admin'}
         </span>
       ),
     },
     {
-      title: "Hành động",
-      key: "action",
+      title: 'Hành động',
+      key: 'action',
       render: (_: any, record: User & { id?: number }) => (
         <div>
           <Button
-            type="link"
+            type='link'
             icon={<Edit size={16} />}
             onClick={() => openEditModal(record)}
             style={{ marginRight: 8 }}
           >
             Sửa
           </Button>
-          {record.is_deleted ? (
-            <Button
-              type="link"
-              icon={<Unlock size={16} />}
-              onClick={() => handleRestore(record.id!)}
-              style={{ marginRight: 8 }}
-            >
-              Mở khóa
-            </Button>
-          ) : (
-            <Button
-              type="link"
-              danger
-              icon={<Lock size={16} />}
-              onClick={() => handleSoftDelete(record.id!)}
-              style={{ marginRight: 8 }}
-            >
-              Khóa
-            </Button>
+          {record.role.toLowerCase() === 'admin' ? null : (
+            record.is_deleted ? (
+              <Button
+                type='link'
+                icon={<Unlock size={16} />}
+                onClick={() => handleRestore(record.id!)}
+                style={{ marginRight: 8 }}
+              >
+                Mở khóa
+              </Button>
+            ) : (
+              <Button
+                type='link'
+                danger
+                icon={<Lock size={16} />}
+                onClick={() => handleSoftDelete(record.id!)}
+                style={{ marginRight: 8 }}
+              >
+                Khóa
+              </Button>
+            )
           )}
         </div>
       ),
@@ -264,34 +274,34 @@ const UserList = () => {
         <Table
           columns={columns}
           dataSource={users.map((user) => ({ ...user, key: user.id }))}
-          rowKey="key"
+          rowKey='key'
           loading={loading}
           className={styles.orderTable}
           locale={{
-            emptyText: "Hiện tại không có người dùng nào trong hệ thống",
+            emptyText: 'Hiện tại không có người dùng nào trong hệ thống',
           }}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
-            pageSizeOptions: ["10", "20", "50"],
+            pageSizeOptions: ['10', '20', '50'],
           }}
         />
 
         <Modal
-          title={`Tìm kiếm theo ${searchField === "name" ? "Tên" : "Email"}`}
+          title={`Tìm kiếm theo ${searchField === 'name' ? 'Tên' : 'Email'}`}
           open={isSearchModalOpen}
           onCancel={handleSearchCancel}
           footer={[
-            <Button key="cancel" onClick={handleSearchCancel}>
+            <Button key='cancel' onClick={handleSearchCancel}>
               Hủy
             </Button>,
-            <Button key="search" type="primary" onClick={handleSearch}>
+            <Button key='search' type='primary' onClick={handleSearch}>
               Tìm kiếm
             </Button>,
           ]}
         >
           <Input
-            placeholder={`Nhập ${searchField === "name" ? "tên" : "email"}`}
+            placeholder={`Nhập ${searchField === 'name' ? 'tên' : 'email'}`}
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             onPressEnter={handleSearch}
@@ -300,60 +310,57 @@ const UserList = () => {
         </Modal>
 
         <Modal
-          title="Sửa thông tin người dùng"
+          title='Sửa thông tin người dùng'
           open={isEditModalOpen}
           onCancel={handleEditCancel}
           footer={[
-            <Button key="cancel" onClick={handleEditCancel}>
+            <Button key='cancel' onClick={handleEditCancel}>
               Hủy
             </Button>,
-            <Button key="submit" type="primary" loading={loading} onClick={() => form.submit()}>
+            <Button key='submit' type='primary' loading={loading} onClick={() => form.submit()}>
               Cập nhật
             </Button>,
           ]}
         >
-          <Form
-            form={form}
-            onFinish={handleEditSubmit}
-            layout="vertical"
-          >
+          <Form form={form} onFinish={handleEditSubmit} layout='vertical'>
             <Form.Item
-              name="name"
-              label="Tên"
-              rules={[{ required: true, message: "Vui lòng nhập tên!" }]}
+              name='name'
+              label='Tên'
+              rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
             >
               <Input />
             </Form.Item>
             <Form.Item
-              name="email"
-              label="Email"
-              rules={[{ required: true, message: "Vui lòng nhập email!" }]}
+              name='email'
+              label='Email'
+              rules={[{ required: true, message: 'Vui lòng nhập email!' }]}
             >
               <Input />
             </Form.Item>
             <Form.Item
-              name="phone"
-              label="Số điện thoại"
-              rules={[{ required: true, message: "Vui lòng nhập số điện thoại!" }]}
+              name='phone'
+              label='Số điện thoại'
+              rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
             >
               <Input />
             </Form.Item>
             <Form.Item
-              name="role"
-              label="Vai trò"
-              rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
+              name='role'
+              label='Vai trò'
+              rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
             >
-              <Select placeholder="Chọn vai trò">
-                <Option value="customer">Customer</Option>
-                <Option value="staff">Staff</Option>
+              <Select placeholder='Chọn vai trò'>
+                <Option value='customer'>Customer</Option>
+                <Option value='staff'>Staff</Option>
+                <Option value='admin'>Admin</Option>
               </Select>
             </Form.Item>
           </Form>
         </Modal>
 
         <p className={styles.backLink}>
-          Quay lại{" "}
-          <Link to="/" className={styles.homeLink}>
+          Quay lại{' '}
+          <Link to='/' className={styles.homeLink}>
             Trang chủ
           </Link>
         </p>

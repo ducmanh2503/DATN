@@ -140,7 +140,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //người dùng
         Route::apiResource('/user-management', UserController::class);
-        Route::put('/user-management/profile/{user_management}', [UserController::class, 'show']);
+        Route::get('/user-management/profile/{user_management}', [UserController::class, 'show']);
         Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
         Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
         Route::post('/restore-user', [UserController::class, 'restore']);
@@ -163,63 +163,24 @@ Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient'
 Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::class, 'getShowDates']);
 Route::get('/movie-details-booking/{movie}', [MoviesController::class, 'show']);
 
-//check
-// Route::middleware('auth:sanctum')->get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
-// Route::middleware('auth:sanctum')->post('/hold-seats', [SeatController::class, 'holdSeat']);
-// Route::middleware('auth:sanctum')->post('/release-seats', [SeatController::class, 'releaseSeat']);
-
-
-
 //combo
 Route::get('/combos', [ComboController::class, 'showCombosForClient']);
 
-
+// Authentication routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);
 Route::post('/verify-code', [AuthController::class, 'verifyCode']);
 Route::post('/login', [AuthController::class, 'login'])->name('api.login');
-
-
-//cart
-// Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']); // lấy thẳng từ resquets
-Route::middleware('auth:sanctum')->post('/ticket-details', [TicketController::class, 'getTicketDetails']);
-// kiểm tra đăng nhập
-// Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
-// Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
-// Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
-
-
-//lấy lại mật khẩu
-
-
-
-
-// Quên mật khẩu - gửi mã OTP
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
-
-
-
-// Đặt lại mật khẩu bằng OTP
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-
-
-
-
-
-
-
+// Protected customer routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
+    Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
+    Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
+    Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
+});
 
 // Đăng nhập bằng Google & Facebook
 Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
-
-
-
-
-// Route::get('auth/facebook', [SocialAuthController::class, 'redirectToFacebook']);
-
-
-
-
-// Route::get('auth/facebook/callback', [SocialAuthController::class, 'handleFacebookCallback']);

@@ -1,38 +1,78 @@
-/* Tiêu đề */
+.userListContainer {
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* .containerInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+} */
+
 .title {
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #1a1a1a;
 }
 
-/* Phụ đề */
 .subtitle {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 24px;
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 20px;
 }
 
-/* Bảng danh sách */
 .orderTable {
-  margin-bottom: 24px;
+  margin-top: 20px;
 }
 
-/* Liên kết */
-.orderLink {
-  color: #1890ff;
-  text-decoration: none;
+.searchIcon {
+  margin-left: 8px;
+  cursor: pointer;
+  vertical-align: middle;
 }
 
-.orderLink:hover {
-  text-decoration: underline;
+.searchInput {
+  margin-top: 10px;
 }
 
-/* Liên kết quay lại */
+.verificationVerified {
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.verificationUnverified {
+  color: #faad14;
+  font-weight: 500;
+}
+
+.verificationLocked {
+  color: #f5222d;
+  font-weight: 500;
+}
+
+/* CSS cho cột Vai trò */
+.roleAdmin {
+  color: #1890ff; /* Màu xanh cho Admin */
+  font-weight: 600;
+}
+
+.roleStaff {
+  color: #52c41a; /* Màu xanh lá cho Staff */
+  font-weight: 500;
+}
+
+.roleCustomer {
+  color: #fa8c16; /* Màu cam cho Customer */
+  font-weight: 500;
+}
+
 .backLink {
+  margin-top: 20px;
   text-align: center;
-  font-size: 14px;
-  color: #666;
 }
 
 .homeLink {
@@ -42,37 +82,4 @@
 
 .homeLink:hover {
   text-decoration: underline;
-}
-
-/* Icon tìm kiếm trong tiêu đề cột */
-.searchIcon {
-  vertical-align: middle;
-  margin-left: 8px;
-  cursor: pointer;
-  color: #666;
-}
-
-/* Input trong modal tìm kiếm */
-.searchInput {
-  width: 100%;
-  padding: 8px 12px;
-  height: 40px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-}
-
-/* Verification column styles */
-.verificationVerified {
-  color: #52c41a; /* Green color for "Đã xác minh" */
-  font-weight: 500;
-}
-
-.verificationUnverified {
-  color: #faad14; /* Orange color for "Chưa xác minh" */
-  font-weight: 500;
-}
-
-.verificationLocked {
-  color: #f5222d; /* Red color for "Đã khóa" */
-  font-weight: 500;
 }

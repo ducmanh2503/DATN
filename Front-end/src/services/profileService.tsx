@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { UserProfile } from '../types/profileTypes';
-import { User } from '../types/user.type';
 
 const API_URL = 'http://localhost:8000/api/user-management';
 
@@ -18,13 +17,9 @@ interface RawUser {
   email_verified_at?: string;
 }
 
-interface UserResponse {
-  users: RawUser[];
-  trashedUsers: RawUser[];
-}
-
+// Interface cho phản hồi profile đơn lẻ
 interface ProfileResponse {
-  data: RawUser;
+  data?: RawUser; // Backend có thể trả về trực tiếp RawUser hoặc gói trong 'data'
 }
 
 // Hàm lấy thông tin profile của người dùng hiện tại
@@ -35,13 +30,17 @@ export const getProfile = async (): Promise<UserProfile> => {
       throw new Error('Không tìm thấy ID người dùng. Vui lòng đăng nhập lại.');
     }
 
-    const response = await axios.get<ProfileResponse>(`${API_URL}/${userId}`, {
+    const response = await axios.get<ProfileResponse>(`${API_URL}/profile/${userId}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
       },
     });
 
-    const rawUser = response.data.data || response.data;
+    const rawUser = response.data.data || response.data; // Hỗ trợ cả 2 kiểu trả về
+    if (!rawUser) {
+      throw new Error('Không nhận được dữ liệu người dùng từ server');
+    }
+
     return {
       id: String(rawUser.id),
       name: rawUser.name,
@@ -75,6 +74,10 @@ export const updateProfile = async (user: Partial<UserProfile>): Promise<UserPro
     });
 
     const rawUser = response.data.data || response.data;
+    if (!rawUser) {
+      throw new Error('Không nhận được dữ liệu người dùng từ server');
+    }
+
     return {
       id: String(rawUser.id),
       name: rawUser.name,
@@ -96,13 +99,17 @@ export const updateProfile = async (user: Partial<UserProfile>): Promise<UserPro
 // Hàm lấy profile theo ID
 export const getProfileById = async (id: string): Promise<UserProfile> => {
   try {
-    const response = await axios.get<ProfileResponse>(`${API_URL}/${id}`, {
+    const response = await axios.get<ProfileResponse>(`${API_URL}/profile/${id}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
       },
     });
 
     const rawUser = response.data.data || response.data;
+    if (!rawUser) {
+      throw new Error('Không nhận được dữ liệu người dùng từ server');
+    }
+
     return {
       id: String(rawUser.id),
       name: rawUser.name,
@@ -118,91 +125,5 @@ export const getProfileById = async (id: string): Promise<UserProfile> => {
   } catch (error: any) {
     console.error('Lỗi khi lấy thông tin profile theo ID:', error.message);
     throw new Error('Không thể lấy thông tin profile theo ID');
-  }
-};
-
-// Hàm lấy danh sách người dùng
-export const getUsers = async (): Promise<{ users: User[]; trashedUsers: User[] }> => {
-  try {
-    const response = await axios.get<UserResponse>(API_URL);
-    const userData = response.data.users || [];
-    const trashedUserData = response.data.trashedUsers || [];
-    return {
-      users: userData.map((rawUser: RawUser) => ({
-        id: rawUser.id,
-        name: rawUser.name,
-        email: rawUser.email,
-        phone: rawUser.phone,
-        is_verified: rawUser.is_verified,
-        role: rawUser.role,
-        is_deleted: trashedUserData.some((t) => t.id === rawUser.id),
-      })),
-      trashedUsers: trashedUserData.map((rawUser: RawUser) => ({
-        id: rawUser.id,
-        name: rawUser.name,
-        email: rawUser.email,
-        phone: rawUser.phone,
-        is_verified: rawUser.is_verified,
-        role: rawUser.role,
-        is_deleted: true,
-      })),
-    };
-  } catch (error: any) {
-    console.error('Lỗi khi lấy danh sách người dùng:', error);
-    throw error;
-  }
-};
-
-// Hàm tìm kiếm người dùng
-export const searchUsers = async (field: 'name' | 'email', keyword: string): Promise<User[]> => {
-  try {
-    const response = await axios.get<UserResponse>(API_URL);
-    const userData = response.data.users || [];
-    const filteredUsers = userData.filter((user: RawUser) =>
-      user[field].toLowerCase().includes(keyword.toLowerCase())
-    );
-    return filteredUsers.map((rawUser: RawUser) => ({
-      id: rawUser.id,
-      name: rawUser.name,
-      email: rawUser.email,
-      phone: rawUser.phone,
-      is_verified: rawUser.is_verified,
-      role: rawUser.role,
-      is_deleted: response.data.trashedUsers.some((t) => t.id === rawUser.id),
-    }));
-  } catch (error: any) {
-    console.error('Lỗi khi tìm kiếm người dùng:', error);
-    throw error;
-  }
-};
-
-// Hàm khóa người dùng
-export const deleteUser = async (id: number): Promise<void> => {
-  try {
-    await axios.delete(`${API_URL}/${id}`);
-  } catch (error: any) {
-    console.error('Lỗi khi khóa người dùng:', error);
-    throw error;
-  }
-};
-
-// Hàm khôi phục người dùng
-export const restoreUser = async (id: number): Promise<void> => {
-  try {
-    await axios.put(`${API_URL}/restore/${id}`);
-  } catch (error: any) {
-    console.error('Lỗi khi khôi phục người dùng:', error);
-    throw error;
-  }
-};
-
-// Hàm cập nhật thông tin người dùng
-export const updateUser = async (id: number, user: Partial<User>): Promise<User> => {
-  try {
-    const response = await axios.put(`${API_URL}/${id}`, user);
-    return { ...response.data.data, is_deleted: false };
-  } catch (error: any) {
-    console.error('Lỗi khi cập nhật người dùng:', error);
-    throw error;
   }
 };

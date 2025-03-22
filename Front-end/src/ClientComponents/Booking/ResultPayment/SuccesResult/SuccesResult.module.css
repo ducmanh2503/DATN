@@ -1,0 +1,143 @@
+.flexType {
+    display: flex;
+    justify-content: space-between;
+}
+
+.header {
+    text-align: center;
+}
+
+.icon {
+    padding: 6px 13px;
+    border-radius: 50%;
+    font-size: 26px;
+    color: white;
+    background-color: #5cb338;
+}
+
+.successMessage {
+    margin-top: 20px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.sessionDetails {
+    margin: 20px 0;
+}
+
+.dateItem {
+    text-align: right;
+}
+
+.orderInfo {
+    margin-top: 5px;
+}
+
+.ticketInfo {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 28px;
+    gap: 30px;
+}
+
+.movieInfo {
+    width: 45%;
+}
+
+.qrSection {
+    width: 55%;
+    height: 600px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background-color: #0093e9;
+    background-image: linear-gradient(160deg, #0093e9 0%, #80d0c7 100%);
+}
+
+.movieTitle {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.ageLimit {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    background-color: #ffb200;
+}
+
+.movieName {
+    margin-left: 10px;
+    word-spacing: 2px;
+    font-weight: 700;
+}
+
+.titleInfo {
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    color: #424242;
+    font-size: 14px;
+}
+
+.roomFormat,
+.seats,
+.combo {
+    margin-top: 15px;
+}
+
+.valueInfo {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.titleInfoPrice {
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 3px;
+}
+
+.loyaltyPoints {
+    margin-top: 30px;
+    word-spacing: 2px;
+}
+
+.pointsNumber,
+.points {
+    font-weight: 700;
+}
+
+.qrCodeBox {
+    margin-top: 70px;
+    display: flex;
+    justify-content: center;
+}
+
+.qrCode {
+    background-color: aliceblue;
+    border-radius: 16px;
+    width: 180px;
+}
+.qrNote {
+    margin-top: 14px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.btnLink {
+    display: block;
+    text-align: center;
+}
+
+.homeButton {
+    padding: 10px 18px;
+    border: 1px solid transparent;
+    margin-top: 40px;
+    border-radius: 6px;
+    text-align: center;
+    letter-spacing: 1px;
+    color: var(--word-color);
+    background-color: #0093e9;
+    background-image: linear-gradient(160deg, #0093e9 0%, #80d0c7 100%);
+    cursor: pointer;
+}

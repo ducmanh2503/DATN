@@ -44,6 +44,7 @@ class PaymentController extends Controller
             'order_desc' => 'nullable|string',
             'order_type' => 'nullable|string',
             'used_points' => 'nullable|integer|min:0',
+            'discount_code' => 'nullable|string', // Client gửi name_code, BE tìm id
         ]);
 
         $bookingData = $request->all();
@@ -81,8 +82,32 @@ class PaymentController extends Controller
         }
         $totalPriceBeforeDiscount = $totalTicketPrice + $totalComboPrice;
 
+            //xử lý mã khuyến mại
+        $discountCode = $request->input('discount_code');
+        $discountAmount = 0;
+        $discountCodeId = null;
+
+    if ($discountCode) {
+        $discount = \App\Models\DiscountCode::where('name_code', $discountCode)
+            ->where('status', 'active')
+            ->where('quantity', '>', 0)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        if (!$discount) {
+            return response()->json(['message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn'], 400);
+        }
+
+        $discountAmount = $totalPriceBeforeDiscount * ($discount->percent / 100);
+        $discountCodeId = $discount->id; // Lưu ID thay vì name_code
+
+        $discount->quantity -= 1;
+        $discount->save();
+    }
+
         // Tổng giá thực tế từ DB
-        $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount);
+        $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount - $discountAmount);
 
         // Ghi dữ liệu giá vào bookingData
         $bookingData['pricing'] = [
@@ -90,6 +115,9 @@ class PaymentController extends Controller
             'total_combo_price' => $totalComboPrice,
             'total_price_before_discount' => $totalPriceBeforeDiscount,
             'point_discount' => $pointDiscount,
+            'discount_amount' => $discountAmount,
+            'discount_code_id' => $discountCodeId, // Lưu discount_code_id
+            'discount_code' => $discountCode, // Giữ name_code để hiển thị
             'total_price' => $totalPrice,
             'used_points' => $usedPoints,
         ];

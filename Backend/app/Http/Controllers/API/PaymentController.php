@@ -82,29 +82,29 @@ class PaymentController extends Controller
         }
         $totalPriceBeforeDiscount = $totalTicketPrice + $totalComboPrice;
 
-            //xử lý mã khuyến mại
+        //xử lý mã khuyến mại
         $discountCode = $request->input('discount_code');
         $discountAmount = 0;
         $discountCodeId = null;
 
-    if ($discountCode) {
-        $discount = \App\Models\DiscountCode::where('name_code', $discountCode)
-            ->where('status', 'active')
-            ->where('quantity', '>', 0)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->first();
+        if ($discountCode) {
+            $discount = \App\Models\DiscountCode::where('name_code', $discountCode)
+                ->where('status', 'active')
+                ->where('quantity', '>', 0)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->first();
 
-        if (!$discount) {
-            return response()->json(['message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn'], 400);
+            if (!$discount) {
+                return response()->json(['message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn'], 400);
+            }
+
+            $discountAmount = $totalPriceBeforeDiscount * ($discount->percent / 100);
+            $discountCodeId = $discount->id; // Lưu ID thay vì name_code
+
+            $discount->quantity -= 1;
+            $discount->save();
         }
-
-        $discountAmount = $totalPriceBeforeDiscount * ($discount->percent / 100);
-        $discountCodeId = $discount->id; // Lưu ID thay vì name_code
-
-        $discount->quantity -= 1;
-        $discount->save();
-    }
 
         // Tổng giá thực tế từ DB
         $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount - $discountAmount);

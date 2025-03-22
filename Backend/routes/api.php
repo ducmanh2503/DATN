@@ -160,6 +160,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //movie, calendar_show, showTime
 Route::get('/movies-index', [MoviesController::class, 'index']);
+Route::get('/movies-for-client', [MoviesController::class, 'getMoviesForClient']); // Lấy danh sách phim cho client
+Route::get('/search', [MoviesController::class, 'searchMovies']); // Tìm kiếm phim
+Route::get('/filter', [MoviesController::class, 'filterMovies']); // Lọc phim theo nhiều tiêu chí
 Route::get('/showtimes-client/by-date/{movie_id}/{date}', [ShowTimeController::class, 'getShowTimesByDateClient']);
 Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient']);
 Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::class, 'getShowDates']);

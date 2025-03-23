@@ -28,7 +28,14 @@ export const StepsProvider = ({ children }: { children: React.ReactNode }) => {
   ); // user ID
   const [dataDetailFilm, setDataDetailFilm] = useState(() => {
     const storedDetailFilm = sessionStorage.getItem("dataDetailFilm");
-    return storedDetailFilm ? JSON.parse(storedDetailFilm) : {};
+    return storedDetailFilm
+      ? JSON.parse(storedDetailFilm)
+      : {
+          title: "",
+          language: "",
+          rated: "",
+          genres: [],
+        };
   }); // lưu tạm thời data 1 phim
   const [paymentType, setPaymentType] = useState<number | null>(); //hình thức thanh toán
 

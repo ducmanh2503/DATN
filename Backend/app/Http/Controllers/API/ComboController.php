@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Combo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class ComboController extends Controller
@@ -31,17 +33,24 @@ class ComboController extends Controller
      */
     public function store(Request $request)
     {
-
         try {
             $validated = $request->validate([
                 'name' => 'required|string|unique:combos,name',
                 'description' => 'required|string',
                 'quantity' => 'required|integer|min:1',
                 'price' => 'required|numeric|min:0',
-                'image' => 'required|string',
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
 
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('images', 'public');
+                $validated['image'] = Storage::url($imagePath);
+            } else {
+                throw new \Exception('No image file received');
+            }
+
             $combo = Combo::create($validated);
+
             return response()->json([
                 'message' => 'Thêm Combo thành công',
                 'combo' => $combo
@@ -50,6 +59,10 @@ class ComboController extends Controller
             return response()->json([
                 'errors' => $e->errors()
             ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi khi thêm combo: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -69,8 +82,6 @@ class ComboController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
-
         $combo = Combo::findOrFail($id);
 
         try {
@@ -79,10 +90,19 @@ class ComboController extends Controller
                 'description' => 'sometimes|string',
                 'quantity' => 'sometimes|integer|min:1',
                 'price' => 'sometimes|numeric|min:0',
-                'image' => 'sometimes|string',
+                'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
 
+            if ($request->hasFile('image')) {
+                if ($combo->image && Storage::disk('public')->exists(str_replace('/storage/', '', $combo->image))) {
+                    Storage::disk('public')->delete(str_replace('/storage/', '', $combo->image));
+                }
+                $imagePath = $request->file('image')->store('images', 'public');
+                $validated['image'] = Storage::url($imagePath);
+            }
+
             $combo->update($validated);
+
             return response()->json([
                 'message' => 'Cập nhật Combo thành công',
                 'combo' => $combo
@@ -91,6 +111,10 @@ class ComboController extends Controller
             return response()->json([
                 'errors' => $e->errors()
             ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi khi cập nhật combo: ' . $e->getMessage()
+            ], 500);
         }
     }
 

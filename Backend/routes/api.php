@@ -177,6 +177,7 @@ Route::post('/resend-verification', [AuthController::class, 'resendVerificationE
 Route::post('/verify-code', [AuthController::class, 'verifyCode']);
 Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // Protected customer routes
 Route::middleware('auth:sanctum')->group(function () {

@@ -6,8 +6,6 @@ import {
   ComboUpdateRequest,
   ComboUpdateResponse,
   ComboListResponse,
-  ComboDeleteResponse,
-  ComboRestoreResponse,
   ApiError,
 } from "../types/combo.types";
 
@@ -19,10 +17,11 @@ const ENDPOINTS = {
   CREATE_COMBO: `${BASE_URL}/combo`,
   UPDATE_COMBO: (id: string | number) => `${BASE_URL}/combo/${id}`,
   DELETE_COMBO: (id: string | number) => `${BASE_URL}/combo/${id}`,
-  DELETE_MULTIPLE: `${BASE_URL}/combo`,
+  DELETE_MULTIPLE_COMBOS: `${BASE_URL}/combo`, // Endpoint cho xóa mềm nhiều
   RESTORE_COMBO: (id: string | number) => `${BASE_URL}/combo/restore/${id}`,
-  FORCE_DELETE: (id: string | number) => `${BASE_URL}/combo/force/${id}`,
-  RESTORE_MULTIPLE: `${BASE_URL}/combo/multiple/restore`,
+  RESTORE_MULTIPLE_COMBOS: `${BASE_URL}/combo/multiple/restore`, // Endpoint cho khôi phục nhiều
+  FORCE_DELETE: (id: string | number) => `${BASE_URL}/combo/force/${id}`, // Endpoint cho xóa vĩnh viễn
+  FORCE_DELETE_MULTIPLE: `${BASE_URL}/combos/force-delete-multiple`, // Endpoint cho xóa vĩnh viễn nhiều
 };
 
 const normalizeId = (id: string | number): string => String(id);
@@ -81,7 +80,7 @@ export const getCombo = async (id: string | number): Promise<Combo> => {
 };
 
 export const createCombo = async (
-  data: FormData
+  data: ComboCreateRequest
 ): Promise<ComboCreateResponse> => {
   try {
     const response = await axios.post<ComboCreateResponse>(
@@ -89,7 +88,7 @@ export const createCombo = async (
       data,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getAuthToken()}`,
         },
       }
@@ -108,7 +107,7 @@ export const createCombo = async (
 
 export const updateCombo = async (
   id: string | number,
-  data: FormData
+  data: ComboUpdateRequest
 ): Promise<ComboUpdateResponse> => {
   const comboId = normalizeId(id);
   try {
@@ -117,7 +116,7 @@ export const updateCombo = async (
       data,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getAuthToken()}`,
         },
       }
@@ -134,97 +133,78 @@ export const updateCombo = async (
   }
 };
 
-export const deleteCombo = async (
-  id: string | number
-): Promise<ComboDeleteResponse> => {
+export const deleteCombo = async (id: string | number): Promise<void> => {
   const comboId = normalizeId(id);
   try {
-    const response = await axios.delete<ComboDeleteResponse>(
-      ENDPOINTS.DELETE_COMBO(comboId),
-      {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
-    return response.data;
+    await axios.delete(ENDPOINTS.DELETE_COMBO(comboId), {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-export const deleteMultipleCombos = async (
-  ids: (string | number)[]
-): Promise<ComboDeleteResponse> => {
+export const deleteMultipleCombos = async (ids: (string | number)[]): Promise<void> => {
   try {
-    const response = await axios.delete<ComboDeleteResponse>(
-      ENDPOINTS.DELETE_MULTIPLE,
-      {
-        data: { ids },
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
-    return response.data;
+    await axios.delete(ENDPOINTS.DELETE_MULTIPLE_COMBOS, {
+      data: { ids }, // Gửi data trong body của DELETE request
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-export const restoreCombo = async (
-  id: string | number
-): Promise<ComboRestoreResponse> => {
+export const restoreCombo = async (id: string | number): Promise<void> => {
   const comboId = normalizeId(id);
   try {
-    const response = await axios.post<ComboRestoreResponse>(
-      ENDPOINTS.RESTORE_COMBO(comboId),
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
-    return response.data;
+    await axios.post(ENDPOINTS.RESTORE_COMBO(comboId), null, {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-export const restoreMultipleCombos = async (
-  ids: (string | number)[]
-): Promise<ComboRestoreResponse> => {
+export const restoreMultipleCombos = async (ids: (string | number)[]): Promise<void> => {
   try {
-    const response = await axios.post<ComboRestoreResponse>(
-      ENDPOINTS.RESTORE_MULTIPLE,
-      { ids },
-      {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
-    return response.data;
+    await axios.post(ENDPOINTS.RESTORE_MULTIPLE_COMBOS, { ids }, {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-export const permanentDeleteCombo = async (
-  id: string | number
-): Promise<ComboDeleteResponse> => {
+export const permanentDeleteCombo = async (id: string | number): Promise<void> => {
   const comboId = normalizeId(id);
   try {
-    const response = await axios.delete<ComboDeleteResponse>(
-      ENDPOINTS.FORCE_DELETE(comboId),
-      {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
-    return response.data;
+    await axios.delete(ENDPOINTS.FORCE_DELETE(comboId), {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+export const forceDeleteMultipleCombos = async (ids: (string | number)[]): Promise<void> => {
+  try {
+    await axios.delete(ENDPOINTS.FORCE_DELETE_MULTIPLE, {
+      data: { ids }, // Gửi data trong body của DELETE request
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
   } catch (error) {
     throw handleApiError(error);
   }
@@ -232,7 +212,7 @@ export const permanentDeleteCombo = async (
 
 export default {
   getCombos,
-  getCombo, // THÊM VÀO ĐÂY
+  getCombo,
   createCombo,
   updateCombo,
   deleteCombo,
@@ -240,4 +220,5 @@ export default {
   restoreCombo,
   restoreMultipleCombos,
   permanentDeleteCombo,
+  forceDeleteMultipleCombos,
 };

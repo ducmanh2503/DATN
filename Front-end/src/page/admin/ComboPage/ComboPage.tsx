@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Modal, Input, message, Tooltip, Upload } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
 import comboService from "../../../services/combo.service";
 import { Combo } from "../../../types/combo.types";
 import styles from "./Combo.module.css";
+import { URL_IMAGE } from "../../../config/ApiConfig";
 
 const ComboPage = () => {
   const [combos, setCombos] = useState<Combo[]>([]);
@@ -18,6 +24,7 @@ const ComboPage = () => {
     price: 0,
   });
   const [fileList, setFileList] = useState<any[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null); // Thêm state để hiển thị preview ảnh
 
   useEffect(() => {
     fetchCombos();
@@ -27,11 +34,13 @@ const ComboPage = () => {
     setLoading(true);
     try {
       const response = await comboService.getCombos();
-      console.log("Fetched combos response:", JSON.stringify(response, null, 2));
-      // Bỏ qua image từ backend, giữ nguyên các trường khác
+      console.log(
+        "Fetched combos response:",
+        JSON.stringify(response, null, 2)
+      );
       const processedCombos = response.combo.map((combo) => ({
         ...combo,
-        image: combo.image === "undefined" ? null : combo.image, // Xử lý "undefined"
+        image: combo.image === "undefined" ? null : combo.image,
       }));
       setCombos(processedCombos);
     } catch (error) {
@@ -52,6 +61,8 @@ const ComboPage = () => {
         price: combo.price,
       });
       setFileList([]);
+      // Đảm bảo previewImage hiển thị ảnh hiện tại
+      setPreviewImage(combo.image || null);
     } else {
       setIsEditMode(false);
       setCurrentCombo(null);
@@ -62,6 +73,7 @@ const ComboPage = () => {
         price: 0,
       });
       setFileList([]);
+      setPreviewImage(null);
     }
     setIsModalVisible(true);
   };
@@ -75,6 +87,7 @@ const ComboPage = () => {
       price: 0,
     });
     setFileList([]);
+    setPreviewImage(null);
   };
 
   const handleCreate = async () => {
@@ -82,39 +95,31 @@ const ComboPage = () => {
       message.error("Vui lòng nhập đầy đủ thông tin, bao gồm file ảnh!");
       return;
     }
-    try {
-      const imageUrl = URL.createObjectURL(fileList[0].originFileObj); // URL cục bộ cho ảnh
-      const newCombo: Combo = {
-        id: Date.now().toString(), // ID tạm thời
-        name: formData.name,
-        description: formData.description,
-        quantity: formData.quantity,
-        price: formData.price,
-        image: imageUrl,
-      };
-      console.log("New combo:", newCombo);
 
-      // Gửi dữ liệu với image là chuỗi giả để thỏa mãn backend
+    try {
       const dataToSend = new FormData();
       dataToSend.append("name", formData.name);
       dataToSend.append("description", formData.description);
       dataToSend.append("quantity", String(formData.quantity));
       dataToSend.append("price", String(formData.price));
-      dataToSend.append("image", "placeholder.jpg"); // Chuỗi giả cho backend
+      dataToSend.append("image", fileList[0].originFileObj); // Gửi file thực tế
 
       const response = await comboService.createCombo(dataToSend);
       console.log("Create combo response:", response);
 
-      // Sử dụng image cục bộ thay vì từ backend
-      setCombos([...combos, { ...response.combo, image: imageUrl }]);
+      setCombos([...combos, response.combo]);
       message.success("Thêm combo thành công!");
       handleCancel();
     } catch (error: any) {
-      if (error.status === 422 && error.details) {
-        const errorMessages = Object.values(error.details).flat().join(", ");
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const errorMessages = Object.values(error.response.data.errors)
+          .flat()
+          .join(", ");
         message.error(`Không thể thêm combo: ${errorMessages}`);
       } else {
-        message.error("Không thể thêm combo");
+        message.error(
+          "Không thể thêm combo: " + (error.message || "Lỗi không xác định")
+        );
       }
       console.error("Error creating combo:", error);
     }
@@ -122,45 +127,40 @@ const ComboPage = () => {
 
   const handleUpdate = async () => {
     if (!currentCombo) return;
+
     try {
-      let imageUrl = currentCombo.image;
-      if (fileList.length > 0 && fileList[0].originFileObj) {
-        imageUrl = URL.createObjectURL(fileList[0].originFileObj); // Cập nhật ảnh mới
-      }
-
-      const updatedCombo: Combo = {
-        ...currentCombo,
-        name: formData.name,
-        description: formData.description,
-        quantity: formData.quantity,
-        price: formData.price,
-        image: imageUrl,
-      };
-      console.log("Updated combo:", updatedCombo);
-
-      // Gửi dữ liệu với image là chuỗi giả
       const dataToSend = new FormData();
       dataToSend.append("name", formData.name);
       dataToSend.append("description", formData.description);
       dataToSend.append("quantity", String(formData.quantity));
       dataToSend.append("price", String(formData.price));
       if (fileList.length > 0 && fileList[0].originFileObj) {
-        dataToSend.append("image", "placeholder.jpg"); // Chuỗi giả khi có ảnh mới
+        dataToSend.append("image", fileList[0].originFileObj); // Gửi file thực tế
       }
 
-      const response = await comboService.updateCombo(currentCombo.id, dataToSend);
+      const response = await comboService.updateCombo(
+        currentCombo.id,
+        dataToSend
+      );
       console.log("Update combo response:", response);
 
-      // Cập nhật state với image cục bộ
-      setCombos(combos.map((combo) => (combo.id === currentCombo.id ? { ...response.combo, image: imageUrl } : combo)));
+      setCombos(
+        combos.map((combo) =>
+          combo.id === currentCombo.id ? response.combo : combo
+        )
+      );
       message.success("Cập nhật combo thành công!");
       handleCancel();
     } catch (error: any) {
-      if (error.status === 422 && error.details) {
-        const errorMessages = Object.values(error.details).flat().join(", ");
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const errorMessages = Object.values(error.response.data.errors)
+          .flat()
+          .join(", ");
         message.error(`Không thể cập nhật combo: ${errorMessages}`);
       } else {
-        message.error("Không thể cập nhật combo");
+        message.error(
+          "Không thể cập nhật combo: " + (error.message || "Lỗi không xác định")
+        );
       }
       console.error("Error updating combo:", error);
     }
@@ -200,13 +200,18 @@ const ComboPage = () => {
       key: "image",
       render: (image: string) => {
         console.log("Image URL in table:", image);
-        const isValidUrl = image && (image.startsWith("http") || image.startsWith("blob:"));
+        // Nếu image tồn tại và không phải là URL blob (dùng cho preview), nối URL_IMAGE
+        const fullImageUrl =
+          image && !image.startsWith("blob:") ? `${URL_IMAGE}${image}` : image;
+        const isValidUrl =
+          fullImageUrl &&
+          (fullImageUrl.startsWith("http") || fullImageUrl.startsWith("blob:"));
         return isValidUrl ? (
           <img
-            src={image}
+            src={fullImageUrl}
             alt="combo"
             className={styles.tableImage}
-            onError={(e) => console.error("Image load error:", image)}
+            onError={(e) => console.error("Image load error:", fullImageUrl)}
           />
         ) : (
           <span>Không có ảnh</span>
@@ -240,14 +245,58 @@ const ComboPage = () => {
   const uploadProps = {
     onRemove: () => {
       setFileList([]);
+      setPreviewImage(null);
     },
     beforeUpload: (file: any) => {
-      setFileList([file]);
+      // Kiểm tra xem file có phải là đối tượng File không
+      if (!(file instanceof File)) {
+        message.error("File không hợp lệ!");
+        return false;
+      }
+
+      // Kiểm tra loại file
+      const validImageTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+        "image/gif",
+      ];
+      if (!validImageTypes.includes(file.type)) {
+        message.error("Vui lòng chọn file ảnh (jpeg, png, jpg, gif)!");
+        return false;
+      }
+
+      // Kiểm tra kích thước file
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSize) {
+        message.error("Kích thước file ảnh không được vượt quá 2MB!");
+        return false;
+      }
+
+      // Log file để debug
       console.log("File selected:", file);
-      return false;
+      console.log("File type:", file.type);
+      console.log("File size:", file.size);
+
+      // Lưu file vào fileList
+      const fileWithOrigin = { ...file, originFileObj: file };
+      setFileList([fileWithOrigin]);
+
+      // Tạo URL preview
+      try {
+        const url = URL.createObjectURL(file);
+        setPreviewImage(url);
+      } catch (error) {
+        console.error("Error creating preview URL:", error);
+        message.error("Không thể tạo preview cho file này!");
+        return false;
+      }
+
+      return false; // Ngăn upload tự động
     },
     fileList,
     maxCount: 1,
+    accept: "image/jpeg,image/png,image/jpg,image/gif",
   };
 
   return (
@@ -314,6 +363,13 @@ const ComboPage = () => {
         <Upload {...uploadProps}>
           <Button icon={<UploadOutlined />}>Tải lên ảnh combo</Button>
         </Upload>
+        {previewImage && (
+          <img
+            src={previewImage}
+            alt="Preview"
+            style={{ width: "100%", marginTop: 16 }}
+          />
+        )}
       </Modal>
     </div>
   );

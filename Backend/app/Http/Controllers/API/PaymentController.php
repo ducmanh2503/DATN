@@ -177,11 +177,13 @@ class PaymentController extends Controller
 
             Redis::del("booking:$request->vnp_TxnRef");
 
+            // Khi thanh toán thành công
             return redirect()->away(
-                'http://localhost:3000/payment-result?status=success&booking_id=' . $response->getData()->booking_id
+                'http://localhost:5173/booking/' . $response->getData()->booking_id . '/payment-result?status=success'
             );
         } else {
-            return redirect()->away('http://localhost:3000/payment-result?status=failure');
+            // Khi thanh toán thất bại
+            return redirect()->away('http://localhost:5173/booking/1/payment-result?status=failure');
         }
     }
 

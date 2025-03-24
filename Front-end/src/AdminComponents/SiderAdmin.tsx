@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  DashboardOutlined,
   BarChartOutlined,
   BuildOutlined,
   CalendarOutlined,
@@ -31,9 +32,11 @@ function getItem(
 const SiderAdmin = () => {
   const [collapsed, setCollapsed] = useState(false);
   const items: MenuItem[] = [
-    getItem("Dashboard", "sub1", <BarChartOutlined />, [
-      getItem("Tự tạo", "sub1-1"),
-    ]),
+    getItem(
+      <Link to="/admin/dashboard">Dashboard</Link>,
+      "dashboard",
+      <DashboardOutlined />
+    ),
     getItem("Quản lý phim", "sub2", <VideoCameraAddOutlined />, [
       getItem(<Link to="film">Danh sách phim</Link>, "sub2-1"),
       getItem(<Link to="addFilm">Thêm phim</Link>, "sub2-2"),

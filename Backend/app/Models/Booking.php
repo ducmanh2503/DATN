@@ -15,6 +15,7 @@ class Booking extends Model
         'total_ticket_price',
         'total_combo_price',
         'discount_code_id',
+        'total_price',
         'status',
     ];
 

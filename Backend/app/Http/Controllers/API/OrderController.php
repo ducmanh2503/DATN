@@ -18,7 +18,17 @@ class OrderController extends Controller
                     $query->select('id', 'name', 'email', 'phone');
                 },
                 'showtime' => function ($query) {
-                    $query->select('id', 'start_time', 'end_time');
+                    $query->select('id', 'calendar_show_id', 'start_time', 'end_time')
+                        ->with([
+                            'calendarShow' => function ($query) {
+                                $query->select('id', 'movie_id')
+                                    ->with([
+                                        'movie' => function ($query) {
+                                            $query->select('id', 'title', 'poster'); // Lấy thông tin phim
+                                        }
+                                    ]);
+                            }
+                        ]);
                 },
                 'bookingDetails' => function ($query) {
                     $query->with([
@@ -46,10 +56,20 @@ class OrderController extends Controller
             )
             ->get()
             ->map(function ($booking) {
-                // Khởi tạo danh sách ghế và combo
+                // Khởi tạo danh sách ghế, phòng, combo và thông tin phim
                 $seats = [];
                 $rooms = [];
                 $combos = [];
+                $movie = null;
+
+                // Lấy thông tin phim từ showtime -> calendarShow -> movie
+                if ($booking->showtime && $booking->showtime->calendarShow && $booking->showtime->calendarShow->movie) {
+                    $movie = [
+                        'id' => $booking->showtime->calendarShow->movie->id,
+                        'title' => $booking->showtime->calendarShow->movie->title,
+                        'poster' => $booking->showtime->calendarShow->movie->poster,
+                    ];
+                }
 
                 if ($booking->bookingDetails) {
                     foreach ($booking->bookingDetails as $detail) {
@@ -57,7 +77,7 @@ class OrderController extends Controller
                         if ($detail->seat) {
                             $seatName = "{$detail->seat->row}{$detail->seat->column}";
                             $seats[] = [
-                                'booking_detail_id' => $detail->id, // Thêm id của bookingDetail
+                                'booking_detail_id' => $detail->id,
                                 'seat_name' => $seatName,
                                 'price' => $detail->price,
                             ];
@@ -72,7 +92,7 @@ class OrderController extends Controller
                         // Thêm combo nếu có
                         if ($detail->combo) {
                             $combos[] = [
-                                'booking_detail_id' => $detail->id, // Thêm id của bookingDetail
+                                'booking_detail_id' => $detail->id,
                                 'name' => $detail->combo->name,
                                 'quantity' => $detail->quantity,
                                 'price' => $detail->price,
@@ -92,9 +112,10 @@ class OrderController extends Controller
                     'total_ticket_price' => $booking->total_ticket_price,
                     'total_combo_price' => $booking->total_combo_price,
                     'status' => $booking->status,
-                    'seats' => $seats, // Danh sách ghế với booking_detail_id
-                    'rooms' => $rooms, // Danh sách phòng
-                    'combos' => $combos, // Danh sách combo với booking_detail_id
+                    'seats' => $seats,
+                    'rooms' => $rooms,
+                    'combos' => $combos,
+                    'movie' => $movie, // Thêm thông tin phim
                 ];
             });
 
@@ -112,7 +133,17 @@ class OrderController extends Controller
                     $query->select('id', 'name', 'email', 'phone');
                 },
                 'showtime' => function ($query) {
-                    $query->select('id', 'start_time', 'end_time');
+                    $query->select('id', 'calendar_show_id', 'start_time', 'end_time')
+                        ->with([
+                            'calendarShow' => function ($query) {
+                                $query->select('id', 'movie_id')
+                                    ->with([
+                                        'movie' => function ($query) {
+                                            $query->select('id', 'title', 'poster'); // Lấy thông tin phim
+                                        }
+                                    ]);
+                            }
+                        ]);
                 },
                 'bookingDetails' => function ($query) {
                     $query->with([
@@ -146,10 +177,20 @@ class OrderController extends Controller
             ], 404);
         }
 
-        // Khởi tạo danh sách ghế và combo
+        // Khởi tạo danh sách ghế, phòng, combo và thông tin phim
         $seats = [];
         $rooms = [];
         $combos = [];
+        $movie = null;
+
+        // Lấy thông tin phim từ showtime -> calendarShow -> movie
+        if ($booking->showtime && $booking->showtime->calendarShow && $booking->showtime->calendarShow->movie) {
+            $movie = [
+                'id' => $booking->showtime->calendarShow->movie->id,
+                'title' => $booking->showtime->calendarShow->movie->title,
+                'poster' => $booking->showtime->calendarShow->movie->poster,
+            ];
+        }
 
         if ($booking->bookingDetails) {
             foreach ($booking->bookingDetails as $detail) {
@@ -192,6 +233,7 @@ class OrderController extends Controller
             'seats' => $seats,
             'rooms' => $rooms,
             'combos' => $combos,
+            'movie' => $movie, // Thêm thông tin phim
         ];
 
         return response()->json([

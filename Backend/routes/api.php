@@ -56,6 +56,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/update-profile', [UserController::class, 'updateProfile']);
     Route::post('/change-password', [UserController::class, 'changePassword']);
 
+    //Lịch sử giao dịch
+    Route::get('/orders-search', [OrderController::class, 'searchOrders']); // Tìm kiếm giao dịch
+    Route::get('/orders-recent', [OrderController::class, 'recentOrders']); // Lấy danh sách giao dịch gần đây (20 giao dịch gần nhất)
+    Route::get('/orders-confirmed', [OrderController::class, 'confirmedOrders']); // Lấy danh sách tất cả giao dịch đã hoàn tất
+
     //Áp dụng mã giảm giá
     Route::post('/apply-discount-code', [DiscountCodeController::class, 'applyDiscountCode']);
 

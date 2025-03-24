@@ -4,6 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import ClientLayout from "../../page/client/Layout";
 import "./FilmDetail.css";
 import axios from "axios";
+import { Modal } from "antd";
+import CalendarMovies from "../CalendarMovies/CalendarMovies";
 
 interface MovieDetail {
   id: number;
@@ -59,6 +61,7 @@ const FilmDetail = () => {
   const [movie, setMovie] = useState<MovieDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,7 +93,12 @@ const FilmDetail = () => {
   if (!movie) return <div className="not-found">Không tìm thấy phim</div>;
 
   const handleViewShowtimesAndBook = () => {
-    navigate(`/showtimes/${movie.id}`);
+    // Mở modal lịch chiếu thay vì chuyển hướng
+    setIsModalOpen(true);
+  };
+
+  const handleCancelModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
@@ -201,6 +209,17 @@ const FilmDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Modal lịch chiếu */}
+      <Modal
+        title="Lịch chiếu phim"
+        width={700}
+        open={isModalOpen}
+        onCancel={handleCancelModal}
+        footer={null}
+      >
+        {movie && <CalendarMovies id={movie.id} setIsModalOpen2={setIsModalOpen} />}
+      </Modal>
     </ClientLayout>
   );
 };

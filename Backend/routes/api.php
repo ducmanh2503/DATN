@@ -164,7 +164,7 @@ Route::get('/showtimes-client/by-date/{movie_id}/{date}', [ShowTimeController::c
 Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient']);
 Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::class, 'getShowDates']);
 Route::get('/movie-details-booking/{movie}', [MoviesController::class, 'show']);
-
+Route::get('/movies-details/{movies}', [MoviesController::class, 'show']);
 //combo
 Route::get('/combos', [ComboController::class, 'showCombosForClient']);
 

@@ -40,7 +40,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // Lấy thông tin user đã đăng nhập
@@ -54,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //thông tin và cập nhật khách hàng
     Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
     Route::put('/update-profile', [UserController::class, 'updateProfile']);
+    Route::post('/change-password', [UserController::class, 'changePassword']);
 
     //Áp dụng mã giảm giá
     Route::post('/apply-discount-code', [DiscountCodeController::class, 'applyDiscountCode']);
@@ -149,12 +149,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/user-management/search/name', [UserController::class, 'searchByName']);
 
         //Đơn hàng
-        Route::get('/order', [OrderController::class, 'index']);
-        Route::get('/order/{bookingId}/order-details', [OrderController::class, 'show']);
+
     });
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
 });
+Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
+Route::get('/order', [OrderController::class, 'index']);
+Route::get('/order/{bookingId}/order-details', [OrderController::class, 'show']);
 
 ///////////////////////////////////////////////customer///////////////////////////////////////////////
 

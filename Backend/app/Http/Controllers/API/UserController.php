@@ -158,7 +158,6 @@ class UserController extends Controller
             'name' => 'nullable|string|max:255',
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'phone' => 'nullable|string|max:15',
-            'password' => 'nullable|string|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -168,17 +167,49 @@ class UserController extends Controller
         // Lấy dữ liệu cần cập nhật
         $data = $request->only(['name', 'email', 'phone']);
 
-        // Nếu có mật khẩu mới, mã hóa và cập nhật
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
-
         // Cập nhật thông tin người dùng
         $user->update($data);
 
         return response()->json([
             'message' => 'Thông tin tài khoản đã được cập nhật thành công!',
             'user' => $user
+        ], 200);
+    }
+
+    /**
+     * Đổi mật khẩu người dùng
+     */
+    public function changePassword(Request $request)
+    {
+        $user = Auth::user(); // Lấy thông tin người dùng hiện tại
+
+        // Kiểm tra nếu chưa đăng nhập
+        if (!$user) {
+            return response()->json(['error' => 'Bạn chưa đăng nhập!'], 401);
+        }
+
+        // Validate dữ liệu
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Kiểm tra mật khẩu hiện tại có đúng không
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'Mật khẩu hiện tại không đúng'], 401);
+        }
+
+        // Cập nhật mật khẩu mới
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return response()->json([
+            'message' => 'Đổi mật khẩu thành công!'
         ], 200);
     }
 

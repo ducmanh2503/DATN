@@ -36,7 +36,12 @@ class OrderController extends Controller
                             $query->select('id', 'room_id', 'row', 'column')
                                 ->with([
                                     'room' => function ($query) {
-                                        $query->select('id', 'name');
+                                        $query->select('id', 'name', 'room_type_id')
+                                            ->with([
+                                                'roomType' => function ($query) {
+                                                    $query->select('id', 'name'); // Lấy tên loại phòng từ room_types
+                                                }
+                                            ]);
                                     }
                                 ]);
                         },
@@ -52,13 +57,15 @@ class OrderController extends Controller
                 'showtime_id',
                 'total_ticket_price',
                 'total_combo_price',
-                'status'
+                'status',
+                'created_at' // Thêm created_at để lấy ngày đặt
             )
             ->get()
             ->map(function ($booking) {
-                // Khởi tạo danh sách ghế, phòng, combo và thông tin phim
+                // Khởi tạo danh sách ghế, phòng, loại phòng, combo và thông tin phim
                 $seats = [];
-                $rooms = [];
+                $room_name = null;
+                $room_type = null;
                 $combos = [];
                 $movie = null;
 
@@ -73,7 +80,7 @@ class OrderController extends Controller
 
                 if ($booking->bookingDetails) {
                     foreach ($booking->bookingDetails as $detail) {
-                        // Thêm seat nếu có
+                        // Thêm ghế nếu có
                         if ($detail->seat) {
                             $seatName = "{$detail->seat->row}{$detail->seat->column}";
                             $seats[] = [
@@ -82,10 +89,10 @@ class OrderController extends Controller
                                 'price' => $detail->price,
                             ];
 
-                            // Thêm room_name nếu có
-                            $roomName = $detail->seat->room ? $detail->seat->room->name : null;
-                            if ($roomName && !in_array($roomName, $rooms)) {
-                                $rooms[] = $roomName;
+                            // Lấy tên phòng và loại phòng
+                            if ($detail->seat->room) {
+                                $room_name = $detail->seat->room->name; // Tên phòng (ví dụ: Cinema 1)
+                                $room_type = $detail->seat->room->roomType ? $detail->seat->room->roomType->name : null; // Loại phòng (ví dụ: IMAX)
                             }
                         }
 
@@ -93,7 +100,7 @@ class OrderController extends Controller
                         if ($detail->combo) {
                             $combos[] = [
                                 'booking_detail_id' => $detail->id,
-                                'name' => $detail->combo->name,
+                                'combo_name' => $detail->combo->name, // Đổi tên key thành combo_name để rõ ràng
                                 'quantity' => $detail->quantity,
                                 'price' => $detail->price,
                             ];
@@ -109,13 +116,16 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? "{$booking->showtime->start_time} - {$booking->showtime->end_time}"
                         : 'N/A',
+                    'movie_title' => $movie ? $movie['title'] : 'N/A', // Tên phim
+                    'room_name' => $room_name ?? 'N/A', // Tên phòng (thay cho Rạp chiếu)
+                    'room_type' => $room_type ?? 'N/A', // Loại phòng (lấy từ room_types)
+                    'seats' => $seats,
+                    'combos' => $combos,
                     'total_ticket_price' => $booking->total_ticket_price,
                     'total_combo_price' => $booking->total_combo_price,
+                    'total_price' => $booking->total_ticket_price + $booking->total_combo_price, // Tổng tiền
                     'status' => $booking->status,
-                    'seats' => $seats,
-                    'rooms' => $rooms,
-                    'combos' => $combos,
-                    'movie' => $movie, // Thêm thông tin phim
+                    'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y') : 'N/A', // Ngày đặt, định dạng ngày-tháng-năm
                 ];
             });
 
@@ -151,7 +161,12 @@ class OrderController extends Controller
                             $query->select('id', 'room_id', 'row', 'column')
                                 ->with([
                                     'room' => function ($query) {
-                                        $query->select('id', 'name');
+                                        $query->select('id', 'name', 'room_type_id')
+                                            ->with([
+                                                'roomType' => function ($query) {
+                                                    $query->select('id', 'name'); // Lấy tên loại phòng từ room_types
+                                                }
+                                            ]);
                                     }
                                 ]);
                         },
@@ -167,7 +182,8 @@ class OrderController extends Controller
                 'showtime_id',
                 'total_ticket_price',
                 'total_combo_price',
-                'status'
+                'status',
+                'created_at' // Thêm created_at để lấy ngày đặt
             )
             ->find($bookingId);
 
@@ -177,9 +193,10 @@ class OrderController extends Controller
             ], 404);
         }
 
-        // Khởi tạo danh sách ghế, phòng, combo và thông tin phim
+        // Khởi tạo danh sách ghế, phòng, loại phòng, combo và thông tin phim
         $seats = [];
-        $rooms = [];
+        $room_name = null;
+        $room_type = null;
         $combos = [];
         $movie = null;
 
@@ -202,16 +219,17 @@ class OrderController extends Controller
                         'price' => $detail->price,
                     ];
 
-                    $roomName = $detail->seat->room ? $detail->seat->room->name : null;
-                    if ($roomName && !in_array($roomName, $rooms)) {
-                        $rooms[] = $roomName;
+                    // Lấy tên phòng và loại phòng
+                    if ($detail->seat->room) {
+                        $room_name = $detail->seat->room->name; // Tên phòng (ví dụ: Cinema 1)
+                        $room_type = $detail->seat->room->roomType ? $detail->seat->room->roomType->name : null; // Loại phòng (ví dụ: IMAX)
                     }
                 }
 
                 if ($detail->combo) {
                     $combos[] = [
                         'booking_detail_id' => $detail->id,
-                        'name' => $detail->combo->name,
+                        'combo_name' => $detail->combo->name, // Đổi tên key thành combo_name
                         'quantity' => $detail->quantity,
                         'price' => $detail->price,
                     ];
@@ -227,17 +245,20 @@ class OrderController extends Controller
             'showtime' => $booking->showtime
                 ? "{$booking->showtime->start_time} - {$booking->showtime->end_time}"
                 : 'N/A',
+            'movie_title' => $movie ? $movie['title'] : 'N/A', // Tên phim
+            'room_name' => $room_name ?? 'N/A', // Tên phòng (thay cho Rạp chiếu)
+            'room_type' => $room_type ?? 'N/A', // Loại phòng (lấy từ room_types)
+            'seats' => $seats,
+            'combos' => $combos,
             'total_ticket_price' => $booking->total_ticket_price,
             'total_combo_price' => $booking->total_combo_price,
+            'total_price' => $booking->total_ticket_price + $booking->total_combo_price, // Tổng tiền
             'status' => $booking->status,
-            'seats' => $seats,
-            'rooms' => $rooms,
-            'combos' => $combos,
-            'movie' => $movie, // Thêm thông tin phim
+            'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y') : 'N/A', // Ngày đặt, định dạng ngày-tháng-năm
         ];
 
         return response()->json([
-            'message' => 'Danh sách chi tiết đơn hàng',
+            'message' => 'Chi tiết đơn hàng',
             'data' => $formattedBooking,
         ]);
     }

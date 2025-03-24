@@ -18,7 +18,6 @@ import {
     Tag,
 } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
-import Highlighter from "react-highlight-words";
 import axios from "axios";
 import { DELETE_FILM, GET_FILM_LIST } from "../../../config/ApiConfig";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,6 +35,8 @@ const FilmManage: React.FC = () => {
     const searchInput = useRef<InputRef>(null);
     const [messageApi, holderMessageApi] = message.useMessage();
     const queryClient = useQueryClient();
+    const [activeFilterColumn, setActiveFilterColumn] =
+        useState<DataIndex | null>(null); // kiểm tra xem có dùng filter không
 
     const [selectionType, setSelectionType] = useState<"checkbox" | "radio">(
         "checkbox"
@@ -56,6 +57,14 @@ const FilmManage: React.FC = () => {
         setSearchText("");
     };
 
+    // Hàm chuẩn hóa chuỗi (xoá dấu tiếng Việt)
+    const removeAccents = (str: string) => {
+        return str
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    };
+
     const getColumnSearchProps = (
         dataIndex: DataIndex
     ): TableColumnType<FormData> => ({
@@ -74,25 +83,27 @@ const FilmManage: React.FC = () => {
                     onChange={(e) =>
                         setSelectedKeys(e.target.value ? [e.target.value] : [])
                     }
-                    onPressEnter={() =>
+                    onPressEnter={() => {
                         handleSearch(
                             selectedKeys as string[],
                             confirm,
                             dataIndex
-                        )
-                    }
+                        );
+                        setActiveFilterColumn(null);
+                    }}
                     style={{ marginBottom: 8, display: "block" }}
                 />
                 <Space>
                     <Button
                         type="primary"
-                        onClick={() =>
+                        onClick={() => {
                             handleSearch(
                                 selectedKeys as string[],
                                 confirm,
                                 dataIndex
-                            )
-                        }
+                            );
+                            setActiveFilterColumn(null);
+                        }}
                         icon={<SearchOutlined />}
                         size="small"
                         style={{ width: 90 }}
@@ -100,9 +111,10 @@ const FilmManage: React.FC = () => {
                         Search
                     </Button>
                     <Button
-                        onClick={() =>
-                            clearFilters && handleReset(clearFilters)
-                        }
+                        onClick={() => {
+                            clearFilters && handleReset(clearFilters);
+                            setActiveFilterColumn(null);
+                        }}
                         size="small"
                         style={{ width: 90 }}
                     >
@@ -112,42 +124,62 @@ const FilmManage: React.FC = () => {
                         type="link"
                         size="small"
                         onClick={() => {
-                            close();
+                            confirm({ closeDropdown: false });
+                            setSearchText((selectedKeys as string[])[0]);
+                            setSearchedColumn(dataIndex);
                         }}
                     >
-                        close
+                        Filter
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            close();
+                            setActiveFilterColumn(null);
+                        }}
+                    >
+                        Close
                     </Button>
                 </Space>
             </div>
         ),
-        filterIcon: (filtered: boolean) => (
-            <SearchOutlined
-                style={{ color: filtered ? "#1677ff" : undefined }}
-            />
-        ),
-        onFilter: (value, record) =>
-            record[dataIndex]
-                .toString()
-                .toLowerCase()
-                .includes((value as string).toLowerCase()),
+        filterIcon: () => {
+            // Ẩn icon ở các cột không được chọn
+            if (activeFilterColumn && activeFilterColumn !== dataIndex)
+                return null;
+            return (
+                <SearchOutlined
+                    style={{
+                        color:
+                            activeFilterColumn === dataIndex
+                                ? "#1677ff"
+                                : undefined,
+                    }}
+                    onClick={() => setActiveFilterColumn(dataIndex)}
+                />
+            );
+        },
+        onFilter: (value, record: any) => {
+            const recordValue = record[dataIndex];
+            if (!recordValue) return false;
+
+            const normalizedRecord = removeAccents(recordValue.toString());
+            const normalizedValue = removeAccents(value as string);
+
+            return normalizedRecord.includes(normalizedValue);
+        },
         filterDropdownProps: {
-            onOpenChange(open) {
+            onOpenChange: (open) => {
                 if (open) {
+                    setActiveFilterColumn(dataIndex);
                     setTimeout(() => searchInput.current?.select(), 100);
+                } else {
+                    setActiveFilterColumn(null);
                 }
             },
         },
-        render: (text) =>
-            searchedColumn === dataIndex ? (
-                <Highlighter
-                    highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-                    searchWords={[searchText]}
-                    autoEscape
-                    textToHighlight={text ? text.toString() : ""}
-                />
-            ) : (
-                text
-            ),
+        render: (text) => (searchedColumn === dataIndex ? text : text),
     });
 
     const onRowSelectionChange = (
@@ -189,6 +221,12 @@ const FilmManage: React.FC = () => {
                 dataIndex: "directors",
                 key: "directors",
                 ...getColumnSearchProps("directors"),
+                onFilter: (value: any, record: any) => {
+                    const directorName = record.directors?.name_director || "";
+                    return removeAccents(directorName).includes(
+                        removeAccents(value)
+                    );
+                },
                 render: (records: any) => {
                     return (
                         <div
@@ -207,7 +245,16 @@ const FilmManage: React.FC = () => {
                 dataIndex: "genres",
                 key: "genres",
                 width: 190,
-                ...getColumnSearchProps("genre"),
+                ...getColumnSearchProps("genres"),
+                onFilter: (value: any, record: any) => {
+                    const genreNames = record.genres
+                        ? record.genres.map((g: any) => g.name_genre).join(", ")
+                        : "";
+                    return removeAccents(genreNames).includes(
+                        removeAccents(value)
+                    );
+                },
+
                 render: (genres: any) => {
                     if (!Array.isArray(genres)) {
                         genres = [genres];
@@ -251,6 +298,12 @@ const FilmManage: React.FC = () => {
                 dataIndex: "release_date",
                 key: "release_date",
                 ...getColumnSearchProps("release_date"),
+                onFilter: (value: any, record) => {
+                    return removeAccents(record.release_date).includes(
+                        removeAccents(value)
+                    );
+                },
+                render: (record: any) => <span>{record}</span>,
             },
             {
                 title: "Thời lượng",
@@ -264,6 +317,7 @@ const FilmManage: React.FC = () => {
                 title: "Trạng thái",
                 dataIndex: "movie_status",
                 key: "movie_status",
+                ...getColumnSearchProps("movie_status"),
                 render: (status: string) => {
                     return status === "now_showing" ? (
                         <Tag color="green">{status}</Tag>
@@ -312,7 +366,7 @@ const FilmManage: React.FC = () => {
         queryKey: ["filmList"],
         queryFn: async () => {
             const { data } = await axios.get(`${GET_FILM_LIST}`);
-            console.log(data);
+            console.log(data.movies);
 
             return data.movies.map((item: any) => ({
                 ...item,

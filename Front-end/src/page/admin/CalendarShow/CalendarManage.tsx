@@ -12,7 +12,6 @@ import {
     Tag,
 } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
-import Highlighter from "react-highlight-words";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import AddCalendar from "../CalendarShow/AddCalendar";
@@ -32,6 +31,8 @@ const CalendarManage: React.FC = () => {
     const searchInput = useRef<InputRef>(null);
     const [messageApi, contextHolder] = message.useMessage();
     const queryClient = useQueryClient();
+    const [activeFilterColumn, setActiveFilterColumn] =
+        useState<DataIndex | null>(null);
 
     const handleSearch = (
         selectedKeys: string[],
@@ -48,9 +49,17 @@ const CalendarManage: React.FC = () => {
         setSearchText("");
     };
 
+    // Hàm chuẩn hóa chuỗi (xoá dấu tiếng Việt)
+    const removeAccents = (str: string) => {
+        return str
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    };
+
     const getColumnSearchProps = (
         dataIndex: DataIndex
-    ): TableColumnType<DataTypeGenresActorsDirectors> => ({
+    ): TableColumnType<FormData> => ({
         filterDropdown: ({
             setSelectedKeys,
             selectedKeys,
@@ -61,30 +70,32 @@ const CalendarManage: React.FC = () => {
             <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                     ref={searchInput}
-                    placeholder={`Search ${dataIndex}`}
+                    placeholder={`Search`}
                     value={selectedKeys[0]}
                     onChange={(e) =>
                         setSelectedKeys(e.target.value ? [e.target.value] : [])
                     }
-                    onPressEnter={() =>
+                    onPressEnter={() => {
                         handleSearch(
                             selectedKeys as string[],
                             confirm,
                             dataIndex
-                        )
-                    }
+                        );
+                        setActiveFilterColumn(null);
+                    }}
                     style={{ marginBottom: 8, display: "block" }}
                 />
                 <Space>
                     <Button
                         type="primary"
-                        onClick={() =>
+                        onClick={() => {
                             handleSearch(
                                 selectedKeys as string[],
                                 confirm,
                                 dataIndex
-                            )
-                        }
+                            );
+                            setActiveFilterColumn(null);
+                        }}
                         icon={<SearchOutlined />}
                         size="small"
                         style={{ width: 90 }}
@@ -92,9 +103,10 @@ const CalendarManage: React.FC = () => {
                         Search
                     </Button>
                     <Button
-                        onClick={() =>
-                            clearFilters && handleReset(clearFilters)
-                        }
+                        onClick={() => {
+                            clearFilters && handleReset(clearFilters);
+                            setActiveFilterColumn(null);
+                        }}
                         size="small"
                         style={{ width: 90 }}
                     >
@@ -105,41 +117,41 @@ const CalendarManage: React.FC = () => {
                         size="small"
                         onClick={() => {
                             close();
+                            setActiveFilterColumn(null);
                         }}
                     >
-                        close
+                        Close
                     </Button>
                 </Space>
             </div>
         ),
-        filterIcon: (filtered: boolean) => (
-            <SearchOutlined
-                style={{ color: filtered ? "#1677ff" : undefined }}
-            />
-        ),
-        onFilter: (value, record: any) =>
-            record[dataIndex]?.title
-                ?.toString()
-                .toLowerCase()
-                .includes((value as string).toLowerCase()),
+        filterIcon: () => {
+            // Kiểm tra xem cột hiện tại có phải là cột đang mở filter không
+            if (activeFilterColumn === dataIndex) {
+                return <SearchOutlined style={{ color: "#1677ff" }} />;
+            }
+            return activeFilterColumn ? null : <SearchOutlined />;
+        },
+        onFilter: (value, record: any) => {
+            const recordValue = record[dataIndex];
+            if (!recordValue) return false;
+
+            const normalizedRecord = removeAccents(recordValue.toString());
+            const normalizedValue = removeAccents(value as string);
+
+            return normalizedRecord.includes(normalizedValue);
+        },
         filterDropdownProps: {
-            onOpenChange(open) {
+            onOpenChange: (open) => {
                 if (open) {
+                    setActiveFilterColumn(dataIndex);
                     setTimeout(() => searchInput.current?.select(), 100);
+                } else {
+                    setActiveFilterColumn(null);
                 }
             },
         },
-        render: (text) =>
-            searchedColumn === dataIndex ? (
-                <Highlighter
-                    highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-                    searchWords={[searchText]}
-                    autoEscape
-                    textToHighlight={text ? text.toString() : ""}
-                />
-            ) : (
-                text
-            ),
+        render: (text) => (searchedColumn === dataIndex ? text : text),
     });
 
     const { data, isLoading } = useQuery({

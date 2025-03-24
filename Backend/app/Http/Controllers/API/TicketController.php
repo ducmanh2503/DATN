@@ -21,6 +21,7 @@ use App\Models\RoomType;
 use App\Models\Combo;
 use App\Models\ShowTime;
 use App\Models\CalendarShow;
+use App\Models\DiscountCode;
 use App\Models\Movie;
 use App\Models\Movies;
 use App\Models\User;
@@ -455,6 +456,7 @@ class TicketController extends Controller
             'is_payment_completed' => 'sometimes|boolean',
             'user_id' => 'required|exists:users,id',
             'usedPoints' => 'nullable|integer|min:0',
+            'discount_code' => 'nullable|string',
         ]);
 
         if (empty($request->seat_ids) || !is_array($request->seat_ids)) {
@@ -519,10 +521,10 @@ class TicketController extends Controller
         }
 
         // Xử lý mã khuyến mại
-        $discountCode = $request->input('name_code');
+        $discountCode = $request->input('discount_code');
         $discountCodeId = null;
         if ($discountCode) {
-            $discount = \App\Models\DiscountCode::where('name_code', $discountCode)
+            $discount = DiscountCode::where('name_code', $discountCode)
                 ->where('status', 'active')
                 ->where('quantity', '>', 0)
                 ->where('start_date', '<=', now())
@@ -544,7 +546,6 @@ class TicketController extends Controller
             'total_price_voucher' => $request->total_price_voucher,
             'total_price_before_discount' => $request->total_ticket_price + $request->total_combo_price,
             'point_discount' => $usedPoints * 1000, // Giả sử 1 điểm = 1000 VNĐ
-            'discount_amount' => 0, // FE không gửi discount_amount, có thể cần thêm nếu FE cung cấp
             'discount_code_id' => $discountCodeId,
             'discount_code' => $discountCode,
             'total_price' => $request->totalPrice, // Sử dụng totalPrice từ FE
@@ -587,7 +588,7 @@ class TicketController extends Controller
 
             // Trừ quantity của discount_code nếu có
             if ($discountCodeId) {
-                $discount = \App\Models\DiscountCode::find($discountCodeId);
+                $discount = DiscountCode::find($discountCodeId);
                 if ($discount) {
                     $discount->quantity -= 1;
                     $discount->save();

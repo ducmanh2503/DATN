@@ -42,11 +42,12 @@ class ComboController extends Controller
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
 
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('images', 'public');
+            // Xử lý upload ảnh giống MoviesController
+            if (isset($validated['image']) && $validated['image'] instanceof \Illuminate\Http\UploadedFile) {
+                $imagePath = $validated['image']->store('images', 'public');
                 $validated['image'] = Storage::url($imagePath);
             } else {
-                throw new \Exception('No image file received');
+                throw new \Exception('No valid image file received');
             }
 
             $combo = Combo::create($validated);
@@ -93,11 +94,13 @@ class ComboController extends Controller
                 'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
 
-            if ($request->hasFile('image')) {
+            // Xử lý upload ảnh giống MoviesController
+            if (isset($validated['image']) && $validated['image'] instanceof \Illuminate\Http\UploadedFile) {
+                // Xóa ảnh cũ nếu tồn tại
                 if ($combo->image && Storage::disk('public')->exists(str_replace('/storage/', '', $combo->image))) {
                     Storage::disk('public')->delete(str_replace('/storage/', '', $combo->image));
                 }
-                $imagePath = $request->file('image')->store('images', 'public');
+                $imagePath = $validated['image']->store('images', 'public');
                 $validated['image'] = Storage::url($imagePath);
             }
 

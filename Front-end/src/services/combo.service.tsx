@@ -1,17 +1,14 @@
 import axios from "axios";
 import {
   Combo,
-  ComboCreateRequest,
   ComboCreateResponse,
-  ComboUpdateRequest,
   ComboUpdateResponse,
   ComboListResponse,
-  ComboDeleteResponse,
-  ComboRestoreResponse,
   ApiError,
 } from "../types/combo.types";
 
 const BASE_URL = "http://localhost:8000/api";
+export const URL_IMAGE = "http://localhost:8000"; // Export URL_IMAGE
 
 const ENDPOINTS = {
   GET_COMBOS: `${BASE_URL}/combo`,
@@ -19,10 +16,11 @@ const ENDPOINTS = {
   CREATE_COMBO: `${BASE_URL}/combo`,
   UPDATE_COMBO: (id: string | number) => `${BASE_URL}/combo/${id}`,
   DELETE_COMBO: (id: string | number) => `${BASE_URL}/combo/${id}`,
-  DELETE_MULTIPLE: `${BASE_URL}/combo`,
+  DELETE_MULTIPLE_COMBOS: `${BASE_URL}/combo`,
   RESTORE_COMBO: (id: string | number) => `${BASE_URL}/combo/restore/${id}`,
+  RESTORE_MULTIPLE_COMBOS: `${BASE_URL}/combo/multiple/restore`,
   FORCE_DELETE: (id: string | number) => `${BASE_URL}/combo/force/${id}`,
-  RESTORE_MULTIPLE: `${BASE_URL}/combo/multiple/restore`,
+  FORCE_DELETE_MULTIPLE: `${BASE_URL}/combos/force-delete-multiple`,
 };
 
 const normalizeId = (id: string | number): string => String(id);
@@ -112,8 +110,8 @@ export const updateCombo = async (
 ): Promise<ComboUpdateResponse> => {
   const comboId = normalizeId(id);
   try {
-    const response = await axios.put<ComboUpdateResponse>(
-      ENDPOINTS.UPDATE_COMBO(comboId),
+    const response = await axios.post<ComboUpdateResponse>(
+      `${ENDPOINTS.UPDATE_COMBO(comboId)}?_method=PUT`,
       data,
       {
         headers: {
@@ -134,20 +132,14 @@ export const updateCombo = async (
   }
 };
 
-export const deleteCombo = async (
-  id: string | number
-): Promise<ComboDeleteResponse> => {
+export const deleteCombo = async (id: string | number): Promise<void> => {
   const comboId = normalizeId(id);
   try {
-    const response = await axios.delete<ComboDeleteResponse>(
-      ENDPOINTS.DELETE_COMBO(comboId),
-      {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
-    return response.data;
+    await axios.delete(ENDPOINTS.DELETE_COMBO(comboId), {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
   } catch (error) {
     throw handleApiError(error);
   }
@@ -155,38 +147,27 @@ export const deleteCombo = async (
 
 export const deleteMultipleCombos = async (
   ids: (string | number)[]
-): Promise<ComboDeleteResponse> => {
+): Promise<void> => {
   try {
-    const response = await axios.delete<ComboDeleteResponse>(
-      ENDPOINTS.DELETE_MULTIPLE,
-      {
-        data: { ids },
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
-    return response.data;
+    await axios.delete(ENDPOINTS.DELETE_MULTIPLE_COMBOS, {
+      data: { ids },
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-export const restoreCombo = async (
-  id: string | number
-): Promise<ComboRestoreResponse> => {
+export const restoreCombo = async (id: string | number): Promise<void> => {
   const comboId = normalizeId(id);
   try {
-    const response = await axios.post<ComboRestoreResponse>(
-      ENDPOINTS.RESTORE_COMBO(comboId),
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
-    return response.data;
+    await axios.post(ENDPOINTS.RESTORE_COMBO(comboId), null, {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
   } catch (error) {
     throw handleApiError(error);
   }
@@ -194,10 +175,10 @@ export const restoreCombo = async (
 
 export const restoreMultipleCombos = async (
   ids: (string | number)[]
-): Promise<ComboRestoreResponse> => {
+): Promise<void> => {
   try {
-    const response = await axios.post<ComboRestoreResponse>(
-      ENDPOINTS.RESTORE_MULTIPLE,
+    await axios.post(
+      ENDPOINTS.RESTORE_MULTIPLE_COMBOS,
       { ids },
       {
         headers: {
@@ -205,7 +186,6 @@ export const restoreMultipleCombos = async (
         },
       }
     );
-    return response.data;
   } catch (error) {
     throw handleApiError(error);
   }
@@ -213,18 +193,29 @@ export const restoreMultipleCombos = async (
 
 export const permanentDeleteCombo = async (
   id: string | number
-): Promise<ComboDeleteResponse> => {
+): Promise<void> => {
   const comboId = normalizeId(id);
   try {
-    const response = await axios.delete<ComboDeleteResponse>(
-      ENDPOINTS.FORCE_DELETE(comboId),
-      {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
-    return response.data;
+    await axios.delete(ENDPOINTS.FORCE_DELETE(comboId), {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+export const forceDeleteMultipleCombos = async (
+  ids: (string | number)[]
+): Promise<void> => {
+  try {
+    await axios.delete(ENDPOINTS.FORCE_DELETE_MULTIPLE, {
+      data: { ids },
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
   } catch (error) {
     throw handleApiError(error);
   }
@@ -232,7 +223,7 @@ export const permanentDeleteCombo = async (
 
 export default {
   getCombos,
-  getCombo, // THÊM VÀO ĐÂY
+  getCombo,
   createCombo,
   updateCombo,
   deleteCombo,
@@ -240,4 +231,5 @@ export default {
   restoreCombo,
   restoreMultipleCombos,
   permanentDeleteCombo,
+  forceDeleteMultipleCombos,
 };

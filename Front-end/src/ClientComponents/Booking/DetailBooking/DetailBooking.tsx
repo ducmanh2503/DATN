@@ -41,10 +41,9 @@ const DetailBooking = ({
   const currentYear = dayjs().year();
 
   const onOk = async () => {
-    // paymentTicket();
     vnpay.mutate(undefined, {
       onSuccess: (data: any) => {
-        window.location.href = data; // Chuyển hướng đến link VNPay
+        window.location.href = data;
       },
     });
     setOpen(false);
@@ -56,41 +55,12 @@ const DetailBooking = ({
   };
 
   const handleClick = () => {
-    setIsSelected(!isSelected); // Toggle trạng thái chọn
+    setIsSelected(!isSelected);
   };
 
-  // const { mutate: paymentTicket } = useMutation({
-  //     mutationFn: async () => {
-  //         const detailTicket = {
-  //             movie_id: filmId,
-  //             showtime_id: showtimeIdFromBooking,
-  //             calendar_show_id: calendarShowtimeID,
-  //             seat_ids: selectedSeatIds,
-  //             combo_ids: holdComboID,
-  //             pricing: {
-  //                 total_ticket_price: totalSeatPrice,
-  //                 total_combo_price: totalComboPrice,
-  //                 total_price: totalPrice,
-  //             },
-  //             payment_method: paymentType,
-  //         };
-  //         console.log(detailTicket);
-
-  //         await axios.post(
-  //             `http://localhost:8000/api/ticket-details`,
-  //             detailTicket,
-  //             {
-  //                 headers: {
-  //                     Authorization: `Bearer ${tokenUserId}`,
-  //                 },
-  //             }
-  //         );
-  //     },
-  // });
-
-  //thanh toán nếu bằng VNPay
   const vnpay = useMutation({
     mutationFn: async () => {
+      console.log("discount_code:", promoCode);
       const { data } = await axios.post(
         PAYMENT_WITH_VNPAY,
         {
@@ -105,6 +75,7 @@ const DetailBooking = ({
           seat_ids: selectedSeatIds,
           combo_ids: holdComboID,
           usedPoints: usedPoints,
+          discount_code: promoCode ?? "", // Đảm bảo không gửi undefined
         },
         {
           headers: {
@@ -112,11 +83,10 @@ const DetailBooking = ({
           },
         }
       );
-      // console.log(data.data);
-
       return data.data;
     },
   });
+
   return (
     <Modal
       centered
@@ -128,7 +98,7 @@ const DetailBooking = ({
       cancelButtonProps={{ style: { display: "none" } }}
       okButtonProps={{
         className: clsx(styles.customOkButton),
-        disabled: !isSelected, // Chỉ cho phép bấm nếu đã chọn
+        disabled: !isSelected,
       }}
       width={385}
     >
@@ -201,4 +171,5 @@ const DetailBooking = ({
     </Modal>
   );
 };
+
 export default DetailBooking;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
 use App\Models\Combo;
+use App\Models\DiscountCode;
 use App\Models\Seat;
 use App\Models\SeatTypePrice;
 use App\Models\ShowTime;
@@ -47,6 +48,7 @@ class PaymentController extends Controller
             'combo_ids' => 'nullable|array',
             'combo_ids.*' => 'exists:combos,id',
             'usedPoints' => 'nullable|integer|min:0',
+            'discount_code' => 'nullable|string',
         ]);
 
         $bookingData = $request->all();
@@ -62,6 +64,26 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Số điểm sử dụng vượt quá điểm tích lũy'], 400);
         }
 
+        // Xử lý mã khuyến mại
+        $discountCode = $request->input('discount_code');
+        $discountCodeId = null;
+        if ($discountCode) {
+            $discount = DiscountCode::where('name_code', $discountCode)
+                ->where('status', 'active')
+                ->where('quantity', '>', 0)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->first();
+
+            if (!$discount) {
+                return response()->json(['message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn'], 400);
+            }
+
+            $discountCodeId = $discount->id;
+            $discount->quantity -= 1;
+            $discount->save();
+        }
+
         // Lấy dữ liệu pricing từ request (không tính lại)
         $pricing = [
             'total_ticket_price' => $request->total_ticket_price,
@@ -70,6 +92,8 @@ class PaymentController extends Controller
             'total_price_point' => $request->total_price_point,
             'total_price_voucher' => $request->total_price_voucher,
             'point_discount' => $usedPoints * 1000, // Giả sử 1 điểm = 1000 VNĐ
+            'discount_code_id' => $discountCodeId,
+            'discount_code' => $discountCode,
             'total_price' => $request->totalPrice, // Sử dụng totalPrice từ FE
             'used_points' => $usedPoints,
         ];

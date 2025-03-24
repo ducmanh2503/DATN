@@ -21,6 +21,7 @@ use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
+use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\TicketController;
 use App\Http\Controllers\API\UserController;
 use Illuminate\Http\Request;
@@ -68,6 +69,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Chỉ admin mới truy cập được
     Route::middleware(['role:admin'])->group(function () {
+        // Thống kê
+        Route::get('/statistics', [StatisticsController::class, 'index']);
         // Movies
         Route::apiResource('movies', MoviesController::class);
         Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);

@@ -67,11 +67,13 @@ class PaymentController extends Controller
 
         // Tính giá combo từ DB
         $totalComboPrice = 0;
-        if (!empty($request->combo_id)) {
-            $comboQuantities = collect($request->combo_id)->groupBy(fn($id) => $id);
+        if (!empty($request->combo_ids)) {
+            $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
             $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
+            Log::info("Combos fetched: " . json_encode($combos));
             $totalComboPrice = $combos->sum(function ($combo) use ($comboQuantities) {
                 $quantity = $comboQuantities[$combo->id]->count();
+                Log::info("Combo ID: {$combo->id}, Price: {$combo->price}, Quantity: {$quantity}");
                 return $combo->price * $quantity;
             });
         }

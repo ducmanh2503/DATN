@@ -60,7 +60,6 @@ const SiderAdmin = () => {
     ]),
     getItem("Quản lý người dùng", "sub9", <TeamOutlined />, [
       getItem(<Link to="users">Danh sách người dùng</Link>, "sub9-1"),
-      getItem(<Link to="userpage/useradd">Thêm người dùng</Link>, "sub9-2"),
     ]),
     getItem("Quản lý đạo diễn", "sub10", <BarChartOutlined />, [
       getItem(<Link to="directors">Danh sách đạo diễn</Link>, "sub10-1"),

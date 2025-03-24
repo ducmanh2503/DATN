@@ -1,11 +1,10 @@
 import { EditOutlined } from "@ant-design/icons";
 import { Button, Form, Input, message, Modal, Select } from "antd";
-import clsx from "clsx";
 import { useState } from "react";
 import {
     useDetailTicketsPrice,
     useUpdateTicketPrice,
-} from "../../../services/ticketPrice.service";
+} from "../../../services/adminServices/ticketPrice.service";
 
 const EditTicketPrice = ({ id }: any) => {
     const [formTicketPrice] = Form.useForm();

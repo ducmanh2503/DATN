@@ -9,14 +9,15 @@ import {
     TableColumnsType,
     Tag,
 } from "antd";
-import {
-    useDeleteTicketPrice,
-    useTicketsPrice,
-} from "../../../services/ticketPrice.service";
+
 import clsx from "clsx";
 import styles from "./TicketsPrice.module.css";
 import EditTicketPrice from "./EditTicketPrice";
 import AddTicketPrice from "./AddTicketPrice";
+import {
+    useDeleteTicketPrice,
+    useTicketsPrice,
+} from "../../../services/adminServices/ticketPrice.service";
 
 interface TicketsPrice {
     key: React.Key;

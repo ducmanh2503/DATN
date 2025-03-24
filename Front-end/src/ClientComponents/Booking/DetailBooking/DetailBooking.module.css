@@ -182,9 +182,9 @@
 .active::before {
     content: "";
     position: absolute;
-    left: 2px;
-    top: 2px;
-    width: 12px;
+    left: 10%;
+    top: 9%;
+    width: 13px;
     height: 12px;
     background-color: #007bff;
     border-radius: 2px;
@@ -197,6 +197,6 @@
     font-weight: bold;
     position: absolute;
     top: 40%;
-    left: 50%;
+    left: 55%;
     transform: translate(-50%, -50%);
 }

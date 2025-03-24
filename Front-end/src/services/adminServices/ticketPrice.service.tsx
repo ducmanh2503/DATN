@@ -5,7 +5,7 @@ import {
     DETAIL_TICKETPRICE,
     GET_TICKETSPRICE,
     UPDATE_TICKETPRICE,
-} from "../config/ApiConfig";
+} from "../../config/ApiConfig";
 
 // Hàm lấy dữ liệu ticketPrice
 export const useTicketsPrice = () => {

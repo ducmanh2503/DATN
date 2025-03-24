@@ -149,14 +149,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/user-management/search/name', [UserController::class, 'searchByName']);
 
         //Đơn hàng
-
+        Route::get('/order', [OrderController::class, 'index']);
+        Route::get('/order/{bookingId}/order-details', [OrderController::class, 'show']);
     });
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
-Route::get('/order', [OrderController::class, 'index']);
-Route::get('/order/{bookingId}/order-details', [OrderController::class, 'show']);
 
 ///////////////////////////////////////////////customer///////////////////////////////////////////////
 

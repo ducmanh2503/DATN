@@ -162,6 +162,7 @@ Route::get('/order/{bookingId}/order-details', [OrderController::class, 'show'])
 
 //movie, calendar_show, showTime
 Route::get('/movies-index', [MoviesController::class, 'index']);
+Route::get('/movies-details/{movies}', [MoviesController::class, 'show']);
 Route::get('/movies-for-client', [MoviesController::class, 'getMoviesForClient']); // Lấy danh sách phim cho client
 Route::get('/search', [MoviesController::class, 'searchMovies']); // Tìm kiếm phim
 Route::get('/filter', [MoviesController::class, 'filterMovies']); // Lọc phim theo nhiều tiêu chí

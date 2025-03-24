@@ -163,8 +163,10 @@ Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 ///////////////////////////////////////////////customer///////////////////////////////////////////////
 
 //movie, calendar_show, showTime
+Route::get('/movies-ranking', [MoviesController::class, 'moviesRanking']); // Xếp hạng phim
 Route::get('/movies-index', [MoviesController::class, 'index']);
 Route::get('/movies-details/{movies}', [MoviesController::class, 'show']);
+Route::get('/movies/{movieId}/related', [MoviesController::class, 'relatedMovies']); // Phim cùng thể loại
 Route::get('/movies-for-client', [MoviesController::class, 'getMoviesForClient']); // Lấy danh sách phim cho client
 Route::get('/search', [MoviesController::class, 'searchMovies']); // Tìm kiếm phim
 Route::get('/filter', [MoviesController::class, 'filterMovies']); // Lọc phim theo nhiều tiêu chí
@@ -172,6 +174,11 @@ Route::get('/showtimes-client/by-date/{movie_id}/{date}', [ShowTimeController::c
 Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient']);
 Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::class, 'getShowDates']);
 Route::get('/movie-details-booking/{movie}', [MoviesController::class, 'show']);
+
+//bài viết
+Route::get('/articles-client', [ArticleController::class, 'index']);
+Route::get('/articles/{article}/client', [ArticleController::class, 'show']);
+
 
 //combo
 Route::get('/combos', [ComboController::class, 'showCombosForClient']);

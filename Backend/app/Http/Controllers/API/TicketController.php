@@ -199,22 +199,21 @@ class TicketController extends Controller
     {
         // Lưu booking vào bảng bookings
         $booking = Booking::create([
-            'user_id' => $data['user_id'], // Lấy từ dữ liệu (đã lưu từ auth trong createVNPay)
+            'user_id' => $data['user_id'],
             'showtime_id' => $data['showtime_id'],
             'total_ticket_price' => $pricing['total_ticket_price'],
             'total_combo_price' => $pricing['total_combo_price'],
+            'total_price' => $pricing['total_price'], // Thêm total_price
             'discount_code_id' => $pricing['discount_code_id'] ?? null,
             'status' => $status,
             'payment_method' => $data['payment_method'],
         ]);
 
-        $pricePerSeat = $pricing['total_ticket_price'] / count($data['seat_ids']); // Giá trung bình mỗi ghế
+        $pricePerSeat = $pricing['total_ticket_price'] / count($data['seat_ids']);
 
-        // Lấy thông tin phòng để phát sự kiện
         $showTime = ShowTime::find($data['showtime_id']);
         $roomId = $showTime->room_id;
 
-        // Lấy show_date từ show_time_date
         $showDate = ShowTimeDate::where('show_time_id', $data['showtime_id'])
             ->value('show_date');
 
@@ -226,12 +225,11 @@ class TicketController extends Controller
             BookingDetail::create([
                 'booking_id' => $booking->id,
                 'seat_id' => $seatId,
-                'price' => $pricePerSeat, // Giá mỗi ghế
-                'combo_ids' => null, // Không có combo cho ghế
+                'price' => $pricePerSeat,
+                'combo_ids' => null,
                 'quantity' => 1,
             ]);
 
-            // Cập nhật trạng thái ghế thành booked
             $showTimeSeat = ShowTimeSeat::where('show_time_id', $data['showtime_id'])
                 ->where('seat_id', $seatId)
                 ->first();
@@ -240,7 +238,6 @@ class TicketController extends Controller
                 $showTimeSeat->seat_status = 'booked';
                 $showTimeSeat->save();
             } else {
-                // Tạo mới nếu chưa tồn tại
                 ShowTimeSeat::create([
                     'show_time_id' => $data['showtime_id'],
                     'seat_id' => $seatId,
@@ -248,23 +245,35 @@ class TicketController extends Controller
                 ]);
             }
 
-            // Xóa cache của ghế (vì đã booked)
             $cacheKey = "seat_{$data['showtime_id']}_{$seatId}";
             if (Cache::has($cacheKey)) {
                 Cache::forget($cacheKey);
             }
         }
 
-        // Lưu thông tin combo
+        // Lưu thông tin combo và giảm quantity
         if (!empty($data['combo_ids'])) {
-            // Log::info('Combo IDs received: ' . json_encode($data['combo_ids']));
             $comboQuantities = collect($data['combo_ids'])->groupBy(fn($id) => $id);
-            // Log::info('Combo Quantities: ' . json_encode($comboQuantities));
             $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
-            // Log::info('Combos fetched: ' . json_encode($combos));
 
             foreach ($combos as $combo) {
                 $quantity = $comboQuantities[$combo->id]->count();
+
+                // Kiểm tra quantity của combo
+                if (!isset($combo->quantity)) {
+                    Log::warning("Combo ID {$combo->id} does not have a quantity column.");
+                    continue;
+                }
+
+                if ($combo->quantity < $quantity) {
+                    throw new \Exception("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}");
+                }
+
+                // Giảm quantity của combo
+                $combo->quantity -= $quantity;
+                $combo->save();
+
+                // Lưu vào booking_details
                 $bookingDetail = BookingDetail::create([
                     'booking_id' => $booking->id,
                     'seat_id' => null,
@@ -272,13 +281,9 @@ class TicketController extends Controller
                     'combo_id' => $combo->id,
                     'quantity' => $quantity,
                 ]);
-                // Log::info('Saved combo: ' . json_encode($bookingDetail));
             }
-        } else {
-            // Log::info('No combo_ids provided');
         }
 
-        // Phát sự kiện ghế đã được đặt
         broadcast(new SeatHeldEvent(
             $data['seat_ids'],
             $data['user_id'],
@@ -287,7 +292,6 @@ class TicketController extends Controller
             'booked'
         ))->toOthers();
 
-        // Vẫn phát sự kiện SeatUpdated để cập nhật toàn bộ ma trận ghế
         $seatingMatrix = $this->getSeatingMatrix($roomId, $data['showtime_id']);
         broadcast(new SeatUpdated($roomId, $data['showtime_id'], $seatingMatrix))->toOthers();
 

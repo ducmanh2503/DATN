@@ -32,8 +32,13 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
+        // Validation: Nhận tất cả dữ liệu từ request
         $request->validate([
             'totalPrice' => 'required|numeric|min:0',
+            'total_combo_price' => 'required|numeric|min:0',
+            'total_ticket_price' => 'required|numeric|min:0',
+            'total_price_point' => 'nullable|numeric|min:0',
+            'total_price_voucher' => 'nullable|numeric|min:0',
             'movie_id' => 'required|exists:movies,id',
             'showtime_id' => 'required|exists:show_times,id',
             'calendar_show_id' => 'required|exists:calendar_show,id',
@@ -41,109 +46,48 @@ class PaymentController extends Controller
             'seat_ids.*' => 'exists:seats,id',
             'combo_ids' => 'nullable|array',
             'combo_ids.*' => 'exists:combos,id',
-            'order_desc' => 'nullable|string',
-            'order_type' => 'nullable|string',
-            'used_points' => 'nullable|integer|min:0',
-            'discount_code' => 'nullable|string', // Client gửi name_code, BE tìm id
+            'usedPoints' => 'nullable|integer|min:0',
         ]);
 
         $bookingData = $request->all();
         $bookingData['payment_method'] = 'VNpay';
-        $bookingData['user_id'] = auth()->id(); // Lấy user_id từ auth
+        $bookingData['user_id'] = auth()->id();
 
-        log::info('Booking Data request: ', $bookingData);
+        Log::info('Booking Data request: ', $bookingData);
 
-        // Lấy ngày chiếu từ ShowTimeDate
-        $showDate = ShowTimeDate::where('show_time_id', $request->showtime_id)
-            ->value('show_date');
-
-        // Tính giá ghế từ DB
-        $seats = Seat::whereIn('id', $request->seat_ids)
-            ->with('seatType')
-            ->get();
-        $totalTicketPrice = $seats->sum(function ($seat) use ($showDate) {
-            return SeatTypePrice::getPriceByDate($seat->seat_type_id, $showDate) ?? $seat->seatType->price ?? 0;
-        });
-
-        // Tính giá combo từ DB
-        $totalComboPrice = 0;
-        if (!empty($request->combo_ids)) {
-            $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
-            $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
-            Log::info("Combos fetched: " . json_encode($combos));
-            $totalComboPrice = $combos->sum(function ($combo) use ($comboQuantities) {
-                $quantity = $comboQuantities[$combo->id]->count();
-                Log::info("Combo ID: {$combo->id}, Price: {$combo->price}, Quantity: {$quantity}");
-                return $combo->price * $quantity;
-            });
-        }
-
-        $usedPoints = $request->input('used_points', 0);
-        $pointDiscount = $usedPoints * 1000;
+        // Kiểm tra usedPoints
+        $usedPoints = $request->input('usedPoints', 0);
         $userData = $this->userRankService->getRankAndPoints(auth()->id());
         if ($usedPoints > $userData['points']) {
             return response()->json(['message' => 'Số điểm sử dụng vượt quá điểm tích lũy'], 400);
         }
-        $totalPriceBeforeDiscount = $totalTicketPrice + $totalComboPrice;
 
-        //xử lý mã khuyến mại
-        $discountCode = $request->input('discount_code');
-        $discountAmount = 0;
-        $discountCodeId = null;
-
-        if ($discountCode) {
-            $discount = \App\Models\DiscountCode::where('name_code', $discountCode)
-                ->where('status', 'active')
-                ->where('quantity', '>', 0)
-                ->where('start_date', '<=', now())
-                ->where('end_date', '>=', now())
-                ->first();
-
-            if (!$discount) {
-                return response()->json(['message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn'], 400);
-            }
-
-            $discountAmount = $totalPriceBeforeDiscount * ($discount->percent / 100);
-            $discountCodeId = $discount->id; // Lưu ID thay vì name_code
-
-            $discount->quantity -= 1;
-            $discount->save();
-        }
-
-        // Tổng giá thực tế từ DB
-        $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount - $discountAmount);
-
-        // Ghi dữ liệu giá vào bookingData
-        $bookingData['pricing'] = [
-            'total_ticket_price' => $totalTicketPrice,
-            'total_combo_price' => $totalComboPrice,
-            'total_price_before_discount' => $totalPriceBeforeDiscount,
-            'point_discount' => $pointDiscount,
-            'discount_amount' => $discountAmount,
-            'discount_code_id' => $discountCodeId, // Lưu discount_code_id
-            'discount_code' => $discountCode, // Giữ name_code để hiển thị
-            'total_price' => $totalPrice,
+        // Lấy dữ liệu pricing từ request (không tính lại)
+        $pricing = [
+            'total_ticket_price' => $request->total_ticket_price,
+            'total_combo_price' => $request->total_combo_price,
+            'total_price_before_discount' => $request->total_ticket_price + $request->total_combo_price, // Tổng trước giảm giá
+            'total_price_point' => $request->total_price_point,
+            'total_price_voucher' => $request->total_price_voucher,
+            'point_discount' => $usedPoints * 1000, // Giả sử 1 điểm = 1000 VNĐ
+            'total_price' => $request->totalPrice, // Sử dụng totalPrice từ FE
             'used_points' => $usedPoints,
         ];
-        log::info('Booking Data: ', $bookingData);
 
-        // So sánh với totalPrice từ request (nếu cần kiểm tra)
-        if ($request->totalPrice != $totalPrice) {
-            Log::warning('Total price mismatch: Request = ' . $request->totalPrice . ', Calculated = ' . $totalPrice);
-            // Có thể trả về lỗi nếu cần:
-            // return response()->json(['message' => 'Total price mismatch'], 400);
-        }
+        // Ghi dữ liệu giá vào bookingData
+        $bookingData['pricing'] = $pricing;
+        Log::info('Booking Data: ', $bookingData);
 
         $vnp_TxnRef = time() . "";
-        Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData)); // Lưu trong Redis 1 giờ
+        Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData));
 
         $vnp_Url = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
         $vnp_Returnurl = env('VNP_RETURN_URL', 'http://localhost:8000/api/VNPay/return');
         $vnp_TmnCode = env('VNP_TMN_CODE', 'GXTS9J8E');
         $vnp_HashSecret = env('VNP_HASH_SECRET', 'Y7EVYR6BH7GXOWUSYIFLWW9JHZV5DK7E');
 
-        $vnp_OrderInfo = $request->input('order_desc', 'Thanh toán vé xem phim');
-        $vnp_OrderType = $request->input('order_type', '0');
+        $vnp_OrderInfo = 'Thanh toán vé xem phim';
+        $vnp_OrderType = '0';
         $vnp_Amount = $request->input('totalPrice') * 100;
         $vnp_Locale = 'vn';
         $vnp_BankCode = 'NCB';

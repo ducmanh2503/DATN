@@ -92,6 +92,8 @@ class BookingConfirmation extends Mailable
         <p><strong>Combo:</strong> {$combos}</p>
         <p><strong>Tổng giá vé:</strong> {$this->ticketDetails['pricing']['total_ticket_price']} VNĐ</p>
         <p><strong>Tổng giá combo:</strong> {$this->ticketDetails['pricing']['total_combo_price']} VNĐ</p>
+        <p><strong>Ưu đãi từ voucher:</strong> - {$this->ticketDetails['pricing']['total_price_voucher']} VNĐ</p>
+        <p><strong>Ưu đãi từ đổi stars:</strong> - {$this->ticketDetails['pricing']['total_price_point']} VNĐ</p>
         <p><strong>Tổng cộng:</strong> {$this->ticketDetails['pricing']['total_price']} VNĐ</p>
         <p><strong>Phương thức thanh toán:</strong> {$this->ticketDetails['payment_method']}</p>
         <p><strong>Mã đặt vé:</strong> {$this->booking->id}</p>

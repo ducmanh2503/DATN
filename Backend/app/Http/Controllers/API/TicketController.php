@@ -546,6 +546,7 @@ class TicketController extends Controller
             $discountCodeId = $discount->id;
         }
         $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount - $discountAmount);
+        Log::info("Total Ticket Price: $totalTicketPrice, Total Combo Price: $totalComboPrice, Total Before Discount: $totalPriceBeforeDiscount, Point Discount: $pointDiscount, Discount Amount: $discountAmount, Total Price: $totalPrice");
 
         // $totalPrice = $totalTicketPrice + $totalComboPrice;
         $pricing = [

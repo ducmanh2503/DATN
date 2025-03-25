@@ -39,3 +39,23 @@ a {
     text-overflow: ellipsis;
     white-space: normal;
 }
+
+/* Căn giữa tất cả số trong dropdown của DatePicker */
+.ant-picker-dropdown .ant-picker-cell-inner {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 10px;
+}
+
+/* Đảm bảo số trong time picker (nếu có) cũng căn giữa */
+.ant-picker-time-panel-cell-inner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Bỏ hover tất cả hàng ngang trong DatePicker */
+.ant-picker-dropdown .ant-picker-cell:hover .ant-picker-cell-inner {
+    background-color: #73777b !important;
+}

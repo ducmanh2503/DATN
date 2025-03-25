@@ -1,6 +1,7 @@
 export interface FormData {
     title: string;
     trailer: string;
+    movie: any;
     name_director: number[];
     name_actor: number[];
     movie_status: string;
@@ -25,6 +26,7 @@ export interface DataTypeGenresActorsDirectors {
     name_director: string;
     movie: string;
     title: string;
+    movieTitle: string;
 }
 
 export interface SelectFormProps {

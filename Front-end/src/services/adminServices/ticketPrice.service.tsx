@@ -41,11 +41,6 @@ export const useDeleteTicketPrice = (messageApi: any) => {
             });
             messageApi.success("Xóa vé thành công");
         },
-        // onError: (error: any) => {
-        //     const errorMessage =
-        //         JSON.parse(error.request.responseText) || "Có lỗi xảy ra";
-        //     messageApi.error(errorMessage);
-        // },
         onError: () => {
             messageApi.error("Không thể xóa vé");
         },
@@ -78,11 +73,7 @@ export const useUpdateTicketPrice = (messageApi: any) => {
             });
             messageApi.success("Xóa vé thành công");
         },
-        // onError: (error: any) => {
-        //     const errorMessage =
-        //         JSON.parse(error.request.responseText) || "Có lỗi xảy ra";
-        //     messageApi.error(errorMessage);
-        // },
+
         onError: () => {
             messageApi.error("không thể xóa vé");
         },

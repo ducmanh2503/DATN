@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     Button,
     Col,
@@ -11,13 +10,7 @@ import {
     Select,
     Space,
 } from "antd";
-import axios from "axios";
-import {
-    CREATE_FILM,
-    GET_ACTOR_LIST,
-    GET_DIRECTORS_LIST,
-    GET_GENRES,
-} from "../../../config/ApiConfig";
+import { GET_ACTOR_LIST, GET_GENRES } from "../../../config/ApiConfig";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { FormData } from "../../../types/interface";
@@ -26,15 +19,15 @@ import SelectForm from "./SelectForm";
 import ListNameFilms from "./ListNameFilms";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
+import { useDirectorsManage } from "../../../services/adminServices/directorManage.service";
+import { useAdminContext } from "../../../AdminComponents/UseContextAdmin/adminContext";
+import { useCreateFilm } from "../../../services/adminServices/filmManage.service";
 
 const AddFilm = () => {
     const [messageApi, contextHolder] = message.useMessage();
-    const queryClient = useQueryClient();
     const [form] = Form.useForm();
     const [selectedFile, setSelectedFile] = useState<File | undefined>();
     const [preview, setPreview] = useState<string>();
-    const [name_actors, setName_actors] = useState([]);
-    const [name_directors, setName_directors] = useState([]);
 
     const onFinish = (formData: FormData) => {
         const newForm = {
@@ -53,55 +46,26 @@ const AddFilm = () => {
             description: formData.description,
             director_id: formData.name_director[0],
         };
-        mutate(newForm);
+        createFilm(newForm);
         form.resetFields();
     };
 
-    const { data: dataDirectors, refetch: refetchDataDirectors } = useQuery({
-        queryKey: ["Directors"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_DIRECTORS_LIST);
-            console.log("check-2", data);
-
-            return data.map((item: any) => ({
-                label: item.name_director,
-                value: item.id,
-            }));
-        },
-        staleTime: 1000 * 60 * 20,
-    });
+    const { refetch: refetchDataDirectors } = useDirectorsManage(); // api lấy danh sách đạo diễn
+    const { directors } = useAdminContext();
+    useEffect(() => {
+        refetchDataDirectors();
+    }, []);
 
     const handleChangeSelect = (value: string[], fieldName: string) => {
         form.setFieldsValue({ [fieldName]: value });
     };
 
-    useEffect(() => {
-        refetchDataDirectors();
-    }, []);
-
-    const { mutate } = useMutation({
-        mutationFn: async (formData: FormData) => {
-            await axios.post(`${CREATE_FILM}`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-        },
-        onSuccess: () => {
-            form.resetFields();
-            messageApi.success("Thêm thành công");
-            setSelectedFile(undefined);
-            setPreview(undefined);
-            queryClient.invalidateQueries({
-                queryKey: ["filmList"],
-            });
-        },
-        onError: (error: any) => {
-            messageApi.error(
-                error?.response?.data?.message || "Có lỗi xảy ra!"
-            );
-        },
-    });
+    const { mutate: createFilm } = useCreateFilm({
+        form,
+        messageApi,
+        setSelectedFile,
+        setPreview,
+    }); // thêm mới film
 
     useEffect(() => {
         if (!selectedFile) {
@@ -289,7 +253,7 @@ const AddFilm = () => {
                                             "name_director"
                                         )
                                     }
-                                    options={dataDirectors}
+                                    options={directors}
                                 />
                             </Form.Item>
                         </Col>
@@ -370,21 +334,6 @@ const AddFilm = () => {
                         </Col>
                     </Row>
                     <Row gutter={16}>
-                        {/* <Col span={12}>
-                            <Form.Item
-                                className={clsx(styles.inputLabel)}
-                                label="ID"
-                                name="genre_id"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: "Vui lòng nhập ID sản phẩm",
-                                    },
-                                ]}
-                            >
-                                <Input placeholder="Nhập ID sản phẩm" />
-                            </Form.Item>
-                        </Col> */}
                         <Col span={12}>
                             <Form.Item
                                 className={clsx(styles.inputLabel)}
@@ -416,7 +365,10 @@ const AddFilm = () => {
                                 name="description"
                                 label="Description:"
                             >
-                                <Input.TextArea rows={4} />
+                                <Input.TextArea
+                                    rows={4}
+                                    style={{ width: "100%" }}
+                                />
                             </Form.Item>
                         </Col>
                     </Row>

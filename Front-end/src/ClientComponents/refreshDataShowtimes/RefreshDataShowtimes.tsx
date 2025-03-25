@@ -23,14 +23,22 @@ const useShowtimeData = () => {
         setQuantitySeats,
         selectedSeatIds,
         setSelectedSeatIds,
+        setSeatRoomPrice,
     } = useSeatsContext();
     const { setTotalPrice } = useFinalPriceContext();
     const { setCurrentStep } = useStepsContext();
-    const { roomIdFromShowtimes, showtimeIdFromBooking, setShowtimesDate } =
-        useFilmContext();
+    const {
+        roomIdFromShowtimes,
+        showtimeIdFromBooking,
+        setShowtimeIdFromBooking,
+    } = useFilmContext();
     const { tokenUserId } = useAuthContext();
-    const { setQuantityPromotion, setTotalPricePoint, setUsedPoints } =
-        usePromotionContextContext();
+    const {
+        setQuantityPromotion,
+        setTotalPricePoint,
+        setUsedPoints,
+        setTotalPriceVoucher,
+    } = usePromotionContextContext();
 
     // Hàm reset dữ liệu
     const resetDataShowtimes = () => {
@@ -49,6 +57,9 @@ const useShowtimeData = () => {
         setQuantityPromotion(0);
         setUsedPoints(0);
         setTotalPricePoint(0);
+        setTotalPriceVoucher(0);
+        setShowtimeIdFromBooking(null);
+        setSeatRoomPrice(0);
     };
 
     //giải phóng ghế

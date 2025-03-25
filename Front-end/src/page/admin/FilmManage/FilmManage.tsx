@@ -18,29 +18,30 @@ import {
     Tag,
 } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
-import axios from "axios";
-import { DELETE_FILM, GET_FILM_LIST } from "../../../config/ApiConfig";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DetailFilm from "../FilmManage/DetailFilm";
 import EditFilm from "../FilmManage/EditFilm";
 import { FormData } from "../../../types/interface";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
+import {
+    useDeleteFilm,
+    useFilmManage,
+} from "../../../services/adminServices/filmManage.service";
 
 type DataIndex = keyof FormData;
 
 const FilmManage: React.FC = () => {
     const [searchText, setSearchText] = useState("");
     const [searchedColumn, setSearchedColumn] = useState("");
-    const searchInput = useRef<InputRef>(null);
     const [messageApi, holderMessageApi] = message.useMessage();
-    const queryClient = useQueryClient();
     const [activeFilterColumn, setActiveFilterColumn] =
         useState<DataIndex | null>(null); // kiểm tra xem có dùng filter không
-
     const [selectionType, setSelectionType] = useState<"checkbox" | "radio">(
         "checkbox"
     );
+    const searchInput = useRef<InputRef>(null);
+    const { data: films, isLoading, isError } = useFilmManage();
+    const deleteFilm = useDeleteFilm(messageApi);
 
     const handleSearch = (
         selectedKeys: string[],
@@ -362,43 +363,11 @@ const FilmManage: React.FC = () => {
         ],
         [renderDetailFilm]
     );
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ["filmList"],
-        queryFn: async () => {
-            const { data } = await axios.get(`${GET_FILM_LIST}`);
-            console.log(data.movies);
 
-            return data.movies.map((item: any) => ({
-                ...item,
-                key: item.id,
-            }));
-        },
-        staleTime: 1000 * 60 * 10,
-    });
-
-    const dataSource = React.useMemo(() => data, [data]);
-
-    const { mutate } = useMutation({
-        mutationFn: async (id: number) => {
-            console.log(id);
-            console.log(DELETE_FILM(id));
-            await axios.delete(DELETE_FILM(id));
-        },
-        onSuccess: () => {
-            messageApi.success("Xóa phim thành công");
-            queryClient.invalidateQueries({
-                queryKey: ["filmList"],
-            });
-        },
-        onError: (error: any) => {
-            messageApi.error(
-                error?.response?.data?.message || "Có lỗi xảy ra!"
-            );
-        },
-    });
+    const dataSource = React.useMemo(() => films, [films]);
 
     const handleDelete = (id: number) => {
-        mutate(id);
+        deleteFilm.mutate(id);
     };
 
     return (

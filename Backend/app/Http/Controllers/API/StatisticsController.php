@@ -9,10 +9,12 @@ use App\Models\User;
 use App\Models\Movie;
 use App\Models\Showtime;
 use App\Models\CalendarShow;
+use App\Exports\StatsByDateRangeExport;
 use App\Models\Movies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StatisticsController extends Controller
 {
@@ -467,5 +469,25 @@ class StatisticsController extends Controller
                 ],
             ],
         ]);
+    }
+
+    public function exportStatsByDateRange(Request $request)
+    {
+        // Lấy dữ liệu từ hàm statsByDateRange
+        $statsResponse = $this->statsByDateRange($request);
+
+        // Kiểm tra nếu có lỗi (ví dụ: thiếu start_date hoặc end_date)
+        if ($statsResponse->getStatusCode() !== 200) {
+            return $statsResponse; // Trả về lỗi nếu có
+        }
+
+        $data = $statsResponse->getData(true)['data'];
+        $startDate = $request->input('start_date', Carbon::now()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        // Định dạng tên file
+        $fileName = 'stats_by_date_range_' . Carbon::parse($startDate)->format('Ymd') . '_to_' . Carbon::parse($endDate)->format('Ymd') . '.xlsx';
+
+        return Excel::download(new StatsByDateRangeExport($startDate, $endDate, $data), $fileName);
     }
 }

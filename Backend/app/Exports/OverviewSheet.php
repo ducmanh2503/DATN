@@ -17,19 +17,19 @@ class OverviewSheet implements FromArray, WithTitle
     public function array(): array
     {
         return [
-            ['Overview Statistics'],
+            ['Thống kê tổng quan'], // Thay "Overview Statistics" thành tiếng Việt
             [],
-            ['Daily Revenue', $this->overview['daily_revenue']['value']],
-            ['Period', $this->overview['daily_revenue']['period']],
-            ['New Customers', $this->overview['new_customers']],
-            ['Total Tickets Sold', $this->overview['total_tickets_sold']],
-            ['Monthly Revenue', $this->overview['monthly_revenue']['value']],
-            ['Period', $this->overview['monthly_revenue']['period']],
+            ['Doanh thu trong khoảng', $this->overview['daily_revenue']['value']],
+            ['Thời gian', $this->overview['daily_revenue']['period']],
+            ['Khách hàng mới', $this->overview['new_customers']],
+            ['Tổng vé bán ra', $this->overview['total_tickets_sold']],
+            ['Doanh thu từ đầu tháng', $this->overview['monthly_revenue']['value']],
+            ['Thời gian', $this->overview['monthly_revenue']['period']],
         ];
     }
 
     public function title(): string
     {
-        return 'Overview';
+        return 'Tổng quan'; // Thay "Overview" thành tiếng Việt
     }
 }

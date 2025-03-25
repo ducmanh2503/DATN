@@ -21,19 +21,19 @@ class StatsByDateRangeExport implements WithMultipleSheets
     {
         $sheets = [];
 
-        // Sheet 1: Overview
+        // Sheet 1: Tổng quan
         $sheets[] = new OverviewSheet($this->data['overview']);
 
-        // Sheet 2: Movie Revenue Chart
+        // Sheet 2: Biểu đồ doanh thu phim
         $sheets[] = new MovieRevenueChartSheet($this->data['movie_revenue_chart']);
 
-        // Sheet 3: Movie Stats
+        // Sheet 3: Thống kê phim
         $sheets[] = new MovieStatsSheet($this->data['movie_stats']);
 
-        // Sheet 4: Revenue Last Days
+        // Sheet 4: Doanh thu theo ngày
         $sheets[] = new RevenueLastDaysSheet($this->data['revenue_last_days']);
 
-        // Sheet 5: Additional Stats
+        // Sheet 5: Thống kê bổ sung
         $sheets[] = new AdditionalStatsSheet($this->data['additional_stats']);
 
         return $sheets;

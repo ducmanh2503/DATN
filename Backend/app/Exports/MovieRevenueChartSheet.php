@@ -17,20 +17,26 @@ class MovieRevenueChartSheet implements FromCollection, WithHeadings, WithTitle
 
     public function collection()
     {
-        return collect($this->movieRevenueChart);
+        return collect($this->movieRevenueChart)->map(function ($item) {
+            return [
+                'movie_title' => $item['movie_title'],
+                'total_revenue' => number_format($item['total_revenue'], 0, ',', '.'), // Định dạng số tiền
+                'period' => $item['period'],
+            ];
+        });
     }
 
     public function headings(): array
     {
         return [
-            'Movie Title',
-            'Total Revenue',
-            'Period',
+            'Tên phim',
+            'Tổng doanh thu',
+            'Thời gian',
         ];
     }
 
     public function title(): string
     {
-        return 'Movie Revenue Chart';
+        return 'Biểu đồ doanh thu phim';
     }
 }

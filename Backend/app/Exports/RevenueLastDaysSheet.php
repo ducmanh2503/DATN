@@ -17,20 +17,26 @@ class RevenueLastDaysSheet implements FromCollection, WithHeadings, WithTitle
 
     public function collection()
     {
-        return collect($this->revenueLastDays);
+        return collect($this->revenueLastDays)->map(function ($item) {
+            return [
+                'day' => $item['day'],
+                'date' => $item['date'],
+                'total_revenue' => number_format($item['total_revenue'], 0, ',', '.'), // Định dạng số tiền
+            ];
+        });
     }
 
     public function headings(): array
     {
         return [
-            'Day',
-            'Date',
-            'Total Revenue',
+            'Thứ',
+            'Ngày',
+            'Tổng doanh thu',
         ];
     }
 
     public function title(): string
     {
-        return 'Revenue Last Days';
+        return 'Doanh thu theo ngày';
     }
 }

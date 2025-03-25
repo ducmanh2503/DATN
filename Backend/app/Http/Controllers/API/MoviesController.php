@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\BookingDetail;
 use App\Models\Movies;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -12,6 +14,89 @@ use Illuminate\Support\Facades\Validator;
 
 class MoviesController extends Controller
 {
+    // Xếp hạng phim theo số vé bán ra (dành cho trang chủ)
+    public function moviesRanking(Request $request)
+    {
+        // Lấy ngày hiện tại (hoặc ngày từ request, mặc định là ngày hiện tại 25/3/2025)
+        $date = $request->input('date', '2025-03-25');
+        $startOfMonth = Carbon::parse($date)->startOfMonth();
+        $endOfDay = Carbon::parse($date)->endOfDay();
+
+        // Lấy danh sách phim và số vé bán ra
+        $movieRankings = BookingDetail::whereHas('booking', function ($query) use ($startOfMonth, $endOfDay) {
+            $query->whereBetween('bookings.created_at', [$startOfMonth, $endOfDay]);
+        })
+            ->whereNotNull('seat_id') // Chỉ tính các booking detail có ghế (vé)
+            ->select('movies.title')
+            ->selectRaw('COUNT(*) as total_tickets')
+            ->join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
+            ->join('show_times', 'bookings.showtime_id', '=', 'show_times.id')
+            ->join('calendar_show', 'show_times.calendar_show_id', '=', 'calendar_show.id')
+            ->join('movies', 'calendar_show.movie_id', '=', 'movies.id')
+            ->groupBy('movies.id', 'movies.title')
+            ->orderBy('total_tickets', 'desc')
+            ->get()
+            ->map(function ($item, $index) use ($startOfMonth) {
+                return [
+                    'rank' => $index + 1, // Thứ hạng (bắt đầu từ 1)
+                    'movie_title' => $item->title,
+                    'total_tickets' => (int) $item->total_tickets,
+                    'month_year' => Carbon::parse($startOfMonth)->format('m/Y'), // Thêm tháng/năm
+                ];
+            });
+
+        // Trả về phản hồi API
+        return response()->json([
+            'message' => 'Xếp hạng phim',
+            'data' => $movieRankings,
+        ]);
+    }
+
+    // Lấy danh sách phim cùng thể loại (trừ phim hiện tại)
+    public function relatedMovies(Request $request, $movieId)
+    {
+        // Tìm phim hiện tại dựa trên ID
+        $currentMovie = Movies::with('genres')->find($movieId);
+
+        if (!$currentMovie) {
+            return response()->json([
+                'message' => 'Phim không tồn tại',
+            ], 404);
+        }
+
+        // Lấy danh sách ID thể loại của phim hiện tại
+        $genreIds = $currentMovie->genres->pluck('id');
+
+        if ($genreIds->isEmpty()) {
+            return response()->json([
+                'message' => 'Phim không có thể loại',
+                'data' => [],
+            ]);
+        }
+
+        // Lấy danh sách phim cùng thể loại, trừ phim hiện tại
+        $relatedMovies = Movies::where('id', '!=', $movieId)
+            ->whereHas('genres', function ($query) use ($genreIds) {
+                $query->whereIn('genres.id', $genreIds);
+            })
+            ->select('id', 'title', 'poster', 'release_date')
+            ->get()
+            ->map(function ($movie) {
+                return [
+                    'id' => $movie->id,
+                    'movie_title' => $movie->title,
+                    'poster' => $movie->poster,
+                    'release_date' => $movie->release_date ? Carbon::parse($movie->release_date)->format('d/m/Y') : null,
+                ];
+            });
+
+        // Trả về phản hồi API
+        return response()->json([
+            'message' => 'Danh sách phim cùng thể loại',
+            'data' => $relatedMovies,
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      */

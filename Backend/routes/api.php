@@ -21,6 +21,7 @@ use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
 use App\Http\Controllers\API\SocialAuthController;
+use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\TicketController;
 use App\Http\Controllers\API\UserController;
 use Illuminate\Http\Request;
@@ -40,7 +41,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // Lấy thông tin user đã đăng nhập
@@ -54,6 +54,12 @@ Route::middleware('auth:sanctum')->group(function () {
     //thông tin và cập nhật khách hàng
     Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
     Route::put('/update-profile', [UserController::class, 'updateProfile']);
+    Route::post('/change-password', [UserController::class, 'changePassword']);
+
+    //Lịch sử giao dịch
+    Route::get('/orders-search', [OrderController::class, 'searchOrders']); // Tìm kiếm giao dịch
+    Route::get('/orders-recent', [OrderController::class, 'recentOrders']); // Lấy danh sách giao dịch gần đây (20 giao dịch gần nhất)
+    Route::get('/orders-confirmed', [OrderController::class, 'confirmedOrders']); // Lấy danh sách tất cả giao dịch đã hoàn tất
 
     //Áp dụng mã giảm giá
     Route::post('/apply-discount-code', [DiscountCodeController::class, 'applyDiscountCode']);
@@ -68,6 +74,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Chỉ admin mới truy cập được
     Route::middleware(['role:admin'])->group(function () {
+        // Thống kê
+        Route::get('/statistics', [StatisticsController::class, 'index']);
         // Movies
         Route::apiResource('movies', MoviesController::class);
         Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
@@ -155,11 +163,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
 });
+Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 
 ///////////////////////////////////////////////customer///////////////////////////////////////////////
 
 //movie, calendar_show, showTime
+Route::get('/movies-ranking', [MoviesController::class, 'moviesRanking']); // Xếp hạng phim
 Route::get('/movies-index', [MoviesController::class, 'index']);
+Route::get('/movies-details/{movies}', [MoviesController::class, 'show']);
+Route::get('/movies/{movieId}/related', [MoviesController::class, 'relatedMovies']); // Phim cùng thể loại
 Route::get('/movies-for-client', [MoviesController::class, 'getMoviesForClient']); // Lấy danh sách phim cho client
 Route::get('/search', [MoviesController::class, 'searchMovies']); // Tìm kiếm phim
 Route::get('/filter', [MoviesController::class, 'filterMovies']); // Lọc phim theo nhiều tiêu chí
@@ -167,6 +179,11 @@ Route::get('/showtimes-client/by-date/{movie_id}/{date}', [ShowTimeController::c
 Route::post('/calendar-show/movie', [CalendarShowController::class, 'showClient']);
 Route::get('/calendar-show/date-range/{movie_id}', [CalendarShowController::class, 'getShowDates']);
 Route::get('/movie-details-booking/{movie}', [MoviesController::class, 'show']);
+
+//bài viết
+Route::get('/articles-client', [ArticleController::class, 'index']);
+Route::get('/articles/{article}/client', [ArticleController::class, 'show']);
+
 
 //combo
 Route::get('/combos', [ComboController::class, 'showCombosForClient']);

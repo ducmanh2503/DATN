@@ -69,7 +69,9 @@ const PAYMENT_WITH_VNPAY = `${BASE_URL}/VNPay/create`; // thanh toán bằng V
 const GET_VOUCHER = (code: string) =>
     `${BASE_URL}/apply-discount-code?name_code=${encodeURIComponent(code)}`; // nhập voucher giảm giá
 
-const ORDERS_LIST = `${BASE_URL}/order`;
+const ORDERS_LIST = `${BASE_URL}/order`; // danh sách đơn hàng
+const DETAIL_ORDER = (bookingId: number) =>
+    `${BASE_URL}/order/${bookingId}/order-details`; // chi tiết đơn hàng
 
 export {
     GET_DISCOUNT_CODE,
@@ -122,4 +124,5 @@ export {
     PAYMENT_WITH_VNPAY,
     GET_VOUCHER,
     ORDERS_LIST,
+    DETAIL_ORDER,
 };

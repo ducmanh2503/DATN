@@ -104,3 +104,17 @@ export interface ComboFoodType {
     description: string;
     quantity: number;
 }
+
+export interface OrdersType {
+    id: number;
+    movie_title: string;
+    key: string;
+    name: string;
+    age: number;
+    address: string;
+    status: string;
+    total_combo_price: string;
+    created_at: string;
+    room_name: string;
+    showtime: string;
+}

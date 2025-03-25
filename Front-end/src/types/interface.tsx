@@ -1,6 +1,7 @@
 export interface FormData {
     title: string;
     trailer: string;
+    movie: any;
     name_director: number[];
     name_actor: number[];
     movie_status: string;
@@ -25,6 +26,7 @@ export interface DataTypeGenresActorsDirectors {
     name_director: string;
     movie: string;
     title: string;
+    movieTitle: string;
 }
 
 export interface SelectFormProps {
@@ -101,4 +103,18 @@ export interface ComboFoodType {
     price: string;
     description: string;
     quantity: number;
+}
+
+export interface OrdersType {
+    id: number;
+    movie_title: string;
+    key: string;
+    name: string;
+    age: number;
+    address: string;
+    status: string;
+    total_combo_price: string;
+    created_at: string;
+    room_name: string;
+    showtime: string;
 }

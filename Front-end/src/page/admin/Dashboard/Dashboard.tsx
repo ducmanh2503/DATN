@@ -1,194 +1,83 @@
-import React from "react";
-import { Card, Col, Row, Statistic, Progress } from "antd";
-import {
-  UserOutlined,
-  VideoCameraOutlined,
-  ScheduleOutlined,
-  DollarOutlined,
-  TeamOutlined,
-  ShoppingCartOutlined,
-} from "@ant-design/icons";
-import { Area, Column } from "@ant-design/plots";
+import React, { useEffect, useState } from "react";
+import { Row, Skeleton, Table } from "antd";
+import clsx from "clsx";
+import styles from "./DashBoard.module.css";
+import Charts from "./Charts";
+import CardsTitle from "./CardsTitle";
+import { useDashboard } from "../../../services/adminServices/dashboardManage.service";
 
 const Dashboard: React.FC = () => {
-  // Data for the area chart
-  const revenueData = [
-    { date: "T2", revenue: 12500000 },
-    { date: "T3", revenue: 18900000 },
-    { date: "T4", revenue: 15600000 },
-    { date: "T5", revenue: 22400000 },
-    { date: "T6", revenue: 19800000 },
-    { date: "T7", revenue: 24500000 },
-    { date: "CN", revenue: 28900000 },
-  ];
+    const [dailyRevenueDate, setDailyRevenueDate] = useState<string>(""); // ngày của doanh thu theo ngày
+    const [dailyRevenueValue, setDailyRevenueValue] = useState<number>(0); // tổng tiền doanh thu theo ngày
+    const [monthlyRevenueDate, setMonthlyRevenueDate] = useState<string>(""); // tháng của doanh thu theo tháng
+    const [monthlyRevenueValue, setMonthlyRevenueValue] = useState<number>(0); // tổng tiền của doanh thu theo tháng
+    const [newCustomers, setNewCustomers] = useState<number>(0); // số lượng khách hàng mới
+    const [totalTicketSold, setTotalTicketSold] = useState<number>(0); // số lượng vé sold
 
-  // Configuration for the area chart
-  const areaConfig = {
-    data: revenueData,
-    xField: "date",
-    yField: "revenue",
-    xAxis: {
-      range: [0, 1],
-      label: {
-        style: {
-          fill: "#666",
-          fontSize: 12,
+    const columns = [
+        {
+            title: "Tên phim",
+            dataIndex: "movie_title",
+            key: "movie_title",
         },
-      },
-    },
-    yAxis: {
-      label: {
-        formatter: (v: string) => `${Number(v) / 1000000}M`,
-        style: {
-          fill: "#666",
-          fontSize: 12,
+        {
+            title: "Thời gian kinh doanh",
+            dataIndex: "month_year",
+            key: "month_year",
         },
-      },
-    },
-    smooth: true,
-    areaStyle: () => ({
-      fill: "l(270) 0:#fff 0.5:#7ec2f3 1:#1890ff",
-    }),
-    line: {
-      color: "#1890ff",
-    },
-    tooltip: {
-      formatter: (data: any) => {
-        return {
-          name: "Doanh thu",
-          value: data.revenue.toLocaleString("vi-VN") + " VND",
-        };
-      },
-    },
-  };
+        {
+            title: "Tổng vé bán ra",
+            dataIndex: "total_tickets",
+            key: "total_tickets",
+        },
+        {
+            title: "Tổng doanh thu",
+            dataIndex: "total_revenue",
+            key: "total_revenue",
+            render: (value: any, record: any) => (
+                <span>{record.total_revenue.toLocaleString("vi-VN")} VNĐ</span>
+            ),
+        },
+    ];
 
-  // Configuration for the column chart
-  const columnConfig = {
-    data: revenueData,
-    xField: "date",
-    yField: "revenue",
-    seriesField: "category",
-    columnWidthRatio: 0.6,
-    xAxis: {
-      label: {
-        autoHide: true,
-        autoRotate: false,
-      },
-    },
-    yAxis: {
-      label: {
-        formatter: (v: string) => `${Number(v) / 1000000}M`,
-      },
-    },
-    color: ({ category }: { category: string }) => {
-      return category === "Doanh thu" ? "#1890ff" : "#f5222d";
-    },
-    columnStyle: {
-      radius: [20, 20, 0, 0],
-    },
-    tooltip: {
-      formatter: (data: any) => {
-        return {
-          name: data.category,
-          value: data.revenue.toLocaleString("vi-VN") + " VND",
-        };
-      },
-    },
-    meta: {
-      revenue: {
-        alias: "Doanh thu",
-      },
-    },
-  };
-
-  return (
-    <div style={{ padding: "24px" }}>
-      <Row gutter={[16, 16]}>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Tổng số người dùng"
-              value={1128}
-              prefix={<UserOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Phim đang chiếu"
-              value={15}
-              prefix={<VideoCameraOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Lịch chiếu hôm nay"
-              value={42}
-              prefix={<ScheduleOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Doanh thu tháng"
-              value={234500000}
-              prefix={<DollarOutlined />}
-              suffix="VND"
-            />
-          </Card>
-        </Col>
-
-        {/* New statistics */}
-        <Col span={8}>
-          <Card title="Tỉ lệ đặt vé trực tuyến">
-            <Progress type="circle" percent={75} />
-            <div style={{ marginTop: 16 }}>
-              <Statistic
-                title="Tổng số vé đã bán"
-                value={542}
-                prefix={<ShoppingCartOutlined />}
-              />
-            </div>
-          </Card>
-        </Col>
-
-        <Col span={8}>
-          <Card title="Thành viên mới">
-            <Progress type="circle" percent={88} strokeColor="#52c41a" />
-            <div style={{ marginTop: 16 }}>
-              <Statistic
-                title="Thành viên mới tháng này"
-                value={128}
-                prefix={<TeamOutlined />}
-              />
-            </div>
-          </Card>
-        </Col>
-
-        <Col span={8}>
-          <Card title="Tỉ lệ ghế đã đặt hôm nay">
-            <Progress type="circle" percent={65} strokeColor="#1677ff" />
-            <div style={{ marginTop: 16 }}>
-              <Statistic title="Số ghế còn trống" value={234} suffix="ghế" />
-            </div>
-          </Card>
-        </Col>
-
-        {/* New Revenue Area Chart */}
-        <Col span={24}>
-          <Card title="Thống kê doanh thu 7 ngày gần nhất">
-            <div style={{ height: "400px", padding: "20px 0" }}>
-              <Area {...areaConfig} />
-            </div>
-          </Card>
-        </Col>
-      </Row>
-    </div>
-  );
+    const { data: dashboardData, isLoading } = useDashboard();
+    useEffect(() => {
+        setDailyRevenueDate(dashboardData?.overview?.daily_revenue?.date);
+        setDailyRevenueValue(dashboardData?.overview?.daily_revenue?.value);
+        setMonthlyRevenueDate(
+            dashboardData?.overview?.monthly_revenue?.month_year
+        );
+        setMonthlyRevenueValue(dashboardData?.overview?.monthly_revenue?.value);
+        setNewCustomers(dashboardData?.overview?.new_customers);
+        setTotalTicketSold(dashboardData?.overview?.total_tickets_sold);
+    }, [dashboardData]);
+    return (
+        <>
+            <Row gutter={[16, 16]}>
+                <CardsTitle
+                    dailyRevenueDate={dailyRevenueDate}
+                    dailyRevenueValue={dailyRevenueValue}
+                    monthlyRevenueDate={monthlyRevenueDate}
+                    monthlyRevenueValue={monthlyRevenueValue}
+                    newCustomers={newCustomers}
+                    totalTicketSold={totalTicketSold}
+                ></CardsTitle>
+                <Charts></Charts>
+            </Row>
+            <h2 className={clsx(styles.titleTable)}>Doanh thu theo phim</h2>
+            <Skeleton loading={isLoading} active>
+                <Table
+                    columns={columns}
+                    dataSource={dashboardData?.movie_stats?.map(
+                        (item: any, index: number) => ({
+                            ...item,
+                            key: item.movie_id || index,
+                        })
+                    )}
+                />
+            </Skeleton>
+        </>
+    );
 };
 
 export default Dashboard;

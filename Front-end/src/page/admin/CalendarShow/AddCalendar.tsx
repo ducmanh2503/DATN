@@ -3,13 +3,10 @@ import { Button, DatePicker, Form, Input, message, Modal, Select } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import {
-    CREATE_CALENDAR,
-    GET_CALENDAR,
-    GET_FILM_LIST,
-} from "../../../config/ApiConfig";
+    useCreateCalendar,
+    useHasShowtime,
+} from "../../../services/adminServices/calendarManage.service";
 
 dayjs.extend(isSameOrBefore);
 
@@ -17,7 +14,6 @@ const AddCalendar: React.FC = () => {
     const [open, setOpen] = useState(false);
     const [formShowtime] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
-    const queryClient = useQueryClient();
 
     const showModal = () => {
         setOpen(true);
@@ -28,49 +24,10 @@ const AddCalendar: React.FC = () => {
         setOpen(false);
     };
 
-    const { data: filmList } = useQuery({
-        queryKey: ["filmList"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_FILM_LIST);
-            const { data: showtimeData } = await axios.get(GET_CALENDAR);
+    const { filmList } = useHasShowtime(); // lấy list phim đã có lịch chiếu
 
-            const showtimeMovieIds = showtimeData.map(
-                (item: any) => item.movie_id
-            );
+    const { mutate } = useCreateCalendar(messageApi, formShowtime); // thêm lịch chiếu
 
-            return data.movies.map((item: any) => ({
-                ...item,
-                release_date: item.release_date
-                    ? dayjs(item.release_date).format("YYYY-MM-DD")
-                    : null,
-                hasShowtime: showtimeMovieIds.includes(item.id),
-            }));
-        },
-        enabled: open,
-        staleTime: 1000 * 60,
-    });
-
-    const { mutate } = useMutation({
-        mutationFn: async (formData: any) => {
-            const newFormData = {
-                ...formData,
-                show_date: formData.show_date
-                    ? dayjs(formData.show_date).format("YYYY/MM/DD")
-                    : null,
-            };
-            await axios.post(CREATE_CALENDAR, newFormData);
-        },
-        onSuccess: () => {
-            formShowtime.resetFields();
-            messageApi.success("Thêm thành công");
-            queryClient.invalidateQueries({
-                queryKey: ["showtimesFilm"],
-            });
-        },
-        onError: (error) => {
-            messageApi.error(error.message);
-        },
-    });
     const onFinish = (newFormData: any) => {
         console.log("re-render-addShowtimes", newFormData);
         mutate(newFormData);

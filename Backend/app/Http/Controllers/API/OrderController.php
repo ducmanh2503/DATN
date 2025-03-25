@@ -184,6 +184,7 @@ class OrderController extends Controller
                 'showtime_id',
                 'total_ticket_price',
                 'total_combo_price',
+                'total_price', // Thêm total_price để lấy giá trị từ cơ sở dữ liệu
                 'status',
                 'created_at' // Thêm created_at để lấy ngày đặt
             )
@@ -215,29 +216,50 @@ class OrderController extends Controller
             foreach ($booking->bookingDetails as $detail) {
                 if ($detail->seat) {
                     $seatName = "{$detail->seat->row}{$detail->seat->column}";
+                    // Xác định loại ghế (seat_type) dựa trên room_type
+                    $seatType = 'Thường'; // Mặc định là Thường
+                    if ($detail->seat->room && $detail->seat->room->roomType) {
+                        $roomTypeName = $detail->seat->room->roomType->name;
+                        if (stripos($roomTypeName, 'VIP') !== false) {
+                            $seatType = 'VIP';
+                        } elseif (stripos($roomTypeName, 'Sweetbox') !== false) {
+                            $seatType = 'Sweetbox';
+                        }
+                    }
+
                     $seats[] = [
                         'booking_detail_id' => $detail->id,
                         'seat_name' => $seatName,
-                        'price' => $detail->price,
+                        'price' => (int) $detail->price,
+                        'seat_type' => $seatType, // Thêm loại ghế
                     ];
 
                     // Lấy tên phòng và loại phòng
                     if ($detail->seat->room) {
                         $room_name = $detail->seat->room->name; // Tên phòng (ví dụ: Cinema 1)
-                        $room_type = $detail->seat->room->roomType ? $detail->seat->room->roomType->name : null; // Loại phòng (ví dụ: IMAX)
+                        $room_type = $detail->seat->room->roomType ? $detail->seat->room->roomType->name : null; // Loại phòng (ví dụ: 2D)
                     }
                 }
 
                 if ($detail->combo) {
                     $combos[] = [
                         'booking_detail_id' => $detail->id,
-                        'combo_name' => $detail->combo->name, // Đổi tên key thành combo_name
-                        'quantity' => $detail->quantity,
-                        'price' => $detail->price,
+                        'combo_name' => $detail->combo->name,
+                        'quantity' => (int) $detail->quantity,
+                        'price' => (int) $detail->price,
                     ];
                 }
             }
         }
+
+        // Tính tổng tiền và giảm giá
+        $totalPrice = $booking->total_price; // Lấy total_price từ cơ sở dữ liệu
+        // Nếu total_price không hợp lý (bằng 0), tính lại
+        if ($totalPrice == 0) {
+            $totalPrice = $booking->total_ticket_price + $booking->total_combo_price;
+        }
+        // Tính phần giảm giá: (total_ticket_price + total_combo_price) - total_price
+        $discount = ($booking->total_ticket_price + $booking->total_combo_price) - $totalPrice;
 
         $formattedBooking = [
             'id' => $booking->id,
@@ -247,14 +269,18 @@ class OrderController extends Controller
             'showtime' => $booking->showtime
                 ? "{$booking->showtime->start_time} - {$booking->showtime->end_time}"
                 : 'N/A',
+            'show_date' => $booking->showtime // Đảm bảo lấy từ showtime->start_time
+                ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
+                : 'N/A',
             'movie_title' => $movie ? $movie['title'] : 'N/A', // Tên phim
             'room_name' => $room_name ?? 'N/A', // Tên phòng (thay cho Rạp chiếu)
             'room_type' => $room_type ?? 'N/A', // Loại phòng (lấy từ room_types)
             'seats' => $seats,
             'combos' => $combos,
-            'total_ticket_price' => $booking->total_ticket_price,
-            'total_combo_price' => $booking->total_combo_price,
-            'total_price' => $booking->total_ticket_price + $booking->total_combo_price, // Tổng tiền
+            'total_ticket_price' => (int) $booking->total_ticket_price, // Thành tiền vé
+            'total_combo_price' => (int) $booking->total_combo_price, // Thành tiền combo
+            'total_price' => (int) $totalPrice, // Tổng tiền (sửa lại)
+            'discount' => (int) $discount, // Phần giảm giá (sửa lại)
             'status' => $booking->status,
             'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y') : 'N/A', // Ngày đặt, định dạng ngày-tháng-năm
         ];

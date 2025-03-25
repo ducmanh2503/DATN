@@ -17,18 +17,18 @@ class AdditionalStatsSheet implements FromArray, WithTitle
     public function array(): array
     {
         return [
-            ['Additional Statistics'],
+            ['Thống kê bổ sung'],
             [],
-            ['Total Users', $this->additionalStats['total_users']],
-            ['Movies Showing Today', $this->additionalStats['movies_showing_today']],
-            ['Showtimes Today', $this->additionalStats['showtimes_today']],
-            ['Peak Showtime', $this->additionalStats['peak_showtime']['showtime']],
-            ['Total Seats Booked (Peak)', $this->additionalStats['peak_showtime']['total_seats_booked']],
+            ['Tổng số người dùng', $this->additionalStats['total_users']],
+            ['Số phim đang chiếu', $this->additionalStats['movies_showing_today']],
+            ['Số suất chiếu', $this->additionalStats['showtimes_today']],
+            ['Khung giờ cao điểm', $this->additionalStats['peak_showtime']['showtime']],
+            ['Tổng ghế đặt (cao điểm)', $this->additionalStats['peak_showtime']['total_seats_booked']],
         ];
     }
 
     public function title(): string
     {
-        return 'Additional Stats';
+        return 'Thống kê bổ sung';
     }
 }

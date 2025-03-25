@@ -116,7 +116,7 @@ class OrderController extends Controller
                     'phone' => $booking->user->phone ?? 'N/A',
                     'email' => $booking->user->email ?? 'N/A',
                     'showtime' => $booking->showtime
-                        ? "{$booking->showtime->start_time} - {$booking->showtime->end_time}"
+                        ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
                     'movie_title' => $movie ? $movie['title'] : 'N/A', // Tên phim
                     'room_name' => $room_name ?? 'N/A', // Tên phòng (thay cho Rạp chiếu)
@@ -267,7 +267,7 @@ class OrderController extends Controller
             'phone' => $booking->user->phone ?? 'N/A',
             'email' => $booking->user->email ?? 'N/A',
             'showtime' => $booking->showtime
-                ? "{$booking->showtime->start_time} - {$booking->showtime->end_time}"
+                ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                 : 'N/A',
             'show_date' => $booking->showtime // Đảm bảo lấy từ showtime->start_time
                 ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
@@ -426,7 +426,7 @@ class OrderController extends Controller
                 return [
                     'id' => $booking->id,
                     'showtime' => $booking->showtime
-                        ? "{$booking->showtime->start_time} - {$booking->showtime->end_time}"
+                        ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,
@@ -559,7 +559,7 @@ class OrderController extends Controller
                 return [
                     'id' => $booking->id,
                     'showtime' => $booking->showtime
-                        ? "{$booking->showtime->start_time} - {$booking->showtime->end_time}"
+                        ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,
@@ -692,7 +692,7 @@ class OrderController extends Controller
                 return [
                     'id' => $booking->id,
                     'showtime' => $booking->showtime
-                        ? "{$booking->showtime->start_time} - {$booking->showtime->end_time}"
+                        ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,

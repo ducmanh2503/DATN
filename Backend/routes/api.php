@@ -76,6 +76,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['role:admin'])->group(function () {
         // Thống kê
         Route::get('/statistics', [StatisticsController::class, 'index']);
+        Route::get('/statistics-filter', [StatisticsController::class, 'statsByDateRange']);
         // Movies
         Route::apiResource('movies', MoviesController::class);
         Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);

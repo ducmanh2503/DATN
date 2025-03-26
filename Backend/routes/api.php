@@ -78,7 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/statistics', [StatisticsController::class, 'index']);
         Route::get('/statistics-filter', [StatisticsController::class, 'statsByDateRange']);
         //xuất file excel
-        Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
+        // Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
         // Movies
         Route::apiResource('movies', MoviesController::class);
         Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
@@ -167,6 +167,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
+        Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
+
 
 ///////////////////////////////////////////////customer///////////////////////////////////////////////
 

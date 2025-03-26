@@ -81,7 +81,7 @@ class StatisticsController extends Controller
 
         // 3. Thống kê chi tiết: Doanh thu theo phim (từ show_date đến ngày hiện tại)
         $movies = Movies::query()
-            ->select('id', 'title')
+            ->select('id', 'title', 'movie_status')
             ->get();
 
         $movieStats = collect();
@@ -89,8 +89,8 @@ class StatisticsController extends Controller
             // Lấy ngày bắt đầu và ngày kết thúc lịch chiếu (show_date và end_date) của phim
             $calendarShow = CalendarShow::query()
                 ->where('movie_id', $movie->id)
-                ->select('show_date', 'end_date') // Thêm end_date
-                ->orderBy('show_date', 'asc') // Lấy ngày bắt đầu sớm nhất
+                ->select('show_date', 'end_date')
+                ->orderBy('show_date', 'asc')
                 ->first();
 
             // Nếu không có lịch chiếu, bỏ qua phim này
@@ -99,7 +99,7 @@ class StatisticsController extends Controller
             }
 
             $showDate = Carbon::parse($calendarShow->show_date)->startOfDay();
-            $endDate = $calendarShow->end_date ? Carbon::parse($calendarShow->end_date)->startOfDay() : null; // Lấy end_date
+            $endDate = $calendarShow->end_date ? Carbon::parse($calendarShow->end_date)->startOfDay() : null;
 
             // Thống kê doanh thu và số vé từ show_date đến ngày hiện tại
             $bookings = Booking::whereBetween('bookings.created_at', [$showDate, $endOfDay])
@@ -127,8 +127,9 @@ class StatisticsController extends Controller
                     'movie_title' => $bookings->title,
                     'total_tickets' => (int) $totalTickets,
                     'total_revenue' => (int) ($bookings->total_revenue ?? 0),
-                    'show_date' => $showDate->format('d-m-Y'), // Ngày bắt đầu lịch chiếu
-                    'end_date' => $endDate ? $endDate->format('d-m-Y') : 'N/A', // Ngày kết thúc lịch chiếu
+                    'show_date' => $showDate->format('d-m-Y'),
+                    'end_date' => $endDate ? $endDate->format('d-m-Y') : 'N/A',
+                    'movie_status' => $movie->movie_status,
                 ]);
             }
         }
@@ -312,7 +313,7 @@ class StatisticsController extends Controller
 
         // 3. Thống kê chi tiết: Doanh thu theo phim (từ show_date đến ngày hiện tại)
         $movies = Movies::query()
-            ->select('id', 'title')
+            ->select('id', 'title', 'movie_status')
             ->get();
 
         $movieStats = collect();
@@ -320,8 +321,8 @@ class StatisticsController extends Controller
             // Lấy ngày bắt đầu và ngày kết thúc lịch chiếu (show_date và end_date) của phim
             $calendarShow = CalendarShow::query()
                 ->where('movie_id', $movie->id)
-                ->select('show_date', 'end_date') // Thêm end_date
-                ->orderBy('show_date', 'asc') // Lấy ngày bắt đầu sớm nhất
+                ->select('show_date', 'end_date')
+                ->orderBy('show_date', 'asc')
                 ->first();
 
             // Nếu không có lịch chiếu, bỏ qua phim này
@@ -330,7 +331,7 @@ class StatisticsController extends Controller
             }
 
             $showDate = Carbon::parse($calendarShow->show_date)->startOfDay();
-            $endDate = $calendarShow->end_date ? Carbon::parse($calendarShow->end_date)->startOfDay() : null; // Lấy end_date
+            $endDate = $calendarShow->end_date ? Carbon::parse($calendarShow->end_date)->startOfDay() : null;
             // Nếu show_date muộn hơn endOfDay, bỏ qua phim này
             if ($showDate->greaterThan($endOfDay)) {
                 continue;
@@ -362,8 +363,9 @@ class StatisticsController extends Controller
                     'movie_title' => $bookings->title,
                     'total_tickets' => (int) $totalTickets,
                     'total_revenue' => (int) ($bookings->total_revenue ?? 0),
-                    'show_date' => $showDate->format('d-m-Y'), // Thêm ngày bắt đầu lịch chiếu
-                    'end_date' => $endDate ? $endDate->format('d-m-Y') : 'N/A', // Thêm ngày kết thúc lịch chiếu
+                    'show_date' => $showDate->format('d-m-Y'),
+                    'end_date' => $endDate ? $endDate->format('d-m-Y') : 'N/A',
+                    'movie_status' => $movie->movie_status,
                 ]);
             }
         }

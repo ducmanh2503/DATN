@@ -37,6 +37,6 @@ class MovieRevenueChartSheet implements FromCollection, WithHeadings, WithTitle
 
     public function title(): string
     {
-        return 'Biểu đồ doanh thu phim';
+        return 'Doanh thu phim';
     }
 }

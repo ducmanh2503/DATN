@@ -75,11 +75,10 @@ const DetailBooking = ({
           seat_ids: selectedSeatIds,
           combo_ids: holdComboID,
           usedPoints: usedPoints,
-<<<<<<< HEAD
-          // discount_code: "THANHVIENVIP",
-=======
+
+
           discount_code: promoCode ?? "", // Đảm bảo không gửi undefined
->>>>>>> 44f6c0ff6681c8a434c05072e53ca0151c2752e1
+
         },
         {
           headers: {

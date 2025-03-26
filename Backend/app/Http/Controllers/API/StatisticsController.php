@@ -21,29 +21,44 @@ class StatisticsController extends Controller
     public function index(Request $request)
     {
         // Lấy ngày hiện tại
-        $date = $request->input('date') ?? Carbon::now()->format('Y-m-d'); // Nếu không truyền date, lấy ngày hiện tại
-        $currentDate = Carbon::now()->format('d-m-Y'); // Ngày hiện tại để trả về
+        $date = $request->input('date') ?? Carbon::now()->format('Y-m-d');
+        $currentDate = Carbon::now()->format('d-m-Y');
 
         // Xử lý định dạng ngày
         if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $date)) {
-            // Nếu date có định dạng d/m/Y (ví dụ: 25/03/2025)
             $startOfDay = Carbon::createFromFormat('d/m/Y', $date)->startOfDay();
             $endOfDay = Carbon::createFromFormat('d/m/Y', $date)->endOfDay();
             $startOfMonth = Carbon::createFromFormat('d/m/Y', $date)->startOfMonth();
             $endOfMonth = Carbon::createFromFormat('d/m/Y', $date)->endOfMonth();
+            $startOfYear = Carbon::createFromFormat('d/m/Y', $date)->startOfYear();
         } else {
-            // Nếu date có định dạng Y-m-d (ví dụ: 2025-03-25)
             $startOfDay = Carbon::parse($date)->startOfDay();
             $endOfDay = Carbon::parse($date)->endOfDay();
             $startOfMonth = Carbon::parse($date)->startOfMonth();
             $endOfMonth = Carbon::parse($date)->endOfMonth();
+            $startOfYear = Carbon::parse($date)->startOfYear();
         }
 
         // 1. Thống kê tổng quan
-        // 1.1. Doanh thu trong ngày
-        $dailyRevenue = Booking::whereBetween('bookings.created_at', [$startOfDay, $endOfDay])
+        // 1.1. Doanh thu từng ngày từ đầu tháng đến ngày hiện tại
+        $dailyRevenueData = Booking::whereBetween('bookings.created_at', [$startOfMonth, $endOfDay])
+            ->selectRaw('DATE(bookings.created_at) as date')
             ->selectRaw('SUM(total_price) as total_revenue')
-            ->value('total_revenue') ?? 0;
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        $daysInMonth = $startOfMonth->diffInDays($endOfDay) + 1;
+        $dailyRevenue = collect(range(0, $daysInMonth - 1))->map(function ($i) use ($startOfMonth, $dailyRevenueData) {
+            $day = Carbon::parse($startOfMonth)->addDays($i);
+            $dayString = $day->format('Y-m-d');
+            $revenue = $dailyRevenueData->firstWhere('date', $dayString);
+
+            return [
+                'date' => $day->format('d/m/Y'),
+                'value' => (int) ($revenue ? $revenue->total_revenue : 0),
+            ];
+        })->toArray();
 
         // 1.2. Khách hàng mới trong tháng
         $newCustomers = User::whereBetween('created_at', [$startOfMonth, $endOfDay])
@@ -53,15 +68,34 @@ class StatisticsController extends Controller
         $totalTicketsSold = BookingDetail::whereHas('booking', function ($query) use ($startOfDay, $endOfDay) {
             $query->whereBetween('bookings.created_at', [$startOfDay, $endOfDay]);
         })
-            ->whereNotNull('seat_id') // Chỉ tính các booking detail có ghế (vé)
+            ->whereNotNull('seat_id')
             ->count();
 
-        // 1.4. Tổng doanh thu từ đầu tháng đến ngày hiện tại
-        $monthlyRevenue = Booking::whereBetween('bookings.created_at', [$startOfMonth, $endOfDay])
+        // 1.4. Doanh thu từng tháng từ đầu năm đến tháng hiện tại
+        $monthlyRevenueData = Booking::whereBetween('bookings.created_at', [$startOfYear, $endOfDay])
+            ->selectRaw('YEAR(bookings.created_at) as year')
+            ->selectRaw('MONTH(bookings.created_at) as month')
             ->selectRaw('SUM(total_price) as total_revenue')
-            ->value('total_revenue') ?? 0;
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'asc')
+            ->orderBy('month', 'asc')
+            ->get();
 
-        // 2. Biểu đồ doanh thu phim (từ đầu tháng đến ngày hiện tại)
+        $monthsInYear = $startOfYear->diffInMonths($endOfDay) + 1;
+        $monthlyRevenue = collect(range(0, $monthsInYear - 1))->map(function ($i) use ($startOfYear, $monthlyRevenueData) {
+            $month = Carbon::parse($startOfYear)->addMonths($i);
+            $yearMonth = $month->format('Y-m');
+            $revenue = $monthlyRevenueData->firstWhere(function ($item) use ($month) {
+                return $item->year == $month->year && $item->month == $month->month;
+            });
+
+            return [
+                'month_year' => $month->format('m/Y'),
+                'value' => (int) ($revenue ? $revenue->total_revenue : 0),
+            ];
+        })->toArray();
+
+        // 2. Biểu đồ doanh thu phim
         $movieRevenueChart = Booking::whereBetween('bookings.created_at', [$startOfMonth, $endOfDay])
             ->select('movies.title')
             ->selectRaw('SUM(bookings.total_price) as total_revenue')
@@ -79,7 +113,7 @@ class StatisticsController extends Controller
                 ];
             });
 
-        // 3. Thống kê chi tiết: Doanh thu theo phim (từ show_date đến ngày hiện tại)
+        // 3. Thống kê chi tiết: Doanh thu theo phim
         $movies = Movies::query()
             ->select('id', 'title', 'movie_status')
             ->get();
@@ -132,7 +166,7 @@ class StatisticsController extends Controller
 
         $movieStats = $movieStats->sortByDesc('total_revenue')->values();
 
-        // 4. Thống kê: Doanh thu 7 ngày gần nhất (theo thứ trong tuần)
+        // 4. Thống kê: Doanh thu 7 ngày gần nhất
         $startOf7Days = Carbon::parse($startOfDay)->subDays(6)->startOfDay();
         $endOf7Days = Carbon::parse($endOfDay)->endOfDay();
 
@@ -180,35 +214,15 @@ class StatisticsController extends Controller
             ->count();
 
         // 6. Thống kê khung giờ có số lượng ghế được đặt nhiều nhất trong ngày
-        // Lấy top 1 khung giờ
-        $peakShowtime = Showtime::query()
-            ->select('show_times.id', 'show_times.start_time', 'show_times.end_time')
-            ->selectRaw('COUNT(booking_details.id) as total_seats_booked')
-            ->leftJoin('bookings', 'show_times.id', '=', 'bookings.showtime_id')
-            ->leftJoin('booking_details', 'bookings.id', '=', 'booking_details.booking_id')
-            ->whereBetween('show_times.start_time', [$startOfDay, $endOfDay])
-            ->whereNotNull('booking_details.seat_id')
-            ->groupBy('show_times.id', 'show_times.start_time', 'show_times.end_time')
-            ->orderBy('total_seats_booked', 'desc')
-            ->first();
-
-        $peakShowtimeData = $peakShowtime ? [
-            'showtime' => sprintf('%s - %s', Carbon::parse($peakShowtime->start_time)->format('H:i'), Carbon::parse($peakShowtime->end_time)->format('H:i')),
-            'total_seats_booked' => (int) ($peakShowtime->total_seats_booked ?? 0),
-        ] : [
-            'showtime' => 'N/A',
-            'total_seats_booked' => 0,
-        ];
-
-        // Lấy top 5 khung giờ
+        // Chỉ giữ top 5 khung giờ, gộp theo khung giờ (start_time và end_time)
         $peakShowtimes = Showtime::query()
-            ->select('show_times.id', 'show_times.start_time', 'show_times.end_time')
+            ->select('show_times.start_time', 'show_times.end_time')
             ->selectRaw('COUNT(booking_details.id) as total_seats_booked')
             ->leftJoin('bookings', 'show_times.id', '=', 'bookings.showtime_id')
             ->leftJoin('booking_details', 'bookings.id', '=', 'booking_details.booking_id')
             ->whereBetween('show_times.start_time', [$startOfDay, $endOfDay])
             ->whereNotNull('booking_details.seat_id')
-            ->groupBy('show_times.id', 'show_times.start_time', 'show_times.end_time')
+            ->groupBy('show_times.start_time', 'show_times.end_time')
             ->orderBy('total_seats_booked', 'desc')
             ->take(5)
             ->get()
@@ -219,7 +233,6 @@ class StatisticsController extends Controller
                 ];
             });
 
-        // Nếu không có dữ liệu, trả về mảng rỗng
         $peakShowtimesData = $peakShowtimes->isNotEmpty() ? $peakShowtimes->toArray() : [];
 
         // Trả về phản hồi API
@@ -228,16 +241,10 @@ class StatisticsController extends Controller
             'current_date' => $currentDate,
             'data' => [
                 'overview' => [
-                    'daily_revenue' => [
-                        'value' => (int) $dailyRevenue,
-                        'date' => Carbon::parse($startOfDay)->format('d/m/Y'),
-                    ],
+                    'daily_revenue' => $dailyRevenue, // Doanh thu từng ngày
                     'new_customers' => (int) $newCustomers,
                     'total_tickets_sold' => (int) $totalTicketsSold,
-                    'monthly_revenue' => [
-                        'value' => (int) $monthlyRevenue,
-                        'month_year' => Carbon::parse($startOfMonth)->format('m/Y'),
-                    ],
+                    'monthly_revenue' => $monthlyRevenue, // Doanh thu từng tháng
                 ],
                 'movie_revenue_chart' => $movieRevenueChart,
                 'movie_stats' => $movieStats,
@@ -246,7 +253,6 @@ class StatisticsController extends Controller
                     'total_users' => (int) $totalUsers,
                     'movies_showing_today' => (int) $moviesShowingToday,
                     'showtimes_today' => (int) $showtimesToday,
-                    'peak_showtime' => $peakShowtimeData,
                     'peak_showtimes' => $peakShowtimesData,
                 ],
             ],
@@ -271,32 +277,72 @@ class StatisticsController extends Controller
             $endOfDay = Carbon::createFromFormat('d/m/Y', $endDate)->endOfDay();
             $startOfMonth = Carbon::createFromFormat('d/m/Y', $startDate)->startOfDay();
             $endOfMonth = Carbon::createFromFormat('d/m/Y', $endDate)->endOfDay();
+            $startOfYear = Carbon::createFromFormat('d/m/Y', $startDate)->startOfYear();
         } else {
             $startOfDay = Carbon::parse($startDate)->startOfDay();
             $endOfDay = Carbon::parse($endDate)->endOfDay();
             $startOfMonth = Carbon::parse($startDate)->startOfDay();
             $endOfMonth = Carbon::parse($endDate)->endOfDay();
+            $startOfYear = Carbon::parse($startDate)->startOfYear();
         }
 
         // 1. Thống kê tổng quan
-        $dailyRevenue = Booking::whereBetween('bookings.created_at', [$startOfDay, $endOfDay])
+        // 1.1. Doanh thu từng ngày trong khoảng từ start_date đến end_date
+        $dailyRevenueData = Booking::whereBetween('bookings.created_at', [$startOfDay, $endOfDay])
+            ->selectRaw('DATE(bookings.created_at) as date')
             ->selectRaw('SUM(total_price) as total_revenue')
-            ->value('total_revenue') ?? 0;
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
 
+        $daysInRange = $startOfDay->diffInDays($endOfDay) + 1;
+        $dailyRevenue = collect(range(0, $daysInRange - 1))->map(function ($i) use ($startOfDay, $dailyRevenueData) {
+            $day = Carbon::parse($startOfDay)->addDays($i);
+            $dayString = $day->format('Y-m-d');
+            $revenue = $dailyRevenueData->firstWhere('date', $dayString);
+
+            return [
+                'date' => $day->format('d/m/Y'),
+                'value' => (int) ($revenue ? $revenue->total_revenue : 0),
+            ];
+        })->toArray();
+
+        // 1.2. Khách hàng mới trong khoảng thời gian
         $newCustomers = User::whereBetween('created_at', [$startOfMonth, $endOfDay])
             ->count();
 
+        // 1.3. Tổng vé bán ra trong khoảng thời gian
         $totalTicketsSold = BookingDetail::whereHas('booking', function ($query) use ($startOfDay, $endOfDay) {
             $query->whereBetween('bookings.created_at', [$startOfDay, $endOfDay]);
         })
             ->whereNotNull('seat_id')
             ->count();
 
-        $monthlyRevenue = Booking::whereBetween('bookings.created_at', [$startOfMonth, $endOfDay])
+        // 1.4. Doanh thu từng tháng từ đầu năm đến tháng của end_date
+        $monthlyRevenueData = Booking::whereBetween('bookings.created_at', [$startOfYear, $endOfDay])
+            ->selectRaw('YEAR(bookings.created_at) as year')
+            ->selectRaw('MONTH(bookings.created_at) as month')
             ->selectRaw('SUM(total_price) as total_revenue')
-            ->value('total_revenue') ?? 0;
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'asc')
+            ->orderBy('month', 'asc')
+            ->get();
 
-        // 2. Biểu đồ doanh thu phim (trong khoảng ngày)
+        $monthsInYear = $startOfYear->diffInMonths($endOfDay) + 1;
+        $monthlyRevenue = collect(range(0, $monthsInYear - 1))->map(function ($i) use ($startOfYear, $monthlyRevenueData) {
+            $month = Carbon::parse($startOfYear)->addMonths($i);
+            $yearMonth = $month->format('Y-m');
+            $revenue = $monthlyRevenueData->firstWhere(function ($item) use ($month) {
+                return $item->year == $month->year && $item->month == $month->month;
+            });
+
+            return [
+                'month_year' => $month->format('m/Y'),
+                'value' => (int) ($revenue ? $revenue->total_revenue : 0),
+            ];
+        })->toArray();
+
+        // 2. Biểu đồ doanh thu phim
         $movieRevenueChart = Booking::whereBetween('bookings.created_at', [$startOfMonth, $endOfDay])
             ->select('movies.title')
             ->selectRaw('SUM(bookings.total_price) as total_revenue')
@@ -314,7 +360,7 @@ class StatisticsController extends Controller
                 ];
             });
 
-        // 3. Thống kê chi tiết: Doanh thu theo phim (từ show_date đến ngày hiện tại)
+        // 3. Thống kê chi tiết: Doanh thu theo phim
         $movies = Movies::query()
             ->select('id', 'title', 'movie_status')
             ->get();
@@ -416,35 +462,15 @@ class StatisticsController extends Controller
             ->count();
 
         // 6. Thống kê khung giờ có số lượng ghế được đặt nhiều nhất trong khoảng ngày
-        // Lấy top 1 khung giờ
-        $peakShowtime = Showtime::query()
-            ->select('show_times.id', 'show_times.start_time', 'show_times.end_time')
-            ->selectRaw('COUNT(booking_details.id) as total_seats_booked')
-            ->leftJoin('bookings', 'show_times.id', '=', 'bookings.showtime_id')
-            ->leftJoin('booking_details', 'bookings.id', '=', 'booking_details.booking_id')
-            ->whereBetween('show_times.start_time', [$startOfDay, $endOfDay])
-            ->whereNotNull('booking_details.seat_id')
-            ->groupBy('show_times.id', 'show_times.start_time', 'show_times.end_time')
-            ->orderBy('total_seats_booked', 'desc')
-            ->first();
-
-        $peakShowtimeData = $peakShowtime ? [
-            'showtime' => sprintf('%s - %s', Carbon::parse($peakShowtime->start_time)->format('H:i'), Carbon::parse($peakShowtime->end_time)->format('H:i')),
-            'total_seats_booked' => (int) ($peakShowtime->total_seats_booked ?? 0),
-        ] : [
-            'showtime' => 'N/A',
-            'total_seats_booked' => 0,
-        ];
-
-        // Lấy top 5 khung giờ
+        // Chỉ giữ top 5 khung giờ, gộp theo khung giờ (start_time và end_time)
         $peakShowtimes = Showtime::query()
-            ->select('show_times.id', 'show_times.start_time', 'show_times.end_time')
+            ->select('show_times.start_time', 'show_times.end_time')
             ->selectRaw('COUNT(booking_details.id) as total_seats_booked')
             ->leftJoin('bookings', 'show_times.id', '=', 'bookings.showtime_id')
             ->leftJoin('booking_details', 'bookings.id', '=', 'booking_details.booking_id')
             ->whereBetween('show_times.start_time', [$startOfDay, $endOfDay])
             ->whereNotNull('booking_details.seat_id')
-            ->groupBy('show_times.id', 'show_times.start_time', 'show_times.end_time')
+            ->groupBy('show_times.start_time', 'show_times.end_time')
             ->orderBy('total_seats_booked', 'desc')
             ->take(5)
             ->get()
@@ -463,16 +489,10 @@ class StatisticsController extends Controller
             'current_date' => $currentDate,
             'data' => [
                 'overview' => [
-                    'daily_revenue' => [
-                        'value' => (int) $dailyRevenue,
-                        'period' => Carbon::parse($startOfDay)->format('d/m/Y') . ' - ' . Carbon::parse($endOfDay)->format('d/m/Y'),
-                    ],
+                    'daily_revenue' => $dailyRevenue, // Doanh thu từng ngày
                     'new_customers' => (int) $newCustomers,
                     'total_tickets_sold' => (int) $totalTicketsSold,
-                    'monthly_revenue' => [
-                        'value' => (int) $monthlyRevenue,
-                        'period' => Carbon::parse($startOfMonth)->format('d/m/Y') . ' - ' . Carbon::parse($endOfDay)->format('d/m/Y'),
-                    ],
+                    'monthly_revenue' => $monthlyRevenue, // Doanh thu từng tháng
                 ],
                 'movie_revenue_chart' => $movieRevenueChart,
                 'movie_stats' => $movieStats,
@@ -481,7 +501,6 @@ class StatisticsController extends Controller
                     'total_users' => (int) $totalUsers,
                     'movies_showing_today' => (int) $moviesShowingToday,
                     'showtimes_today' => (int) $showtimesToday,
-                    'peak_showtime' => $peakShowtimeData,
                     'peak_showtimes' => $peakShowtimesData,
                 ],
             ],

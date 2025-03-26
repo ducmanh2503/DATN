@@ -351,14 +351,15 @@ class StatisticsController extends Controller
             ->join('movies', 'calendar_show.movie_id', '=', 'movies.id')
             ->groupBy('movies.id', 'movies.title')
             ->orderBy('total_revenue', 'desc')
-            ->get()
-            ->map(function ($item) use ($startOfMonth, $endOfDay) {
-                return [
-                    'movie_title' => $item->title,
-                    'total_revenue' => (int) $item->total_revenue,
-                    'period' => Carbon::parse($startOfMonth)->format('d/m/Y') . ' - ' . Carbon::parse($endOfDay)->format('d/m/Y'),
-                ];
-            });
+            ->get();
+
+        $movieRevenueChart = $movieRevenueChart->map(function ($item) use ($startOfMonth, $endOfDay) {
+            return [
+                'movie_title' => $item->title,
+                'total_revenue' => $item->total_revenue,
+                'period' => Carbon::parse($startOfMonth)->format('d/m/Y') . ' - ' . Carbon::parse($endOfDay)->format('d/m/Y'),
+            ];
+        });
 
         // 3. Thống kê chi tiết: Doanh thu theo phim
         $movies = Movies::query()
@@ -463,7 +464,7 @@ class StatisticsController extends Controller
 
         // 6. Thống kê khung giờ có số lượng ghế được đặt nhiều nhất trong khoảng ngày
         // Chỉ giữ top 5 khung giờ, gộp theo khung giờ (start_time và end_time)
-        $peakShowtimes = Showtime::query()
+        $peakShowtimesRaw = Showtime::query()
             ->select('show_times.start_time', 'show_times.end_time')
             ->selectRaw('COUNT(booking_details.id) as total_seats_booked')
             ->leftJoin('bookings', 'show_times.id', '=', 'bookings.showtime_id')
@@ -472,12 +473,50 @@ class StatisticsController extends Controller
             ->whereNotNull('booking_details.seat_id')
             ->groupBy('show_times.start_time', 'show_times.end_time')
             ->orderBy('total_seats_booked', 'desc')
+            ->get();
+
+        // Sử dụng mảng tạm thời để gộp khung giờ
+        $mergedShowtimes = [];
+
+        foreach ($peakShowtimesRaw as $showtime) {
+            $startTime = Carbon::parse($showtime->start_time);
+            $endTime = Carbon::parse($showtime->end_time);
+            $totalSeats = (int) $showtime->total_seats_booked;
+
+            $merged = false;
+            foreach ($mergedShowtimes as &$existing) {
+                $existingStart = Carbon::parse($existing['start_time']);
+                $existingEnd = Carbon::parse($existing['end_time']);
+
+                // Kiểm tra xem hai khung giờ có giao nhau không
+                $hasOverlap = !($startTime->greaterThan($existingEnd) || $endTime->lessThan($existingStart));
+
+                if ($hasOverlap) {
+                    $existing['start_time'] = min($existingStart, $startTime)->format('H:i');
+                    $existing['end_time'] = max($existingEnd, $endTime)->format('H:i');
+                    $existing['total_seats_booked'] += $totalSeats;
+                    $merged = true;
+                    break;
+                }
+            }
+
+            if (!$merged) {
+                $mergedShowtimes[] = [
+                    'start_time' => $startTime->format('H:i'),
+                    'end_time' => $endTime->format('H:i'),
+                    'total_seats_booked' => $totalSeats,
+                ];
+            }
+        }
+
+        // Chuyển thành Collection, sắp xếp và lấy top 5
+        $peakShowtimes = collect($mergedShowtimes)
+            ->sortByDesc('total_seats_booked')
             ->take(5)
-            ->get()
             ->map(function ($showtime) {
                 return [
-                    'showtime' => sprintf('%s - %s', Carbon::parse($showtime->start_time)->format('H:i'), Carbon::parse($showtime->end_time)->format('H:i')),
-                    'total_seats_booked' => (int) ($showtime->total_seats_booked ?? 0),
+                    'showtime' => sprintf('%s - %s', $showtime['start_time'], $showtime['end_time']),
+                    'total_seats_booked' => (int) $showtime['total_seats_booked'],
                 ];
             });
 

@@ -167,7 +167,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
-        Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
+Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
 
 
 ///////////////////////////////////////////////customer///////////////////////////////////////////////

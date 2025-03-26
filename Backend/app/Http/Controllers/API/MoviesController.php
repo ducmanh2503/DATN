@@ -366,18 +366,44 @@ class MoviesController extends Controller
         ], 200);
     }
 
+
+    //check chung 
+    private function hasCalendarShow($movieIds)
+    {
+        if (is_array($movieIds)) {
+            return DB::table('calendar_show')->whereIn('movie_id', $movieIds)->exists() ||
+                DB::table('show_times')->whereExists(function ($query) use ($movieIds) {
+                    $query->select(DB::raw(1))
+                        ->from('calendar_show')
+                        ->whereColumn('calendar_show.id', 'show_times.calendar_show_id')
+                        ->whereIn('calendar_show.movie_id', $movieIds);
+                })->exists();
+        }
+
+        return DB::table('calendar_show')->where('movie_id', $movieIds)->exists() ||
+            DB::table('show_times')->whereExists(function ($query) use ($movieIds) {
+                $query->select(DB::raw(1))
+                    ->from('calendar_show')
+                    ->whereColumn('calendar_show.id', 'show_times.calendar_show_id')
+                    ->where('calendar_show.movie_id', $movieIds);
+            })->exists();
+    }
+
     /**
      * Xóa mềm nhiều phim.
      */
     public function destroyMultiple(Request $request)
     {
 
-
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
         // Nếu không có phim nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+        }
+
+        if ($this->hasCalendarShow($ids)) {
+            return response()->json(['message' => 'Không thể xóa vì một hoặc nhiều phim đang có lịch chiếu'], 400);
         }
 
         //Xóa mềm các phim được chọn
@@ -395,11 +421,13 @@ class MoviesController extends Controller
     public function destroy($id)
     {
 
-
         try {
             // Tìm phim theo ID
             $movie = Movies::findOrFail($id);
 
+            if ($this->hasCalendarShow($id)) {
+                return response()->json(['message' => 'Không thể xóa phim vì phim đang có lịch chiếu'], 400);
+            }
             // Xóa phim
             $movie->delete();
 
@@ -430,13 +458,15 @@ class MoviesController extends Controller
     public function forceDeleteMultiple(Request $request)
     {
 
-
-
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
         // Nếu không có phim nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+        }
+
+        if ($this->hasCalendarShow($ids)) {
+            return response()->json(['message' => 'Không thể xóa vĩnh viễn vì một hoặc nhiều phim đang có lịch chiếu'], 400);
         }
 
         //Xóa vĩnh viễn các phim được chọn
@@ -454,14 +484,16 @@ class MoviesController extends Controller
     public function forceDeleteSingle($id)
     {
 
-
-
         // Tìm phim đã xóa mềm theo ID
         $movie = Movies::onlyTrashed()->find($id);
 
         // Kiểm tra nếu không tìm thấy phim
         if (!$movie) {
             return response()->json(['message' => 'Phim không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
+        }
+
+        if ($this->hasCalendarShow($id)) {
+            return response()->json(['message' => 'Không thể xóa vĩnh viễn phim vì phim đang có lịch chiếu'], 400);
         }
 
         // Xóa vĩnh viễn phim

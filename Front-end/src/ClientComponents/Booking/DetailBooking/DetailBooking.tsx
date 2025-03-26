@@ -75,7 +75,10 @@ const DetailBooking = ({
           seat_ids: selectedSeatIds,
           combo_ids: holdComboID,
           usedPoints: usedPoints,
+
+
           discount_code: promoCode ?? "", // Đảm bảo không gửi undefined
+
         },
         {
           headers: {

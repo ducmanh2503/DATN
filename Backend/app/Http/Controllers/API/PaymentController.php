@@ -1,6 +1,8 @@
 <?php
 
+
 namespace App\Http\Controllers\API;
+
 
 use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
@@ -16,15 +18,19 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
+
 class PaymentController extends Controller
 {
 
+
     private $userRankService;
+
 
     public function __construct(UserRankService $userRankService)
     {
         $this->userRankService = $userRankService;
     }
+
 
     public function createVNPay(Request $request)
     {
@@ -67,6 +73,7 @@ class PaymentController extends Controller
         // Xử lý mã khuyến mại
         $discountCode = $request->input('discount_code');
         $discountCodeId = null;
+
         if ($discountCode) {
             $discount = DiscountCode::where('name_code', $discountCode)
                 ->where('status', 'active')
@@ -74,6 +81,7 @@ class PaymentController extends Controller
                 ->where('start_date', '<=', now())
                 ->where('end_date', '>=', now())
                 ->first();
+
 
             if (!$discount) {
                 return response()->json(['message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn'], 400);
@@ -105,6 +113,7 @@ class PaymentController extends Controller
         $vnp_TxnRef = time() . "";
         Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData));
 
+
         $vnp_Url = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
         $vnp_Returnurl = env('VNP_RETURN_URL', 'http://localhost:8000/api/VNPay/return');
         $vnp_TmnCode = env('VNP_TMN_CODE', 'GXTS9J8E');
@@ -112,10 +121,12 @@ class PaymentController extends Controller
 
         $vnp_OrderInfo = 'Thanh toán vé xem phim';
         $vnp_OrderType = '0';
+
         $vnp_Amount = $request->input('totalPrice') * 100;
         $vnp_Locale = 'vn';
         $vnp_BankCode = 'NCB';
         $vnp_IpAddr = $request->ip();
+
 
         $inputData = array(
             "vnp_Version" => "2.1.0",
@@ -132,15 +143,18 @@ class PaymentController extends Controller
             "vnp_TxnRef" => $vnp_TxnRef,
         );
 
+
         ksort($inputData);
         $query = http_build_query($inputData);
         $hashdata = $query;
         $vnp_SecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
         $vnp_Url .= "?" . $query . "&vnp_SecureHash=" . $vnp_SecureHash;
 
+
         Log::info('Input Data: ', $inputData);
         return response()->json(['code' => '00', 'message' => 'thanh toán thành công', 'data' => $vnp_Url]);
     }
+
 
     public function VNPayReturn(Request $request)
     {
@@ -149,23 +163,29 @@ class PaymentController extends Controller
         $vnp_SecureHash = $request->vnp_SecureHash;
         $inputData = $request->except('vnp_SecureHash');
 
+
         ksort($inputData);
         $hashData = http_build_query($inputData);
         $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
+
         if ($secureHash === $vnp_SecureHash && $request->vnp_ResponseCode == '00') {
             $bookingData = json_decode(Redis::get("booking:$request->vnp_TxnRef"), true);
+
 
             if (!$bookingData) {
                 Log::error('Booking data not found for TxnRef: ' . $request->vnp_TxnRef);
                 return redirect()->away('http://localhost:5173/booking/1/payment-result?status=failure');
             }
 
+
             $bookingData['is_payment_completed'] = true;
             Log::info('Merged Booking Data: ' . json_encode($bookingData));
 
+
             $ticketController = new TicketController(app(UserRankService::class));
             $response = $ticketController->getTicketDetails(new Request($bookingData));
+
 
             //trừ điểm nếu sử dụng
             $usedPoints = $bookingData['pricing']['used_points'] ?? 0;
@@ -176,7 +196,9 @@ class PaymentController extends Controller
                 }
             }
 
+
             Redis::del("booking:$request->vnp_TxnRef");
+
 
             // Khi thanh toán thành công
             return redirect()->away(
@@ -187,6 +209,7 @@ class PaymentController extends Controller
         }
     }
 
+
     public function holdSeats(Request $request)
     {
         $request->validate([
@@ -195,20 +218,27 @@ class PaymentController extends Controller
             'seat_ids.*' => 'exists:seats,id',
         ]);
 
+
         $userId = auth()->id();
         if (!$userId) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
+
 
         foreach ($request->seat_ids as $seatId) {
             $cacheKey = "seat_{$request->showtime_id}_{$seatId}";
             Cache::put($cacheKey, ['user_id' => $userId, 'expires_at' => now()->addMinutes(15)], 15); // Giữ 15 phút
         }
 
+
         $roomId = ShowTime::find($request->showtime_id)->room_id;
         $seatingMatrix = app(TicketController::class)->getSeatingMatrix($roomId, $request->showtime_id);
         broadcast(new \App\Events\SeatUpdated($roomId, $request->showtime_id, $seatingMatrix))->toOthers();
 
+
         return response()->json(['success' => true]);
     }
 }
+
+
+

@@ -18,10 +18,14 @@ class ReleaseExpiredSeats extends Command
         $now = now();
         foreach ($heldSeats as $seat => $data) {
             if ($now->greaterThan($data['expires_at'])) {
+                // Lấy roomId và showTimeId từ $data
+                $roomId = $data['room_id'] ?? null;
+                $showTimeId = $data['showtime_id'] ?? null;
+
                 unset($heldSeats[$seat]);
 
-                // Phát sự kiện cập nhật ghế qua Pusher
-                broadcast(new SeatHeldEvent($seat, null));
+                // Phát sự kiện cập nhật ghế qua Pusher với roomId và showTimeId
+                broadcast(new SeatHeldEvent($seat, null, $roomId, $showTimeId, 'released'))->toOthers();
             }
         }
 

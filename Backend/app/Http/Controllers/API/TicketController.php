@@ -537,11 +537,6 @@ class TicketController extends Controller
 
             $discountCodeId = $discount->id;
         }
-<<<<<<< HEAD
-        $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount - $discountAmount);
-        Log::info("Total Ticket Price: $totalTicketPrice, Total Combo Price: $totalComboPrice, Total Before Discount: $totalPriceBeforeDiscount, Point Discount: $pointDiscount, Discount Amount: $discountAmount, Total Price: $totalPrice");
-=======
->>>>>>> 44f6c0ff6681c8a434c05072e53ca0151c2752e1
 
         // Lấy pricing từ request (không tính lại)
         $pricing = [

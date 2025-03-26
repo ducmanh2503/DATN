@@ -30,19 +30,20 @@ const DetailBooking = ({
     roomTypeShowtimes,
   } = useFilmContext();
   const { totalPrice } = useFinalPriceContext();
-  const { totalSeatPrice, typeSeats, selectedSeatIds } = useSeatsContext();
+  const { totalSeatPrice, typeSeats, selectedSeatIds, seatRoomPrice } =
+    useSeatsContext();
   const { nameCombo, totalComboPrice, holdComboID } = useComboContext();
-
+  const { usedPoints, promoCode, totalPricePoint, totalPriceVoucher } =
+    usePromotionContextContext();
   const { tokenUserId } = useAuthContext();
-  const { usedPoints } = usePromotionContextContext();
+
   const [isSelected, setIsSelected] = useState(false);
   const currentYear = dayjs().year();
 
   const onOk = async () => {
-    // paymentTicket();
     vnpay.mutate(undefined, {
       onSuccess: (data: any) => {
-        window.location.href = data; // Chuyển hướng đến link VNPay
+        window.location.href = data;
       },
     });
     setOpen(false);
@@ -54,52 +55,31 @@ const DetailBooking = ({
   };
 
   const handleClick = () => {
-    setIsSelected(!isSelected); // Toggle trạng thái chọn
+    setIsSelected(!isSelected);
   };
 
-  // const { mutate: paymentTicket } = useMutation({
-  //     mutationFn: async () => {
-  //         const detailTicket = {
-  //             movie_id: filmId,
-  //             showtime_id: showtimeIdFromBooking,
-  //             calendar_show_id: calendarShowtimeID,
-  //             seat_ids: selectedSeatIds,
-  //             combo_ids: holdComboID,
-  //             pricing: {
-  //                 total_ticket_price: totalSeatPrice,
-  //                 total_combo_price: totalComboPrice,
-  //                 total_price: totalPrice,
-  //             },
-  //             payment_method: paymentType,
-  //         };
-  //         console.log(detailTicket);
-
-  //         await axios.post(
-  //             `http://localhost:8000/api/ticket-details`,
-  //             detailTicket,
-  //             {
-  //                 headers: {
-  //                     Authorization: `Bearer ${tokenUserId}`,
-  //                 },
-  //             }
-  //         );
-  //     },
-  // });
-
-  //thanh toán nếu bằng VNPay
   const vnpay = useMutation({
     mutationFn: async () => {
+      console.log("discount_code:", promoCode);
       const { data } = await axios.post(
         PAYMENT_WITH_VNPAY,
         {
           totalPrice: totalPrice,
+          total_combo_price: totalComboPrice,
+          total_ticket_price: totalSeatPrice,
+          total_price_point: totalPricePoint,
+          total_price_voucher: totalPriceVoucher,
           movie_id: filmId,
           showtime_id: showtimeIdFromBooking,
           calendar_show_id: calendarShowtimeID,
           seat_ids: selectedSeatIds,
           combo_ids: holdComboID,
           usedPoints: usedPoints,
+<<<<<<< HEAD
           // discount_code: "THANHVIENVIP",
+=======
+          discount_code: promoCode ?? "", // Đảm bảo không gửi undefined
+>>>>>>> 44f6c0ff6681c8a434c05072e53ca0151c2752e1
         },
         {
           headers: {
@@ -107,11 +87,10 @@ const DetailBooking = ({
           },
         }
       );
-      // console.log(data.data);
-
       return data.data;
     },
   });
+
   return (
     <Modal
       centered
@@ -123,7 +102,7 @@ const DetailBooking = ({
       cancelButtonProps={{ style: { display: "none" } }}
       okButtonProps={{
         className: clsx(styles.customOkButton),
-        disabled: !isSelected, // Chỉ cho phép bấm nếu đã chọn
+        disabled: !isSelected,
       }}
       width={385}
     >
@@ -196,4 +175,5 @@ const DetailBooking = ({
     </Modal>
   );
 };
+
 export default DetailBooking;

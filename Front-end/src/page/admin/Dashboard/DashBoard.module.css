@@ -1,0 +1,13 @@
+.lineChart {
+    height: 300px;
+}
+
+.statisticsInfo {
+    height: 50px;
+}
+
+.titleTable {
+    margin: 40px 0 20px;
+    font-size: 20px;
+    font-weight: 600;
+}

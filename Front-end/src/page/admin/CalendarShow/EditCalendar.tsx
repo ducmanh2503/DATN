@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Button,
     DatePicker,
@@ -12,10 +12,11 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { EditOutlined } from "@ant-design/icons";
-import { DETAIL_CALENDAR, UPDATE_CALENDAR } from "../../../config/ApiConfig";
+import {
+    useDetailCalendar,
+    useUpdateCalendar,
+} from "../../../services/adminServices/calendarManage.service";
 
 dayjs.extend(isSameOrBefore);
 
@@ -23,43 +24,15 @@ const EditCalendar = ({ id }: any) => {
     const [openEdit, setOpenEdit] = useState(false);
     const [formShowtime] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
-    const queryClient = useQueryClient();
 
-    const { data, isLoading } = useQuery({
-        queryKey: ["showtimesFilm", id],
-        queryFn: async () => {
-            const { data } = await axios.get(DETAIL_CALENDAR(id));
+    const { data, isLoading } = useDetailCalendar(id, openEdit);
 
-            console.log("check", data);
-
-            return data;
-        },
-        enabled: openEdit,
-        retry: false,
-    });
-
-    const { mutate } = useMutation({
-        mutationFn: async (formData) => {
-            console.log("check api", formData);
-
-            const response = await axios.put(UPDATE_CALENDAR(id), formData);
-
-            return response.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["showtimesFilm"],
-            });
-            messageApi.success("Cập nhật thành công");
-            setOpenEdit(false);
-            formShowtime.resetFields();
-        },
-        onError: (error: any) => {
-            messageApi.error(
-                error?.response?.data?.message || "Có lỗi xảy ra!"
-            );
-        },
-    });
+    const { mutate } = useUpdateCalendar(
+        id,
+        messageApi,
+        setOpenEdit,
+        formShowtime
+    );
 
     useEffect(() => {
         if (data) {
@@ -96,7 +69,7 @@ const EditCalendar = ({ id }: any) => {
                 <EditOutlined /> Cập nhật
             </Button>
             <Modal
-                title="Thêm lịch chiếu"
+                title="Cập nhật lịch chiếu"
                 open={openEdit}
                 onOk={() => formShowtime.submit()}
                 onCancel={handleCancel}

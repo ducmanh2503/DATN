@@ -17,36 +17,54 @@ const VoucherInfo = () => {
     totalPricePoint,
     setTotalPriceVoucher,
     totalPriceVoucher,
+    setPromoCode, // Thêm setPromoCode từ context
   } = usePromotionContextContext();
   const { setTotalPrice, totalPrice } = useFinalPriceContext();
   const { openNotification, contextHolder } = CustomNotification();
 
-  const [discount_code, setPromoCode] = useState<string>("");
+  const [promoCode, setPromoCodeLocal] = useState<string>(""); // Giữ state cục bộ để quản lý input
   const [isVoucherUsed, setIsVoucherUsed] = useState<boolean>(false);
 
+  // Cập nhật promoCode vào context và sessionStorage
   const onChangePromotion = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPromoCode(e.target.value);
+    const newPromoCode = e.target.value;
+    setPromoCodeLocal(newPromoCode);
+    setPromoCode(newPromoCode); // Cập nhật vào context
+    sessionStorage.setItem("promoCode", JSON.stringify(newPromoCode)); // Giữ logic cũ
   };
 
+  // Hàm xử lý khi thêm mã khuyến mãi
   const handleAddPromotion = () => {
-    if (!discount_code || isVoucherUsed) {
-      openNotification({ description: "Mã chỉ có thể dùng 1 lần" });
+    if (isVoucherUsed) {
+      openNotification({
+        title: "Forest Cinema cho biết",
+        description: "Mã chỉ có thể dùng 1 lần",
+      });
       return;
     }
-    getVoucher(discount_code);
+    if (!promoCode) {
+      openNotification({
+        title: "Forest Cinema cho biết",
+        description: "Nhập mã giảm giá nếu có",
+      });
+      return;
+    }
+    getVoucher(promoCode);
   };
 
+  // Gọi API kiểm tra mã khuyến mãi
   const { mutate: getVoucher } = useMutation({
     mutationFn: async (code: string) => {
       const response = await axios.post(
         GET_VOUCHER(code),
-        { name_code: discount_code },
+        { name_code: promoCode },
         { headers: { Authorization: `Bearer ${tokenUserId}` } }
       );
       return response.data;
     },
     onSuccess: (data) => {
       const discountPercent = parseFloat(data.discount_percent);
+
       if (!isNaN(discountPercent)) {
         const newPrice =
           (totalPrice + totalPricePoint) * (1 - discountPercent / 100);
@@ -54,12 +72,13 @@ const VoucherInfo = () => {
         setTotalPriceVoucher(newPrice);
         setQuantityPromotion(1);
         setIsVoucherUsed(true);
-        // Lưu discount_code vào sessionStorage sau khi xác nhận
-        sessionStorage.setItem("discount_code", JSON.stringify(discount_code));
       }
     },
     onError: () => {
-      openNotification({ description: "Mã không đúng hoặc không hợp lệ" });
+      openNotification({
+        title: "Forest Cinema cho biết",
+        description: "Mã không đúng hoặc không hợp lệ",
+      });
     },
   });
 
@@ -69,7 +88,7 @@ const VoucherInfo = () => {
       <h3 className={clsx(styles.title)}>Mã khuyến mãi</h3>
       <Space.Compact>
         <Input
-          value={discount_code}
+          value={promoCode}
           onChange={onChangePromotion}
           onPressEnter={handleAddPromotion}
           placeholder="Nhập mã khuyến mãi"

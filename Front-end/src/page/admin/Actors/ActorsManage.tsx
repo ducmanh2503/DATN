@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
 import {
@@ -11,7 +11,6 @@ import {
     Table,
 } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
-import Highlighter from "react-highlight-words";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { DELETE_DIRECTORS, GET_ACTOR_LIST } from "../../../config/ApiConfig";
@@ -41,6 +40,14 @@ const ActorsManage: React.FC = () => {
     const handleReset = (clearFilters: () => void) => {
         clearFilters();
         setSearchText("");
+    };
+
+    // Hàm chuẩn hóa chuỗi (xoá dấu tiếng Việt)
+    const removeAccents = (str: string) => {
+        return str
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
     };
 
     const getColumnSearchProps = (
@@ -118,16 +125,22 @@ const ActorsManage: React.FC = () => {
                 </Space>
             </div>
         ),
+
         filterIcon: (filtered: boolean) => (
             <SearchOutlined
                 style={{ color: filtered ? "#1677ff" : undefined }}
             />
         ),
-        onFilter: (value, record) =>
-            record[dataIndex]
-                .toString()
-                .toLowerCase()
-                .includes((value as string).toLowerCase()),
+        onFilter: (value, record) => {
+            const recordValue = record[dataIndex];
+            if (!recordValue) return false;
+
+            const normalizedRecord = removeAccents(recordValue.toString());
+            const normalizedValue = removeAccents(value as string);
+
+            return normalizedRecord.includes(normalizedValue);
+        },
+
         filterDropdownProps: {
             onOpenChange(open) {
                 if (open) {
@@ -135,26 +148,19 @@ const ActorsManage: React.FC = () => {
                 }
             },
         },
-        render: (text) =>
-            searchedColumn === dataIndex ? (
-                <Highlighter
-                    highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-                    searchWords={[searchText]}
-                    autoEscape
-                    textToHighlight={text ? text.toString() : ""}
-                />
-            ) : (
-                text
-            ),
+        render: (text) => searchedColumn === dataIndex && text,
     });
 
     const columns: TableColumnsType<DataTypeGenresActorsDirectors> = [
         {
             title: "Diễn viên",
-            dataIndex: "actors",
-            key: "actors",
-            ...getColumnSearchProps("actors"),
-            render: (_, record: any) => <span>{record.name_actor}</span>,
+            dataIndex: "name_actor",
+            key: "name_actor",
+            ...getColumnSearchProps("name_actor"),
+            render: (_, record: any) => {
+                console.log("record", record);
+                return <span>{record.name_actor}</span>;
+            },
         },
         {
             title: "Hành động",

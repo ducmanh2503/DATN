@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     Button,
     Col,
@@ -13,14 +12,10 @@ import {
     Skeleton,
     Space,
 } from "antd";
-import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import {
     GET_ACTOR_LIST,
-    GET_DIRECTORS_LIST,
-    GET_FILM_DETAIL,
     GET_GENRES,
-    UPDATE_FILM,
     URL_IMAGE,
 } from "../../../config/ApiConfig";
 import { EditOutlined, VerticalAlignTopOutlined } from "@ant-design/icons";
@@ -29,68 +24,41 @@ import { FormData } from "../../../types/interface";
 import SelectForm from "./SelectForm";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
+import { useDirectorsManage } from "../../../services/adminServices/directorManage.service";
+import { useAdminContext } from "../../../AdminComponents/UseContextAdmin/adminContext";
+import {
+    useDetailFilm,
+    useUpdateFilm,
+} from "../../../services/adminServices/filmManage.service";
 
 const EditFilm = ({ id }: any) => {
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
-    const queryClient = useQueryClient();
     const [poster, setPoster] = useState("");
     const [selectedFile, setSelectedFile] = useState<File | undefined>();
     const [preview, setPreview] = useState<string>();
     const [openModal, setOpenModal] = useState(false);
 
-    const { data: dataDirectors } = useQuery({
-        queryKey: ["Directors"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_DIRECTORS_LIST);
-            console.log("check-2", data);
-
-            return data.map((item: any) => ({
-                label: item.name_director,
-                value: item.id,
-            }));
-        },
-        staleTime: 1000 * 60 * 20,
+    useDirectorsManage(); // api lấy danh sách đạo diễn
+    const { directors } = useAdminContext();
+    const {
+        data,
+        isLoading: isLoadingDetail,
+        refetch,
+    } = useDetailFilm({
+        id,
+        form,
+        setPoster,
+        openModal,
+        // api chi tiết phim
     });
-
-    const { data, isLoading, refetch } = useQuery({
-        queryKey: ["filmList", id],
-        queryFn: async () => {
-            const { data } = await axios.get(`${GET_FILM_DETAIL(id)}`);
-            console.log("check re-render", data);
-
-            return data.data;
-        },
-        enabled: false,
-        onSuccess: (data: any) => {
-            form.setFieldsValue(data);
-            setPoster(data.poster ?? "");
-        },
-        refetchOnWindowFocus: false,
-    });
-
-    const { mutate } = useMutation({
-        mutationFn: async (formData: FormData) => {
-            await axios.post(UPDATE_FILM(id), formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-        },
-        onSuccess: () => {
-            form.resetFields();
-            messageApi.success("Cập nhật thành công");
-            setSelectedFile(undefined);
-            setPreview(undefined);
-            queryClient.invalidateQueries({
-                queryKey: ["filmList"],
-            });
-        },
-        onError: (error: any) => {
-            messageApi.error(error?.data?.message || "Có lỗi xảy ra!");
-        },
-    });
-
+    const { mutate } = useUpdateFilm({
+        id,
+        form,
+        messageApi,
+        setSelectedFile,
+        setPreview,
+    }); // api update film
     useEffect(() => {
         if (data) {
             form.resetFields();
@@ -188,7 +156,7 @@ const EditFilm = ({ id }: any) => {
         e.target.value = "";
     };
 
-    if (isLoading) {
+    if (isLoadingDetail) {
         return <Skeleton active></Skeleton>;
     }
 
@@ -208,6 +176,7 @@ const EditFilm = ({ id }: any) => {
                 width={800}
                 onClose={handleCancel}
                 open={openModal}
+                destroyOnClose
                 extra={
                     <Space>
                         <Button onClick={handleCancel}>Hủy</Button>
@@ -372,7 +341,7 @@ const EditFilm = ({ id }: any) => {
                                             "name_director"
                                         )
                                     }
-                                    options={dataDirectors}
+                                    options={directors}
                                     value={form.getFieldValue("name_director")}
                                 />
                             </Form.Item>

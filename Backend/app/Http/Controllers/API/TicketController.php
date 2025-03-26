@@ -21,6 +21,7 @@ use App\Models\RoomType;
 use App\Models\Combo;
 use App\Models\ShowTime;
 use App\Models\CalendarShow;
+use App\Models\DiscountCode;
 use App\Models\Movie;
 use App\Models\Movies;
 use App\Models\User;
@@ -203,7 +204,9 @@ class TicketController extends Controller
             'showtime_id' => $data['showtime_id'],
             'total_ticket_price' => $pricing['total_ticket_price'],
             'total_combo_price' => $pricing['total_combo_price'],
-            'total_price' => $pricing['total_price'], // Thêm total_price
+            'total_price_point' => $pricing['total_price_point'],
+            'total_price_voucher' => $pricing['total_price_voucher'],
+            'total_price' => $pricing['total_price'], // Sử dụng total_price từ FE
             'discount_code_id' => $pricing['discount_code_id'] ?? null,
             'status' => $status,
             'payment_method' => $data['payment_method'],
@@ -435,7 +438,13 @@ class TicketController extends Controller
     {
         Log::info('getTicketDetails Request Data: ' . json_encode($request->all()));
 
+        // Validation: Nhận tất cả dữ liệu từ request
         $request->validate([
+            'totalPrice' => 'required|numeric|min:0',
+            'total_combo_price' => 'required|numeric|min:0',
+            'total_ticket_price' => 'required|numeric|min:0',
+            'total_price_point' => 'nullable|numeric|min:0',
+            'total_price_voucher' => 'nullable|numeric|min:0',
             'movie_id' => 'required|exists:movies,id',
             'showtime_id' => 'required|exists:show_times,id',
             'calendar_show_id' => 'required|exists:calendar_show,id',
@@ -443,15 +452,11 @@ class TicketController extends Controller
             'seat_ids.*' => 'exists:seats,id',
             'combo_ids' => 'nullable|array',
             'combo_ids.*' => 'exists:combos,id',
-            'pricing' => 'required|array',
-            'pricing.total_ticket_price' => 'required|numeric|min:0',
-            'pricing.total_combo_price' => 'required|numeric|min:0',
-            'pricing.total_price' => 'required|numeric|min:0',
             'payment_method' => 'required|in:cash,VNpay,Momo,Zalopay',
             'is_payment_completed' => 'sometimes|boolean',
             'user_id' => 'required|exists:users,id',
             'usedPoints' => 'nullable|integer|min:0',
-            'discount_code' => 'nullable|string', // Client gửi name_code
+            'discount_code' => 'nullable|string',
         ]);
 
         if (empty($request->seat_ids) || !is_array($request->seat_ids)) {
@@ -477,7 +482,6 @@ class TicketController extends Controller
             ->select('id', 'calendar_show_id', 'room_id', 'start_time', 'end_time', 'status')
             ->first();
 
-        // Lấy show_date từ show_time_date
         $showDate = ShowTimeDate::where('show_time_id', $request->showtime_id)
             ->value('show_date');
 
@@ -492,50 +496,35 @@ class TicketController extends Controller
             ->select('id', 'room_id', 'row', 'column', 'seat_type_id')
             ->get();
 
-        // Tính giá vé từ DB, sử dụng $showDate
-        $totalTicketPrice = 0;
-        $seatDetails = $seats->map(function ($seat) use ($showDate, &$totalTicketPrice) {
-            $price = SeatTypePrice::getPriceByDate($seat->seat_type_id, $showDate) ?? $seat->seatType->price ?? 0;
-            $totalTicketPrice += $price;
+        // Tạo seatDetails (không tính giá)
+        $seatDetails = $seats->map(function ($seat) {
             return [
                 'row' => $seat->row,
                 'column' => $seat->column,
                 'seat_type' => $seat->seatType->name,
-                'price' => $price,
             ];
         });
 
         $combos = collect([]);
-        $totalComboPrice = 0;
         if ($request->combo_ids) {
             $combos = Combo::whereIn('id', $request->combo_ids)
                 ->select('id', 'name', 'description', 'price', 'image')
                 ->get();
-            $totalComboPrice = $combos->sum(function ($combo) use ($request) {
-                $quantity = collect($request->combo_ids)->filter(fn($id) => $id == $combo->id)->count();
-                return $combo->price * $quantity;
-            });
         }
 
-        //tính giá giảm từ điểm
+        // Kiểm tra usedPoints
         $usedPoints = $request->input('usedPoints', 0);
-        $pointDiscount = $usedPoints * 1000;
         $userData = $this->userRankService->getRankAndPoints($request->user_id);
         $availablePoints = $userData['points'] ?? 0;
-        // $usedPoints = $this->userRankService->getRankAndPoints($request->user_id)['points'] ?? 0;
-
         if ($usedPoints > $availablePoints) {
             return response()->json(['message' => 'Số điểm sử dụng vượt quá số điểm hiện có']);
         }
-        $totalPriceBeforeDiscount = $totalTicketPrice + $totalComboPrice;
 
-        //xử lý mã khuyến mại
+        // Xử lý mã khuyến mại
         $discountCode = $request->input('discount_code');
-        $discountAmount = 0;
         $discountCodeId = null;
-
         if ($discountCode) {
-            $discount = \App\Models\DiscountCode::where('name_code', $discountCode)
+            $discount = DiscountCode::where('name_code', $discountCode)
                 ->where('status', 'active')
                 ->where('quantity', '>', 0)
                 ->where('start_date', '<=', now())
@@ -546,57 +535,29 @@ class TicketController extends Controller
                 return response()->json(['message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn'], 400);
             }
 
-            $discountAmount = $totalPriceBeforeDiscount * ($discount->percent / 100);
             $discountCodeId = $discount->id;
         }
+<<<<<<< HEAD
         $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount - $discountAmount);
         Log::info("Total Ticket Price: $totalTicketPrice, Total Combo Price: $totalComboPrice, Total Before Discount: $totalPriceBeforeDiscount, Point Discount: $pointDiscount, Discount Amount: $discountAmount, Total Price: $totalPrice");
+=======
+>>>>>>> 44f6c0ff6681c8a434c05072e53ca0151c2752e1
 
-        // $totalPrice = $totalTicketPrice + $totalComboPrice;
+        // Lấy pricing từ request (không tính lại)
         $pricing = [
-            'total_ticket_price' => $totalTicketPrice,
-            'total_combo_price' => $totalComboPrice,
-            'total_price_before_discount' => $totalPriceBeforeDiscount,
-            'point_discount' => $pointDiscount,
-            'discount_amount' => $discountAmount,
+            'total_ticket_price' => $request->total_ticket_price,
+            'total_combo_price' => $request->total_combo_price,
+            'total_price_point' => $request->total_price_point,
+            'total_price_voucher' => $request->total_price_voucher,
+            'total_price_before_discount' => $request->total_ticket_price + $request->total_combo_price,
+            'point_discount' => $usedPoints * 1000, // Giả sử 1 điểm = 1000 VNĐ
             'discount_code_id' => $discountCodeId,
             'discount_code' => $discountCode,
-            'total_price' => $totalPrice,
+            'total_price' => $request->totalPrice, // Sử dụng totalPrice từ FE
             'usedPoints' => $usedPoints,
         ];
 
         $paymentMethod = $request->payment_method;
-
-        // $ticketDetails = [
-        //     'movie' => $movie,
-        //     'calendar_show' => $calendarShow,
-        //     'show_date' => $showDate, // Thêm $showDate trực tiếp vào ticketDetails
-        //     'show_time' => [
-        //         'start_time' => $showTime->start_time,
-        //         'end_time' => $showTime->end_time,
-        //         'status' => $showTime->status,
-        //         'room' => [
-        //             'name' => $showTime->room->name,
-        //             'room_type' => $showTime->room->roomType->name,
-        //             'price_per_seat' => $showTime->room->roomType->price,
-        //         ],
-        //     ],
-        //     'seats' => $seatDetails,
-        //     'combos' => $combos->map(function ($combo) use ($request) {
-        //         $quantity = collect($request->combo_ids)->filter(fn($id) => $id == $combo->id)->count();
-        //         return [
-        //             'name' => $combo->name,
-        //             'description' => $combo->description,
-        //             'price' => $combo->price,
-        //             'image' => $combo->image,
-        //             'quantity' => $quantity,
-        //             'display' => "$combo->name x$quantity"
-        //         ];
-        //     }),
-        //     'pricing' => $pricing,
-        //     'payment_method' => $paymentMethod,
-        // ];
-
 
         $ticketDetails = $this->buildTicketDetails($movie, $calendarShow, $showDate, $showTime, $seatDetails, $combos, $pricing, $paymentMethod, $request);
 
@@ -619,9 +580,10 @@ class TicketController extends Controller
                 }
             }
 
-            // Dùng $pricing tính từ DB thay vì từ request
+            // Lưu booking với pricing từ request
             $booking = $this->saveBooking($request->all(), 'confirmed', $pricing);
 
+            // Trừ điểm nếu sử dụng
             if ($usedPoints > 0) {
                 $success = $this->userRankService->deductPoints($request->user_id, $usedPoints);
                 if (!$success) {
@@ -629,26 +591,17 @@ class TicketController extends Controller
                 }
             }
 
+            // Trừ quantity của discount_code nếu có
             if ($discountCodeId) {
-                $discount = \App\Models\DiscountCode::find($discountCodeId);
+                $discount = DiscountCode::find($discountCodeId);
                 if ($discount) {
                     $discount->quantity -= 1;
                     $discount->save();
                 }
             }
 
-            //gọi qrcode
+            // Gọi QR code
             $ticketDetails['qr_code'] = $this->generateQrCode($booking, $ticketDetails);
-
-            // $qrData = "Mã đặt vé: {$booking->id}\n" .
-            //     "Phim: {$ticketDetails['movie']['title']}\n" .
-            //     "Ngày chiếu: {$ticketDetails['show_date']}\n" . // Sử dụng show_date
-            //     "Giờ chiếu: {$ticketDetails['show_time']['start_time']} - {$ticketDetails['show_time']['end_time']}\n" .
-            //     "Phòng: {$ticketDetails['show_time']['room']['name']} ({$ticketDetails['show_time']['room']['room_type']})\n" .
-            //     "Ghế: " . implode(', ', array_map(fn($seat) => "{$seat['row']}{$seat['column']} ({$seat['seat_type']})", $ticketDetails['seats']->toArray()));
-            // $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);
-            // $qrCode = base64_encode(file_get_contents($qrUrl));
-            // $ticketDetails['qr_code'] = $qrCode;
 
             $user = User::find($request->user_id);
             if ($user && $user->email) {

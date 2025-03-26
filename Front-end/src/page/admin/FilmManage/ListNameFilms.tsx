@@ -1,9 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { GET_FILM_LIST, URL_IMAGE } from "../../../config/ApiConfig";
+import { URL_IMAGE } from "../../../config/ApiConfig";
 import { Spin } from "antd";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
+import { useFilmManage } from "../../../services/adminServices/filmManage.service";
+import { useAdminContext } from "../../../AdminComponents/UseContextAdmin/adminContext";
+
 const contentStyle: React.CSSProperties = {
     padding: 50,
 };
@@ -11,19 +12,12 @@ const contentStyle: React.CSSProperties = {
 const content = <div style={contentStyle} />;
 
 const ListNameFilms = () => {
-    const { data: moviesName, isLoading } = useQuery({
-        queryKey: ["filmList"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_FILM_LIST);
-            console.log("check-4", data);
+    const { listFilms } = useAdminContext();
+    const { data: moviesName, isLoading, isError } = useFilmManage();
 
-            return data.movies.map((item: any) => ({
-                ...item,
-                key: item.id,
-            }));
-        },
-        staleTime: 1000 * 60 * 10,
-    });
+    // Chọn dữ liệu ưu tiên từ listFilms, nếu rỗng thì fallback về moviesName
+    const filmsToRender =
+        listFilms && Object.keys(listFilms).length > 0 ? listFilms : moviesName;
 
     if (isLoading)
         return (
@@ -31,9 +25,10 @@ const ListNameFilms = () => {
                 {content}
             </Spin>
         );
+
     return (
         <>
-            {moviesName?.map((film: any) => (
+            {filmsToRender?.map((film: any) => (
                 <div key={film.key} className={clsx(styles.listProduct)}>
                     <img
                         className={clsx(styles.moviesNameOfImage)}

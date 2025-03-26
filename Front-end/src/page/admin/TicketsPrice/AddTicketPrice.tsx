@@ -1,11 +1,10 @@
-import { EditOutlined, PlusCircleOutlined } from "@ant-design/icons";
-import { Button, Form, Input, InputNumber, message, Modal, Select } from "antd";
-import clsx from "clsx";
-import React, { useState } from "react";
+import { PlusCircleOutlined } from "@ant-design/icons";
+import { Button, Form, Input, message, Modal, Select } from "antd";
+import { useState } from "react";
 import {
     useTicketsPrice,
     useUpdateTicketPrice,
-} from "../../../services/ticketPrice.service";
+} from "../../../services/adminServices/ticketPrice.service";
 
 const AddTicketPrice = ({ id }: any) => {
     const [formTicketPrice] = Form.useForm();

@@ -20,7 +20,7 @@ class MovieRevenueChartSheet implements FromCollection, WithHeadings, WithTitle
         return collect($this->movieRevenueChart)->map(function ($item) {
             return [
                 'movie_title' => $item['movie_title'],
-                'total_revenue' => number_format($item['total_revenue'], 0, ',', '.'),
+                'total_revenue' => $item['total_revenue'],
                 'period' => $item['period'],
             ];
         });

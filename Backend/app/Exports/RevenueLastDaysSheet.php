@@ -21,7 +21,7 @@ class RevenueLastDaysSheet implements FromCollection, WithHeadings, WithTitle
             return [
                 'day' => $item['day'],
                 'date' => $item['date'],
-                'total_revenue' => number_format($item['total_revenue'], 0, ',', '.'),
+                'total_revenue' => $item['total_revenue'],
             ];
         });
     }

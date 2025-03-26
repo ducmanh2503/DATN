@@ -190,7 +190,7 @@ class UserController extends Controller
 
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
-            'current_password' => 'required|string',
+            'oldPassword' => 'required|string',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
@@ -199,7 +199,7 @@ class UserController extends Controller
         }
 
         // Kiểm tra mật khẩu hiện tại có đúng không
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (!Hash::check($request->oldPassword, $user->password)) {
             return response()->json(['error' => 'Mật khẩu hiện tại không đúng'], 401);
         }
 

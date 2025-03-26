@@ -41,7 +41,7 @@ const ArticleList = () => {
   };
 
   // Xóa bài viết
-  const handleDelete = async (id: any) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
       try {
         await axios.delete(DELETE_ARTICLE(id));
@@ -84,7 +84,7 @@ const ArticleList = () => {
     data.append("category", category);
     data.append("body", body);
     data.append("status", status);
-    data.append("_method", "PUT"); // Sửa lỗi tại đây
+    data.append("_method", "PUT");
     if (file) data.append("image", file);
 
     try {

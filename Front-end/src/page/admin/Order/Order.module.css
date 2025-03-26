@@ -9,7 +9,7 @@
     justify-content: space-between;
 }
 .orderInfo {
-    width: 50%;
+    width: 52%;
     display: flex;
     align-items: flex-start;
 }
@@ -36,7 +36,7 @@
 }
 
 .label {
-    min-width: 110px;
+    min-width: 105px;
     font-weight: 600;
     word-spacing: 2px;
 }

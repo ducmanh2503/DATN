@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Row, Skeleton, Table } from "antd";
+import { Row, Skeleton, Table, Tag } from "antd";
 import clsx from "clsx";
 import styles from "./DashBoard.module.css";
 import Charts from "./Charts";
@@ -14,40 +14,28 @@ const Dashboard: React.FC = () => {
     const [newCustomers, setNewCustomers] = useState<number>(0); // số lượng khách hàng mới
     const [totalTicketSold, setTotalTicketSold] = useState<number>(0); // số lượng vé sold
 
-    const columns = [
-        {
-            title: "Tên phim",
-            dataIndex: "movie_title",
-            key: "movie_title",
-        },
-        {
-            title: "Thời gian kinh doanh",
-            dataIndex: "month_year",
-            key: "month_year",
-        },
-        {
-            title: "Tổng vé bán ra",
-            dataIndex: "total_tickets",
-            key: "total_tickets",
-        },
-        {
-            title: "Tổng doanh thu",
-            dataIndex: "total_revenue",
-            key: "total_revenue",
-            render: (value: any, record: any) => (
-                <span>{record.total_revenue.toLocaleString("vi-VN")} VNĐ</span>
-            ),
-        },
-    ];
-
     const { data: dashboardData, isLoading } = useDashboard();
     useEffect(() => {
-        setDailyRevenueDate(dashboardData?.overview?.daily_revenue?.date);
-        setDailyRevenueValue(dashboardData?.overview?.daily_revenue?.value);
-        setMonthlyRevenueDate(
-            dashboardData?.overview?.monthly_revenue?.month_year
+        setDailyRevenueDate(
+            dashboardData?.overview?.daily_revenue[
+                dashboardData.overview.daily_revenue.length - 1
+            ].date
         );
-        setMonthlyRevenueValue(dashboardData?.overview?.monthly_revenue?.value);
+        setDailyRevenueValue(
+            dashboardData?.overview?.daily_revenue[
+                dashboardData.overview.daily_revenue.length - 1
+            ].value
+        );
+        setMonthlyRevenueDate(
+            dashboardData?.overview?.monthly_revenue[
+                dashboardData.overview.monthly_revenue.length - 1
+            ].month_year
+        );
+        setMonthlyRevenueValue(
+            dashboardData?.overview?.monthly_revenue[
+                dashboardData.overview.monthly_revenue.length - 1
+            ].value
+        );
         setNewCustomers(dashboardData?.overview?.new_customers);
         setTotalTicketSold(dashboardData?.overview?.total_tickets_sold);
     }, [dashboardData]);
@@ -64,18 +52,6 @@ const Dashboard: React.FC = () => {
                 ></CardsTitle>
                 <Charts></Charts>
             </Row>
-            <h2 className={clsx(styles.titleTable)}>Doanh thu theo phim</h2>
-            <Skeleton loading={isLoading} active>
-                <Table
-                    columns={columns}
-                    dataSource={dashboardData?.movie_stats?.map(
-                        (item: any, index: number) => ({
-                            ...item,
-                            key: item.movie_id || index,
-                        })
-                    )}
-                />
-            </Skeleton>
         </>
     );
 };

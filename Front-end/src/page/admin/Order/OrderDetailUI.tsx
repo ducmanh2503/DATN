@@ -12,15 +12,20 @@ const OrderDetailUI = ({ id }: { id: number }) => {
         },
         {
             title: "Loại ghế",
-            dataIndex: "",
-            key: "",
+            dataIndex: "seat_type",
+            key: "seat_type",
+            render: (value: any, record: any) => (
+                <span>Ghế {record.seat_type}</span>
+            ),
         },
         {
             title: "Giá ghế",
             dataIndex: "price",
             key: "price",
             render: (value: any, record: any) => (
-                <span>{parseInt(record.price).toLocaleString("vi-VN")}</span>
+                <span>
+                    {parseInt(record.price).toLocaleString("vi-VN")} VNĐ
+                </span>
             ),
         },
     ];
@@ -37,11 +42,16 @@ const OrderDetailUI = ({ id }: { id: number }) => {
             key: "quantity",
         },
         {
-            title: "Đơn giá",
+            title: "Thành tiền",
             dataIndex: "price",
             key: "price",
             render: (value: any, record: any) => (
-                <span>{parseInt(record.price).toLocaleString("vi-VN")}</span>
+                <span>
+                    {(parseInt(record.price) * record.quantity).toLocaleString(
+                        "vi-VN"
+                    )}{" "}
+                    VNĐ
+                </span>
             ),
         },
     ];
@@ -51,75 +61,80 @@ const OrderDetailUI = ({ id }: { id: number }) => {
         <div className={clsx(styles.container)}>
             <div className={clsx(styles.orderInfo)}>
                 <div className={clsx(styles.section)}>
-                    <h3 className={clsx(styles.title)}>Thông tin đơn hàng</h3>
+                    <h3 className={clsx(styles.title)}>Thông tin khách hàng</h3>
                     <div className={clsx(styles.infoGroup)}>
                         <div className={clsx(styles.infoItem)}>
-                            <h4 className={clsx(styles.label)}>Mã đơn hàng:</h4>
-                            <span className={clsx(styles.value)}>
-                                {detailOrder?.id}
-                            </span>
-                        </div>
-                        <div className={clsx(styles.infoItem)}>
-                            <h4 className={clsx(styles.label)}>Phim:</h4>
+                            <h4 className={clsx(styles.label)}>Khách hàng:</h4>
                             <span
-                                className={clsx(styles.value, styles.titleFilm)}
+                                className={clsx(
+                                    styles.value,
+                                    styles.customerInfo
+                                )}
                             >
-                                {detailOrder?.movie_title}
+                                {detailOrder?.customer_name}
                             </span>
                         </div>
                         <div className={clsx(styles.infoItem)}>
-                            <h4 className={clsx(styles.label)}>Giờ chiếu:</h4>
+                            <h4 className={clsx(styles.label)}>Điện thoại:</h4>
                             <span className={clsx(styles.value)}>
-                                <Tag
-                                    className={clsx(styles.tagElement)}
-                                    color="volcano"
-                                >
-                                    {detailOrder?.showtime}
-                                </Tag>
+                                {detailOrder?.phone === "N/A"
+                                    ? "chưa cập nhật"
+                                    : detailOrder?.phone}
                             </span>
                         </div>
                         <div className={clsx(styles.infoItem)}>
-                            <h4 className={clsx(styles.label)}>Ngày chiếu:</h4>
-                            <span className={clsx(styles.value)}>XXXXXX</span>
-                        </div>
-                        <div className={clsx(styles.infoItem)}>
-                            <h4 className={clsx(styles.label)}>Phòng chiếu:</h4>
+                            <h4 className={clsx(styles.label)}>Email:</h4>
                             <span className={clsx(styles.value)}>
-                                {detailOrder?.room_name}
-                            </span>
-                        </div>
-                        <div className={clsx(styles.infoItem)}>
-                            <h4 className={clsx(styles.label)}>Ngày đặt:</h4>
-                            <span className={clsx(styles.value)}>
-                                {detailOrder?.created_at}
+                                {detailOrder?.email}
                             </span>
                         </div>
                     </div>
                 </div>
                 <div className={clsx(styles.section)}>
-                    <h3 className={clsx(styles.title)}>Thông tin khách hàng</h3>
+                    <h3 className={clsx(styles.title)}>Thông tin đơn hàng</h3>
+
                     <div className={clsx(styles.infoItem)}>
-                        <h4 className={clsx(styles.label)}>Khách hàng:</h4>
-                        <span
-                            className={clsx(styles.value, styles.customerInfo)}
-                        >
-                            {detailOrder?.customer_name}
-                        </span>
-                    </div>
-                    <div className={clsx(styles.infoItem)}>
-                        <h4 className={clsx(styles.label)}>Điện thoại:</h4>
+                        <h4 className={clsx(styles.label)}>Mã đơn hàng:</h4>
                         <span className={clsx(styles.value)}>
-                            {detailOrder?.phone === "N/A"
-                                ? "chưa cập nhật"
-                                : detailOrder?.phone}
+                            {detailOrder?.id}
                         </span>
                     </div>
                     <div className={clsx(styles.infoItem)}>
-                        <h4 className={clsx(styles.label)}>Email:</h4>
-                        <span className={clsx(styles.value)}>
-                            {detailOrder?.email}
+                        <h4 className={clsx(styles.label)}>Phim:</h4>
+                        <span className={clsx(styles.value, styles.titleFilm)}>
+                            {detailOrder?.movie_title}
                         </span>
                     </div>
+                    <div className={clsx(styles.infoItem)}>
+                        <h4 className={clsx(styles.label)}>Giờ chiếu:</h4>
+                        <span className={clsx(styles.value)}>
+                            <Tag
+                                className={clsx(styles.tagElement)}
+                                color="volcano"
+                            >
+                                {detailOrder?.showtime}
+                            </Tag>
+                        </span>
+                    </div>
+                    <div className={clsx(styles.infoItem)}>
+                        <h4 className={clsx(styles.label)}>Ngày chiếu:</h4>
+                        <span className={clsx(styles.value)}>
+                            {detailOrder?.show_date}
+                        </span>
+                    </div>
+                    <div className={clsx(styles.infoItem)}>
+                        <h4 className={clsx(styles.label)}>Phòng chiếu:</h4>
+                        <span className={clsx(styles.value)}>
+                            {detailOrder?.room_name}
+                        </span>
+                    </div>
+                    <div className={clsx(styles.infoItem)}>
+                        <h4 className={clsx(styles.label)}>Ngày đặt:</h4>
+                        <span className={clsx(styles.value)}>
+                            {detailOrder?.created_at}
+                        </span>
+                    </div>
+                    <hr />
                     <div className={clsx(styles.infoItem)}>
                         <h4 className={clsx(styles.label)}>Trạng thái:</h4>
                         <span className={clsx(styles.value)}>
@@ -138,9 +153,11 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                                 className={clsx(styles.tagElement)}
                                 color="blue"
                             >
-                                {detailOrder?.total_price.toLocaleString(
-                                    "vi-VN"
-                                )}
+                                {(
+                                    detailOrder?.total_combo_price +
+                                    detailOrder?.total_ticket_price
+                                ).toLocaleString("vi-VN")}{" "}
+                                VNĐ
                             </Tag>
                         </span>
                     </div>
@@ -152,7 +169,7 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                                 className={clsx(styles.tagElement)}
                                 color="blue"
                             >
-                                XXXX
+                                {detailOrder?.discount} VNĐ
                             </Tag>
                         </span>
                     </div>
@@ -164,7 +181,10 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                                 className={clsx(styles.tagElement)}
                                 color="blue"
                             >
-                                XXXX
+                                {detailOrder?.total_price.toLocaleString(
+                                    "vi-VN"
+                                )}{" "}
+                                VNĐ
                             </Tag>
                         </span>
                     </div>
@@ -181,17 +201,27 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                     <Table
                         className={clsx(styles.tableSeats)}
                         columns={columnsSeats}
-                        dataSource={detailOrder?.seats}
+                        dataSource={detailOrder?.seats?.map(
+                            (item: any, index: number) => ({
+                                ...item,
+                                key: item.id || index, // Sử dụng id hoặc index làm key
+                            })
+                        )}
                         pagination={false}
-                    ></Table>
+                    />
                 </Skeleton>
                 <Skeleton loading={isLoading} active>
                     {" "}
                     <Table
                         columns={columnsCombos}
-                        dataSource={detailOrder?.combos}
+                        dataSource={detailOrder?.combos?.map(
+                            (item: any, index: number) => ({
+                                ...item,
+                                key: item.id || index, // Sử dụng id hoặc index làm key
+                            })
+                        )}
                         pagination={false}
-                    ></Table>
+                    />
                 </Skeleton>
             </div>
         </div>

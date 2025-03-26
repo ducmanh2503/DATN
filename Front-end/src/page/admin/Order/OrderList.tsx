@@ -222,14 +222,13 @@ const OrderList = () => {
         },
         {
             title: "Tổng tiền",
-            dataIndex: "total_combo_price",
-            key: "total_combo_price",
+            dataIndex: "total_price",
+            key: "total_price",
             render: (value: string, record: any) => {
                 return (
                     <span>
-                        {parseInt(record.total_combo_price).toLocaleString(
-                            "vi-VN"
-                        )}{" "}
+                        {parseInt(record.total_price).toLocaleString("vi-VN")}{" "}
+                        VNĐ
                     </span>
                 );
             },

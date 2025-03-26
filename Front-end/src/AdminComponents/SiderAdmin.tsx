@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
     DashboardOutlined,
     BarChartOutlined,
-    BuildOutlined,
     CalendarOutlined,
     DesktopOutlined,
     SnippetsOutlined,
@@ -37,7 +36,7 @@ const SiderAdmin = () => {
         getItem("Thống kê", "sub1", <DashboardOutlined />, [
             getItem(<Link to="/admin/dashboard">Tổng quát</Link>, "sub1-1"),
             getItem(
-                <Link to="/admin/dashboardFilm">Doanh thu theo phim</Link>,
+                <Link to="/admin/dashboardFilm">Thống kê chi tiết</Link>,
                 "sub1-2"
             ),
         ]),
@@ -95,7 +94,7 @@ const SiderAdmin = () => {
     // Xác định chiều rộng dựa vào trạng thái của Sider
     useEffect(() => {
         setSiderWidth(collapsed ? 80 : 210);
-    }, [setSiderWidth]);
+    }, [setSiderWidth, collapsed]);
     return (
         <div>
             <Sider

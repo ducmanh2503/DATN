@@ -11,3 +11,37 @@
     font-size: 20px;
     font-weight: 600;
 }
+
+.titleFilm {
+    color: var(--border-color);
+    font-weight: 600;
+}
+
+.columnChart {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 36px;
+}
+
+.chartTicket {
+    width: 50%;
+}
+
+.chartFilm {
+    width: 50%;
+}
+
+.tileChart {
+    text-align: center;
+    font-size: 16px;
+}
+
+.secoudRowChart {
+    margin-top: 30px;
+}
+
+.btnAction {
+    display: flex;
+    gap: 15px;
+}

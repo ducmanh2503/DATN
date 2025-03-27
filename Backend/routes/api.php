@@ -78,7 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/statistics', [StatisticsController::class, 'index']);
         Route::get('/statistics-filter', [StatisticsController::class, 'statsByDateRange']);
         //xuất file excel
-        // Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
+        Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
         // Movies
         Route::apiResource('movies', MoviesController::class);
         Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
@@ -97,6 +97,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/seats', SeatController::class);
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
+        // Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
 
         //seat_type
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
@@ -167,8 +168,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
-Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
-
+Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
 
 ///////////////////////////////////////////////customer///////////////////////////////////////////////
 

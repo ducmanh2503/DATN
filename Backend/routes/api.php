@@ -80,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
         //xuất file excel
         Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
         // Movies
-        Route::apiResource('movies', MoviesController::class);
+        Route::apiResource('/movies', MoviesController::class);
         Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
         Route::delete('/movies', [MoviesController::class, 'destroyMultiple']);
         Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']);
@@ -89,6 +89,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Room
         Route::apiResource('/room', RoomController::class);
+        Route::delete('/room', [MoviesController::class, 'destroyMultiple']);
+        Route::put('/room/restore/{room}', [MoviesController::class, 'restore']);
 
         //room_type
         Route::apiResource('/room-type', RoomTypeController::class);
@@ -97,7 +99,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/seats', SeatController::class);
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
-        // Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
+        Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
+        Route::delete('/delete-seats/room/{room_id}', [SeatController::class, 'deleteAll']);
 
         //seat_type
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
@@ -168,7 +171,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
-Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
+// Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
 
 ///////////////////////////////////////////////customer///////////////////////////////////////////////
 

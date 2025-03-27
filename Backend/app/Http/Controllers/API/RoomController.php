@@ -151,26 +151,7 @@ class RoomController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request)
-    {
-
-
-        $ids = $request->input('ids');
-
-        if (empty($ids)) {
-            return response()->json(['message' => 'Không có phòng nào được chọn'], 400);
-        }
-
-        $deleted = Room::whereIn('id', $ids)->delete();
-
-        if ($deleted) {
-            return response()->json(['message' => 'Phòng đang bảo trì'], 200);
-        }
-
-        return response()->json(['message' => 'Không tìm thấy phòng nào'], 404);
-    }
-
-    public function destroySingle(string $id)
+    public function destroy(String $id)
     {
         // Tìm phòng theo ID
         $room = Room::find($id);
@@ -183,6 +164,26 @@ class RoomController extends Controller
         $room->delete();
 
         return response()->json(['message' => 'Phòng đang bảo trì'], 200);
+    }
+
+    public function destroyMultiple(Request $request)
+    {
+        // Lấy danh sách ID từ request
+        {
+            $ids = $request->input('ids');
+
+            if (empty($ids)) {
+                return response()->json(['message' => 'Không có phòng nào được chọn'], 400);
+            }
+
+            $deleted = Room::whereIn('id', $ids)->delete();
+
+            if ($deleted) {
+                return response()->json(['message' => 'Phòng đang bảo trì'], 200);
+            }
+
+            return response()->json(['message' => 'Không tìm thấy phòng nào'], 404);
+        }
     }
 
     public function restore($id)

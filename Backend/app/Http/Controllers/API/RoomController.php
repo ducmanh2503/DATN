@@ -26,14 +26,28 @@ class RoomController extends Controller
         ], 200);
     }
 
+    /**
+     * Display a listing of trashed (soft-deleted) rooms.
+     */
+    public function getTrashedRooms(Request $request)
+    {
+        // Lấy danh sách phòng bị xóa mềm (đang bảo trì) và phân trang
+        $rooms = Room::onlyTrashed() // Chỉ lấy các phòng bị xóa mềm
+            ->latest('deleted_at') // Sắp xếp theo thời gian xóa mới nhất
+            ->get();
+
+        // Trả về phản hồi dạng JSON
+        return response()->json([
+            'message' => 'Danh sách phòng đang bảo trì',
+            'rooms' => $rooms,
+        ], 200);
+    }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-
-
         try {
             // Lấy dữ liệu JSON từ request
             $data = $request->json()->all();
@@ -75,14 +89,11 @@ class RoomController extends Controller
         }
     }
 
-
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-
-
         $room = Room::find($id);
 
         // Nếu không tìm thấy phòng
@@ -97,8 +108,6 @@ class RoomController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
-
         try {
             // Tìm phòng theo id
             $room = Room::find($id);
@@ -147,11 +156,10 @@ class RoomController extends Controller
         }
     }
 
-
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(String $id)
+    public function destroy(string $id)
     {
         // Tìm phòng theo ID
         $room = Room::find($id);
@@ -160,32 +168,36 @@ class RoomController extends Controller
             return response()->json(['message' => 'Không tìm thấy phòng'], 404);
         }
 
-        // Xóa phòng
+        // Xóa mềm phòng
         $room->delete();
 
         return response()->json(['message' => 'Phòng đang bảo trì'], 200);
     }
 
+    /**
+     * Remove multiple rooms from storage.
+     */
     public function destroyMultiple(Request $request)
     {
         // Lấy danh sách ID từ request
-        {
-            $ids = $request->input('ids');
+        $ids = $request->input('ids');
 
-            if (empty($ids)) {
-                return response()->json(['message' => 'Không có phòng nào được chọn'], 400);
-            }
-
-            $deleted = Room::whereIn('id', $ids)->delete();
-
-            if ($deleted) {
-                return response()->json(['message' => 'Phòng đang bảo trì'], 200);
-            }
-
-            return response()->json(['message' => 'Không tìm thấy phòng nào'], 404);
+        if (empty($ids)) {
+            return response()->json(['message' => 'Không có phòng nào được chọn'], 400);
         }
+
+        $deleted = Room::whereIn('id', $ids)->delete();
+
+        if ($deleted) {
+            return response()->json(['message' => 'Phòng đang bảo trì'], 200);
+        }
+
+        return response()->json(['message' => 'Không tìm thấy phòng nào'], 404);
     }
 
+    /**
+     * Restore a soft-deleted room.
+     */
     public function restore($id)
     {
         $room = Room::onlyTrashed()->find($id);

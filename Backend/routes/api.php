@@ -111,6 +111,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/room', RoomController::class);
         Route::delete('/room', [MoviesController::class, 'destroyMultiple']);
         Route::put('/room/restore/{room}', [MoviesController::class, 'restore']);
+        Route::get('/trashed', [RoomController::class, 'getTrashedRooms']);
 
 
         //room_type
@@ -121,6 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/seats', SeatController::class);
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
+        Route::post('/seats/create-multiple', [SeatController::class, 'storeMultiple']);
         Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
         Route::delete('/delete-seats/room/{room_id}', [SeatController::class, 'deleteAll']);
 

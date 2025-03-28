@@ -59,12 +59,12 @@ class OverviewSheet implements FromArray, WithTitle
         return [
             ['Thống kê tổng quan'],
             [],
-            ['Doanh thu trong khoảng', $dailyRevenueTotalFormatted],
             ['Thời gian', $dailyRevenuePeriod],
+            ['Doanh thu trong khoảng', $dailyRevenueTotalFormatted],
             ['Khách hàng mới', $newCustomers == 0 ? 0 : ($newCustomers ?: 'N/A')],
             ['Tổng vé bán ra', $totalTicketsSold == 0 ? 0 : ($totalTicketsSold ?: 'N/A')],
+            ['Thời gian kinh doanh từ đầu năm', $monthlyRevenuePeriod],
             ['Doanh thu tính từ đầu năm', $monthlyRevenueTotalFormatted],
-            ['Thời gian', $monthlyRevenuePeriod],
         ];
     }
 

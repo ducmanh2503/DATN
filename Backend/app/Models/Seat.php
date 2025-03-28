@@ -16,6 +16,7 @@ class Seat extends Model
         'row',
         'column',
         'seat_type_id',
+        'status',
     ];
 
     //Quan hệ với phòng chiếu

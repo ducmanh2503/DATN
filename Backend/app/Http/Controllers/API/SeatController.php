@@ -419,64 +419,73 @@ class SeatController extends Controller
      * Lấy ghế theo id phòng
      */
 
-    public function getSeats($room_id)
+    public function getSeats($room_id, $show_time_id = null)
     {
-        // Lấy lịch chiếu gần nhất của phòng (có thể điều chỉnh để lấy lịch chiếu cụ thể)
         $currentDateTime = now();
         $currentDate = $currentDateTime->toDateString();
-        $currentTime = $currentDateTime->toTimeString();
 
-        $latestShowTime = ShowTime::join('show_time_date', 'show_time_date.show_time_id', '=', 'show_times.id')
-            ->where('show_times.room_id', $room_id)
-            ->whereRaw("CONCAT(show_time_date.show_date, ' ', show_times.start_time) >= ?", [$currentDateTime])
-            ->orderByRaw("CONCAT(show_time_date.show_date, ' ', show_times.start_time) ASC")
-            ->select('show_times.id')
-            ->first();
+        // Truy vấn để lấy suất chiếu mới nhất
+        $latestShowTimeQuery = ShowTime::join('show_time_date', 'show_time_date.show_time_id', '=', 'show_times.id')
+            ->where('show_times.room_id', $room_id);
 
-        if (!$latestShowTime) {
-            return response()->json([
-                'message' => 'Không có lịch chiếu nào cho phòng này trong tương lai',
-                'seatingMatrix' => []
-            ], 200);
+        if ($show_time_id) {
+            $latestShowTimeQuery->where('show_times.id', $show_time_id);
+        } else {
+            $latestShowTimeQuery->whereRaw("CONCAT(show_time_date.show_date, ' ', show_times.start_time) >= ?", [$currentDateTime])
+                ->orderByRaw("CONCAT(show_time_date.show_date, ' ', show_times.start_time) ASC");
         }
 
-        // Lấy tất cả ghế trong phòng
+        $latestShowTime = $latestShowTimeQuery->select('show_times.id')->first();
+
+        // Lấy danh sách ghế
         $seats = Seat::where('room_id', $room_id)
             ->with([
                 'seatType',
                 'showTimeSeat' => function ($query) use ($latestShowTime) {
-                    $query->where('show_time_id', $latestShowTime->id);
+                    if ($latestShowTime) {
+                        $query->where('show_time_id', $latestShowTime->id);
+                    }
                 }
             ])
             ->get();
 
-        // Tạo ma trận ghế ngồi theo hàng và cột
+        if ($seats->isEmpty()) {
+            return response()->json([
+                'message' => 'Không tìm thấy ghế trong phòng này',
+                'seatingMatrix' => []
+            ], 404);
+        }
+
         $seatingMatrix = [];
         foreach ($seats as $seat) {
             if (!isset($seatingMatrix[$seat->row])) {
                 $seatingMatrix[$seat->row] = [];
             }
 
-            // Tạo mã ghế từ hàng và cột
             $seatCode = $seat->row . $seat->column;
-
-            // Lấy giá ghế theo ngày hiện tại
             $price = SeatTypePrice::getPriceByDate($seat->seat_type_id, $currentDate) ?? 0;
 
-            // Lấy trạng thái ghế từ bảng show_time_seats cho lịch chiếu gần nhất
-            $seatStatus = optional($seat->showTimeSeat)->first()->seat_status ?? 'available';
+            // Xác định trạng thái ghế
+            $seatStatus = 'available';
+            if ($latestShowTime) {
+                // Nếu có suất chiếu, ưu tiên lấy trạng thái từ show_time_seat
+                $showTimeSeat = $seat->showTimeSeat->first();
+                $seatStatus = $showTimeSeat ? $showTimeSeat->seat_status : $seat->status;
+            } else {
+                // Nếu không có suất chiếu, lấy trạng thái từ bảng seats
+                $seatStatus = $seat->status ?? 'available';
+            }
 
-            // Gán thông tin ghế vào ma trận
             $seatingMatrix[$seat->row][$seat->column] = [
                 'id' => $seat->id,
                 'seatCode' => $seatCode,
-                'type' => $seat->seatType->name, // Lấy từ mối quan hệ seatType
-                'status' => $seatStatus, // Trạng thái lấy từ show_time_seats
+                'type' => $seat->seatType->name,
+                'status' => $seatStatus,
                 'price' => $price,
             ];
         }
 
-        return response()->json($seatingMatrix);
+        return response()->json($seatingMatrix, 200);
     }
 
 

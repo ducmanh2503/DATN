@@ -10,6 +10,7 @@ import {
 } from "../../config/ApiConfig";
 import dayjs from "dayjs";
 import { message } from "antd";
+import { handleApiError } from "./utils";
 
 // danh sách lịch chiếu
 export const useCalendarManage = () => {
@@ -43,9 +44,7 @@ export const useDeleteCalendar = (messageApi: any) => {
                 queryKey: ["showtimesFilm"],
             });
         },
-        onError: () => {
-            messageApi.error("Phim đã có suất chiếu, không thể xóa");
-        },
+        onError: handleApiError,
     });
     return { mutate };
 };
@@ -119,9 +118,7 @@ export const useCreateCalendar = (
                 queryKey: ["showtimesFilm"],
             });
         },
-        onError: (error) => {
-            messageApi.error(error.message || "Có lỗi xảy ra!");
-        },
+        onError: handleApiError,
     });
 
     return { mutate, isError };
@@ -164,9 +161,7 @@ export const useUpdateCalendar = (
             setOpenEdit(false);
             formShowtime.resetFields();
         },
-        onError: (error) => {
-            messageApi.error(error.message || "Có lỗi xảy ra!");
-        },
+        onError: handleApiError,
     });
 
     return { mutate };

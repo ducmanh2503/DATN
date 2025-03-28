@@ -9,6 +9,7 @@ import {
 } from "../../config/ApiConfig";
 import { useEffect, useState } from "react";
 import { useAdminContext } from "../../AdminComponents/UseContextAdmin/adminContext";
+import { handleApiError } from "./utils";
 
 interface UseDetailFilmProps {
     id: number;
@@ -136,9 +137,7 @@ export const useUpdateFilm = ({
                 queryKey: ["filmList"], // Làm mới danh sách phim
             });
         },
-        onError: (error) => {
-            messageApi.error(error.message || "Có lỗi xảy ra!");
-        },
+        onError: handleApiError,
     });
 
     return { mutate };

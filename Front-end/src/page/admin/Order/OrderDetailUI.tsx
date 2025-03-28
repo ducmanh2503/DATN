@@ -169,7 +169,8 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                                 className={clsx(styles.tagElement)}
                                 color="blue"
                             >
-                                {detailOrder?.discount} VNĐ
+                                {detailOrder?.discount.toLocaleString("vi-VN")}{" "}
+                                VNĐ
                             </Tag>
                         </span>
                     </div>
@@ -209,6 +210,17 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                         )}
                         pagination={false}
                     />
+                    <hr />
+                    <div className={clsx(styles.totalSub)}>
+                        Tổng cộng:{" "}
+                        <Tag color="blue">
+                            {" "}
+                            {detailOrder.total_ticket_price.toLocaleString(
+                                "vi-VN"
+                            )}{" "}
+                            VNĐ
+                        </Tag>
+                    </div>
                 </Skeleton>
                 <Skeleton loading={isLoading} active>
                     {" "}
@@ -222,6 +234,16 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                         )}
                         pagination={false}
                     />
+                    <hr />
+                    <div className={clsx(styles.totalSub)}>
+                        Tổng cộng:{" "}
+                        <Tag color="blue">
+                            {detailOrder.total_combo_price.toLocaleString(
+                                "vi-VN"
+                            )}{" "}
+                            VNĐ
+                        </Tag>
+                    </div>
                 </Skeleton>
             </div>
         </div>

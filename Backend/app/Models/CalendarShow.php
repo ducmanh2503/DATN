@@ -16,6 +16,9 @@ class CalendarShow extends Model
         'show_date',
         'end_date',
     ];
+
+    protected $dates = ['show_date', 'end_date'];
+
     public function movie()
     {
         return $this->belongsTo(Movies::class, 'movie_id', 'id');

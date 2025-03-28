@@ -90,9 +90,11 @@ const ShowtimesManage: React.FC = () => {
         queryKey: ["getRooms"],
         queryFn: async () => {
             const { data } = await axios.get(GET_ROOMS);
+
             return data.rooms.map((item: any) => ({
+                key: item.id,
                 label: item.name,
-                value: item.room_type_id,
+                value: item.id,
             }));
         },
         staleTime: 1000 * 60 * 10,

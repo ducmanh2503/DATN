@@ -6,6 +6,7 @@ import DeleteAllSeat from "./DeleteAllSeat";
 import MatrixSeatRender from "./MatrixSeatRender";
 import clsx from "clsx";
 import styles from "./SeatManage.module.css";
+import SeatsInfoUI from "./SeatsInfoUI";
 const SeatManage = ({ name, roomId }: any) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -42,6 +43,7 @@ const SeatManage = ({ name, roomId }: any) => {
                     ></DeleteAllSeat>
                 </Space>
                 <MatrixSeatRender roomId={roomId}></MatrixSeatRender>
+                <SeatsInfoUI></SeatsInfoUI>
             </Modal>
         </>
     );

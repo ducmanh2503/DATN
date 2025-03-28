@@ -276,7 +276,6 @@ class SeatController extends Controller
             Log::info("Current Time: {$currentTime}");
 
             $updatedCount = 0;
-            $skippedCount = 0;
 
             // Duyệt qua từng suất chiếu
             foreach ($showTimes as $showTime) {
@@ -316,14 +315,7 @@ class SeatController extends Controller
                     ", Is Ongoing: " . ($isOngoingShowTime ? 'true' : 'false') .
                     ", Is Future: " . ($isFutureShowTime ? 'true' : 'false'));
 
-                // Nếu ghế đang booked và suất chiếu chưa kết thúc, bỏ qua suất chiếu này
-                if (strtolower($seatStatus) === 'booked' && !$isPastShowTime) {
-                    $skippedCount++;
-                    Log::info("Skipped update for ShowTime ID: {$showTime->id} - Seat is booked and show is not finished");
-                    continue;
-                }
-
-                // Cập nhật trạng thái cho các suất chiếu không bị booked hoặc đã kết thúc
+                // Cập nhật trạng thái cho tất cả suất chiếu (bao gồm cả ghế đang booked)
                 $showTimeSeat->update(['seat_status' => $status]);
                 $updatedCount++;
                 Log::info("Updated ShowTime ID: {$showTime->id} to status: {$status}");
@@ -334,9 +326,6 @@ class SeatController extends Controller
             Log::info("Updated default seat status to '{$status}' for Seat ID: {$seatId}");
 
             $responseMessage = "Cập nhật thành công {$updatedCount} suất chiếu cho ghế ID {$seatId} thành '{$status}'";
-            if ($skippedCount > 0) {
-                $responseMessage .= ". Bỏ qua {$skippedCount} suất chiếu vì ghế đã được đặt và suất chiếu chưa kết thúc";
-            }
             $responseMessage .= ". Trạng thái mặc định của ghế đã được cập nhật thành '{$status}' cho các suất chiếu mới.";
 
             return response()->json(['message' => $responseMessage], 200);
@@ -476,6 +465,9 @@ class SeatController extends Controller
                 $seatStatus = $seat->status ?? 'available';
             }
 
+            // Chuẩn hóa trạng thái ghế (chuyển về chữ thường)
+            $seatStatus = strtolower(trim($seatStatus));
+
             $seatingMatrix[$seat->row][$seat->column] = [
                 'id' => $seat->id,
                 'seatCode' => $seatCode,
@@ -548,6 +540,117 @@ class SeatController extends Controller
 
         // Trả về phản hồi thành công
         return response()->json(['message' => 'Thêm ghế thành công', 'data' => $seat], 201);
+    }
+
+    /**
+     * Store multiple seats using query parameters.
+     */
+    public function storeMultiple(Request $request)
+    {
+        // Lấy tham số seats từ query parameters
+        $seatsParam = $request->query('seats');
+
+        // Kiểm tra nếu không có tham số seats
+        if (!$seatsParam) {
+            return response()->json(['error' => 'Tham số seats là bắt buộc'], 400);
+        }
+
+        // Parse chuỗi JSON thành mảng
+        try {
+            $seatsData = json_decode($seatsParam, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json(['error' => 'Tham số seats không đúng định dạng JSON'], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Lỗi khi parse JSON: ' . $e->getMessage()], 400);
+        }
+
+        // Kiểm tra nếu seats không phải là mảng hoặc rỗng
+        if (!is_array($seatsData) || empty($seatsData)) {
+            return response()->json(['error' => 'Tham số seats phải là một mảng không rỗng'], 400);
+        }
+
+        // Xác thực dữ liệu
+        $validator = Validator::make(['seats' => $seatsData], [
+            'seats' => 'required|array|min:1',
+            'seats.*.room_id' => 'required|exists:rooms,id',
+            'seats.*.row' => 'required|max:20',
+            'seats.*.column' => 'required|max:10',
+            'seats.*.seat_type_id' => 'required|exists:seat_types,id',
+        ]);
+
+        // Kiểm tra nếu có lỗi xác thực
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $newSeats = [];
+        $errors = [];
+        $roomIds = [];
+
+        // Kiểm tra trùng lặp và chuẩn bị dữ liệu để thêm
+        foreach ($seatsData as $index => $seatData) {
+            // Kiểm tra ghế có tồn tại trong phòng chưa
+            $existingSeat = Seat::where('room_id', $seatData['room_id'])
+                ->where('row', $seatData['row'])
+                ->where('column', $seatData['column'])
+                ->first();
+
+            if ($existingSeat) {
+                $errors[] = "Ghế tại hàng {$seatData['row']}, cột {$seatData['column']} trong phòng {$seatData['room_id']} đã tồn tại (index: $index)";
+                continue;
+            }
+
+            // Thêm dữ liệu ghế vào mảng để insert
+            $newSeats[] = [
+                'room_id' => $seatData['room_id'],
+                'row' => $seatData['row'],
+                'column' => $seatData['column'],
+                'seat_type_id' => $seatData['seat_type_id'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            // Lưu room_id để cập nhật capacity sau
+            if (!in_array($seatData['room_id'], $roomIds)) {
+                $roomIds[] = $seatData['room_id'];
+            }
+        }
+
+        // Nếu có lỗi trùng lặp, trả về thông báo lỗi
+        if (!empty($errors)) {
+            return response()->json([
+                'message' => 'Một số ghế không thể thêm do đã tồn tại',
+                'errors' => $errors,
+            ], 400);
+        }
+
+        // Thêm tất cả ghế mới vào cơ sở dữ liệu
+        if (!empty($newSeats)) {
+            Seat::insert($newSeats);
+
+            // Cập nhật capacity cho các phòng liên quan
+            foreach ($roomIds as $roomId) {
+                $room = Room::find($roomId);
+                if ($room) {
+                    $seatCount = Seat::where('room_id', $room->id)->count();
+                    $room->capacity = $seatCount;
+                    $room->save();
+                }
+            }
+
+            // Lấy lại danh sách ghế vừa thêm để trả về
+            $insertedSeats = Seat::whereIn('room_id', $roomIds)
+                ->where('created_at', '>=', now()->subSeconds(5))
+                ->get();
+
+            return response()->json([
+                'message' => 'Thêm nhiều ghế thành công',
+                'data' => $insertedSeats,
+            ], 201);
+        }
+
+        return response()->json(['message' => 'Không có ghế nào được thêm'], 400);
     }
 
     public function destroy($seat)

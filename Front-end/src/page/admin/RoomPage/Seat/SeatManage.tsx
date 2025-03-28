@@ -8,45 +8,42 @@ import clsx from "clsx";
 import styles from "./SeatManage.module.css";
 import SeatsInfoUI from "./SeatsInfoUI";
 const SeatManage = ({ name, roomId }: any) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const showModal = () => {
-        setIsModalOpen(true);
-    };
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
 
-    const handleOk = () => {
-        setIsModalOpen(false);
-    };
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
 
-    const handleCancel = () => {
-        setIsModalOpen(false);
-    };
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
 
-    return (
-        <>
-            <Button color="purple" variant="solid" onClick={showModal}>
-                <InsertRowAboveOutlined /> Quản lý ghế
-            </Button>
-            <Modal
-                title={`Quản lý ghế phòng ${name}`}
-                open={isModalOpen}
-                onOk={handleOk}
-                onCancel={handleCancel}
-                footer={null}
-                width={650}
-            >
-                <Space className={clsx(styles.spaceEle)}>
-                    <CreateOneSeat roomId={roomId}></CreateOneSeat>
-                    <DeleteAllSeat
-                        roomId={roomId}
-                        handleOk={handleOk}
-                    ></DeleteAllSeat>
-                </Space>
-                <MatrixSeatRender roomId={roomId}></MatrixSeatRender>
-                <SeatsInfoUI></SeatsInfoUI>
-            </Modal>
-        </>
-    );
+  return (
+    <>
+      <Button color="purple" variant="solid" onClick={showModal}>
+        <InsertRowAboveOutlined /> Quản lý ghế
+      </Button>
+      <Modal
+        title={`Quản lý ghế phòng ${name}`}
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={null}
+        width={650}
+      >
+        <Space className={clsx(styles.spaceEle)}>
+          <CreateOneSeat roomId={roomId}></CreateOneSeat>
+          <DeleteAllSeat roomId={roomId} handleOk={handleOk}></DeleteAllSeat>
+        </Space>
+        <MatrixSeatRender roomId={roomId}></MatrixSeatRender>
+        <SeatsInfoUI></SeatsInfoUI>
+      </Modal>
+    </>
+  );
 };
 
 export default SeatManage;

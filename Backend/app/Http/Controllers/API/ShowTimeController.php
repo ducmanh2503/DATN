@@ -149,35 +149,38 @@ class ShowTimeController extends Controller
             return response()->json(['error' => 'Không tìm thấy ghế trong phòng.'], 400);
         }
 
-        // Tìm suất chiếu gần nhất trước thời điểm hiện tại của cùng phòng
+        // Tìm suất chiếu gần nhất dựa trên created_at, loại bỏ suất chiếu hiện tại
         $latestShowTime = ShowTime::join('show_time_date', 'show_time_date.show_time_id', '=', 'show_times.id')
             ->where('show_times.room_id', $request->room_id)
-            ->whereRaw("CONCAT(show_time_date.show_date, ' ', show_times.start_time) < NOW()")
-            ->orderByRaw("CONCAT(show_time_date.show_date, ' ', show_times.start_time) DESC")
-            ->select('show_times.id')
+            ->where('show_times.created_at', '<', now()) // Chỉ lấy suất chiếu được tạo trước thời điểm hiện tại
+            ->where('show_times.id', '!=', $showTime->id) // Loại bỏ suất chiếu vừa tạo
+            ->orderBy('show_times.created_at', 'desc') // Sắp xếp theo created_at giảm dần
+            ->select('show_times.id', 'show_time_date.show_date', 'show_times.start_time', 'show_times.created_at')
             ->first();
+
+        // Log chi tiết để kiểm tra
+        Log::info("Request Details: Room ID: {$request->room_id}, Selected Date: {$request->selected_date}, Current Time: " . now());
+        Log::info("Latest ShowTime for Room ID {$request->room_id}: " . ($latestShowTime ? "ID: {$latestShowTime->id}, Date: {$latestShowTime->show_date}, Start: {$latestShowTime->start_time}, Created At: {$latestShowTime->created_at}" : 'None'));
 
         // Tạo trạng thái ghế cho suất chiếu mới
         foreach ($seats as $seat) {
-            $seatStatus = 'available'; // Trạng thái mặc định
+            $seatStatus = 'available'; // Mặc định là 'available'
 
             if ($latestShowTime) {
-                // Lấy trạng thái ghế từ suất chiếu gần nhất, nhưng chỉ lấy nếu trạng thái không phải là 'booked'
-                $latestShowTimeSeat = ShowTimeSeat::join('seats', 'show_time_seat.seat_id', '=', 'seats.id')
-                    ->where('show_time_seat.seat_id', $seat->id)
-                    ->where('show_time_seat.show_time_id', $latestShowTime->id)
-                    ->where('seats.room_id', $request->room_id) // Đảm bảo ghế thuộc phòng hiện tại
-                    ->where('show_time_seat.seat_status', '!=', 'booked') // Chỉ lấy trạng thái không phải 'booked'
-                    ->select('show_time_seat.seat_status')
+                $latestShowTimeSeat = ShowTimeSeat::where('seat_id', $seat->id)
+                    ->where('show_time_id', $latestShowTime->id)
                     ->first();
 
                 if ($latestShowTimeSeat) {
-                    $seatStatus = $latestShowTimeSeat->seat_status; // Chỉ sao chép trạng thái nếu không phải 'booked'
+                    Log::info("Seat ID: {$seat->id}, Previous Status: {$latestShowTimeSeat->seat_status}");
+                    $seatStatus = (strtolower($latestShowTimeSeat->seat_status) === 'booked') ? 'available' : $latestShowTimeSeat->seat_status;
+                } else {
+                    Log::info("Seat ID: {$seat->id}, No previous status found in ShowTimeSeat");
                 }
-                // Nếu không có $latestShowTimeSeat (tức là trạng thái trước đó là 'booked'), $seatStatus vẫn là 'available'
             }
 
-            // Tạo bản ghi trạng thái ghế cho suất chiếu mới
+            Log::info("Seat ID: {$seat->id}, Final New Status: {$seatStatus}");
+
             ShowTimeSeat::create([
                 'seat_id' => $seat->id,
                 'show_time_id' => $showTime->id,

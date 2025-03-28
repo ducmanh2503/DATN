@@ -1,5 +1,16 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  message,
+} from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import {
   GET_DISCOUNT_CODE,
@@ -7,17 +18,12 @@ import {
   DELETE_DISCOUNT_CODE,
 } from "../../../config/ApiConfig";
 
+const { Option } = Select;
+
 const DiscountManagement = () => {
   const [discounts, setDiscounts] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    name_code: "",
-    percent: "",
-    quantity: "",
-    status: "",
-    start_date: "",
-    end_date: "",
-  });
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm();
 
   useEffect(() => {
     fetchDiscounts();
@@ -28,131 +34,166 @@ const DiscountManagement = () => {
       const response = await axios.get(GET_DISCOUNT_CODE);
       setDiscounts(response.data);
     } catch (error) {
-      console.error("Error fetching discounts", error);
+      message.error("Lỗi khi lấy danh sách mã khuyến mãi");
     }
   };
 
-  const handleChange = (e: any) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
+  const handleAddDiscount = async (values: any) => {
     try {
-      await axios.post(CREATE_DISCOUNT_CODE, form);
+      const formattedValues = {
+        ...values,
+        start_date: values.start_date.format("YYYY-MM-DD"),
+        end_date: values.end_date.format("YYYY-MM-DD"),
+      };
+      await axios.post(CREATE_DISCOUNT_CODE, formattedValues);
+      message.success("Thêm mã khuyến mãi thành công!");
       fetchDiscounts();
-      setShowForm(false); // Ẩn form sau khi thêm thành công
-      setForm({
-        name_code: "",
-        percent: "",
-        quantity: "",
-        status: "",
-        start_date: "",
-        end_date: "",
-      });
+      setIsModalVisible(false);
+      form.resetFields();
     } catch (error) {
-      console.error("Error creating discount", error);
+      message.error("Lỗi khi tạo mã khuyến mãi");
     }
   };
 
   const handleDelete = async (id: any) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa?")) {
-      try {
-        await axios.delete(`${DELETE_DISCOUNT_CODE(id)}`);
-        setDiscounts(discounts.filter((discount) => discount.id !== id));
-        // Cập nhật danh sách sau khi xóa
-      } catch (error) {
-        console.error("Lỗi khi xóa mã khuyến mãi", error);
-      }
-    }
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn xóa?",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await axios.delete(`${DELETE_DISCOUNT_CODE(id)}`);
+          setDiscounts(discounts.filter((discount) => discount.id !== id));
+          message.success("Xóa mã khuyến mãi thành công!");
+        } catch (error) {
+          message.error("Lỗi khi xóa mã khuyến mãi");
+        }
+      },
+    });
   };
+
+  const columns = [
+    {
+      title: "Mã",
+      dataIndex: "name_code",
+      key: "name_code",
+    },
+    {
+      title: "Giảm giá (%)",
+      dataIndex: "percent",
+      key: "percent",
+    },
+    {
+      title: "Số lượng",
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (status === "active" ? "Kích hoạt" : "Ẩn"),
+    },
+    {
+      title: "Thời gian áp dụng",
+      key: "date",
+      render: (_, record) => `${record.start_date} - ${record.end_date}`,
+    },
+    {
+      title: "Hành động",
+      key: "action",
+      render: (_, record) => (
+        <Button
+          type="primary"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => handleDelete(record.id)}
+        >
+          Xóa
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <div>
       <h2>Quản lý khuyến mãi</h2>
-      <button onClick={() => setShowForm(!showForm)}>
-        {showForm ? "Đóng" : "Thêm mã khuyến mãi"}
-      </button>
+      <Button
+        type="primary"
+        icon={<PlusOutlined />}
+        onClick={() => setIsModalVisible(true)}
+      >
+        Thêm mã khuyến mãi
+      </Button>
 
-      {showForm && (
-        <form onSubmit={handleSubmit}>
-          <input
+      <Table
+        dataSource={discounts}
+        columns={columns}
+        rowKey="id"
+        style={{ marginTop: 20 }}
+      />
+
+      {/* Modal thêm mã khuyến mãi */}
+      <Modal
+        title="Thêm mã khuyến mãi"
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+      >
+        <Form form={form} onFinish={handleAddDiscount} layout="vertical">
+          <Form.Item
             name="name_code"
-            value={form.name_code}
-            onChange={handleChange}
-            placeholder="Mã khuyến mãi"
-            required
-          />
-          <input
-            name="percent"
-            value={form.percent}
-            onChange={handleChange}
-            placeholder="Phần trăm giảm"
-            required
-          />
-          <input
-            name="quantity"
-            value={form.quantity}
-            onChange={handleChange}
-            placeholder="Số lượng"
-            required
-          />
-          <select
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-            required
+            label="Mã khuyến mãi"
+            rules={[{ required: true, message: "Nhập mã khuyến mãi" }]}
           >
-            <option value="">Chọn trạng thái</option>
-            <option value="active">Kích hoạt</option>
-            <option value="inactive">Ẩn</option>
-          </select>
-          <input
-            type="date"
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="percent"
+            label="Phần trăm giảm"
+            rules={[{ required: true, message: "Nhập phần trăm giảm" }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="quantity"
+            label="Số lượng"
+            rules={[{ required: true, message: "Nhập số lượng" }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Trạng thái"
+            rules={[{ required: true, message: "Chọn trạng thái" }]}
+          >
+            <Select>
+              <Option value="active">Kích hoạt</Option>
+              <Option value="inactive">Ẩn</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
             name="start_date"
-            value={form.start_date}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="date"
+            label="Ngày bắt đầu"
+            rules={[{ required: true, message: "Chọn ngày bắt đầu" }]}
+          >
+            <DatePicker format="YYYY-MM-DD" />
+          </Form.Item>
+          <Form.Item
             name="end_date"
-            value={form.end_date}
-            onChange={handleChange}
-            required
-          />
-          <button type="submit">Lưu</button>
-        </form>
-      )}
-
-      <table>
-        <thead>
-          <tr>
-            <th>Mã</th>
-            <th>Giảm giá (%)</th>
-            <th>Số lượng</th>
-            <th>Trạng thái</th>
-            <th>Thời gian áp dụng</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {discounts.map((discount) => (
-            <tr key={discount.id}>
-              <td>{discount.name_code}</td>
-              <td>{discount.percent}%</td>
-              <td>{discount.quantity}</td>
-              <td>{discount.status === "active" ? "Kích hoạt" : "Ẩn"}</td>
-              <td>
-                {discount.start_date} - {discount.end_date}
-              </td>
-              <td>
-                <button onClick={() => handleDelete(discount.id)}>Xóa</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            label="Ngày kết thúc"
+            rules={[{ required: true, message: "Chọn ngày kết thúc" }]}
+          >
+            <DatePicker format="YYYY-MM-DD" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Lưu
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

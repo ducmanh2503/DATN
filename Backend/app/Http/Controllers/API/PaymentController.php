@@ -70,6 +70,29 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Số điểm sử dụng vượt quá điểm tích lũy'], 400);
         }
 
+        // Kiểm tra số lượng combo
+        if (!empty($request->combo_ids)) {
+            $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
+            $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
+
+            foreach ($combos as $combo) {
+                $quantity = $comboQuantities[$combo->id]->count();
+
+                if (!isset($combo->quantity)) {
+                    Log::warning("Combo ID {$combo->id} does not have a quantity column.");
+                    continue;
+                }
+
+                if ($combo->quantity < $quantity) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
+                        'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
+                    ], 400);
+                }
+            }
+        }
+
         // Xử lý mã khuyến mại
         $discountCode = $request->input('discount_code');
         $discountCodeId = null;
@@ -82,27 +105,37 @@ class PaymentController extends Controller
                 ->where('end_date', '>=', now())
                 ->first();
 
-
             if (!$discount) {
-                return response()->json(['message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn'], 400);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn',
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
+                ], 400);
+            }
+
+            if ($discount->quantity < 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Mã khuyến mại {$discount->name_code} đã hết số lượng",
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
+                ], 400);
             }
 
             $discountCodeId = $discount->id;
-            $discount->quantity -= 1;
-            $discount->save();
+            // Chưa trừ quantity ở đây, sẽ trừ sau khi thanh toán thành công
         }
 
         // Lấy dữ liệu pricing từ request (không tính lại)
         $pricing = [
             'total_ticket_price' => $request->total_ticket_price,
             'total_combo_price' => $request->total_combo_price,
-            'total_price_before_discount' => $request->total_ticket_price + $request->total_combo_price, // Tổng trước giảm giá
+            'total_price_before_discount' => $request->total_ticket_price + $request->total_combo_price,
             'total_price_point' => $request->total_price_point,
             'total_price_voucher' => $request->total_price_voucher,
-            'point_discount' => $usedPoints * 1000, // Giả sử 1 điểm = 1000 VNĐ
+            'point_discount' => $usedPoints * 1000,
             'discount_code_id' => $discountCodeId,
             'discount_code' => $discountCode,
-            'total_price' => $request->totalPrice, // Sử dụng totalPrice từ FE
+            'total_price' => $request->totalPrice,
             'used_points' => $usedPoints,
         ];
 
@@ -113,7 +146,6 @@ class PaymentController extends Controller
         $vnp_TxnRef = time() . "";
         Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData));
 
-
         $vnp_Url = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
         $vnp_Returnurl = env('VNP_RETURN_URL', 'http://localhost:8000/api/VNPay/return');
         $vnp_TmnCode = env('VNP_TMN_CODE', 'GXTS9J8E');
@@ -121,12 +153,10 @@ class PaymentController extends Controller
 
         $vnp_OrderInfo = 'Thanh toán vé xem phim';
         $vnp_OrderType = '0';
-
         $vnp_Amount = $request->input('totalPrice') * 100;
         $vnp_Locale = 'vn';
         $vnp_BankCode = 'NCB';
         $vnp_IpAddr = $request->ip();
-
 
         $inputData = array(
             "vnp_Version" => "2.1.0",
@@ -143,13 +173,11 @@ class PaymentController extends Controller
             "vnp_TxnRef" => $vnp_TxnRef,
         );
 
-
         ksort($inputData);
         $query = http_build_query($inputData);
         $hashdata = $query;
         $vnp_SecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
         $vnp_Url .= "?" . $query . "&vnp_SecureHash=" . $vnp_SecureHash;
-
 
         Log::info('Input Data: ', $inputData);
         return response()->json(['code' => '00', 'message' => 'thanh toán thành công', 'data' => $vnp_Url]);
@@ -163,31 +191,32 @@ class PaymentController extends Controller
         $vnp_SecureHash = $request->vnp_SecureHash;
         $inputData = $request->except('vnp_SecureHash');
 
-
         ksort($inputData);
         $hashData = http_build_query($inputData);
         $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
-
         if ($secureHash === $vnp_SecureHash && $request->vnp_ResponseCode == '00') {
             $bookingData = json_decode(Redis::get("booking:$request->vnp_TxnRef"), true);
 
-
             if (!$bookingData) {
                 Log::error('Booking data not found for TxnRef: ' . $request->vnp_TxnRef);
-                return redirect()->away('http://localhost:5173/booking/1/payment-result?status=failure');
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé'));
             }
-
 
             $bookingData['is_payment_completed'] = true;
             Log::info('Merged Booking Data: ' . json_encode($bookingData));
 
-
             $ticketController = new TicketController(app(UserRankService::class));
             $response = $ticketController->getTicketDetails(new Request($bookingData));
 
+            // Kiểm tra JSON response từ getTicketDetails()
+            $data = $response->getData(true); // Lấy dữ liệu dưới dạng mảng
+            if ($data['success'] === false) {
+                // Nếu có lỗi (ví dụ: combo hoặc discount code không đủ số lượng), redirect theo URL trong response
+                return redirect()->away($data['redirect']);
+            }
 
-            //trừ điểm nếu sử dụng
+            // Trừ điểm nếu sử dụng
             $usedPoints = $bookingData['pricing']['used_points'] ?? 0;
             if ($usedPoints > 0) {
                 $success = $this->userRankService->deductPoints($bookingData['user_id'], $usedPoints);
@@ -196,16 +225,18 @@ class PaymentController extends Controller
                 }
             }
 
-
             Redis::del("booking:$request->vnp_TxnRef");
 
-
             // Khi thanh toán thành công
-            return redirect()->away(
-                'http://localhost:5173/booking/' . $response->getData()->booking_id . '/payment-result?status=success'
-            );
+            $bookingId = $data['booking_id'] ?? null;
+            if (!$bookingId) {
+                Log::error('Booking ID not found in response', ['response' => $data]);
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy booking ID'));
+            }
+
+            return redirect()->away("http://localhost:5173/booking/{$bookingId}/payment-result?status=success");
         } else {
-            return redirect()->away('http://localhost:5173/booking/1/payment-result?status=failure');
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thanh toán thất bại'));
         }
     }
 
@@ -239,6 +270,3 @@ class PaymentController extends Controller
         return response()->json(['success' => true]);
     }
 }
-
-
-

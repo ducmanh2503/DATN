@@ -89,7 +89,16 @@ const ORDERS_LIST = `${BASE_URL}/order`; // danh sách đơn hàng
 const DETAIL_ORDER = (bookingId: number) =>
     `${BASE_URL}/order/${bookingId}/order-details`; // chi tiết đơn hàng
 
+const Orders_Recent = `${BASE_URL}/orders-recent`;
+const Orders_Search = `${BASE_URL}/orders-search`;
+const Orders_Confirmed = `${BASE_URL}/orders-confirmed`;
+const CHANGE_PASSWORD = `${BASE_URL}/change-password`; // đổi mật khẩu
+
 export {
+    CHANGE_PASSWORD,
+    Orders_Confirmed,
+    Orders_Search,
+    Orders_Recent,
     GET_DISCOUNT_CODE,
     CREATE_DISCOUNT_CODE,
     DELETE_DISCOUNT_CODE,
@@ -141,19 +150,4 @@ export {
     GET_VOUCHER,
     ORDERS_LIST,
     DETAIL_ORDER,
-    GET_ONE_ROOM,
-    CREATE_ROOM,
-    UPDATE_ROOM,
-    DELETE_ROOM,
-    GET_ROOM_TYPES,
-    GET_SEATS_BY_ROOM,
-    UPDATE_SEAT_STATUS,
-    HOLD_SEAT,
-    RELEASE_SEAT,
-    HOLD_SELECTED_SEATS,
-    CREATE_SEAT,
-    UPDATE_SEAT,
-    DELETE_SEAT,
-    DELETE_ALL_SEATS_IN_ROOM,
-    GET_SEATS_TYPE,
 };

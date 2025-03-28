@@ -221,6 +221,56 @@ class SeatController extends Controller
     }
 
     /**
+     * Cập nhật trạng thái ghế theo room_id và seat_id cho tất cả suất chiếu
+     *
+     * @param Request $request
+     * @param int $roomId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateSeatStatusForRoom(Request $request, $roomId)
+    {
+        try {
+            $status = $request->input('seat_status'); // Lấy seat_status từ request
+            $seatId = $request->input('seat_id'); // Lấy seat_id từ request
+
+            // Kiểm tra seat_status
+            if (!$status) {
+                return response()->json([
+                    'message' => 'Trạng thái ghế (seat_status) là bắt buộc'
+                ], 400);
+            }
+
+            // Kiểm tra seat_id
+            if (!$seatId || !is_numeric($seatId)) {
+                return response()->json([
+                    'message' => 'ID ghế (seat_id) là bắt buộc và phải là một số'
+                ], 400);
+            }
+
+            $updatedCount = ShowTimeSeat::updateSeatStatusByRoomId($roomId, $seatId, $status);
+
+            if ($updatedCount > 0) {
+                return response()->json([
+                    'message' => "Cập nhật trạng thái ghế thành công thành '{$status}' cho ghế ID {$seatId} trong phòng ID {$roomId} cho {$updatedCount} suất chiếu"
+                ], 200);
+            } else {
+                return response()->json([
+                    'message' => "Không tìm thấy ghế ID {$seatId} thuộc phòng ID {$roomId} hoặc không có thay đổi nào được thực hiện"
+                ], 404);
+            }
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Đã xảy ra lỗi khi cập nhật trạng thái ghế',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Cập nhật trạng thái ghế
      */
     public function updateSeatStatus(Request $request)

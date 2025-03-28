@@ -95,7 +95,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
           }
         );
 
-        // console.log("matrix-seats", matrixSeats);
+        console.log("matrix-seats", matrixSeats);
 
         return data;
       } catch (error) {

@@ -17,7 +17,7 @@ class Room extends Model
         'room_type_id',
     ];
 
-    public function seat()
+    public function seats()
     {
         return $this->hasMany(Seat::class);  // Một thể loại có nhiều phim
     }
@@ -27,7 +27,8 @@ class Room extends Model
         return $this->hasMany(ShowTime::class);  // Một phòng có nhiều lịch chiếu
     }
 
-    public function roomType(){
+    public function roomType()
+    {
         return $this->belongsTo(RoomType::class);
     }
 

@@ -97,6 +97,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/seats', SeatController::class);
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
+        Route::delete('/delete-seats/room/{room_id}', [SeatController::class, 'deleteAll']);
 
         //seat_type
         Route::get('/seat-type', [SeatTypeController::class, 'index']);

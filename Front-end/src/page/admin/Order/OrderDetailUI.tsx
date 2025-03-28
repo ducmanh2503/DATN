@@ -169,7 +169,8 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                                 className={clsx(styles.tagElement)}
                                 color="blue"
                             >
-                                {detailOrder?.discount} VNĐ
+                                {detailOrder?.discount.toLocaleString("vi-VN")}{" "}
+                                VNĐ
                             </Tag>
                         </span>
                     </div>

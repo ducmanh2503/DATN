@@ -30,17 +30,33 @@ const UPDATE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const DETAIL_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 
 const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/by-date`; // tìm kiếm suất chiếu qua ngày và phòng chiếu
-// const GET_ALL_SHOWTIMES = (date: string) =>
-//     `${BASE_URL}/show-times/filter-by-date/${date}`;
 const UPDATE_SHOWTIMES = `${BASE_URL}/showTime`;
 const DELETE_ONE_SHOWTIMES = (id: number, selected_date: string) =>
     `${BASE_URL}/showtimes/${id}/destroy-by-date/${selected_date}`; // xóa suất chiếu
 const GET_DETAIL_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // chi tiết suất chiếu
 const UPDATE_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // cập nhật suất chiếu
 const GET_DATES_BY_CALENDAR = `${BASE_URL}/show-times/get-date-range-by-calendar`; // lấy những ngày trong lịch chiếu
-const GET_RANGE = `${BASE_URL}/show-times/in-range`;
 
-const GET_ROOMS = `${BASE_URL}/room`;
+const GET_ROOMS = `${BASE_URL}/room`; // lấy danh sách phòng chiếu
+const GET_ONE_ROOM = (id: string | number) => `${BASE_URL}/room/${id}`; // lấy chi tiết 1 phòng chiếu
+const CREATE_ROOM = `${BASE_URL}/room`; // thêm phòng chiếu
+const UPDATE_ROOM = (id: string | number) => `${BASE_URL}/room/${id}`; // cập nhật phòng chiếu
+const DELETE_ROOM = (id: string | number) => `${BASE_URL}/room/${id}`; // Xóa phòng chiếu
+const GET_ROOM_TYPES = `${BASE_URL}/room-type`; // lấy danh sách loại phòng
+
+const GET_SEATS_BY_ROOM = (roomId: number) =>
+    `${BASE_URL}/seats/room/${roomId}`; // lấy ma trận ghế của phòng chiếu
+const GET_SEATS_TYPE = `${BASE_URL}/seat-type`; // lấy danh sách các loại ghế
+const UPDATE_SEAT_STATUS = `${BASE_URL}/seats/update-status`; // cập nhật trạng thái ghế
+const HOLD_SEAT = `${BASE_URL}/seats/hold`; // giữ ghế
+const RELEASE_SEAT = `${BASE_URL}/seats/release`; // giải phóng ghế
+const HOLD_SELECTED_SEATS = `${BASE_URL}/seats/hold-selected`; // giữ chọn ghế
+const CREATE_SEAT = `${BASE_URL}/seats`; // thêm mới ghế
+const UPDATE_SEAT = (seatId: number) => `${BASE_URL}/seats/${seatId}`; // cập nhật ghế
+const DELETE_SEAT = (seatId: number) => `${BASE_URL}/seats/${seatId}`; // xóa 1 ghế
+const DELETE_ALL_SEATS_IN_ROOM = (roomId: number) =>
+    `${BASE_URL}/delete-seats/room/${roomId}`; // xóa tất cả ghế của phòng
+
 const GET_SHOW_BY_FILM_DATE = `${BASE_URL}/showtimes-client/by-date`; // lấy suất chiếu qua ngày chiếu
 
 const GET_USER = `${BASE_URL}/user`; // lấy thông tin user
@@ -125,4 +141,19 @@ export {
     GET_VOUCHER,
     ORDERS_LIST,
     DETAIL_ORDER,
+    GET_ONE_ROOM,
+    CREATE_ROOM,
+    UPDATE_ROOM,
+    DELETE_ROOM,
+    GET_ROOM_TYPES,
+    GET_SEATS_BY_ROOM,
+    UPDATE_SEAT_STATUS,
+    HOLD_SEAT,
+    RELEASE_SEAT,
+    HOLD_SELECTED_SEATS,
+    CREATE_SEAT,
+    UPDATE_SEAT,
+    DELETE_SEAT,
+    DELETE_ALL_SEATS_IN_ROOM,
+    GET_SEATS_TYPE,
 };

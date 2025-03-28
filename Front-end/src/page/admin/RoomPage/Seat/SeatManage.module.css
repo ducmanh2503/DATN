@@ -1,0 +1,64 @@
+.spaceEle {
+    margin-top: 20px;
+}
+
+.screen {
+    background-color: #1a1a1a;
+    padding: 10px 0;
+    text-align: center;
+    color: white;
+    margin: 40px auto 60px;
+    transform: perspective(300px) rotateX(-10deg);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+}
+
+.loadingIcon {
+    display: flex;
+    justify-content: center;
+}
+
+.seatRow {
+    display: flex;
+    gap: 70px;
+    justify-content: space-between;
+}
+
+.seat {
+    min-width: 22px;
+    padding: 5px 2px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    border: 2px solid black;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12px;
+    text-align: center;
+}
+
+.normalType {
+    border: 2px solid #8c8c8c;
+    color: #8c8c8c;
+}
+
+.VIPType {
+    border: 2px solid #1890ff;
+    color: #1890ff;
+}
+
+.SweetboxType {
+    border: 2px solid #f5222d;
+    color: #f5222d;
+}
+
+.rowLabel {
+    width: 20px;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.9;
+}
+
+.rowSeats {
+    width: 100%;
+    display: flex;
+}

@@ -421,19 +421,34 @@ class SeatController extends Controller
 
     public function getSeats($room_id)
     {
-        // Lấy tất cả lịch chiếu của phòng
-        $showTimes = ShowTime::where('room_id', $room_id)->get();
+        // Lấy lịch chiếu gần nhất của phòng (có thể điều chỉnh để lấy lịch chiếu cụ thể)
+        $currentDateTime = now();
+        $currentDate = $currentDateTime->toDateString();
+        $currentTime = $currentDateTime->toTimeString();
 
-        if ($showTimes->isEmpty()) {
+        $latestShowTime = ShowTime::join('show_time_date', 'show_time_date.show_time_id', '=', 'show_times.id')
+            ->where('show_times.room_id', $room_id)
+            ->whereRaw("CONCAT(show_time_date.show_date, ' ', show_times.start_time) >= ?", [$currentDateTime])
+            ->orderByRaw("CONCAT(show_time_date.show_date, ' ', show_times.start_time) ASC")
+            ->select('show_times.id')
+            ->first();
+
+        if (!$latestShowTime) {
             return response()->json([
-                'message' => 'Không có lịch chiếu nào cho phòng này',
+                'message' => 'Không có lịch chiếu nào cho phòng này trong tương lai',
                 'seatingMatrix' => []
             ], 200);
         }
 
         // Lấy tất cả ghế trong phòng
-        $seats = Seat::where('room_id', $room_id)->with('seatType', 'showTimeSeat')->get();
-        $currentDate = now()->toDateString();
+        $seats = Seat::where('room_id', $room_id)
+            ->with([
+                'seatType',
+                'showTimeSeat' => function ($query) use ($latestShowTime) {
+                    $query->where('show_time_id', $latestShowTime->id);
+                }
+            ])
+            ->get();
 
         // Tạo ma trận ghế ngồi theo hàng và cột
         $seatingMatrix = [];
@@ -448,20 +463,15 @@ class SeatController extends Controller
             // Lấy giá ghế theo ngày hiện tại
             $price = SeatTypePrice::getPriceByDate($seat->seat_type_id, $currentDate) ?? 0;
 
-            // Lấy trạng thái ghế từ bảng show_time_seat
-            // Kiểm tra xem $seat->showTimeSeat có tồn tại và là collection không
-            $seatStatuses = optional($seat->showTimeSeat)->whereIn('show_time_id', $showTimes->pluck('id'))->pluck('seat_status') ?? collect([]);
-
-            // Quyết định trạng thái ghế
-            // Nếu ghế bị "booked" trong bất kỳ lịch chiếu nào, thì trạng thái là "booked", nếu không thì là "available"
-            $status = $seatStatuses->contains('booked') ? 'booked' : 'available';
+            // Lấy trạng thái ghế từ bảng show_time_seats cho lịch chiếu gần nhất
+            $seatStatus = optional($seat->showTimeSeat)->first()->seat_status ?? 'available';
 
             // Gán thông tin ghế vào ma trận
             $seatingMatrix[$seat->row][$seat->column] = [
                 'id' => $seat->id,
                 'seatCode' => $seatCode,
                 'type' => $seat->seatType->name, // Lấy từ mối quan hệ seatType
-                'status' => $status, // Trạng thái lấy từ show_time_seat
+                'status' => $seatStatus, // Trạng thái lấy từ show_time_seats
                 'price' => $price,
             ];
         }

@@ -1,9 +1,9 @@
-import { message, notification, Steps } from "antd";
+import { message, Steps } from "antd";
 import BookingSeat from "./BookingSeat/BookingSeat";
 import BookingInfo from "./BookingInfo/BookingInfo";
 import ComboFood from "./ComboFood/ComboFood";
 import PaymentGate from "./PaymentGate/PaymentGate";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
@@ -19,6 +19,9 @@ import useShowtimeData from "../refreshDataShowtimes/RefreshDataShowtimes";
 import { usePromotionContextContext } from "../UseContext/PromotionContext";
 import { useFinalPriceContext } from "../UseContext/FinalPriceContext";
 import { useComboContext } from "../UseContext/CombosContext";
+import LayoutPaymentResult from "./ResultPayment/LayoutPaymentResult";
+import SuccesResult from "./ResultPayment/SuccesResult/SuccesResult";
+import ErrorResult from "./ResultPayment/ErrorResult/ErrorResult";
 
 const BookingMain = () => {
   const { quantitySeats, selectedSeatIds, setShouldRefetch, totalSeatPrice } =
@@ -35,6 +38,8 @@ const BookingMain = () => {
   const { resetDataShowtimes } = useShowtimeData();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const status = searchParams.get("status");
   // Thông báo phải đặt ghế để tiếp tục
   const { openNotification, contextHolder } = CustomNotification();
 
@@ -109,6 +114,8 @@ const BookingMain = () => {
     },
   });
 
+  //
+
   // Xử lý khi ấn tiếp tục
   const nextStep = () => {
     if (currentStep === 1 && quantitySeats === 0) {
@@ -148,6 +155,8 @@ const BookingMain = () => {
       navigate("/playingFilm");
       resetDataShowtimes();
       setCurrentStep(1);
+    } else if (status === "success" || status === "error") {
+      setCurrentStep(4);
     }
   }, [currentStep, navigate]);
   const renderStepContent = () => {
@@ -189,12 +198,9 @@ const BookingMain = () => {
       case 4:
         return (
           <>
-            <BookingInfo
-              className={clsx(styles.bookingRight)}
-              nextStep={nextStep}
-              prevStep={prevStep}
-              currentStep={currentStep}
-            />
+            <LayoutPaymentResult>
+              {status === "success" ? <SuccesResult /> : <ErrorResult />}
+            </LayoutPaymentResult>
           </>
         );
       default:

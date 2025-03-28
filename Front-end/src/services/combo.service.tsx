@@ -1,15 +1,14 @@
 import axios from "axios";
 import {
   Combo,
-  ComboCreateRequest,
   ComboCreateResponse,
-  ComboUpdateRequest,
   ComboUpdateResponse,
   ComboListResponse,
   ApiError,
 } from "../types/combo.types";
 
 const BASE_URL = "http://localhost:8000/api";
+export const URL_IMAGE = "http://localhost:8000"; // Export URL_IMAGE
 
 const ENDPOINTS = {
   GET_COMBOS: `${BASE_URL}/combo`,
@@ -111,8 +110,8 @@ export const updateCombo = async (
 ): Promise<ComboUpdateResponse> => {
   const comboId = normalizeId(id);
   try {
-    const response = await axios.put<ComboUpdateResponse>(
-      ENDPOINTS.UPDATE_COMBO(comboId),
+    const response = await axios.post<ComboUpdateResponse>(
+      `${ENDPOINTS.UPDATE_COMBO(comboId)}?_method=PUT`,
       data,
       {
         headers: {

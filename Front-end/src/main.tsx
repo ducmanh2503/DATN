@@ -5,6 +5,7 @@ import "./App.css";
 import { router } from "./routers";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppProvider } from "./ClientComponents/UseContext/ContextState";
+import { AdminProvider } from "./AdminComponents/UseContextAdmin/adminContext";
 // import { Provider } from "react-redux";
 // import { store } from "./redux/store";
 
@@ -12,9 +13,11 @@ const client = new QueryClient();
 createRoot(document.getElementById("root")!).render(
     // <Provider store={store}>
     <QueryClientProvider client={client}>
-        <AppProvider>
-            <RouterProvider router={router} />
-        </AppProvider>
+        <AdminProvider>
+            <AppProvider>
+                <RouterProvider router={router} />
+            </AppProvider>
+        </AdminProvider>
     </QueryClientProvider>
     // </Provider>
 );

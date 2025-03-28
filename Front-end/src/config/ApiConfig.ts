@@ -1,5 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
-
 const BASE_URL = "http://localhost:8000/api";
 const URL_IMAGE = "http://localhost:8000";
 
@@ -71,7 +69,20 @@ const PAYMENT_WITH_VNPAY = `${BASE_URL}/VNPay/create`; // thanh toán bằng V
 const GET_VOUCHER = (code: string) =>
   `${BASE_URL}/apply-discount-code?name_code=${encodeURIComponent(code)}`; // nhập voucher giảm giá
 
+const ORDERS_LIST = `${BASE_URL}/order`; // danh sách đơn hàng
+const DETAIL_ORDER = (bookingId: number) =>
+  `${BASE_URL}/order/${bookingId}/order-details`; // chi tiết đơn hàng
+
+const Orders_Recent = `${BASE_URL}/orders-recent`;
+const Orders_Search = `${BASE_URL}/orders-search`;
+const Orders_Confirmed = `${BASE_URL}/orders-confirmed`;
+const CHANGE_PASSWORD = `${BASE_URL}/change-password`; // đổi mật khẩu
+
 export {
+  CHANGE_PASSWORD,
+  Orders_Confirmed,
+  Orders_Search,
+  Orders_Recent,
   GET_DISCOUNT_CODE,
   CREATE_DISCOUNT_CODE,
   DELETE_DISCOUNT_CODE,
@@ -121,4 +132,6 @@ export {
   DETAIL_TICKETPRICE,
   PAYMENT_WITH_VNPAY,
   GET_VOUCHER,
+  ORDERS_LIST,
+  DETAIL_ORDER,
 };

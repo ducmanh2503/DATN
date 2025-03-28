@@ -5,14 +5,16 @@ import styles from "./Notification.module.css";
 
 // Props cho component
 interface NotificationProps {
-  description: string;
-  pauseOnHover?: boolean; // Tùy chọn
+    title?: string;
+    description: string;
+    pauseOnHover?: boolean;
 }
 
 const CustomNotification = () => {
-  const [api, contextHolder] = notification.useNotification();
+    const [api, contextHolder] = notification.useNotification();
 
     const openNotification = ({
+        title = "Không thể tiếp tục...",
         description,
         pauseOnHover = true,
     }: NotificationProps) => {
@@ -23,17 +25,17 @@ const CustomNotification = () => {
                         <CloseCircleOutlined />
                     </span>{" "}
                     <span className={clsx(styles.notificationTitle)}>
-                        Không thể tiếp tục...
+                        {title}
                     </span>
                 </>
             ),
             description,
-            className: styles.customNotification, // Áp dụng CSS tùy chỉnh
+            className: styles.customNotification,
             pauseOnHover,
         });
     };
 
-  return { openNotification, contextHolder };
+    return { openNotification, contextHolder };
 };
 
 export default CustomNotification;

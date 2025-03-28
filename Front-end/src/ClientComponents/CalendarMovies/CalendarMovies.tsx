@@ -12,6 +12,7 @@ import styles from "./CalendarMovie.module.css";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useStepsContext } from "../UseContext/StepsContext";
 import { Showtime } from "../../types/interface";
+import { useSeatsContext } from "../UseContext/SeatsContext";
 
 const CalendarMovies = ({ id }: any) => {
   const [searchDateRaw, setSearchDateRaw] = useState<string | null>(null);
@@ -21,12 +22,15 @@ const CalendarMovies = ({ id }: any) => {
   const { setCalendarShowtimeID } = useStepsContext();
   const {
     setShowtimesTime,
+    setShowtimesEndTime,
     setShowtimesDate,
     setRoomIdFromShowtimes,
     setShowtimeIdFromBooking,
     setListShowtimes,
+    setRoomTypeShowtimes,
     setRoomNameShowtimes,
   } = useFilmContext();
+  const { setSeatRoomPrice } = useSeatsContext();
 
   // lấy danh sách lịch chiếu
   const { data: calendarMovie, isLoading: isLoadingCalendarMovie } = useQuery({
@@ -94,17 +98,23 @@ const CalendarMovies = ({ id }: any) => {
     item: any,
     setCalendarShowtimeID: (id: number) => void,
     setRoomIdFromShowtimes: (id: number) => void,
-    setRoomNameShowtimes: (id: string) => void,
+    setRoomTypeShowtimes: (id: string) => void,
+    setRoomNameShowtimes: (name: string) => void,
     setShowtimeIdFromBooking: (id: number) => void,
-    setShowtimesTime: (time: string) => void
+    setShowtimesTime: (time: string) => void,
+    setShowtimesEndTime: (time: string) => void,
+    setSeatRoomPrice: (price: number) => void
   ) => {
-    // console.log("item-check", item);
+    console.log("item-check", item);
 
     setCalendarShowtimeID(item.calendar_show_id);
     setRoomIdFromShowtimes(item.room_id);
-    setRoomNameShowtimes(item.room.room_type.name);
+    setRoomTypeShowtimes(item.room.room_type.name);
+    setRoomNameShowtimes(item.room.name);
     setShowtimeIdFromBooking(item.id);
     setShowtimesTime(item.start_time);
+    setShowtimesEndTime(item.end_time);
+    setSeatRoomPrice(parseInt(item.room.room_type.price));
   };
 
   // nhóm các suất chiếu có cùng 1 phòng chiếu
@@ -169,9 +179,12 @@ const CalendarMovies = ({ id }: any) => {
                                 item,
                                 setCalendarShowtimeID,
                                 setRoomIdFromShowtimes,
+                                setRoomTypeShowtimes,
                                 setRoomNameShowtimes,
                                 setShowtimeIdFromBooking,
-                                setShowtimesTime
+                                setShowtimesTime,
+                                setShowtimesEndTime,
+                                setSeatRoomPrice
                               )
                             }
                           />

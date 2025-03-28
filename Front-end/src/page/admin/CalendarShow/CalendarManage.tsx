@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { DeleteOutlined, SearchOutlined } from "@ant-design/icons";
-import type { InputRef, TableColumnsType, TableColumnType } from "antd";
+import type { InputRef, TableColumnType } from "antd";
 import {
     Button,
     Input,
@@ -12,35 +12,44 @@ import {
     Tag,
 } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
-import Highlighter from "react-highlight-words";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import AddCalendar from "../CalendarShow/AddCalendar";
 import Column from "antd/es/table/Column";
 import ColumnGroup from "antd/es/table/ColumnGroup";
 import EditCalendar from "../CalendarShow/EditCalendar";
 import "@ant-design/v5-patch-for-react-19";
 import { DataTypeGenresActorsDirectors } from "../../../types/interface";
-import { DELETE_CALENDAR, GET_CALENDAR } from "../../../config/ApiConfig";
 import RefreshBtn from "../RefreshBtn/RefreshBtn";
+import {
+    useCalendarManage,
+    useDeleteCalendar,
+} from "../../../services/adminServices/calendarManage.service";
 
 type DataIndex = keyof DataTypeGenresActorsDirectors;
 
 const CalendarManage: React.FC = () => {
     const [searchText, setSearchText] = useState("");
-    const [searchedColumn, setSearchedColumn] = useState("");
+    const [searchedColumn, setSearchedColumn] = useState<
+        string | string[] | null
+    >(null);
     const searchInput = useRef<InputRef>(null);
     const [messageApi, contextHolder] = message.useMessage();
-    const queryClient = useQueryClient();
+    const [activeFilterColumn, setActiveFilterColumn] = useState<
+        DataIndex | string[] | null
+    >(null);
 
     const handleSearch = (
         selectedKeys: string[],
         confirm: FilterDropdownProps["confirm"],
-        dataIndex: DataIndex
+        dataIndex: DataIndex | string[]
     ) => {
         confirm();
         setSearchText(selectedKeys[0]);
-        setSearchedColumn(dataIndex);
+        // Chuyển mảng thành chuỗi hoặc giữ nguyên nếu là chuỗi
+        const columnKey = Array.isArray(dataIndex)
+            ? dataIndex.join(".")
+            : dataIndex;
+        setSearchedColumn(columnKey);
+        setActiveFilterColumn(null);
     };
 
     const handleReset = (clearFilters: () => void) => {
@@ -48,9 +57,17 @@ const CalendarManage: React.FC = () => {
         setSearchText("");
     };
 
+    // Hàm chuẩn hóa chuỗi (xoá dấu tiếng Việt)
+    const removeAccents = (str: string) => {
+        return str
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    };
+
     const getColumnSearchProps = (
-        dataIndex: DataIndex
-    ): TableColumnType<DataTypeGenresActorsDirectors> => ({
+        dataIndex: DataIndex | string[]
+    ): TableColumnType<any> => ({
         filterDropdown: ({
             setSelectedKeys,
             selectedKeys,
@@ -61,7 +78,7 @@ const CalendarManage: React.FC = () => {
             <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                     ref={searchInput}
-                    placeholder={`Search ${dataIndex}`}
+                    placeholder={`Search`}
                     value={selectedKeys[0]}
                     onChange={(e) =>
                         setSelectedKeys(e.target.value ? [e.target.value] : [])
@@ -91,6 +108,7 @@ const CalendarManage: React.FC = () => {
                     >
                         Search
                     </Button>
+
                     <Button
                         onClick={() =>
                             clearFilters && handleReset(clearFilters)
@@ -104,72 +122,56 @@ const CalendarManage: React.FC = () => {
                         type="link"
                         size="small"
                         onClick={() => {
-                            close();
+                            confirm({ closeDropdown: false });
+                            setSearchText((selectedKeys as string[])[0]);
+                            setSearchedColumn(dataIndex);
                         }}
                     >
-                        close
+                        Filter
+                    </Button>
+                    <Button type="link" size="small" onClick={() => close()}>
+                        Close
                     </Button>
                 </Space>
             </div>
         ),
-        filterIcon: (filtered: boolean) => (
-            <SearchOutlined
-                style={{ color: filtered ? "#1677ff" : undefined }}
-            />
-        ),
-        onFilter: (value, record: any) =>
-            record[dataIndex]?.title
-                ?.toString()
-                .toLowerCase()
-                .includes((value as string).toLowerCase()),
+        filterIcon: () =>
+            activeFilterColumn === dataIndex ? (
+                <SearchOutlined style={{ color: "#1677ff" }} />
+            ) : (
+                <SearchOutlined />
+            ),
+        onFilter: (value, record) => {
+            const recordValue = Array.isArray(dataIndex)
+                ? dataIndex.reduce(
+                      (obj, key) => (obj ? obj[key] : null),
+                      record
+                  )
+                : record[dataIndex];
+
+            if (!recordValue) return false;
+
+            const normalizedRecord = removeAccents(recordValue.toString());
+            const normalizedValue = removeAccents(value as string);
+
+            return normalizedRecord.includes(normalizedValue);
+        },
         filterDropdownProps: {
-            onOpenChange(open) {
+            onOpenChange: (open) => {
                 if (open) {
+                    setActiveFilterColumn(dataIndex);
                     setTimeout(() => searchInput.current?.select(), 100);
+                } else {
+                    setActiveFilterColumn(null);
                 }
             },
         },
-        render: (text) =>
-            searchedColumn === dataIndex ? (
-                <Highlighter
-                    highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-                    searchWords={[searchText]}
-                    autoEscape
-                    textToHighlight={text ? text.toString() : ""}
-                />
-            ) : (
-                text
-            ),
+        render: (text) => (searchedColumn === dataIndex ? text : text),
     });
 
-    const { data, isLoading } = useQuery({
-        queryKey: ["showtimesFilm"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_CALENDAR);
-            console.log("showtime-data", data);
+    const { data: calendarManage, isLoading } = useCalendarManage();
 
-            return data.map((item: any) => ({
-                ...item,
-                key: item.id,
-            }));
-        },
-        // staleTime: 0,
-    });
-
-    const { mutate } = useMutation({
-        mutationFn: async (id: number) => {
-            await axios.delete(DELETE_CALENDAR(id));
-        },
-        onSuccess: () => {
-            messageApi.success("Xóa lịch chiếu thành công");
-            queryClient.invalidateQueries({
-                queryKey: ["showtimesFilm"],
-            });
-        },
-        onError: () => {
-            messageApi.error("Phim đã có suất chiếu, không thể xóa");
-        },
-    });
+    const { mutate: deleteCalendar } = useDeleteCalendar(messageApi);
 
     return (
         <div>
@@ -177,13 +179,15 @@ const CalendarManage: React.FC = () => {
             <RefreshBtn queryKey={["showtimesFilm"]}></RefreshBtn>
             {contextHolder}
             <Skeleton loading={isLoading} active>
-                <Table<DataTypeGenresActorsDirectors> dataSource={data}>
+                <Table<DataTypeGenresActorsDirectors>
+                    dataSource={calendarManage}
+                >
                     <Column
-                        title="Phim chiếu"
-                        dataIndex="movie"
-                        key="movie"
-                        {...getColumnSearchProps("movie")}
-                        render={(movie) => (
+                        title="Tên phim"
+                        dataIndex={["movie", "title"]}
+                        key="movie_title"
+                        {...getColumnSearchProps(["movie", "title"])}
+                        render={(_, record) => (
                             <span
                                 style={{
                                     color: "var(--border-color)",
@@ -191,10 +195,11 @@ const CalendarManage: React.FC = () => {
                                     fontSize: "16px",
                                 }}
                             >
-                                {movie?.title || "Không có tên"}
+                                {record?.movie?.title || "Không có tên"}
                             </span>
                         )}
                     />
+
                     <ColumnGroup title="Thời gian chiếu">
                         <Column
                             title="Ngày bắt đầu"
@@ -223,7 +228,7 @@ const CalendarManage: React.FC = () => {
                         }
                         render={(_, record: any) => {
                             if (!record.movie) {
-                                return <Tag color="gray">Không có dữ liệu</Tag>; // ✅ Fix crash
+                                return <Tag color="gray">Không có dữ liệu</Tag>;
                             }
                             return record.movie.movie_status ===
                                 "now_showing" ? (
@@ -243,10 +248,10 @@ const CalendarManage: React.FC = () => {
                         ) => (
                             <Space size="middle">
                                 <Popconfirm
-                                    title="Xóa phim này?"
+                                    title="Xóa lịch chiếu phim này?"
                                     description="Bạn có chắc chắn muốn xóa không?"
                                     okText="Yes"
-                                    onConfirm={() => mutate(record.id)}
+                                    onConfirm={() => deleteCalendar(record.id)}
                                     cancelText="No"
                                 >
                                     <Button type="primary" danger>
@@ -259,7 +264,6 @@ const CalendarManage: React.FC = () => {
                     />
                 </Table>
             </Skeleton>
-            ;
         </div>
     );
 };

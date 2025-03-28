@@ -1,10 +1,13 @@
 <?php
 
+
 namespace App\Http\Controllers\API;
+
 
 use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
 use App\Models\Combo;
+use App\Models\DiscountCode;
 use App\Models\Seat;
 use App\Models\SeatTypePrice;
 use App\Models\ShowTime;
@@ -15,15 +18,19 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
+
 class PaymentController extends Controller
 {
 
+
     private $userRankService;
+
 
     public function __construct(UserRankService $userRankService)
     {
         $this->userRankService = $userRankService;
     }
+
 
     public function createVNPay(Request $request)
     {
@@ -32,8 +39,13 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
+        // Validation: Nhận tất cả dữ liệu từ request
         $request->validate([
             'totalPrice' => 'required|numeric|min:0',
+            'total_combo_price' => 'required|numeric|min:0',
+            'total_ticket_price' => 'required|numeric|min:0',
+            'total_price_point' => 'nullable|numeric|min:0',
+            'total_price_voucher' => 'nullable|numeric|min:0',
             'movie_id' => 'required|exists:movies,id',
             'showtime_id' => 'required|exists:show_times,id',
             'calendar_show_id' => 'required|exists:calendar_show,id',
@@ -41,54 +53,52 @@ class PaymentController extends Controller
             'seat_ids.*' => 'exists:seats,id',
             'combo_ids' => 'nullable|array',
             'combo_ids.*' => 'exists:combos,id',
-            'order_desc' => 'nullable|string',
-            'order_type' => 'nullable|string',
-            'used_points' => 'nullable|integer|min:0',
-            'discount_code' => 'nullable|string', // Client gửi name_code, BE tìm id
+            'usedPoints' => 'nullable|integer|min:0',
+            'discount_code' => 'nullable|string',
         ]);
 
         $bookingData = $request->all();
         $bookingData['payment_method'] = 'VNpay';
-        $bookingData['user_id'] = auth()->id(); // Lấy user_id từ auth
+        $bookingData['user_id'] = auth()->id();
 
-        // Lấy ngày chiếu từ ShowTimeDate
-        $showDate = ShowTimeDate::where('show_time_id', $request->showtime_id)
-            ->value('show_date');
+        Log::info('Booking Data request: ', $bookingData);
 
-        // Tính giá ghế từ DB
-        $seats = Seat::whereIn('id', $request->seat_ids)
-            ->with('seatType')
-            ->get();
-        $totalTicketPrice = $seats->sum(function ($seat) use ($showDate) {
-            return SeatTypePrice::getPriceByDate($seat->seat_type_id, $showDate) ?? $seat->seatType->price ?? 0;
-        });
-
-        // Tính giá combo từ DB
-        $totalComboPrice = 0;
-        if (!empty($request->combo_id)) {
-            $comboQuantities = collect($request->combo_id)->groupBy(fn($id) => $id);
-            $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
-            $totalComboPrice = $combos->sum(function ($combo) use ($comboQuantities) {
-                $quantity = $comboQuantities[$combo->id]->count();
-                return $combo->price * $quantity;
-            });
-        }
-
-        $usedPoints = $request->input('used_points', 0);
-        $pointDiscount = $usedPoints * 1000;
+        // Kiểm tra usedPoints
+        $usedPoints = $request->input('usedPoints', 0);
         $userData = $this->userRankService->getRankAndPoints(auth()->id());
         if ($usedPoints > $userData['points']) {
             return response()->json(['message' => 'Số điểm sử dụng vượt quá điểm tích lũy'], 400);
         }
-        $totalPriceBeforeDiscount = $totalTicketPrice + $totalComboPrice;
 
-        //xử lý mã khuyến mại
+        // Kiểm tra số lượng combo
+        if (!empty($request->combo_ids)) {
+            $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
+            $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
+
+            foreach ($combos as $combo) {
+                $quantity = $comboQuantities[$combo->id]->count();
+
+                if (!isset($combo->quantity)) {
+                    Log::warning("Combo ID {$combo->id} does not have a quantity column.");
+                    continue;
+                }
+
+                if ($combo->quantity < $quantity) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
+                        'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
+                    ], 400);
+                }
+            }
+        }
+
+        // Xử lý mã khuyến mại
         $discountCode = $request->input('discount_code');
-        $discountAmount = 0;
         $discountCodeId = null;
 
         if ($discountCode) {
-            $discount = \App\Models\DiscountCode::where('name_code', $discountCode)
+            $discount = DiscountCode::where('name_code', $discountCode)
                 ->where('status', 'active')
                 ->where('quantity', '>', 0)
                 ->where('start_date', '<=', now())
@@ -96,49 +106,53 @@ class PaymentController extends Controller
                 ->first();
 
             if (!$discount) {
-                return response()->json(['message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn'], 400);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn',
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
+                ], 400);
             }
 
-            $discountAmount = $totalPriceBeforeDiscount * ($discount->percent / 100);
-            $discountCodeId = $discount->id; // Lưu ID thay vì name_code
+            if ($discount->quantity < 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Mã khuyến mại {$discount->name_code} đã hết số lượng",
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
+                ], 400);
+            }
 
-            $discount->quantity -= 1;
-            $discount->save();
+            $discountCodeId = $discount->id;
+            // Chưa trừ quantity ở đây, sẽ trừ sau khi thanh toán thành công
         }
 
-        // Tổng giá thực tế từ DB
-        $totalPrice = max(0, $totalPriceBeforeDiscount - $pointDiscount - $discountAmount);
-
-        // Ghi dữ liệu giá vào bookingData
-        $bookingData['pricing'] = [
-            'total_ticket_price' => $totalTicketPrice,
-            'total_combo_price' => $totalComboPrice,
-            'total_price_before_discount' => $totalPriceBeforeDiscount,
-            'point_discount' => $pointDiscount,
-            'discount_amount' => $discountAmount,
-            'discount_code_id' => $discountCodeId, // Lưu discount_code_id
-            'discount_code' => $discountCode, // Giữ name_code để hiển thị
-            'total_price' => $totalPrice,
+        // Lấy dữ liệu pricing từ request (không tính lại)
+        $pricing = [
+            'total_ticket_price' => $request->total_ticket_price,
+            'total_combo_price' => $request->total_combo_price,
+            'total_price_before_discount' => $request->total_ticket_price + $request->total_combo_price,
+            'total_price_point' => $request->total_price_point,
+            'total_price_voucher' => $request->total_price_voucher,
+            'point_discount' => $usedPoints * 1000,
+            'discount_code_id' => $discountCodeId,
+            'discount_code' => $discountCode,
+            'total_price' => $request->totalPrice,
             'used_points' => $usedPoints,
         ];
 
-        // So sánh với totalPrice từ request (nếu cần kiểm tra)
-        if ($request->totalPrice != $totalPrice) {
-            Log::warning('Total price mismatch: Request = ' . $request->totalPrice . ', Calculated = ' . $totalPrice);
-            // Có thể trả về lỗi nếu cần:
-            // return response()->json(['message' => 'Total price mismatch'], 400);
-        }
+        // Ghi dữ liệu giá vào bookingData
+        $bookingData['pricing'] = $pricing;
+        Log::info('Booking Data: ', $bookingData);
 
         $vnp_TxnRef = time() . "";
-        Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData)); // Lưu trong Redis 1 giờ
+        Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData));
 
         $vnp_Url = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
         $vnp_Returnurl = env('VNP_RETURN_URL', 'http://localhost:8000/api/VNPay/return');
         $vnp_TmnCode = env('VNP_TMN_CODE', 'GXTS9J8E');
         $vnp_HashSecret = env('VNP_HASH_SECRET', 'Y7EVYR6BH7GXOWUSYIFLWW9JHZV5DK7E');
 
-        $vnp_OrderInfo = $request->input('order_desc', 'Thanh toán vé xem phim');
-        $vnp_OrderType = $request->input('order_type', '250000');
+        $vnp_OrderInfo = 'Thanh toán vé xem phim';
+        $vnp_OrderType = '0';
         $vnp_Amount = $request->input('totalPrice') * 100;
         $vnp_Locale = 'vn';
         $vnp_BankCode = 'NCB';
@@ -169,6 +183,7 @@ class PaymentController extends Controller
         return response()->json(['code' => '00', 'message' => 'thanh toán thành công', 'data' => $vnp_Url]);
     }
 
+
     public function VNPayReturn(Request $request)
     {
         Log::info('VNPay Return Request: ' . json_encode($request->all()));
@@ -185,7 +200,7 @@ class PaymentController extends Controller
 
             if (!$bookingData) {
                 Log::error('Booking data not found for TxnRef: ' . $request->vnp_TxnRef);
-                return redirect()->away('http://localhost:3000/payment-result?status=failure');
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé'));
             }
 
             $bookingData['is_payment_completed'] = true;
@@ -194,7 +209,14 @@ class PaymentController extends Controller
             $ticketController = new TicketController(app(UserRankService::class));
             $response = $ticketController->getTicketDetails(new Request($bookingData));
 
-            //trừ điểm nếu sử dụng
+            // Kiểm tra JSON response từ getTicketDetails()
+            $data = $response->getData(true); // Lấy dữ liệu dưới dạng mảng
+            if ($data['success'] === false) {
+                // Nếu có lỗi (ví dụ: combo hoặc discount code không đủ số lượng), redirect theo URL trong response
+                return redirect()->away($data['redirect']);
+            }
+
+            // Trừ điểm nếu sử dụng
             $usedPoints = $bookingData['pricing']['used_points'] ?? 0;
             if ($usedPoints > 0) {
                 $success = $this->userRankService->deductPoints($bookingData['user_id'], $usedPoints);
@@ -205,13 +227,19 @@ class PaymentController extends Controller
 
             Redis::del("booking:$request->vnp_TxnRef");
 
-            return redirect()->away(
-                'http://localhost:3000/payment-result?status=success&booking_id=' . $response->getData()->booking_id
-            );
+            // Khi thanh toán thành công
+            $bookingId = $data['booking_id'] ?? null;
+            if (!$bookingId) {
+                Log::error('Booking ID not found in response', ['response' => $data]);
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy booking ID'));
+            }
+
+            return redirect()->away("http://localhost:5173/booking/{$bookingId}/payment-result?status=success");
         } else {
-            return redirect()->away('http://localhost:3000/payment-result?status=failure');
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thanh toán thất bại'));
         }
     }
+
 
     public function holdSeats(Request $request)
     {
@@ -221,19 +249,23 @@ class PaymentController extends Controller
             'seat_ids.*' => 'exists:seats,id',
         ]);
 
+
         $userId = auth()->id();
         if (!$userId) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
+
 
         foreach ($request->seat_ids as $seatId) {
             $cacheKey = "seat_{$request->showtime_id}_{$seatId}";
             Cache::put($cacheKey, ['user_id' => $userId, 'expires_at' => now()->addMinutes(15)], 15); // Giữ 15 phút
         }
 
+
         $roomId = ShowTime::find($request->showtime_id)->room_id;
         $seatingMatrix = app(TicketController::class)->getSeatingMatrix($roomId, $request->showtime_id);
         broadcast(new \App\Events\SeatUpdated($roomId, $request->showtime_id, $seatingMatrix))->toOthers();
+
 
         return response()->json(['success' => true]);
     }

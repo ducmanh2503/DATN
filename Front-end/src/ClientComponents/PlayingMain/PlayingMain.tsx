@@ -62,7 +62,7 @@ const PlayingMain = ({ showChill }: any) => {
         className={clsx(styles.showMoreBtn)}
         onClick={() => setShowMore(!showMore)}
       >
-        {showMore ? "Ẩn bớt " : "Xem thêm..."}
+        {showMore ? "Ẩn bớt " : "Xem thêm..."}
       </button>
     </div>
   );

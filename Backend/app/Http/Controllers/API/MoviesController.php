@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\BookingDetail;
 use App\Models\Movies;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -12,6 +14,89 @@ use Illuminate\Support\Facades\Validator;
 
 class MoviesController extends Controller
 {
+    // Xếp hạng phim theo số vé bán ra (dành cho trang chủ)
+    public function moviesRanking(Request $request)
+    {
+        // Lấy ngày hiện tại (hoặc ngày từ request, mặc định là ngày hiện tại 25/3/2025)
+        $date = $request->input('date', '2025-03-25');
+        $startOfMonth = Carbon::parse($date)->startOfMonth();
+        $endOfDay = Carbon::parse($date)->endOfDay();
+
+        // Lấy danh sách phim và số vé bán ra
+        $movieRankings = BookingDetail::whereHas('booking', function ($query) use ($startOfMonth, $endOfDay) {
+            $query->whereBetween('bookings.created_at', [$startOfMonth, $endOfDay]);
+        })
+            ->whereNotNull('seat_id') // Chỉ tính các booking detail có ghế (vé)
+            ->select('movies.title')
+            ->selectRaw('COUNT(*) as total_tickets')
+            ->join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
+            ->join('show_times', 'bookings.showtime_id', '=', 'show_times.id')
+            ->join('calendar_show', 'show_times.calendar_show_id', '=', 'calendar_show.id')
+            ->join('movies', 'calendar_show.movie_id', '=', 'movies.id')
+            ->groupBy('movies.id', 'movies.title')
+            ->orderBy('total_tickets', 'desc')
+            ->get()
+            ->map(function ($item, $index) use ($startOfMonth) {
+                return [
+                    'rank' => $index + 1, // Thứ hạng (bắt đầu từ 1)
+                    'movie_title' => $item->title,
+                    'total_tickets' => (int) $item->total_tickets,
+                    'month_year' => Carbon::parse($startOfMonth)->format('m/Y'), // Thêm tháng/năm
+                ];
+            });
+
+        // Trả về phản hồi API
+        return response()->json([
+            'message' => 'Xếp hạng phim',
+            'data' => $movieRankings,
+        ]);
+    }
+
+    // Lấy danh sách phim cùng thể loại (trừ phim hiện tại)
+    public function relatedMovies(Request $request, $movieId)
+    {
+        // Tìm phim hiện tại dựa trên ID
+        $currentMovie = Movies::with('genres')->find($movieId);
+
+        if (!$currentMovie) {
+            return response()->json([
+                'message' => 'Phim không tồn tại',
+            ], 404);
+        }
+
+        // Lấy danh sách ID thể loại của phim hiện tại
+        $genreIds = $currentMovie->genres->pluck('id');
+
+        if ($genreIds->isEmpty()) {
+            return response()->json([
+                'message' => 'Phim không có thể loại',
+                'data' => [],
+            ]);
+        }
+
+        // Lấy danh sách phim cùng thể loại, trừ phim hiện tại
+        $relatedMovies = Movies::where('id', '!=', $movieId)
+            ->whereHas('genres', function ($query) use ($genreIds) {
+                $query->whereIn('genres.id', $genreIds);
+            })
+            ->select('id', 'title', 'poster', 'release_date')
+            ->get()
+            ->map(function ($movie) {
+                return [
+                    'id' => $movie->id,
+                    'movie_title' => $movie->title,
+                    'poster' => $movie->poster,
+                    'release_date' => $movie->release_date ? Carbon::parse($movie->release_date)->format('d/m/Y') : null,
+                ];
+            });
+
+        // Trả về phản hồi API
+        return response()->json([
+            'message' => 'Danh sách phim cùng thể loại',
+            'data' => $relatedMovies,
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -36,6 +121,52 @@ class MoviesController extends Controller
             'coming_soon' => $coming_soon,
             'now_showing' => $now_showing,
             'trashed_movies' => $trashedMovies,
+        ], 200);
+    }
+
+    /**
+     * Lấy danh sách phim cho client
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getMoviesForClient(Request $request)
+    {
+        // Lấy các tham số từ query string
+        $status = $request->query('status'); // Lọc theo trạng thái (now_showing, coming_soon)
+        $genres = $request->query('genres'); // Lọc theo thể loại
+        $sort = $request->query('sort', 'latest'); // Sắp xếp (mặc định: mới nhất)
+
+        // Khởi tạo query cơ bản
+        $query = Movies::query()
+            ->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director']);
+
+        // Lọc theo trạng thái nếu có
+        if ($status) {
+            $query->where('movie_status', $status);
+        }
+
+        // Lọc theo thể loại nếu có
+        if ($genres) {
+            $genreList = explode(',', $genres);
+            $query->whereHas('genres', function ($q) use ($genreList) {
+                $q->whereIn('name_genre', $genreList);
+            });
+        }
+
+        // Sắp xếp
+        if ($sort === 'latest') {
+            $query->latest('id');
+        } elseif ($sort === 'oldest') {
+            $query->oldest('id');
+        }
+
+        // Lấy danh sách phim
+        $movies = $query->get();
+
+        // Trả về danh sách phim
+        return response()->json([
+            'message' => 'Danh sách phim',
+            'data' => $movies,
         ], 200);
     }
 
@@ -235,18 +366,44 @@ class MoviesController extends Controller
         ], 200);
     }
 
+
+    //check chung 
+    private function hasCalendarShow($movieIds)
+    {
+        if (is_array($movieIds)) {
+            return DB::table('calendar_show')->whereIn('movie_id', $movieIds)->exists() ||
+                DB::table('show_times')->whereExists(function ($query) use ($movieIds) {
+                    $query->select(DB::raw(1))
+                        ->from('calendar_show')
+                        ->whereColumn('calendar_show.id', 'show_times.calendar_show_id')
+                        ->whereIn('calendar_show.movie_id', $movieIds);
+                })->exists();
+        }
+
+        return DB::table('calendar_show')->where('movie_id', $movieIds)->exists() ||
+            DB::table('show_times')->whereExists(function ($query) use ($movieIds) {
+                $query->select(DB::raw(1))
+                    ->from('calendar_show')
+                    ->whereColumn('calendar_show.id', 'show_times.calendar_show_id')
+                    ->where('calendar_show.movie_id', $movieIds);
+            })->exists();
+    }
+
     /**
      * Xóa mềm nhiều phim.
      */
     public function destroyMultiple(Request $request)
     {
 
-
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
         // Nếu không có phim nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+        }
+
+        if ($this->hasCalendarShow($ids)) {
+            return response()->json(['message' => 'Không thể xóa vì một hoặc nhiều phim đang có lịch chiếu'], 400);
         }
 
         //Xóa mềm các phim được chọn
@@ -264,11 +421,13 @@ class MoviesController extends Controller
     public function destroy($id)
     {
 
-
         try {
             // Tìm phim theo ID
             $movie = Movies::findOrFail($id);
 
+            if ($this->hasCalendarShow($id)) {
+                return response()->json(['message' => 'Không thể xóa phim vì phim đang có lịch chiếu'], 400);
+            }
             // Xóa phim
             $movie->delete();
 
@@ -299,13 +458,15 @@ class MoviesController extends Controller
     public function forceDeleteMultiple(Request $request)
     {
 
-
-
         $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
         // Nếu không có phim nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+        }
+
+        if ($this->hasCalendarShow($ids)) {
+            return response()->json(['message' => 'Không thể xóa vĩnh viễn vì một hoặc nhiều phim đang có lịch chiếu'], 400);
         }
 
         //Xóa vĩnh viễn các phim được chọn
@@ -323,8 +484,6 @@ class MoviesController extends Controller
     public function forceDeleteSingle($id)
     {
 
-
-
         // Tìm phim đã xóa mềm theo ID
         $movie = Movies::onlyTrashed()->find($id);
 
@@ -333,10 +492,122 @@ class MoviesController extends Controller
             return response()->json(['message' => 'Phim không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
         }
 
+        if ($this->hasCalendarShow($id)) {
+            return response()->json(['message' => 'Không thể xóa vĩnh viễn phim vì phim đang có lịch chiếu'], 400);
+        }
+
         // Xóa vĩnh viễn phim
         $movie->forceDelete();
 
         // Trả về phản hồi thành công
         return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
+    }
+
+    /**
+     * Tìm kiếm phim theo tên phim
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    /**
+     * Tìm kiếm phim theo tiêu đề, diễn viên hoặc đạo diễn
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function searchMovies(Request $request)
+    {
+        // Lấy từ khóa tìm kiếm từ query string
+        $keyword = $request->query('keyword');
+        $status = $request->query('status'); // Lọc theo trạng thái nếu có
+
+        // Kiểm tra nếu không có từ khóa
+        if (empty($keyword)) {
+            return response()->json(['message' => 'Vui lòng nhập từ khóa tìm kiếm'], 400);
+        }
+
+        // Khởi tạo query tìm kiếm
+        $query = Movies::query()
+            ->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director']);
+
+        // Tìm kiếm theo tiêu đề, diễn viên hoặc đạo diễn
+        $query->where(function ($q) use ($keyword) {
+            $q->where('title', 'LIKE', '%' . $keyword . '%')
+                ->orWhereHas('actors', function ($q) use ($keyword) {
+                    $q->where('name_actor', 'LIKE', '%' . $keyword . '%');
+                })
+                ->orWhereHas('directors', function ($q) use ($keyword) {
+                    $q->where('name_director', 'LIKE', '%' . $keyword . '%');
+                });
+        });
+
+        // Lọc theo trạng thái nếu có
+        if ($status) {
+            $query->where('movie_status', $status);
+        }
+
+        // Lấy danh sách phim
+        $movies = $query->get();
+
+        // Nếu không tìm thấy phim
+        if ($movies->isEmpty()) {
+            return response()->json(['message' => 'Không tìm thấy phim nào khớp với từ khóa'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Kết quả tìm kiếm phim',
+            'data' => $movies,
+        ], 200);
+    }
+
+    /**
+     * Lọc phim theo nhiều tiêu chí
+     * 
+     */
+    public function filterMovies(Request $request)
+    {
+        // Lấy các tham số từ query string
+        $genres = $request->query('genres'); // Lọc theo thể loại
+        $status = $request->query('status'); // Lọc theo trạng thái (now_showing, coming_soon)
+        $releaseYear = $request->query('release_year'); // Lọc theo năm phát hành
+        $language = $request->query('language'); // Lọc theo ngôn ngữ
+
+        // Khởi tạo query cơ bản
+        $query = Movies::query()
+            ->with(['genres:id,name_genre', 'actors:id,name_actor', 'directors:id,name_director']);
+
+        // Lọc theo thể loại nếu có
+        if ($genres) {
+            $genreList = explode(',', $genres);
+            $query->whereHas('genres', function ($q) use ($genreList) {
+                $q->whereIn('name_genre', $genreList);
+            });
+        }
+
+        // Lọc theo trạng thái nếu có
+        if ($status) {
+            $query->where('movie_status', $status);
+        }
+
+        // Lọc theo năm phát hành nếu có
+        if ($releaseYear) {
+            $query->whereYear('release_date', $releaseYear);
+        }
+
+        // Lọc theo ngôn ngữ nếu có
+        if ($language) {
+            $query->where('language', $language);
+        }
+
+        // Lấy danh sách phim
+        $movies = $query->latest('id')->get();
+
+        // Nếu không tìm thấy phim
+        if ($movies->isEmpty()) {
+            return response()->json(['message' => 'Không tìm thấy phim nào khớp với tiêu chí lọc'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Danh sách phim theo tiêu chí lọc',
+            'data' => $movies,
+        ], 200);
     }
 }

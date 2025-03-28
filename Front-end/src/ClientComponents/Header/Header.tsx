@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebookF, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { faFilm as faSolidFilm } from "@fortawesome/free-solid-svg-icons";
-import { AudioOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
-import { Avatar, Dropdown, Input, message } from "antd";
+import { AudioOutlined, LogoutOutlined, UserOutlined, SearchOutlined } from "@ant-design/icons";
+import { Avatar, Dropdown, Input, message, List } from "antd";
 import type { GetProps } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import clsx from "clsx";
-import authService from "../../services/auth.service"; // Import authService để kiểm tra đăng nhập và đăng xuất
+import authService from "../../services/auth.service"; 
 import styles from "./header.module.css";
+import { searchMovies } from "../../services/search.service";
+import { SearchMovie, MovieGenre } from "../../types/search.types";
+import { URL_IMAGE } from "../../config/ApiConfig";
 
 type SearchProps = GetProps<typeof Input.Search>;
 
@@ -23,18 +26,30 @@ const suffix = (
     />
 );
 
-const onSearch: SearchProps["onSearch"] = (value, _e, info) =>
-    console.log(info?.source, value);
-
 const Header: React.FC = () => {
     const navigate = useNavigate();
-    const isAuthenticated = authService.isAuthenticated(); // Kiểm tra trạng thái đăng nhập
+    const isAuthenticated = authService.isAuthenticated(); 
+    const [suggestedMovies, setSuggestedMovies] = useState<SearchMovie[]>([]);
+    const [keyword, setKeyword] = useState("");
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const searchRef = useRef<HTMLDivElement>(null);
 
-    // Lấy tên người dùng từ localStorage hoặc mặc định nếu không có
     const userName = localStorage.getItem("user_name") || "User";
     const firstLetter = userName.charAt(0).toUpperCase();
 
-    // Hàm xử lý đăng xuất
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setSuggestedMovies([]);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
     const handleLogout = async () => {
         try {
             const response = await authService.logout();
@@ -46,12 +61,55 @@ const Header: React.FC = () => {
         }
     };
 
-    // Hàm xử lý chuyển hướng đến profile
     const handleProfile = () => {
-        navigate("/profile"); // Chuyển hướng đến trang profile của user
+        navigate("/profile"); 
     };
 
-    // Menu cho dropdown khi đã đăng nhập
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setKeyword(value);
+        
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        
+        if (value.length >= 2) {
+            searchTimeoutRef.current = setTimeout(() => {
+                fetchSuggestions(value);
+            }, 300); 
+        } else {
+            setSuggestedMovies([]);
+        }
+    };
+
+    const fetchSuggestions = async (value: string) => {
+        if (!value.trim()) {
+            setSuggestedMovies([]);
+            return;
+        }
+        
+        try {
+            const results = await searchMovies({ keyword: value });
+            setSuggestedMovies(results.slice(0, 5)); 
+        } catch (error) {
+            console.error("Lỗi khi tìm kiếm phim gợi ý:", error);
+            setSuggestedMovies([]);
+        }
+    };
+
+    const onSearch: SearchProps["onSearch"] = (value) => {
+        if (!value.trim()) return;
+        
+        // Navigate to search page with the search query
+        navigate(`/search?keyword=${encodeURIComponent(value)}`);
+        setSuggestedMovies([]);
+    };
+
+    const handleMovieClick = (movieId: number) => {
+        setSuggestedMovies([]);
+        navigate(`/filmDetail/${movieId}`);
+    };
+
     const menu = {
         items: [
             {
@@ -125,18 +183,58 @@ const Header: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className={clsx(styles.logoSearch, styles.flex)}>
+                <div className={clsx(styles.logoSearch, styles.flex, styles.justifyEnd)}>
+                    <div className={styles.searchContainer} ref={searchRef}>
+                        <Search
+                            className={clsx(styles.sreach)}
+                            placeholder="Tìm kiếm phim, diễn viên, đạo diễn, thể loại..."
+                            allowClear
+                            onSearch={onSearch}
+                            value={keyword}
+                            onChange={handleInputChange}
+                        />
+                        {suggestedMovies.length > 0 && (
+                            <div className={styles.suggestionsDropdown}>
+                                <List
+                                    itemLayout="horizontal"
+                                    dataSource={suggestedMovies}
+                                    renderItem={(movie) => (
+                                        <List.Item 
+                                            className={styles.suggestionItem}
+                                            onClick={() => handleMovieClick(movie.id)}
+                                        >
+                                            <div className={styles.suggestionContent}>
+                                                <img 
+                                                    src={`${URL_IMAGE}${movie.poster}`} 
+                                                    alt={movie.title}
+                                                    className={styles.suggestionImage}
+                                                />
+                                                <div className={styles.suggestionInfo}>
+                                                    <div className={styles.suggestionTitle}>{movie.title}</div>
+                                                    <div className={styles.suggestionGenres}>
+                                                        {movie.genres.slice(0, 2).map((genre: MovieGenre) => (
+                                                            <span key={genre.id} className={styles.suggestionGenre}>
+                                                                {genre.name_genre}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </List.Item>
+                                    )}
+                                />
+                                <div 
+                                    className={styles.viewAllResults}
+                                    onClick={() => onSearch(keyword)}
+                                >
+                                    <SearchOutlined /> Xem tất cả kết quả
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     <Link className={clsx(styles.logo)} to="/">
                         Logo
                     </Link>
-                    <div>
-                        <Search
-                            className={clsx(styles.sreach)}
-                            placeholder="Tìm kiếm phim"
-                            allowClear
-                            onSearch={onSearch}
-                        />
-                    </div>
                 </div>
             </header>
         </div>

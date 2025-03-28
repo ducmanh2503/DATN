@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import {
     Button,
     Col,
@@ -8,25 +7,26 @@ import {
     Image,
     Input,
     Row,
+    Skeleton,
 } from "antd";
-import axios from "axios";
 import { useEffect, useState, memo } from "react";
 import { URL_IMAGE } from "../../../config/ApiConfig";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
+import { useDetailFilm } from "../../../services/adminServices/filmManage.service";
 
 const DetailFilm = ({ id, film }: any) => {
-    const [open, setOpen] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
     const [size, setSize] = useState<DrawerProps["size"]>();
     const [poster, setPoster] = useState("");
     const [form] = Form.useForm();
 
     const onClose = () => {
-        setOpen(false);
+        setOpenModal(false);
     };
     const showLargeDrawer = () => {
         setSize("large");
-        setOpen(true);
+        setOpenModal(true);
     };
 
     const { data, isLoading, error } = useQuery({
@@ -47,7 +47,7 @@ const DetailFilm = ({ id, film }: any) => {
     });
     
     useEffect(() => {
-        if (data && open) {
+        if (data && id) {
             form.setFieldsValue({
                 ...data,
                 directors: data.directors?.name_director || "không có",
@@ -76,7 +76,8 @@ const DetailFilm = ({ id, film }: any) => {
                 placement="right"
                 size={size}
                 onClose={onClose}
-                open={open}
+                open={openModal}
+                destroyOnClose
                 extra={
                     <Button type="primary" onClick={onClose}>
                         OK

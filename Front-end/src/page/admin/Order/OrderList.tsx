@@ -1,212 +1,265 @@
-import { useState, useEffect } from "react";
-import { Button, Input, Table, message, Modal } from "antd";
-import { Search } from "lucide-react";
-import { Link } from "react-router-dom";
-import styles from "./OrderList.module.css";
+import React, { useRef, useState } from "react";
+import { useOrdersList } from "../../../services/adminServices/orderManage.service";
+import {
+    Button,
+    Input,
+    InputRef,
+    Skeleton,
+    Space,
+    Table,
+    TableColumnsType,
+    TableColumnType,
+    Tag,
+} from "antd";
+import { FilterDropdownProps } from "antd/es/table/interface";
+import { SearchOutlined } from "@ant-design/icons";
+import clsx from "clsx";
+import styles from "./Order.module.css";
+import OrderDetail from "./Orderdetail";
+import { OrdersType } from "../../../types/interface";
+import dayjs from "dayjs";
 
-// Định nghĩa type cho dữ liệu đơn hàng
-type Order = {
-  id: string;
-  movieName: string;
-  showTime: string;
-  room: string;
-  status: string;
-  total: number;
-  bookingDate: string;
-};
+type DataIndex = keyof OrdersType;
 
 const OrderList = () => {
-  const [loading, setLoading] = useState(false);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [keyword, setKeyword] = useState("");
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [searchField, setSearchField] = useState<"id" | "movieName">("id"); // Trường tìm kiếm: 'id' hoặc 'movieName'
+    const [searchText, setSearchText] = useState("");
+    const [searchedColumn, setSearchedColumn] = useState("");
+    const searchInput = useRef<InputRef>(null);
 
-  // Dữ liệu giả từ JSON
-  const mockOrders: Order[] = [
-    {
-      id: "ORDER001",
-      movieName: "Avengers: Endgame",
-      showTime: "14:00 - 16:30",
-      room: "Phòng 1",
-      status: "Đã thanh toán",
-      total: 150000,
-      bookingDate: "2025-03-14",
-    },
-    {
-      id: "ORDER002",
-      movieName: "Oppenheimer",
-      showTime: "19:00 - 21:30",
-      room: "Phòng 3",
-      status: "Chờ thanh toán",
-      total: 180000,
-      bookingDate: "2025-03-13",
-    },
-    {
-      id: "ORDER003",
-      movieName: "Inception",
-      showTime: "10:00 - 12:30",
-      room: "Phòng 2",
-      status: "Đã hủy",
-      total: 120000,
-      bookingDate: "2025-03-12",
-    },
-  ];
+    const handleSearch = (
+        selectedKeys: string[],
+        confirm: FilterDropdownProps["confirm"],
+        dataIndex: DataIndex
+    ) => {
+        confirm();
+        setSearchText(selectedKeys[0]);
+        setSearchedColumn(dataIndex);
+    };
 
-  // Load dữ liệu ban đầu khi component mount
-  useEffect(() => {
-    setOrders(mockOrders);
-  }, []);
+    const getColumnSearchProps = (
+        dataIndex: DataIndex
+    ): TableColumnType<OrdersType> => ({
+        filterDropdown: ({
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            close,
+        }) => (
+            <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+                <Input
+                    ref={searchInput}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={(e) =>
+                        setSelectedKeys(e.target.value ? [e.target.value] : [])
+                    }
+                    onPressEnter={() =>
+                        handleSearch(
+                            selectedKeys as string[],
+                            confirm,
+                            dataIndex
+                        )
+                    }
+                    style={{ marginBottom: 8, display: "block" }}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() =>
+                            handleSearch(
+                                selectedKeys as string[],
+                                confirm,
+                                dataIndex
+                            )
+                        }
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Search
+                    </Button>
+                    <Button
+                        onClick={() =>
+                            clearFilters && handleReset(clearFilters)
+                        }
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Reset
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            confirm({ closeDropdown: false });
+                            setSearchText((selectedKeys as string[])[0]);
+                            setSearchedColumn(dataIndex);
+                        }}
+                    >
+                        Filter
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            close();
+                        }}
+                    >
+                        close
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: (filtered: boolean) => (
+            <SearchOutlined
+                style={{ color: filtered ? "#1677ff" : undefined }}
+            />
+        ),
+        onFilter: (value, record) =>
+            record[dataIndex]
+                .toString()
+                .toLowerCase()
+                .includes((value as string).toLowerCase()),
+        filterDropdownProps: {
+            onOpenChange(open) {
+                if (open) {
+                    setTimeout(() => searchInput.current?.select(), 100);
+                }
+            },
+        },
+        render: (text) => searchedColumn === dataIndex && text,
+    });
 
-  // Hàm mở modal tìm kiếm
-  const openSearchModal = (field: "id" | "movieName") => {
-    setSearchField(field);
-    setIsModalVisible(true);
-  };
+    const handleReset = (clearFilters: () => void) => {
+        clearFilters();
+        setSearchText("");
+    };
 
-  // Hàm đóng modal
-  const handleCancel = () => {
-    setIsModalVisible(false);
-    setKeyword("");
-  };
+    // Tạo cache lưu trữ màu cho từng giá trị room_name
+    const roomColorMap: Record<string, string> = {};
 
-  // Xử lý tìm kiếm đơn hàng
-  const handleSearch = () => {
-    setLoading(true);
-    try {
-      const filteredOrders = mockOrders.filter((order) =>
-        order[searchField].toLowerCase().includes(keyword.toLowerCase())
-      );
-      setOrders(filteredOrders);
-      message.success("Tìm kiếm đơn hàng thành công!");
-      setIsModalVisible(false); // Đóng modal sau khi tìm kiếm
-    } catch (error: any) {
-      console.error("Error during search:", error);
-      message.error(error.message || "Tìm kiếm thất bại. Vui lòng thử lại.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    //  màu ngẫu nhiên
+    const getRandomColor = () => {
+        const colors = [
+            "magenta",
+            "red",
+            "volcano",
+            "orange",
+            "gold",
+            "lime",
+            "green",
+            "cyan",
+            "blue",
+            "geekblue",
+            "purple",
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
+    };
 
-  // Cấu hình cột cho bảng
-  const columns = [
-    {
-      title: (
-        <div>
-          Mã đơn
-          <Search
-            size={16}
-            onClick={() => openSearchModal("id")}
-            style={{ cursor: "pointer", marginLeft: "8px" }}
-          />
-        </div>
-      ),
-      dataIndex: "id",
-      key: "id",
-      render: (text: string) => (
-        <Link to={`/orders/${text}`} className={styles.orderLink}>
-          {text}
-        </Link>
-      ),
-    },
-    {
-      title: (
-        <div>
-          Tên phim
-          <Search
-            size={16}
-            onClick={() => openSearchModal("movieName")}
-            style={{ cursor: "pointer", marginLeft: "8px" }}
-          />
-        </div>
-      ),
-      dataIndex: "movieName",
-      key: "movieName",
-    },
-    {
-      title: "Xuất chiếu",
-      dataIndex: "showTime",
-      key: "showTime",
-    },
-    {
-      title: "Phòng chiếu",
-      dataIndex: "room",
-      key: "room",
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-    },
-    {
-      title: "Tổng tiền",
-      dataIndex: "total",
-      key: "total",
-      render: (value: number) => `${value.toLocaleString()} VNĐ`,
-    },
-    {
-      title: "Ngày đặt",
-      dataIndex: "bookingDate",
-      key: "bookingDate",
-    },
-  ];
+    const { data, isLoading, isError } = useOrdersList();
 
-  return (
-    <div className={styles.orderListContainer}>
-      <div className={styles.containerInner}>
-        <h2 className={styles.title}>Danh sách đơn hàng</h2>
-        <p className={styles.subtitle}>Quản lý các đơn đặt vé xem phim</p>
+    const renderDetailOrder = React.useCallback(
+        (text: string, item: any) => <OrderDetail id={item.id}></OrderDetail>,
+        []
+    );
 
-        {/* Bảng danh sách đơn hàng */}
-        <Table
-          columns={columns}
-          dataSource={orders}
-          rowKey="id"
-          loading={loading}
-          className={styles.orderTable}
-          locale={{
-            emptyText: "Không có đơn hàng nào được tìm thấy",
-          }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "20", "50"],
-          }}
-        />
+    const columns: TableColumnsType<OrdersType> = [
+        {
+            title: "Mã đơn hàng",
+            dataIndex: "id",
+            key: "id",
+            width: "100px",
+            render: renderDetailOrder,
+            // ...getColumnSearchProps("id"),
+        },
+        {
+            title: "Tên phim",
+            dataIndex: "movie_title",
+            key: "movie_title",
+            width: "20%",
+            ...getColumnSearchProps("movie_title"),
+            render: (value: string, record: any) => (
+                <span className={clsx(styles.movieTitle)}>
+                    {record.movie_title}
+                </span>
+            ),
+        },
+        {
+            title: "Suất chiếu",
+            dataIndex: "showtime",
+            key: "showtime",
+            ...getColumnSearchProps("showtime"),
+            render: (value: string, record: any) => (
+                <Tag color="volcano">{record.showtime}</Tag>
+            ),
+        },
+        {
+            title: "Phòng chiếu",
+            dataIndex: "room_name",
+            key: "room_name",
+            ...getColumnSearchProps("room_name"),
+            render: (value: string) => {
+                // Kiểm tra nếu chưa có màu cho room_name, thì tạo màu mới
+                if (!roomColorMap[value]) {
+                    roomColorMap[value] = getRandomColor();
+                }
+                return <Tag color={roomColorMap[value]}>{value}</Tag>;
+            },
+        },
+        {
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+            render: (value: string) => {
+                return value === "confirmed" ? (
+                    <Tag color="green">Đã thanh toán</Tag>
+                ) : (
+                    <Tag color="red">Đang đợi xử lý</Tag>
+                );
+            },
+            sorter: (a, b) => a.status.length - b.status.length,
+        },
+        {
+            title: "Tổng tiền",
+            dataIndex: "total_price",
+            key: "total_price",
+            render: (value: string, record: any) => {
+                return (
+                    <span>
+                        {parseInt(record.total_price).toLocaleString("vi-VN")}{" "}
+                        VNĐ
+                    </span>
+                );
+            },
+            sorter: (a, b) =>
+                parseInt(a.total_combo_price) - parseInt(b.total_combo_price),
+        },
+        {
+            title: "Ngày giao dịch",
+            dataIndex: "created_at",
+            key: "created_at",
+            ...getColumnSearchProps("created_at"),
+            sorter: (a, b) => {
+                return (
+                    dayjs(a.created_at, "DD-MM-YYYY").valueOf() -
+                    dayjs(b.created_at, "DD-MM-YYYY").valueOf()
+                );
+            },
+            render: (value: string) => {
+                const date = dayjs(value, "DD-MM-YYYY");
+                return date.isValid()
+                    ? date.format("DD/MM/YYYY")
+                    : "Không có ngày";
+            },
+        },
+    ];
 
-        {/* Modal tìm kiếm */}
-        <Modal
-          title={`Tìm kiếm theo ${
-            searchField === "id" ? "Mã đơn" : "Tên phim"
-          }`}
-          visible={isModalVisible}
-          onCancel={handleCancel}
-          footer={[
-            <Button key="cancel" onClick={handleCancel}>
-              Hủy
-            </Button>,
-            <Button key="search" type="primary" onClick={handleSearch}>
-              Tìm kiếm
-            </Button>,
-          ]}
-        >
-          <Input
-            placeholder={`Nhập ${searchField === "id" ? "mã đơn" : "tên phim"}`}
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onPressEnter={handleSearch}
-          />
-        </Modal>
-
-        <p className={styles.backLink}>
-          Quay lại{" "}
-          <Link to="/" className={styles.homeLink}>
-            Trang chủ
-          </Link>
-        </p>
-      </div>
-    </div>
-  );
+    return (
+        <Skeleton loading={isLoading} active>
+            <Table<OrdersType> columns={columns} dataSource={data} />
+        </Skeleton>
+    );
 };
 
 export default OrderList;

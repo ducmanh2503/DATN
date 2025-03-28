@@ -64,8 +64,22 @@
 }
 
 .empty {
-  background-color: #1a1a1a;
-  color: white;
-  border-color: black;
-  font-weight: 700;
+    background-color: #1a1a1a;
+    border-color: black;
+    color: white;
+    font-weight: 700;
+}
+
+.disabled {
+    background-color: #3e3f5b;
+    border: 2px solid #3e3f5b;
+}
+
+.updatePrice {
+    background-color: var(--backgroud-product);
+}
+
+.updateStatus {
+    border: 2px solid var(--backgroud-product);
+    color: var(--backgroud-product);
 }

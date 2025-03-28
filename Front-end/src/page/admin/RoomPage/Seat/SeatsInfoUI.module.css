@@ -24,22 +24,12 @@
 }
 
 .seatsBooked {
-    background: rgb(166, 21, 210);
-    border: 2px solid rgb(166, 21, 210);
+    background-color: #1a1a1a;
+    border: 2px solid black;
 }
 
 .bookingSeatsName {
     font-size: 13px;
-}
-
-.seatsSelecting {
-    background-color: #52c41a;
-    border: 2px solid #52c41a;
-}
-
-.seatsHolding {
-    background-color: rgb(241, 153, 2);
-    border: 2px solid rgb(241, 153, 2);
 }
 
 .seatsNormal {

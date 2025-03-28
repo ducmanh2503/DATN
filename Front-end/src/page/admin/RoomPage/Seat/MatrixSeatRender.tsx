@@ -29,14 +29,13 @@ const MatrixSeatRender = ({ roomId }: { roomId: string }) => {
     };
 
     // Nhóm ghế theo hàng
-    const groupedSeats = SeatsByRoom?.reduce(
-        (acc: Record<string, any[]>, seat) => {
-            if (!acc[seat.row]) acc[seat.row] = [];
-            acc[seat.row].push(seat);
-            return acc;
-        },
-        {}
-    );
+    const groupedSeats = SeatsByRoom
+        ? SeatsByRoom.reduce((acc: Record<string, any[]>, seat) => {
+              if (!acc[seat.row]) acc[seat.row] = [];
+              acc[seat.row].push(seat);
+              return acc;
+          }, {})
+        : {};
 
     return (
         <div>
@@ -67,7 +66,9 @@ const MatrixSeatRender = ({ roomId }: { roomId: string }) => {
                                                 seat.type === "Sweetbox" &&
                                                     styles.SweetboxType,
                                                 seat.status === "Empty" &&
-                                                    styles.empty
+                                                    styles.empty,
+                                                seat.status === "Disabled" &&
+                                                    styles.disabled
                                             )}
                                             onClick={() =>
                                                 handleSeatClick(

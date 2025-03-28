@@ -11,16 +11,19 @@ class RoleMiddleware
     /**
      * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
-        // Lấy user hiện tại
-        $user = Auth::guard('sanctum')->user();
+        $user = $request->user();
 
-        // Kiểm tra quyền
-        if ($user->role !== $role) {
-            return response()->json(['error' => 'Không có quyền truy cập'], 403);
+        if (!$user || !in_array($user->role, $roles)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Bạn không có quyền truy cập!'], 403);
+            }
+            abort(403, 'Bạn không có quyền truy cập!');
         }
 
         return $next($request);
     }
+
+    
 }

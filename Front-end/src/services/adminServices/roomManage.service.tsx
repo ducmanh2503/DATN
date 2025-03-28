@@ -13,6 +13,7 @@ import {
     GET_ROOMS,
     UPDATE_ROOM,
 } from "../../config/ApiConfig";
+import { handleApiError } from "./utils";
 
 // lấy danh sách phòng chiếu và loại phòng chiếu
 export const useGetRooms = () => {
@@ -64,9 +65,7 @@ export const useDeleteRoom = (messageApi: any) => {
                 queryKey: ["roomsCinema"],
             });
         },
-        onError: (error) => {
-            messageApi.error(error.message || "Có lỗi xảy ra!");
-        },
+        onError: handleApiError,
     });
 };
 
@@ -98,9 +97,7 @@ export const useUpdateRoom = (messageApi: any) => {
                 queryKey: ["roomsCinema"],
             });
         },
-        onError: (error) => {
-            messageApi.error(error.message || "Có lỗi xảy ra!");
-        },
+        onError: handleApiError,
     });
 };
 
@@ -117,8 +114,6 @@ export const useCreateRoom = (messageApi: any) => {
                 queryKey: ["roomsCinema"],
             });
         },
-        onError: (error) => {
-            messageApi.error(error.message || "Có lỗi xảy ra!");
-        },
+        onError: handleApiError,
     });
 };

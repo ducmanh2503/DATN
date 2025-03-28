@@ -47,7 +47,8 @@ const GET_ROOM_TYPES = `${BASE_URL}/room-type`; // lấy danh sách loại pho
 const GET_SEATS_BY_ROOM = (roomId: number) =>
     `${BASE_URL}/seats/room/${roomId}`; // lấy ma trận ghế của phòng chiếu
 const GET_SEATS_TYPE = `${BASE_URL}/seat-type`; // lấy danh sách các loại ghế
-const UPDATE_SEAT_STATUS = `${BASE_URL}/seats/update-status`; // cập nhật trạng thái ghế
+const UPDATE_SEAT_STATUS = (roomId: number) =>
+    `${BASE_URL}/show-time-seats/update-status/${roomId}`; // cập nhật trạng thái ghế
 const HOLD_SEAT = `${BASE_URL}/seats/hold`; // giữ ghế
 const RELEASE_SEAT = `${BASE_URL}/seats/release`; // giải phóng ghế
 const HOLD_SELECTED_SEATS = `${BASE_URL}/seats/hold-selected`; // giữ chọn ghế

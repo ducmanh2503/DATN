@@ -14,11 +14,7 @@ const DeleteAllSeat = ({
     const handleDeleteAll = () => {
         if (!roomId) return;
 
-        deleteAllSeats(roomId, {
-            onSuccess: () => {
-                handleOk();
-            },
-        });
+        deleteAllSeats(roomId);
     };
     return (
         <>

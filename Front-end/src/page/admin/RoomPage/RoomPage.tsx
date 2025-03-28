@@ -11,7 +11,6 @@ import SeatManage from "./Seat/SeatManage";
 
 const RoomPage = () => {
     const [messageApi, holderMessageApi] = message.useMessage();
-    const [editingRoom, setEditingRoom] = useState(false); // truyền xuống porps để modal hiểu là đang edit
     const [roomsTypeList, setRoomsTypeList] = useState([]); // lưu loại phòng từ api
 
     const { rooms, seatTypes, isSeatTypesLoading } = useGetRooms(); // api lấy danh sách phòng và loại phòng
@@ -53,13 +52,12 @@ const RoomPage = () => {
                 );
             },
         },
-
         {
             title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
-            render: (status: string) =>
-                status === "active" ? (
+            dataIndex: "deleted_at",
+            key: "deleted_at",
+            render: (_: string, record: any) =>
+                record.deleted_at === null ? (
                     <Tag color="green">Hoạt động</Tag>
                 ) : (
                     <Tag color="red">Đang bảo trì</Tag>

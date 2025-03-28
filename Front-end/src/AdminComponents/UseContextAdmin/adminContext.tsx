@@ -6,7 +6,6 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     const [listFilms, setListFilms] = useState({});
     const [directors, setDirectors] = useState<string[]>([]); // lưu dữ liệu đạo diễn
     const [siderWidth, setSiderWidth] = useState(0); // chiều rộng siderWidth
-    const [rowSeats, setRowSeats] = useState<string[]>([]); // lưu tên các hàng ghế
     return (
         <AdminContext.Provider
             value={{
@@ -16,8 +15,6 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
                 setListFilms,
                 siderWidth,
                 setSiderWidth,
-                rowSeats,
-                setRowSeats,
             }}
         >
             {children}

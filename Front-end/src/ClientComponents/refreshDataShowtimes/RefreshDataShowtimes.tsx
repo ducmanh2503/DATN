@@ -5,7 +5,7 @@ import { useSeatsContext } from "../UseContext/SeatsContext";
 import { useStepsContext } from "../UseContext/StepsContext";
 import axios from "axios";
 import { useFilmContext } from "../UseContext/FIlmContext";
-import { useAuthContext } from "../UseContext/TokenContext";
+import { useAuthContext } from "../UseContext/tokenContext";
 import { usePromotionContextContext } from "../UseContext/PromotionContext";
 
 const useShowtimeData = () => {

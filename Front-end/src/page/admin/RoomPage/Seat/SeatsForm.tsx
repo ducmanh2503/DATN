@@ -2,6 +2,7 @@ import { Button, Form, Input, message, Modal, Select, Space } from "antd";
 import { useAdminContext } from "../../../../AdminComponents/UseContextAdmin/adminContext";
 import {
     useDeleteOneSeat,
+    useHideSeat,
     useOptionSeats,
 } from "../../../../services/adminServices/seatManage.service";
 import { useEffect } from "react";
@@ -13,10 +14,14 @@ const SeatsForm = ({
     isModalOpen,
     handleCancel,
     seatData,
+    onSubmit,
+    roomId,
 }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
-    const { rowSeats } = useAdminContext();
+    const rowSeats = Array.from({ length: 26 }, (_, i) =>
+        String.fromCharCode(65 + i)
+    ); // Tạo các hàng từ A tới Z
 
     const { data: OptionSeats } = useOptionSeats(); // danh sách các loại ghế
 
@@ -29,6 +34,7 @@ const SeatsForm = ({
                 row: seatData.row,
                 column: seatData.col,
                 seat_type_id: seatData.type,
+                seat_status: seatData.status,
             });
         }
     }, [seatData, form]);
@@ -45,6 +51,50 @@ const SeatsForm = ({
             },
         });
     };
+
+    // hàm xử lý khi click xóa
+    const handleSingleSubmit = (values: any) => {
+        onSubmit(values);
+        handleCancel();
+        !isEditing && form.resetFields();
+    };
+
+    const { mutate: hideSeat } = useHideSeat(messageApi);
+
+    // hàm ẩn ghế
+
+    const handleHideSeat = () => {
+        if (!seatData?.id) {
+            messageApi.error("Không tìm thấy ghế!");
+            return;
+        }
+
+        if (!roomId) {
+            messageApi.error("Không tìm thấy phòng!");
+            return;
+        }
+
+        // Lấy trạng thái ghế từ form, nếu chưa có thì mặc định là "disabled"
+        let seatStatus = form.getFieldValue("seat_status") || seatData.status;
+
+        if (!seatStatus) {
+            messageApi.error("Trạng thái ghế là bắt buộc!");
+            return;
+        }
+
+        hideSeat(
+            {
+                roomId: roomId,
+                data: { seat_id: seatData.id, seat_status: seatStatus },
+            },
+            {
+                onSuccess: () => {
+                    handleOk(); // Đóng modal sau khi ẩn ghế
+                },
+            }
+        );
+    };
+
     return (
         <>
             {contextHolder}
@@ -58,20 +108,8 @@ const SeatsForm = ({
                 <Form
                     form={form}
                     layout="vertical"
-                    // onFinish={handleSingleSubmit}
+                    onFinish={handleSingleSubmit}
                 >
-                    <Form.Item name="room_id" hidden>
-                        <Input />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="seat_status"
-                        hidden
-                        initialValue="available"
-                    >
-                        <Input />
-                    </Form.Item>
-
                     <Form.Item
                         name="row"
                         label="Hàng"
@@ -87,7 +125,6 @@ const SeatsForm = ({
                             ))}
                         </Select>
                     </Form.Item>
-
                     <Form.Item
                         name="column"
                         label="Cột"
@@ -100,7 +137,6 @@ const SeatsForm = ({
                             placeholder="Nhập số cột (1, 2, ...)"
                         />
                     </Form.Item>
-
                     <Form.Item
                         name="seat_type_id"
                         label="Loại Ghế"
@@ -115,11 +151,40 @@ const SeatsForm = ({
                             {OptionSeats?.map((option: any) => (
                                 <Select.Option
                                     key={option.id}
-                                    value={option.name}
+                                    value={option.id}
                                 >
                                     {option.name}
                                 </Select.Option>
                             ))}
+                        </Select>
+                    </Form.Item>
+                    {!isEditing && (
+                        <Form.Item
+                            style={{ display: "none" }}
+                            name="room_id"
+                            label="Tên phòng"
+                            initialValue={roomId}
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Vui lòng nhập tên phòng!",
+                                },
+                            ]}
+                        >
+                            <Input disabled={isEditing} value={roomId} />
+                        </Form.Item>
+                    )}
+                    <Form.Item name="seat_status" label="Trạng thái">
+                        <Select>
+                            <Select.Option key={1} value={"available"}>
+                                Available
+                            </Select.Option>
+                            <Select.Option key={2} value={"disabled"}>
+                                Disabled
+                            </Select.Option>
+                            <Select.Option key={3} value={"empty"}>
+                                Empty
+                            </Select.Option>
                         </Select>
                     </Form.Item>
                     <Form.Item>
@@ -134,7 +199,6 @@ const SeatsForm = ({
                             >
                                 {isEditing ? "Cập Nhật" : "Thêm Ghế"}
                             </Button>
-
                             {isEditing && onDelete && (
                                 <>
                                     <Button
@@ -144,7 +208,9 @@ const SeatsForm = ({
                                     >
                                         Xóa Ghế
                                     </Button>
-                                    <Button danger>Ẩn ghế</Button>
+                                    <Button danger onClick={handleHideSeat}>
+                                        Ẩn ghế
+                                    </Button>
                                 </>
                             )}
                         </Space>

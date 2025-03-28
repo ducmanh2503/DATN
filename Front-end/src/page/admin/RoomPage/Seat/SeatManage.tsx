@@ -35,7 +35,7 @@ const SeatManage = ({ name, roomId }: any) => {
                 width={650}
             >
                 <Space className={clsx(styles.spaceEle)}>
-                    <CreateOneSeat></CreateOneSeat>
+                    <CreateOneSeat roomId={roomId}></CreateOneSeat>
                     <DeleteAllSeat
                         roomId={roomId}
                         handleOk={handleOk}

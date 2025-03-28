@@ -1,11 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
+    CREATE_SEAT,
     DELETE_ALL_SEATS_IN_ROOM,
     DELETE_SEAT,
     GET_SEATS_BY_ROOM,
     GET_SEATS_TYPE,
+    UPDATE_SEAT,
+    UPDATE_SEAT_STATUS,
 } from "../../config/ApiConfig";
+import { handleApiError } from "./utils";
 
 // lấy danh sách ghế trong phòng chiếu
 export const useGetSeatsByRoom = (id: number) => {
@@ -15,9 +19,26 @@ export const useGetSeatsByRoom = (id: number) => {
             const { data } = await axios.get(GET_SEATS_BY_ROOM(id));
             console.log("check-seats-by_room", data);
 
-            return data;
+            // Chuyển object thành mảng
+            const seatArray = Object.entries(data).flatMap(
+                ([row, cols]: [string, any]) =>
+                    Object.entries(cols).map(([col, seat]: [string, any]) => ({
+                        row,
+                        column: Number(col), // Chuyển số cột về dạng number
+                        ...seat,
+                    }))
+            );
+
+            // Sắp xếp hàng A-Z, cột tăng dần
+            return seatArray.sort((a, b) => {
+                if (a.row === b.row) return a.column - b.column;
+                return a.row.localeCompare(b.row);
+            });
         },
+        staleTime: 1000 * 60 * 10,
+        refetchOnMount: false,
     });
+
     return { data, isLoading };
 };
 
@@ -27,9 +48,11 @@ export const useOptionSeats = () => {
         queryKey: ["OptionSeats"],
         queryFn: async () => {
             const { data } = await axios.get(GET_SEATS_TYPE);
-            console.log("check-ghế", data);
+            // console.log("check-ghế", data);
             return data;
         },
+        staleTime: 1000 * 60 * 10,
+        refetchOnMount: false,
     });
     return { data };
 };
@@ -47,9 +70,7 @@ export const useDeleteOneSeat = (messageApi: any) => {
                 queryKey: ["SeatsByRoom"],
             });
         },
-        onError: (error) => {
-            messageApi.error(error.message || "Có lỗi xảy ra!");
-        },
+        onError: handleApiError,
     });
 };
 
@@ -66,8 +87,61 @@ export const useDeleteAllSeats = (messageApi: any) => {
                 queryKey: ["SeatsByRoom"],
             });
         },
-        onError: (error) => {
-            messageApi.error(error.message || "Có lỗi xảy ra!");
+        onError: handleApiError,
+    });
+};
+
+// cập nhật ghế của phòng
+export const useUpdateSeat = (messageApi: any) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ seatId, data }: { seatId: number; data: any }) => {
+            await axios.put(UPDATE_SEAT(seatId), data);
         },
+        onSuccess: () => {
+            messageApi.success("Cập nhật ghế thành công");
+            queryClient.invalidateQueries({
+                queryKey: ["SeatsByRoom"],
+            });
+        },
+        onError: handleApiError,
+    });
+};
+
+// thêm mới ghế của phòng
+export const useCreateSeat = (messageApi: any) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ data }: { data: any }) => {
+            const response = await axios.post(CREATE_SEAT, data);
+            console.log("check - response", response);
+
+            return response.data.data;
+        },
+        onSuccess: () => {
+            messageApi.success("Thêm mới ghế thành công");
+            queryClient.invalidateQueries({
+                queryKey: ["SeatsByRoom"],
+            });
+        },
+
+        onError: handleApiError,
+    });
+};
+
+// ẩn ghế
+export const useHideSeat = (messageApi: any) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ roomId, data }: { roomId: number; data: any }) => {
+            await axios.put(UPDATE_SEAT_STATUS(roomId), data);
+        },
+        onSuccess: () => {
+            messageApi.success("Ẩn ghế thành công");
+            queryClient.invalidateQueries({
+                queryKey: ["SeatsByRoom"],
+            });
+        },
+        onError: handleApiError,
     });
 };

@@ -1,45 +1,37 @@
 import { useState } from "react";
 import PlayingProduct from "../PlayingProduct/PlayingProduct";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import clsx from "clsx";
 
 import { URL_IMAGE } from "../../config/ApiConfig";
 import styles from "./PlayingMain.module.css";
 import { useFilmContext } from "../UseContext/FIlmContext";
 
-const PlayingMain = ({ showChill }: any) => {
+interface PlayingMainProps {
+  showChill: (movieId: number) => void;
+  filteredMovies?: any[];
+}
+
+const PlayingMain = ({ showChill, filteredMovies }: PlayingMainProps) => {
   const [showMore, setShowMore] = useState(false);
   const { setFilmId } = useFilmContext();
-  const { data: playingfilm } = useQuery({
-    queryKey: ["playingfilms"],
-    queryFn: async () => {
-      // const { data } = await axios.get(GET_FILM_LIST);
-      const { data } = await axios.get(
-        "http://localhost:8000/api/movies-index"
-      );
-      console.log(data.now_showing);
-
-      return data.now_showing.map((film: any) => ({
-        ...film,
-        key: film.id,
-      }));
-    },
-    staleTime: 1000 * 60 * 10,
-  });
 
   const handleClick = (filmId: number) => {
     setFilmId(filmId);
-    // console.log("check-id", filmId);
   };
-  //itemMain
+
+  // Nếu không có dữ liệu đã lọc, hiển thị thông báo
+  if (!filteredMovies || filteredMovies.length === 0) {
+    return (
+      <div className={clsx(styles.playingMain, "main-base")}>
+        <div className={styles.noResults}>Không tìm thấy phim phù hợp</div>
+      </div>
+    );
+  }
+
   return (
     <div className={clsx(styles.playingMain, "main-base")}>
-      {playingfilm?.map((film: any, index: number) => (
+      {filteredMovies.map((film: any, index: number) => (
         <PlayingProduct
-          // className={`itemMain ${
-          //     index >= 4 && !showMore ? "hidden" : ""
-          // }`}
           className={clsx(
             styles.itemMain,
             index >= 8 && !showMore && styles.hidden
@@ -58,12 +50,14 @@ const PlayingMain = ({ showChill }: any) => {
           }}
         />
       ))}
-      <button
-        className={clsx(styles.showMoreBtn)}
-        onClick={() => setShowMore(!showMore)}
-      >
-        {showMore ? "Ẩn bớt " : "Xem thêm..."}
-      </button>
+      {filteredMovies.length > 8 && (
+        <button
+          className={clsx(styles.showMoreBtn)}
+          onClick={() => setShowMore(!showMore)}
+        >
+          {showMore ? "Ẩn bớt " : "Xem thêm..."}
+        </button>
+      )}
     </div>
   );
 };

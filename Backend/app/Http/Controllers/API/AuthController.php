@@ -37,7 +37,8 @@ class AuthController extends Controller
         }
 
         // Xác định vai trò (mặc định là "customer")
-        $role = $request->role === 'admin' ? 'admin' : 'customer';
+        $allowedRoles = ['admin', 'staff', 'customer'];
+        $role = $request->has('role') && in_array($request->role, $allowedRoles) ? $request->role : 'customer';
 
         // Tạo mã OTP ngẫu nhiên (6 số)
         $verificationCode = random_int(100000, 999999);
@@ -221,8 +222,7 @@ class AuthController extends Controller
 
         // Đăng nhập thành công, tạo API token
         $token = $user->createToken('auth_token')->plainTextToken;
-        $redirectUrl = $user->role === 'admin' ? '/admin' : '/';
-
+        $redirectUrl = in_array($user->role, ['admin', 'staff']) ? '/admin' : '/';
         return response()->json(['message' => 'Đăng nhập thành công', 'token' => $token, 'redirect_url' => $redirectUrl, 'role' => $user->role]);
     }
 

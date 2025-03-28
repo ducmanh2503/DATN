@@ -20,14 +20,17 @@ export const useGetSeatsByRoom = (id: number) => {
             console.log("check-seats-by_room", data);
 
             // Chuyển object thành mảng
-            const seatArray = Object.entries(data).flatMap(
-                ([row, cols]: [string, any]) =>
-                    Object.entries(cols).map(([col, seat]: [string, any]) => ({
-                        row,
-                        column: Number(col), // Chuyển số cột về dạng number
-                        ...seat,
-                    }))
-            );
+            const seatArray = data
+                ? Object.entries(data).flatMap(([row, cols]: [string, any]) =>
+                      Object.entries(cols).map(
+                          ([col, seat]: [string, any]) => ({
+                              row,
+                              column: Number(col),
+                              ...seat,
+                          })
+                      )
+                  )
+                : [];
 
             // Sắp xếp hàng A-Z, cột tăng dần
             return seatArray.sort((a, b) => {

@@ -1,11 +1,12 @@
 import { Button, Form, Input, message, Modal, Select, Space } from "antd";
-import { useAdminContext } from "../../../../AdminComponents/UseContextAdmin/adminContext";
 import {
     useDeleteOneSeat,
     useHideSeat,
     useOptionSeats,
 } from "../../../../services/adminServices/seatManage.service";
 import { useEffect } from "react";
+import clsx from "clsx";
+import styles from "./SeatManage.module.css";
 
 const SeatsForm = ({
     isEditing,
@@ -85,7 +86,11 @@ const SeatsForm = ({
         hideSeat(
             {
                 roomId: roomId,
-                data: { seat_id: seatData.id, seat_status: seatStatus },
+                data: {
+                    seat_id: seatData.id,
+                    seat_status: seatStatus,
+                    status: seatStatus,
+                },
             },
             {
                 onSuccess: () => {
@@ -99,7 +104,9 @@ const SeatsForm = ({
         <>
             {contextHolder}
             <Modal
-                title={!isEditing && !onDelete ? `Thêm ghế` : `Cập nhật ghế`}
+                title={
+                    !isEditing && !onDelete ? `Thêm mới ghế` : `Cập nhật ghế`
+                }
                 open={isModalOpen}
                 onOk={handleOk}
                 onCancel={handleCancel}
@@ -174,30 +181,29 @@ const SeatsForm = ({
                             <Input disabled={isEditing} value={roomId} />
                         </Form.Item>
                     )}
-                    <Form.Item name="seat_status" label="Trạng thái">
-                        <Select>
-                            <Select.Option key={1} value={"available"}>
-                                Available
-                            </Select.Option>
-                            <Select.Option key={2} value={"disabled"}>
-                                Disabled
-                            </Select.Option>
-                            <Select.Option key={3} value={"empty"}>
-                                Empty
-                            </Select.Option>
-                        </Select>
-                    </Form.Item>
+                    {isEditing && (
+                        <Form.Item name="seat_status" label="Trạng thái">
+                            <Select>
+                                <Select.Option key={1} value={"available"}>
+                                    Available
+                                </Select.Option>
+                                <Select.Option key={2} value={"disabled"}>
+                                    Disabled
+                                </Select.Option>
+                                <Select.Option key={3} value={"empty"}>
+                                    Empty
+                                </Select.Option>
+                            </Select>
+                        </Form.Item>
+                    )}
                     <Form.Item>
                         <Space>
                             <Button
                                 type="primary"
                                 htmlType="submit"
-                                style={{
-                                    background: "var(--backgroud-product)",
-                                    color: "var(--word-color)",
-                                }}
+                                className={clsx(styles.updatePrice)}
                             >
-                                {isEditing ? "Cập Nhật" : "Thêm Ghế"}
+                                {isEditing ? "Cập Nhật Giá Ghế" : "Thêm Ghế"}
                             </Button>
                             {isEditing && onDelete && (
                                 <>
@@ -208,8 +214,11 @@ const SeatsForm = ({
                                     >
                                         Xóa Ghế
                                     </Button>
-                                    <Button danger onClick={handleHideSeat}>
-                                        Ẩn ghế
+                                    <Button
+                                        className={clsx(styles.updateStatus)}
+                                        onClick={handleHideSeat}
+                                    >
+                                        Cập nhật Trạng Thái
                                     </Button>
                                 </>
                             )}

@@ -69,9 +69,24 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("auth_token");
+    const userRole = localStorage.getItem("user_role");
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("[Auth Service API] Đã thêm token:", token);
     }
+    
+    // Thêm role vào header để backend có thể xác định quyền
+    if (userRole) {
+      config.headers['X-User-Role'] = userRole;
+      console.log("[Auth Service API] Đã thêm X-User-Role:", userRole);
+    }
+    
+    // Đảm bảo Content-Type luôn được đặt đúng
+    if (!config.headers['Content-Type'] && !config.headers.get('Content-Type')) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
@@ -87,6 +102,11 @@ api.interceptors.response.use(
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_role");
       window.location.href = "/auth/login";
+    } else if (axios.isAxiosError(error) && error.response?.status === 403) {
+      console.error(
+        "[Auth Service] Forbidden (403) - Không có quyền truy cập."
+      );
+      // Không đăng xuất người dùng, chỉ ghi log lỗi
     }
     return Promise.reject(error);
   }
@@ -155,7 +175,17 @@ const saveAuthData = (response: AuthResponse): void => {
 const getRedirectUrlByRole = (): string => {
   const userRole = localStorage.getItem("user_role");
   console.log("[getRedirectUrlByRole] User role từ localStorage:", userRole);
-  const redirectUrl = userRole === "admin" ? "/admin" : "/";
+  
+  // Chuyển hướng dựa trên vai trò
+  let redirectUrl = "/";
+  if (userRole === "admin") {
+    redirectUrl = "/admin/dashboard";
+  } else if (userRole === "staff") {
+    redirectUrl = "/admin/film";
+  } else {
+    redirectUrl = "/";
+  }
+  
   console.log("[getRedirectUrlByRole] Trả về redirectUrl:", redirectUrl);
   return redirectUrl;
 };
@@ -199,7 +229,7 @@ const authService = {
   async verifyCode(data: VerifyCodeRequest): Promise<AuthResponse> {
     try {
       console.log("[Auth Service] Verify Code Request:", data);
-      const response = await api.post<AuthResponse>("/verify-code", data);
+      const response = await api.post<AuthResponse>("/verify", data);
       console.log("[Auth Service] Verify Code Response:", response.data);
       saveAuthData(response.data);
       return response.data;
@@ -249,46 +279,49 @@ const authService = {
 
   async logout(): Promise<AuthResponse> {
     try {
-      const token = localStorage.getItem("auth_token");
-      if (!token) throw new Error("No token found");
-      console.log("[Auth Service] Logout Request:", { token });
-      const response = await api.post<AuthResponse>("/logout", {});
+      console.log("[Auth Service] Logout Request");
+      const response = await api.post<AuthResponse>("/logout");
       console.log("[Auth Service] Logout Response:", response.data);
+
+      // Xóa dữ liệu xác thực khỏi localStorage
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_role");
+
+      console.log("[Auth Service] Auth data cleared from localStorage");
       return response.data;
     } catch (error) {
+      // Vẫn xóa dữ liệu xác thực ngay cả khi API gặp lỗi
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_role");
+      console.log("[Auth Service] Auth data cleared from localStorage (after error)");
       throw handleAuthError(error);
     }
   },
 
   async getGoogleAuthUrl(): Promise<string> {
     try {
-      console.log("[Auth Service] Getting Google Auth URL");
+      console.log("[Auth Service] Get Google Auth URL Request");
       const response = await api.get<GoogleAuthResponse>("/auth/google");
-      console.log("[Auth Service] Google Auth URL Response:", response.data);
+      console.log("[Auth Service] Get Google Auth URL Response:", response.data);
       return response.data.url;
     } catch (error) {
-      console.error("[Auth Service] Error getting Google Auth URL:", error);
-      throw handleAuthError(error);
+      console.error("[Auth Service] Get Google Auth URL Error:", error);
+      throw new Error("Failed to get Google auth URL");
     }
   },
 
   async handleGoogleCallback(code: string): Promise<AuthResponse> {
     try {
-      console.log("[Auth Service] Handling Google Callback with code:", code);
-      console.log(
-        "[Auth Service] Sending request to:",
-        `${BASE_URL}/auth/google/callback?code=${code}`
-      );
-      const response = await axios.get<AuthResponse>(
-        `${BASE_URL}/auth/google/callback?code=${code}`,
-        { withCredentials: true }
+      console.log("[Auth Service] Google Callback Request:", { code });
+      const response = await api.get<AuthResponse>(
+        `/auth/google/callback?code=${code}`
       );
       console.log("[Auth Service] Google Callback Response:", response.data);
-      console.log("[Auth Service] Response Status:", response.status);
+
+      if (!response.data.token && !response.data.auth_token) {
+        throw new Error("No token received from Google auth");
+      }
+
       saveAuthData(response.data);
       return response.data;
     } catch (error) {
@@ -297,17 +330,18 @@ const authService = {
   },
 
   isAuthenticated(): boolean {
-    const isAuth = !!localStorage.getItem("auth_token");
-    console.log("[Auth Service] Is Authenticated:", isAuth);
-    return isAuth;
+    const token = localStorage.getItem("auth_token");
+    console.log("[Auth Service] Is Authenticated:", !!token);
+    return !!token;
   },
 
   getToken(): string | null {
     const token = localStorage.getItem("auth_token");
-    console.log(
-      "[Auth Service] Get Token:",
-      token ? "Token exists" : "No token"
-    );
+    if (token) {
+      console.log("[Auth Service] Get Token: Token exists");
+    } else {
+      console.log("[Auth Service] Get Token: No token found");
+    }
     return token;
   },
 
@@ -322,37 +356,25 @@ const authService = {
   },
 
   async createDefaultAdmin(): Promise<AuthResponse> {
-    const defaultAdminData: RegisterRequest = {
-      name: "Admin",
-      email: "movie.forest.host@gmail.com",
-      password: "admin123",
-      password_confirmation: "admin123",
-      phone: "0989721167",
-      role: "admin",
-    };
     try {
-      console.log(
-        "[Auth Service] Create Default Admin Request:",
-        defaultAdminData
-      );
-      const response = await this.register(defaultAdminData);
-      console.log("[Auth Service] Create Default Admin Response:", response);
-      return response;
+      console.log("[Auth Service] Create Default Admin Request");
+      const response = await api.post<AuthResponse>("/create-default-admin");
+      console.log("[Auth Service] Create Default Admin Response:", response.data);
+      return response.data;
     } catch (error) {
       throw handleAuthError(error);
     }
   },
 
   async verifyDefaultAdmin(otp: string): Promise<AuthResponse> {
-    const verifyData: VerifyCodeRequest = {
-      email: "movie.forest.host@gmail.com",
-      code: otp,
-    };
     try {
-      console.log("[Auth Service] Verify Default Admin Request:", verifyData);
-      const response = await this.verifyCode(verifyData);
-      console.log("[Auth Service] Verify Default Admin Response:", response);
-      return response;
+      console.log("[Auth Service] Verify Default Admin Request:", { otp });
+      const response = await api.post<AuthResponse>("/verify-default-admin", {
+        otp,
+      });
+      console.log("[Auth Service] Verify Default Admin Response:", response.data);
+      saveAuthData(response.data);
+      return response.data;
     } catch (error) {
       throw handleAuthError(error);
     }

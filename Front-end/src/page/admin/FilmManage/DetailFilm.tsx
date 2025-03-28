@@ -7,13 +7,13 @@ import {
     Image,
     Input,
     Row,
-    Skeleton,
 } from "antd";
 import { useEffect, useState, memo } from "react";
 import { URL_IMAGE } from "../../../config/ApiConfig";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
-import { useDetailFilm } from "../../../services/adminServices/filmManage.service";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 const DetailFilm = ({ id, film }: any) => {
     const [openModal, setOpenModal] = useState(false);
@@ -41,13 +41,13 @@ const DetailFilm = ({ id, film }: any) => {
                 throw err;
             }
         },
-        enabled: open && !!id,
+        enabled: openModal && !!id,
         staleTime: 1000 * 60 * 10,
-        cacheTime: 1000 * 60 * 30,
+        gcTime: 1000 * 60 * 30,
     });
     
     useEffect(() => {
-        if (data && id) {
+        if (openModal && data && id) {
             form.setFieldsValue({
                 ...data,
                 directors: data.directors?.name_director || "không có",
@@ -65,7 +65,7 @@ const DetailFilm = ({ id, film }: any) => {
 
             setPoster(data.poster || "");
         }
-    }, [data, open, form]);
+    }, [data, openModal, form]);
 
     return (
         <div>

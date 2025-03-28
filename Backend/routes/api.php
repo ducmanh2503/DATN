@@ -79,6 +79,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/statistics-filter', [StatisticsController::class, 'statsByDateRange']);
         //xuất file excel
         Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
+    });
+
+    // Admin và staff đều truy cập được
+    Route::middleware(['role:admin_staff'])->group(function () {
         // Movies
         Route::apiResource('/movies', MoviesController::class);
         Route::delete('/movies/force-delete/{movie}', [MoviesController::class, 'forceDeleteSingle']);
@@ -105,30 +109,18 @@ Route::middleware('auth:sanctum')->group(function () {
         //seat_type
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
 
-
-
-
         // Showtimes
         Route::apiResource('showTime', ShowTimeController::class);
         Route::post('show-times/in-range', [ShowTimeController::class, 'getShowTimesInDateRange']); //danh sách ngày
         Route::post('show-times/by-date', [ShowTimeController::class, 'getShowTimesByDate']); //lọc theo ngày cụ thể
-
-
-
 
         // lọc theo khoảng ngày
         Route::post('show-times/get-date-range-by-calendar', [ShowTimeController::class, 'getDateRangeByCalendarShow']);
         //xóa theo ngày cụ thể
         Route::delete('/showtimes/{id}/destroy-by-date/{selected_date}', [ShowTimeController::class, 'destroyByDate']);
 
-
-
-
         // CalendarShow
         Route::apiResource('/calendarShow', CalendarShowController::class);
-
-
-
 
         // Combo
         Route::apiResource('combo', ComboController::class);

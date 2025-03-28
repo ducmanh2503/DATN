@@ -17,7 +17,18 @@ class RoleMiddleware
         $user = Auth::guard('sanctum')->user();
 
         // Kiểm tra quyền
-        if ($user->role !== $role) {
+        if ($role === 'admin') {
+            // Chỉ admin mới có quyền truy cập
+            if ($user->role !== 'admin') {
+                return response()->json(['error' => 'Không có quyền truy cập'], 403);
+            }
+        } elseif ($role === 'admin_staff') {
+            // Admin và staff đều có quyền truy cập
+            if ($user->role !== 'admin' && $user->role !== 'staff') {
+                return response()->json(['error' => 'Không có quyền truy cập'], 403);
+            }
+        } elseif ($user->role !== $role) {
+            // Các vai trò khác phải khớp chính xác
             return response()->json(['error' => 'Không có quyền truy cập'], 403);
         }
 

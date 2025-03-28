@@ -3,6 +3,7 @@ import { Select } from "antd";
 import axios from "axios";
 import React, { useEffect, useMemo, useCallback } from "react";
 import { SelectFormProps } from "../../../types/interface";
+import authService from "../../../services/auth.service";
 
 const SelectForm: React.FC<SelectFormProps> = React.memo(
     ({
@@ -14,20 +15,34 @@ const SelectForm: React.FC<SelectFormProps> = React.memo(
         form,
         placeholder = "Please select",
     }) => {
-        const { data, refetch } = useQuery({
+        const { data, refetch, isError, error } = useQuery({
             queryKey: [queryKey],
             queryFn: async () => {
-                const { data } = await axios.get(endpoint);
-                console.log("check-3", data);
+                try {
+                    // Lấy token từ authService
+                    const token = authService.getToken();
+                    
+                    // Gọi API với token trong header
+                    const { data } = await axios.get(endpoint, {
+                        headers: {
+                            Authorization: token ? `Bearer ${token}` : '',
+                        }
+                    });
+                    
+                    console.log(`Dữ liệu ${queryKey} từ API:`, data);
 
-                return data.map((item: any) => ({
-                    label: item[labelKey],
-                    value: item[valueKey],
-                }));
+                    return data.map((item: any) => ({
+                        label: item[labelKey],
+                        value: item[valueKey],
+                    }));
+                } catch (error: any) {
+                    console.error(`Lỗi khi lấy dữ liệu từ ${endpoint}:`, error);
+                    // Trả về mảng rỗng để tránh lỗi khi render
+                    return [];
+                }
             },
             staleTime: 1000 * 60 * 15,
-            // cacheTime: 1000 * 60 * 20,
-            // enabled: !!endpoint,
+            retry: 1, // Giảm số lần thử lại để tránh quá nhiều request lỗi
         });
 
         // Memo hóa options để tránh render lại khi không cần thiết
@@ -47,10 +62,12 @@ const SelectForm: React.FC<SelectFormProps> = React.memo(
                 mode="multiple"
                 allowClear
                 style={{ width: "100%" }}
-                placeholder={placeholder}
+                placeholder={isError ? `Không thể tải ${placeholder}` : placeholder}
                 onChange={handleChange}
                 options={options}
                 value={form?.getFieldValue(labelKey)}
+                loading={!data && !isError}
+                disabled={isError}
             />
         );
     }

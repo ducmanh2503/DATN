@@ -8,12 +8,14 @@ const Charts = () => {
     const { data: dashboardData } = useDashboard(); // hàm lấy api
 
     // biểu đồ doanh thu theo tháng
-    const dataLine = dashboardData?.overview?.monthly_revenue.map(
-        (item: any) => ({
-            month: item.month_year,
-            value: item.value,
-        })
-    );
+    const dataLine = dashboardData?.overview?.monthly_revenue
+        ? dashboardData.overview.monthly_revenue.map(
+            (item: any) => ({
+                month: item.month_year,
+                value: item.value,
+            })
+          )
+        : [];
     const configLine = {
         data: dataLine,
         xField: "month",
@@ -24,13 +26,15 @@ const Charts = () => {
 
     // biểu đồ top 5 phim
     const dataColumn = dashboardData?.movie_stats
-        .filter((item: any) => item.movie_status === "now_showing")
-        .map((item: any) => ({
-            type: item.movie_title,
-            value: item.total_revenue,
-        }))
-        .sort((a: any, b: any) => b.value - a.value)
-        .slice(0, 5);
+        ? dashboardData.movie_stats
+            .filter((item: any) => item.movie_status === "now_showing")
+            .map((item: any) => ({
+                type: item.movie_title,
+                value: item.total_revenue,
+            }))
+            .sort((a: any, b: any) => b.value - a.value)
+            .slice(0, 5)
+        : [];
     const configColumn = {
         data: dataColumn,
         xField: "type",

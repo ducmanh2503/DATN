@@ -221,7 +221,14 @@ class AuthController extends Controller
 
         // Đăng nhập thành công, tạo API token
         $token = $user->createToken('auth_token')->plainTextToken;
-        $redirectUrl = $user->role === 'admin' ? '/admin' : '/';
+        
+        // Xác định URL chuyển hướng dựa trên vai trò
+        $redirectUrl = '/';
+        if ($user->role === 'admin') {
+            $redirectUrl = '/admin/dashboard';
+        } elseif ($user->role === 'staff') {
+            $redirectUrl = '/admin/film';
+        }
 
         return response()->json(['message' => 'Đăng nhập thành công', 'token' => $token, 'redirect_url' => $redirectUrl, 'role' => $user->role]);
     }

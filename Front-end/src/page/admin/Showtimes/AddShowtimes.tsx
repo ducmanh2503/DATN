@@ -24,6 +24,7 @@ import { PlusCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
+import { useGetRooms } from "../../../services/adminServices/roomManage.service";
 
 const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
@@ -93,6 +94,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
         setOpen(false);
     };
 
+    // danh sách film
     const { data: filmList } = useQuery({
         queryKey: ["filmList"],
         queryFn: async () => {
@@ -108,11 +110,11 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
         staleTime: 1000 * 60 * 10,
     });
 
+    // lấy danh sách lịch chiếu của các phim
     const { data: idCalendarShow } = useQuery({
         queryKey: ["showtimesFilm"],
         queryFn: async () => {
             const { data } = await axios.get(GET_CALENDAR);
-            // console.log("calendar", data);
             return data.map((item: any) => ({
                 ...item,
                 key: item.id,
@@ -135,6 +137,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
         });
     };
 
+    // lấy lịch chiếu của phim
     const { data: datesByCalendar } = useQuery({
         queryKey: ["datesByCalendar", selectedCalendarShowId],
         queryFn: async () => {
@@ -150,22 +153,6 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
         refetchOnWindowFocus: false,
     });
 
-    const { data: rooms } = useQuery({
-        queryKey: ["Rooms"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_ROOMS);
-            console.log("lisst - room", data.rooms);
-            return data.rooms.map((item: any) => ({
-                label: item.name,
-                value: item.id,
-                type: item.room_type,
-            }));
-        },
-        enabled: open,
-        staleTime: 1000 * 60 * 10,
-        refetchOnWindowFocus: false,
-    });
-
     const handleChangeSelect = useCallback(
         (value: string[], fieldName: string) => {
             form.setFieldsValue({ [fieldName]: value });
@@ -173,11 +160,18 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
         [form]
     );
 
-    const handleRoomChange = (value: string) => {
-        const selectedRoom = rooms?.find((room: any) => room.value === value);
+    // Lấy danh sách phòng và loại phòng
+    const { rooms, seatTypes } = useGetRooms();
+
+    const handleRoomChange = (value: number) => {
+        const selectedRoom = rooms?.find((room: any) => room.id === value);
+        const roomTypeName = seatTypes?.find(
+            (seatType: any) => seatType.id === selectedRoom?.room_type_id
+        );
+
         form.setFieldsValue({
             room_id: value,
-            room_type: selectedRoom?.type || undefined,
+            room_type: roomTypeName?.name || "Chưa có định dạng",
         });
     };
 
@@ -209,7 +203,6 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                     name="add-showtimes-form"
                     labelCol={{ span: 8 }}
                     wrapperCol={{ span: 16 }}
-                    initialValues={{ room_type: "" }}
                     onFinish={onFinish}
                 >
                     <Form.Item
@@ -223,9 +216,13 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                         <Select
                             placeholder="Chọn phòng"
                             onChange={handleRoomChange}
-                            options={rooms}
-                            value={form.getFieldValue("room_id")}
-                        />
+                        >
+                            {rooms?.map((item: any) => (
+                                <Select.Option value={item.id} key={item.id}>
+                                    {item.name}
+                                </Select.Option>
+                            ))}
+                        </Select>
                     </Form.Item>
                     <Form.Item
                         className={clsx(styles.inputLabel)}
@@ -316,24 +313,6 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                             disabled
                         />
                     </Form.Item>
-                    {/* <Form.Item
-                        className={clsx(styles.inputLabel)}
-                        label="Hình thức dịch"
-                        name="id3"
-                        rules={[
-                            {
-                                required: true,
-                                message: "hình thức dịch",
-                            },
-                        ]}
-                    >
-                        <Select placeholder="Nhập hình thức dịch">
-                            <Select.Option value="phiên dịch">
-                                phiên dịch
-                            </Select.Option>
-                            <Select.Option value="phụ đề">phụ đề</Select.Option>
-                        </Select>
-                    </Form.Item> */}
                     <Form.Item
                         className={clsx(styles.inputLabel)}
                         label="Thời gian bắt đầu"

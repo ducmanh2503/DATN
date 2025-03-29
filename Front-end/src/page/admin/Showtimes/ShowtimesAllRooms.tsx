@@ -11,13 +11,13 @@ const ShowtimesAllRooms = ({
     setShowtimesData,
     selectedDate,
     showtimesData,
+    seatTypes,
 }: any) => {
     const [processedData, setProcessedData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     useEffect(() => {
         if (showtimesData.length > 0) {
             setLoading(true);
-            console.log("Dữ liệu showtimesData cập nhật:", showtimesData);
             // điều chỉnh thứ tự đúng thơi gian suất chiếu
             const sortedData = [...showtimesData].sort((a, b) =>
                 dayjs(a.start_time, "HH:mm").isBefore(
@@ -33,7 +33,18 @@ const ShowtimesAllRooms = ({
     }, [showtimesData]);
 
     if (loading) {
-        return <Spin tip="Đang tải dữ liệu..." />;
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100px",
+                }}
+            >
+                <Spin tip="Đang tải dữ liệu..." />
+            </div>
+        );
     }
 
     const columns = [
@@ -62,24 +73,25 @@ const ShowtimesAllRooms = ({
             dataIndex: "room_type",
             key: "room_type",
             render: (_: any, recordRoom: any) => {
-                if (!recordRoom.room) {
-                    return <Tag color="gray">Không có dữ liệu</Tag>;
-                }
-                return <Tag color="volcano">{recordRoom.room.room_type}</Tag>;
-            },
-        },
-
-        {
-            title: "Hình thức dịch",
-            dataIndex: "address",
-            key: "address",
-            render: (record: any) => {
-                return record === "lồng tiếng" ? (
-                    <Tag color="gold">Lồng tiếng</Tag>
-                ) : (
-                    <Tag color="green">Thuyết minh</Tag>
+                const findSeatType = seatTypes.find(
+                    (item: any) => recordRoom.room.room_type_id === item.id
+                );
+                return (
+                    <Tag color="volcano">
+                        {findSeatType ? findSeatType.name : "Không có dữ liệu"}
+                    </Tag>
                 );
             },
+        },
+        {
+            title: "Hình thức dịch",
+            dataIndex: "language",
+            key: "language",
+            render: (_: any, recordRoom: any) => (
+                <Tag color="purple">
+                    {recordRoom?.calendar_show?.movie?.language}
+                </Tag>
+            ),
         },
         {
             title: "Thời gian chiếu",
@@ -153,7 +165,7 @@ const ShowtimesAllRooms = ({
             <h1 className={clsx(styles.roomName)}>
                 {processedData[0].room.name}
             </h1>
-            <Table columns={columns} dataSource={processedData} />
+            <Table columns={columns} dataSource={processedData} rowKey="id" />
         </div>
     );
 };

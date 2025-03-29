@@ -10,6 +10,7 @@ import AddShowtimes from "./AddShowtimes";
 import ShowtimesAllRooms from "./ShowtimesAllRooms";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
+import { useGetRooms } from "../../../services/adminServices/roomManage.service";
 
 const contentStyle: React.CSSProperties = {
     paddingTop: 100,
@@ -85,20 +86,7 @@ const ShowtimesManage: React.FC = () => {
         },
     });
 
-    // hàm lấy danh sách phòng chiếu
-    const { data: roomOptions } = useQuery({
-        queryKey: ["getRooms"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_ROOMS);
-
-            return data.rooms.map((item: any) => ({
-                key: item.id,
-                label: item.name,
-                value: item.id,
-            }));
-        },
-        staleTime: 1000 * 60 * 10,
-    });
+    const { rooms, seatTypes } = useGetRooms();
 
     return (
         <>
@@ -121,11 +109,16 @@ const ShowtimesManage: React.FC = () => {
                         ]}
                     >
                         <Select
-                            placeholder={"phòng chiếu"}
-                            style={{ width: 120 }}
+                            placeholder="Phòng chiếu"
+                            style={{ width: "120px" }}
                             onChange={handleRoomChange}
-                            options={roomOptions || []}
-                        ></Select>
+                        >
+                            {rooms?.map((item: any) => (
+                                <Select.Option value={item.id} key={item.id}>
+                                    {item.name}
+                                </Select.Option>
+                            ))}
+                        </Select>
                     </Form.Item>
 
                     <Form.Item<FieldType>
@@ -165,6 +158,7 @@ const ShowtimesManage: React.FC = () => {
                     setShowtimesData={setShowtimesData}
                     showtimesData={showtimesData}
                     selectedDate={selectedDate}
+                    seatTypes={seatTypes}
                 />
             ) : isSearched ? (
                 <p

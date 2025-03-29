@@ -18,7 +18,7 @@ const Charts = () => {
         data: dataLine,
         xField: "month",
         yField: "value",
-        height: 280,
+        height: 370,
         width: 690,
     };
 
@@ -35,7 +35,7 @@ const Charts = () => {
         data: dataColumn,
         xField: "type",
         yField: "value",
-        height: 280,
+        height: 370,
         width: 350,
         xAxis: {
             label: {

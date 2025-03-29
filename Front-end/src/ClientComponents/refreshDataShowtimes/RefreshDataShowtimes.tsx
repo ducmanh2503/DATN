@@ -27,11 +27,7 @@ const useShowtimeData = () => {
     } = useSeatsContext();
     const { setTotalPrice } = useFinalPriceContext();
     const { setCurrentStep } = useStepsContext();
-    const {
-        roomIdFromShowtimes,
-        showtimeIdFromBooking,
-        setShowtimeIdFromBooking,
-    } = useFilmContext();
+    const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
     const { tokenUserId } = useAuthContext();
     const {
         setQuantityPromotion,
@@ -58,7 +54,6 @@ const useShowtimeData = () => {
         setUsedPoints(0);
         setTotalPricePoint(0);
         setTotalPriceVoucher(0);
-        setShowtimeIdFromBooking(null);
         setSeatRoomPrice(0);
     };
 

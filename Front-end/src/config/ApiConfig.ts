@@ -6,8 +6,6 @@ const GET_FILM_DETAIL = (id: number) => `${BASE_URL}/movies/${id}`;
 const CREATE_FILM = `${BASE_URL}/movies`;
 const UPDATE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const DELETE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
-const FORCE_DELETE_FILM = (id: number) =>
-    `${BASE_URL}/movies/force-delete/${id}`;
 const RESTORE_FILM = (id: number) => `${BASE_URL}/movies/restore/${id}`;
 const DETAIL_DELETE_FILM = (id: number) =>
     `${BASE_URL}/movies/show-movie-destroy/${id}`;
@@ -115,7 +113,6 @@ export {
     CREATE_FILM,
     UPDATE_FILM,
     DELETE_FILM,
-    FORCE_DELETE_FILM,
     RESTORE_FILM,
     DETAIL_DELETE_FILM,
     GET_DIRECTORS_LIST,

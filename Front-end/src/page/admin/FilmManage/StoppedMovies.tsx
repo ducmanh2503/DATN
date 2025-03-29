@@ -1,20 +1,11 @@
-import React, { useState } from "react";
-import {
-    Button,
-    Divider,
-    message,
-    Popconfirm,
-    Skeleton,
-    Space,
-    Table,
-} from "antd";
-import type { TableColumnsType, TableProps } from "antd";
+import React from "react";
+import { Button, Divider, message, Skeleton, Table } from "antd";
+import type { TableColumnsType } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import DetailFilm from "./DetailFilm";
 import {
     GET_FILM_LIST,
-    FORCE_DELETE_FILM,
     RESTORE_FILM,
     DETAIL_DELETE_FILM,
 } from "../../../config/ApiConfig";
@@ -49,29 +40,14 @@ const StoppedMovies: React.FC = () => {
             title: "Hành động",
             render: (_, items: any) => {
                 return (
-                    <Space>
-                        <Popconfirm
-                            title="Xóa vĩnh viễn phim ?"
-                            description="Bạn có chắc chắn muốn xóa  không?"
-                            okText="Yes"
-                            onConfirm={() => {
-                                mutate(items.id);
-                            }}
-                            cancelText="No"
-                        >
-                            <Button type="primary" danger>
-                                Xóa vĩnh viễn
-                            </Button>
-                        </Popconfirm>
-                        <Button
-                            type="primary"
-                            onClick={() => {
-                                restore(items.id);
-                            }}
-                        >
-                            Khôi phục
-                        </Button>
-                    </Space>
+                    <Button
+                        type="primary"
+                        onClick={() => {
+                            restore(items.id);
+                        }}
+                    >
+                        Khôi phục
+                    </Button>
                 );
             },
         },
@@ -89,18 +65,6 @@ const StoppedMovies: React.FC = () => {
             }));
         },
         staleTime: 1000 * 60 * 10,
-    });
-
-    const { mutate } = useMutation({
-        mutationFn: async (id: number) => {
-            await axios.delete(FORCE_DELETE_FILM(id));
-        },
-        onSuccess: () => {
-            messageApi.success("Xóa phim thành công");
-            queryClient.invalidateQueries({
-                queryKey: ["StoppedMovies"],
-            });
-        },
     });
 
     const { mutate: restore } = useMutation({

@@ -3,57 +3,74 @@ import { Select } from "antd";
 import axios from "axios";
 import React, { useEffect, useMemo, useCallback } from "react";
 import { SelectFormProps } from "../../../types/interface";
+import authService from "../../../services/auth.service";
 
 const SelectForm: React.FC<SelectFormProps> = React.memo(
-    ({
-        queryKey,
-        endpoint,
-        labelKey = "name_actor",
-        valueKey = "name_actor",
-        onChange,
-        form,
-        placeholder = "Please select",
-    }) => {
-        const { data, refetch } = useQuery({
-            queryKey: [queryKey],
-            queryFn: async () => {
-                const { data } = await axios.get(endpoint);
-                console.log("check-3", data);
+  ({
+    queryKey,
+    endpoint,
+    labelKey = "name_actor",
+    valueKey = "name_actor",
+    onChange,
+    form,
+    placeholder = "Please select",
+  }) => {
+    const { data, refetch, isError, error } = useQuery({
+      queryKey: [queryKey],
+      queryFn: async () => {
+        try {
+          // Lấy token từ authService
+          const token = authService.getToken();
 
-                return data.map((item: any) => ({
-                    label: item[labelKey],
-                    value: item[valueKey],
-                }));
+          // Gọi API với token trong header
+          const { data } = await axios.get(endpoint, {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
             },
-            staleTime: 1000 * 60 * 15,
-            // cacheTime: 1000 * 60 * 20,
-            // enabled: !!endpoint,
-        });
+          });
 
-        // Memo hóa options để tránh render lại khi không cần thiết
-        const options = useMemo(() => data ?? [], [data]);
+          console.log(`Dữ liệu ${queryKey} từ API:`, data);
 
-        // Memo hóa handleChange để tránh tạo lại mỗi lần render
-        const handleChange = useCallback(
-            (value: string[]) => {
-                form?.setFieldsValue({ [queryKey]: value });
-                onChange?.(value, queryKey);
-            },
-            [form, onChange, queryKey]
-        );
+          return data.map((item: any) => ({
+            label: item[labelKey],
+            value: item[valueKey],
+          }));
+        } catch (error: any) {
+          console.error(`Lỗi khi lấy dữ liệu từ ${endpoint}:`, error);
+          // Trả về mảng rỗng để tránh lỗi khi render
+          return [];
+        }
+      },
+      staleTime: 1000 * 60 * 15,
+      retry: 1, // Giảm số lần thử lại để tránh quá nhiều request lỗi
+    });
 
-        return (
-            <Select
-                mode="multiple"
-                allowClear
-                style={{ width: "100%" }}
-                placeholder={placeholder}
-                onChange={handleChange}
-                options={options}
-                value={form?.getFieldValue(labelKey)}
-            />
-        );
-    }
+    // Memo hóa options để tránh render lại khi không cần thiết
+    const options = useMemo(() => data ?? [], [data]);
+
+    // Memo hóa handleChange để tránh tạo lại mỗi lần render
+    const handleChange = useCallback(
+      (value: string[]) => {
+        form?.setFieldsValue({ [queryKey]: value });
+        onChange?.(value, queryKey);
+      },
+      [form, onChange, queryKey]
+    );
+
+    return (
+      <Select
+        mode="multiple"
+        allowClear
+        style={{ width: "100%" }}
+        placeholder={isError ? `Không thể tải ${placeholder}` : placeholder}
+        onChange={handleChange}
+        options={options}
+        value={form?.getFieldValue(labelKey)}
+        loading={!data && !isError}
+        disabled={isError}
+      />
+    );
+  }
 );
 
 export default SelectForm;

@@ -2,26 +2,29 @@ import { Select } from "antd";
 import clsx from "clsx";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "./FilterPlayingCinema.module.css";
+import styles from "../FilterPlayingCinema/FilterPlayingCinema.module.css";
+import {
+  filterComingSoonMoviesByGenre,
+  fetchComingSoonMovies,
+} from "../../services/comingfilm.service";
 
 // Định nghĩa props cho component
-interface FilterPlayingCinemaProps {
+interface FilterComingCinemaProps {
   onFilterChange?: (filterType: string, value: string | number) => void;
   onFilteredDataChange?: (data: any[]) => void;
 }
 
-const FilterPlayingCinema = ({
+const FilterComingCinema = ({
   onFilterChange,
   onFilteredDataChange,
-}: FilterPlayingCinemaProps) => {
+}: FilterComingCinemaProps) => {
   // State để lưu các tùy chọn filter hiện tại
   const [activeFilters, setActiveFilters] = useState({
     sortBy: "Mới nhất",
     genre: "Tất cả",
-    cinema: "Tất cả",
-    language: "Tất cả",
     releaseYear: 0, // 0 đại diện cho "Tất cả năm"
-    status: "now_showing",
+    language: "Tất cả",
+    status: "coming_soon",
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -46,98 +49,55 @@ const FilterPlayingCinema = ({
     try {
       let filteredMovies: any[] = [];
 
-      // Lọc theo năm phát hành và ngôn ngữ
-      if (
-        activeFilters.releaseYear > 0 ||
-        activeFilters.language !== "Tất cả"
-      ) {
-        const params: any = {};
-        if (activeFilters.releaseYear > 0)
-          params.release_year = activeFilters.releaseYear;
-        if (activeFilters.language !== "Tất cả")
-          params.language = activeFilters.language;
+      // Lấy danh sách phim sắp chiếu từ API movies-index
+      console.log("Lấy danh sách phim sắp chiếu từ API movies-index");
+      const { data } = await axios.get(
+        "http://localhost:8000/api/movies-index"
+      );
+      filteredMovies = data.coming_soon || [];
 
-        console.log("Gọi API filter với params:", params);
-        try {
-          const { data } = await axios.get("http://localhost:8000/api/filter", {
-            params,
-          });
-          filteredMovies = data.data || [];
-          console.log("Kết quả từ API filter:", filteredMovies);
-        } catch (error) {
-          console.error("Lỗi khi gọi API filter:", error);
-          // Nếu API filter lỗi, sử dụng API movies-index và lọc trên client
-          const { data } = await axios.get(
-            "http://localhost:8000/api/movies-index"
-          );
-          filteredMovies = data.now_showing || [];
-
-          // Lọc theo năm phát hành (client-side)
-          if (activeFilters.releaseYear > 0) {
-            filteredMovies = filteredMovies.filter((movie: any) => {
-              const releaseYear = new Date(movie.release_date).getFullYear();
-              return releaseYear === activeFilters.releaseYear;
-            });
-          }
-
-          // Lọc theo ngôn ngữ (client-side)
-          if (activeFilters.language !== "Tất cả") {
-            console.log("Lọc theo ngôn ngữ:", activeFilters.language);
-            console.log("Mẫu phim đầu tiên:", filteredMovies[0]);
-
-            // In ra các thuộc tính của phim để kiểm tra cấu trúc
-            if (filteredMovies.length > 0) {
-              console.log(
-                "Các thuộc tính của phim:",
-                Object.keys(filteredMovies[0])
-              );
-              console.log(
-                "Ngôn ngữ của phim:",
-                filteredMovies[0].language,
-                filteredMovies[0].original_language
-              );
-            }
-
-            filteredMovies = filteredMovies.filter((movie: any) => {
-              // Kiểm tra cả language và original_language vì không chắc chắn thuộc tính nào chứa mã ngôn ngữ
-              return (
-                (movie.language && movie.language === activeFilters.language) ||
-                (movie.original_language &&
-                  movie.original_language === activeFilters.language)
-              );
-            });
-          }
-        }
-      } else if (activeFilters.genre !== "Tất cả") {
-        // Sử dụng API movies-index thay vì movies-for-client (vì API movies-for-client trả về 404)
-        console.log(
-          "Gọi API movies-index và lọc theo thể loại:",
-          activeFilters.genre
-        );
-        const { data } = await axios.get(
-          "http://localhost:8000/api/movies-index"
-        );
-
-        // Lọc theo thể loại trên client
-        filteredMovies = (data.now_showing || []).filter((movie: any) =>
+      // Lọc theo thể loại
+      if (activeFilters.genre !== "Tất cả") {
+        console.log("Lọc theo thể loại:", activeFilters.genre);
+        filteredMovies = filteredMovies.filter((movie: any) =>
           movie.genres.some((g: any) => g.name_genre === activeFilters.genre)
         );
-      } else {
-        // Lấy tất cả phim đang chiếu
-        console.log("Gọi API movies-index");
-        const { data } = await axios.get(
-          "http://localhost:8000/api/movies-index"
-        );
-        filteredMovies = data.now_showing || [];
       }
 
-      // Lọc thêm theo rạp (client-side) nếu cần
-      if (activeFilters.cinema !== "Tất cả") {
-        filteredMovies = filteredMovies.filter(
-          (movie: any) =>
-            movie.cinemas?.some((c: any) => c.name === activeFilters.cinema) ||
-            false
-        );
+      // Lọc theo năm phát hành
+      if (activeFilters.releaseYear > 0) {
+        console.log("Lọc theo năm phát hành:", activeFilters.releaseYear);
+        filteredMovies = filteredMovies.filter((movie: any) => {
+          const releaseYear = new Date(movie.release_date).getFullYear();
+          return releaseYear === activeFilters.releaseYear;
+        });
+      }
+
+      // Lọc theo ngôn ngữ
+      if (activeFilters.language !== "Tất cả") {
+        console.log("Lọc theo ngôn ngữ:", activeFilters.language);
+
+        // In ra các thuộc tính của phim để kiểm tra cấu trúc
+        if (filteredMovies.length > 0) {
+          console.log(
+            "Các thuộc tính của phim:",
+            Object.keys(filteredMovies[0])
+          );
+          console.log(
+            "Ngôn ngữ của phim:",
+            filteredMovies[0].language,
+            filteredMovies[0].original_language
+          );
+        }
+
+        filteredMovies = filteredMovies.filter((movie: any) => {
+          // Kiểm tra cả language và original_language vì không chắc chắn thuộc tính nào chứa mã ngôn ngữ
+          return (
+            (movie.language && movie.language === activeFilters.language) ||
+            (movie.original_language &&
+              movie.original_language === activeFilters.language)
+          );
+        });
       }
 
       // Sắp xếp
@@ -153,7 +113,7 @@ const FilterPlayingCinema = ({
         );
       }
 
-      console.log("Kết quả filter:", filteredMovies.length, "phim");
+      console.log("Kết quả filter:", filteredMovies.length, "phim sắp chiếu");
 
       // Trả về kết quả cho component cha
       if (onFilteredDataChange) {
@@ -162,7 +122,7 @@ const FilterPlayingCinema = ({
 
       return filteredMovies;
     } catch (error) {
-      console.error("Lỗi khi lọc phim:", error);
+      console.error("Lỗi khi lọc phim sắp chiếu:", error);
 
       // Trả về mảng rỗng trong trường hợp lỗi
       if (onFilteredDataChange) {
@@ -238,17 +198,6 @@ const FilterPlayingCinema = ({
       />
       <Select
         className={clsx(styles.selectOption)}
-        defaultValue="Tất cả"
-        onChange={(value) => handleChange(value, "cinema")}
-        options={[
-          { value: "Tất cả", label: "Tất cả" },
-          { value: "Rạp 1", label: "Rạp 1" },
-          { value: "Rạp 2", label: "Rạp 2" },
-        ]}
-        loading={isLoading}
-      />
-      <Select
-        className={clsx(styles.selectOption)}
         defaultValue={0}
         onChange={handleReleaseYearChange}
         options={[
@@ -271,4 +220,4 @@ const FilterPlayingCinema = ({
   );
 };
 
-export default FilterPlayingCinema;
+export default FilterComingCinema;

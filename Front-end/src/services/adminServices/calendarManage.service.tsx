@@ -1,168 +1,241 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import {
-    CREATE_CALENDAR,
-    DELETE_CALENDAR,
-    DETAIL_CALENDAR,
-    GET_CALENDAR,
-    GET_FILM_LIST,
-    UPDATE_CALENDAR,
-} from "../../config/ApiConfig";
 import dayjs from "dayjs";
-import { message } from "antd";
-import { handleApiError } from "./utils";
+import {
+  CREATE_CALENDAR,
+  DELETE_CALENDAR,
+  DETAIL_CALENDAR,
+  GET_CALENDAR,
+  GET_FILM_LIST,
+  UPDATE_CALENDAR,
+} from "../../config/ApiConfig";
+import axiosInstance from "../../utils/axios-instance";
 
-// danh sách lịch chiếu
+// danh sách lịch chiếu
 export const useCalendarManage = () => {
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ["showtimesFilm"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_CALENDAR);
-            console.log("showtime-data", data);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["showtimesFilm"],
+    queryFn: async () => {
+      try {
+        console.log(
+          "[CalendarManage] Đang gọi API lấy danh sách lịch chiếu với axiosInstance"
+        );
+        const { data } = await axiosInstance.get(GET_CALENDAR);
+        console.log("showtime-data", data);
 
-            return data.map((item: any) => ({
-                ...item,
-                key: item.id,
-            }));
-        },
-        staleTime: 1000 * 60 * 10,
-    });
+        return data.map((item: any) => ({
+          ...item,
+          key: item.id,
+        }));
+      } catch (error: any) {
+        console.error("Lỗi khi lấy danh sách lịch chiếu:", error);
+        console.error("Chi tiết lỗi:", error.response?.data);
+        // Trả về mảng rỗng thay vì ném lỗi
+        console.log("[CalendarManage] Trả về mảng rỗng do lỗi API");
+        return [];
+      }
+    },
+    staleTime: 1000 * 60 * 10,
+    retry: 3, // Tăng số lần thử lại
+  });
 
-    return { data, isLoading, isError };
+  return { data: data || [], isLoading, isError };
 };
 
-// xóa lịch chiếu
+// xóa lịch chiếu
 export const useDeleteCalendar = (messageApi: any) => {
-    const queryClient = useQueryClient();
-    const { mutate } = useMutation({
-        mutationFn: async (id: number) => {
-            await axios.delete(DELETE_CALENDAR(id));
-        },
-        onSuccess: () => {
-            messageApi.success("Xóa lịch chiếu thành công");
-            queryClient.invalidateQueries({
-                queryKey: ["showtimesFilm"],
-            });
-        },
-        onError: handleApiError,
-    });
-    return { mutate };
-};
-
-// lấy data phim đã có lịch chiếu
-export const useHasShowtime = () => {
-    const {
-        data: movieData,
-        isLoading: isMovieLoading,
-        error: movieError,
-    } = useQuery({
-        queryKey: ["filmList"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_FILM_LIST);
-            return data.movies;
-        },
-        staleTime: 1000 * 60 * 10,
-    });
-
-    const {
-        data: showtimeData,
-        isLoading: isShowtimeLoading,
-        error: showtimeError,
-    } = useQuery({
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: async (id: number) => {
+      try {
+        await axiosInstance.delete(DELETE_CALENDAR(id));
+      } catch (error: any) {
+        console.error(`Lỗi khi xóa lịch chiếu ID ${id}:`, error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      messageApi.success("Xóa lịch chiếu thành công");
+      queryClient.invalidateQueries({
         queryKey: ["showtimesFilm"],
-        queryFn: async () => {
-            const { data } = await axios.get(GET_CALENDAR);
-            return data;
-        },
-        staleTime: 1000 * 60,
-    });
+      });
+    },
+    onError: (error: any) => {
+      messageApi.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Có lỗi xảy ra khi xóa lịch chiếu!"
+      );
+    },
+  });
 
-    const isLoading = isMovieLoading || isShowtimeLoading;
-    const error = movieError || showtimeError;
-
-    // Kết hợp dữ liệu
-    const filmList = movieData?.map((item: any) => ({
-        ...item,
-        release_date: item.release_date
-            ? dayjs(item.release_date).format("YYYY-MM-DD")
-            : null,
-        hasShowtime: showtimeData?.some(
-            (showtime: any) => showtime.movie_id === item.id
-        ),
-    }));
-
-    return { filmList, isLoading, error };
+  return { mutate };
 };
 
-// thêm lịch chiếu
+// lấy danh sách film
+export const useFilmList = () => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["filmList"],
+    queryFn: async () => {
+      try {
+        const { data } = await axiosInstance.get(GET_FILM_LIST);
+        return data.movies;
+      } catch (error: any) {
+        console.error("Lỗi khi lấy danh sách phim:", error);
+        return [];
+      }
+    },
+    staleTime: 1000 * 60 * 10,
+    retry: 3,
+  });
+
+  return { data: data || [], isLoading, isError };
+};
+
+// lấy danh sách lịch chiếu
+export const useShowtimesList = () => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["showtimesFilm"],
+    queryFn: async () => {
+      try {
+        const { data } = await axiosInstance.get(GET_CALENDAR);
+        return data;
+      } catch (error: any) {
+        console.error("Lỗi khi lấy danh sách lịch chiếu:", error);
+        return [];
+      }
+    },
+    staleTime: 1000 * 60 * 10,
+    retry: 3,
+  });
+
+  return { data: data || [], isLoading, isError };
+};
+
+// tạo lịch chiếu
 export const useCreateCalendar = (
-    messageApi: ReturnType<typeof message.useMessage>[0],
-    formShowtime: any
+  form: any,
+  messageApi: any,
+  onSuccess: () => void
 ) => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (formData: any) => {
+      try {
+        const newFormData = {
+          ...formData,
+          show_date: formData.show_date
+            ? dayjs(formData.show_date).format("YYYY/MM/DD")
+            : null,
+        };
+        await axiosInstance.post(CREATE_CALENDAR, newFormData);
+      } catch (error: any) {
+        console.error("Lỗi khi tạo lịch chiếu:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      messageApi.success("Tạo lịch chiếu thành công");
+      form.resetFields();
+      onSuccess();
+      queryClient.invalidateQueries({
+        queryKey: ["showtimesFilm"],
+      });
+    },
+    onError: (error: any) => {
+      messageApi.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Có lỗi xảy ra khi tạo lịch chiếu!"
+      );
+    },
+  });
 
-    const { mutate, isError } = useMutation({
-        mutationFn: async (formData: any) => {
-            const newFormData = {
-                ...formData,
-                show_date: formData.show_date
-                    ? dayjs(formData.show_date).format("YYYY/MM/DD")
-                    : null,
-            };
-            await axios.post(CREATE_CALENDAR, newFormData);
-        },
-        onSuccess: () => {
-            formShowtime.resetFields();
-            messageApi.success("Thêm thành công");
-            queryClient.invalidateQueries({
-                queryKey: ["showtimesFilm"],
-            });
-        },
-        onError: handleApiError,
-    });
-
-    return { mutate, isError };
+  return { mutate, isLoading: isPending };
 };
 
-// chi tiết lịch chiếu
-export const useDetailCalendar = (id: number, openEdit: boolean) => {
-    const { data, isLoading, error } = useQuery({
-        queryKey: ["showtimesFilm", id],
-        queryFn: async () => {
-            const { data } = await axios.get(DETAIL_CALENDAR(id));
-            console.log("check", data);
-            return data;
-        },
-        enabled: openEdit && !!id,
-    });
+// chi tiết lịch chiếu
+export const useDetailCalendar = (id: number) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["showtimesFilm", id],
+    queryFn: async () => {
+      try {
+        const { data } = await axiosInstance.get(DETAIL_CALENDAR(id));
+        console.log("check", data);
+        return data;
+      } catch (error: any) {
+        console.error(`Lỗi khi lấy chi tiết lịch chiếu ID ${id}:`, error);
+        throw error;
+      }
+    },
+    enabled: !!id,
+    retry: 1,
+  });
 
-    return { data, isLoading, error };
+  return { data, isLoading, isError };
 };
 
-//  cập nhật lịch chiếu
+// cập nhật lịch chiếu
 export const useUpdateCalendar = (
-    id: number,
-    messageApi: ReturnType<typeof message.useMessage>[0],
-    setOpenEdit: (open: boolean) => void,
-    formShowtime: any
+  id: number,
+  form: any,
+  messageApi: any,
+  onSuccess: () => void
 ) => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (formData: any) => {
+      try {
+        const response = await axiosInstance.put(UPDATE_CALENDAR(id), formData);
+        return response.data;
+      } catch (error: any) {
+        console.error(`Lỗi khi cập nhật lịch chiếu ID ${id}:`, error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      messageApi.success("Cập nhật lịch chiếu thành công");
+      form.resetFields();
+      onSuccess();
+      queryClient.invalidateQueries({
+        queryKey: ["showtimesFilm"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["showtimesFilm", id],
+      });
+    },
+    onError: (error: any) => {
+      messageApi.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Có lỗi xảy ra khi cập nhật lịch chiếu!"
+      );
+    },
+  });
 
-    const { mutate } = useMutation({
-        mutationFn: async (formData: any) => {
-            const response = await axios.put(UPDATE_CALENDAR(id), formData);
-            return response.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["showtimesFilm"],
-            });
-            messageApi.success("Cập nhật thành công");
-            setOpenEdit(false);
-            formShowtime.resetFields();
-        },
-        onError: handleApiError,
-    });
+  return { mutate, isLoading: isPending };
+};
 
-    return { mutate };
+// Kiểm tra xem phim đã có lịch chiếu hay chưa
+export const useHasShowtime = (movieId: number) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["hasShowtime", movieId],
+    queryFn: async () => {
+      try {
+        const { data } = await axiosInstance.get(GET_CALENDAR);
+        // Kiểm tra xem phim đã có trong lịch chiếu chưa
+        const hasShowtime = data.some((item: any) => item.movie_id === movieId);
+        return hasShowtime;
+      } catch (error: any) {
+        console.error(
+          `Lỗi khi kiểm tra lịch chiếu cho phim ID ${movieId}:`,
+          error
+        );
+        return false;
+      }
+    },
+    enabled: !!movieId,
+    retry: 2,
+  });
+
+  return { hasShowtime: data || false, isLoading, isError };
 };

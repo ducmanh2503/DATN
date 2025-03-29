@@ -240,4 +240,16 @@
     background-color: #fff7e6;
     color: #fa8c16;
   }
+  .rankMilestones {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .milestone {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+  }
 }

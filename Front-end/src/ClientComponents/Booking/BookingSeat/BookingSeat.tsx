@@ -585,7 +585,8 @@ const BookingSeat = ({ className }: { className?: string }) => {
                       const isSelected = nameSeats.includes(seat.seatCode);
                       const isHeld = seat.status === "held";
                       const isBooked = seat.status === "Booked";
-                      const isEmpty = seat.status === "Empty";
+                      const isEmpty = seat.adminStatus === "empty";
+                      const isDisabled = seat.adminStatus === "disabled";
                       return (
                         <button
                           className={clsx(
@@ -593,7 +594,8 @@ const BookingSeat = ({ className }: { className?: string }) => {
                             isHeld && styles.held,
                             isBooked && styles.booked,
                             isSelected && styles.selected,
-                            isEmpty && styles.empty,
+                            isEmpty && !isBooked && styles.empty,
+                            isDisabled && !isBooked && styles.disabled,
                             seat.type === "VIP" && styles.vip,
                             seat.type === "Sweetbox" && styles.sweetbox
                           )}

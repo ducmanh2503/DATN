@@ -215,7 +215,7 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                         Tổng cộng:{" "}
                         <Tag color="blue">
                             {" "}
-                            {detailOrder.total_ticket_price.toLocaleString(
+                            {detailOrder?.total_ticket_price.toLocaleString(
                                 "vi-VN"
                             )}{" "}
                             VNĐ
@@ -238,7 +238,7 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                     <div className={clsx(styles.totalSub)}>
                         Tổng cộng:{" "}
                         <Tag color="blue">
-                            {detailOrder.total_combo_price.toLocaleString(
+                            {detailOrder?.total_combo_price.toLocaleString(
                                 "vi-VN"
                             )}{" "}
                             VNĐ

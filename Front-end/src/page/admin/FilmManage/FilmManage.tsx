@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import type {
     InputRef,
@@ -26,6 +26,7 @@ import styles from "../globalAdmin.module.css";
 import {
     useDeleteFilm,
     useFilmManage,
+    useUpdateFilm,
 } from "../../../services/adminServices/filmManage.service";
 
 type DataIndex = keyof FormData;
@@ -319,11 +320,33 @@ const FilmManage: React.FC = () => {
                 dataIndex: "movie_status",
                 key: "movie_status",
                 ...getColumnSearchProps("movie_status"),
-                render: (status: string) => {
-                    return status === "now_showing" ? (
-                        <Tag color="green">{status}</Tag>
-                    ) : (
-                        <Tag color="red">{status}</Tag>
+                render: (_: string, record: any) => {
+                    // const today = new Date();
+                    // const releaseDate = new Date(record.release_date);
+
+                    // const shouldBeNowShowing = releaseDate <= today;
+                    // const updatedStatus = shouldBeNowShowing
+                    //     ? "now_showing"
+                    //     : record.movie_status;
+                    return (
+                        // <Tag
+                        //     color={
+                        //         updatedStatus === "now_showing"
+                        //             ? "green"
+                        //             : "red"
+                        //     }
+                        // >
+                        //     {updatedStatus}
+                        // </Tag>
+                        <Tag
+                            color={
+                                record.movie_status === "now_showing"
+                                    ? "green"
+                                    : "red"
+                            }
+                        >
+                            {record.movie_status}
+                        </Tag>
                     );
                 },
             },

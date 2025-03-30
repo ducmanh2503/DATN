@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import axios from 'axios';
+=======
+import axios from "axios";
+>>>>>>> main
 
 const API_URL = "http://localhost:8000/api";
 
@@ -12,6 +16,7 @@ export const fetchFilteredMovies = async (options: FilterOptions = {}) => {
   try {
     // Lấy danh sách phim từ API
     const { data } = await axios.get("http://localhost:8000/api/movies-index");
+<<<<<<< HEAD
     
     let filteredMovies = [...data.now_showing];
     
@@ -41,6 +46,42 @@ export const fetchFilteredMovies = async (options: FilterOptions = {}) => {
     return filteredMovies.map((movie: any) => ({
       ...movie,
       key: movie.id
+=======
+
+    let filteredMovies = [...data.now_showing];
+
+    // Lọc theo thể loại
+    if (options.genre && options.genre !== "Tất cả") {
+      filteredMovies = filteredMovies.filter((movie: any) =>
+        movie.genres.some((g: any) => g.name_genre === options.genre)
+      );
+    }
+
+    // Lọc theo rạp
+    if (options.cinema && options.cinema !== "Tất cả") {
+      filteredMovies = filteredMovies.filter(
+        (movie: any) =>
+          movie.cinemas?.some((c: any) => c.name === options.cinema) || false
+      );
+    }
+
+    // Sắp xếp
+    if (options.sortBy === "Mới nhất") {
+      filteredMovies.sort(
+        (a: any, b: any) =>
+          new Date(b.release_date).getTime() -
+          new Date(a.release_date).getTime()
+      );
+    } else if (options.sortBy === "Phổ biến") {
+      filteredMovies.sort(
+        (a: any, b: any) => (b.popularity || 0) - (a.popularity || 0)
+      );
+    }
+
+    return filteredMovies.map((movie: any) => ({
+      ...movie,
+      key: movie.id,
+>>>>>>> main
     }));
   } catch (error) {
     console.error("Lỗi khi lấy danh sách phim:", error);
@@ -69,22 +110,41 @@ export const fetchRelatedMovies = async (movieId: number) => {
  * @param language Ngôn ngữ phim
  * @returns Danh sách phim đã lọc
  */
+<<<<<<< HEAD
 export const filterMoviesByYearAndLanguage = async (releaseYear?: number, language?: string) => {
+=======
+export const filterMoviesByYearAndLanguage = async (
+  releaseYear?: number,
+  language?: string
+) => {
+>>>>>>> main
   try {
     const params: any = {};
     if (releaseYear) params.release_year = releaseYear;
     if (language) params.language = language;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> main
     const { data } = await axios.get(`${API_URL}/filter`, { params });
     return data.data || [];
   } catch (error) {
     console.error("Lỗi khi lọc phim theo năm và ngôn ngữ:", error);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> main
     // Nếu API filter lỗi, sử dụng API movies-index và lọc trên client
     try {
       const { data } = await axios.get(`${API_URL}/movies-index`);
       let filteredMovies = data.now_showing || [];
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> main
       // Lọc theo năm phát hành (client-side)
       if (releaseYear) {
         filteredMovies = filteredMovies.filter((movie: any) => {
@@ -92,6 +152,7 @@ export const filterMoviesByYearAndLanguage = async (releaseYear?: number, langua
           return movieReleaseYear === releaseYear;
         });
       }
+<<<<<<< HEAD
       
       // Lọc theo ngôn ngữ (client-side)
       if (language) {
@@ -100,6 +161,16 @@ export const filterMoviesByYearAndLanguage = async (releaseYear?: number, langua
         );
       }
       
+=======
+
+      // Lọc theo ngôn ngữ (client-side)
+      if (language) {
+        filteredMovies = filteredMovies.filter(
+          (movie: any) => movie.language === language
+        );
+      }
+
+>>>>>>> main
       return filteredMovies;
     } catch (fallbackError) {
       console.error("Lỗi khi sử dụng API dự phòng:", fallbackError);
@@ -114,6 +185,7 @@ export const filterMoviesByYearAndLanguage = async (releaseYear?: number, langua
  * @param genre Thể loại phim
  * @returns Danh sách phim đã lọc
  */
+<<<<<<< HEAD
 export const fetchMoviesByStatusAndGenre = async (status: string = 'now_showing', genre?: string) => {
   try {
     // Sử dụng API movies-index thay vì API movies-for-client (vì API movies-for-client trả về lỗi 404)
@@ -129,6 +201,27 @@ export const fetchMoviesByStatusAndGenre = async (status: string = 'now_showing'
       );
     }
     
+=======
+export const fetchMoviesByStatusAndGenre = async (
+  status: string = "now_showing",
+  genre?: string
+) => {
+  try {
+    // Sử dụng API movies-index thay vì API movies-for-client (vì API movies-for-client trả về lỗi 404)
+    const { data } = await axios.get(`${API_URL}/movies-index`);
+
+    // Lấy danh sách phim theo trạng thái
+    let filteredMovies =
+      status === "now_showing" ? data.now_showing : data.coming_soon;
+
+    // Lọc theo thể loại nếu có
+    if (genre && genre !== "Tất cả") {
+      filteredMovies = filteredMovies.filter((movie: any) =>
+        movie.genres.some((g: any) => g.name_genre === genre)
+      );
+    }
+
+>>>>>>> main
     return filteredMovies || [];
   } catch (error) {
     console.error("Lỗi khi lấy phim theo trạng thái và thể loại:", error);

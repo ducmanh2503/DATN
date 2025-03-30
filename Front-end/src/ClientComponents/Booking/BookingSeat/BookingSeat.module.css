@@ -76,6 +76,10 @@
   background: #52c41a;
 }
 
+.empty {
+  visibility: hidden;
+}
+
 .vip {
   border: 1px solid #1890ff;
   color: #1890ff;
@@ -84,4 +88,10 @@
 .sweetbox {
   border: 1px solid #f5222d;
   color: #f5222d;
+}
+
+.disabled {
+  background-color: #3e3f5b;
+  border: 2px solid #3e3f5b;
+  pointer-events: none;
 }

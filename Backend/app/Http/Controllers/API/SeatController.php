@@ -21,83 +21,68 @@ class SeatController extends Controller
 {
 
     //hiển thị ghế theo thời gian thực
-    public function getSeatsForBooking($room_id, $show_time_id)
+    public function getSeatsForBooking($room_id, $showTimeId)
     {
-        // Lấy thông tin suất chiếu và ngày suất chiếu từ show_time_id
         $showtime = ShowTime::with('showTimeDate')
-            ->find($show_time_id);
+            ->find($showTimeId);
         if (!$showtime) {
-            return response()->json(['error' => 'Showtime not found'], 404);
+            return response()->json(['error' => 'Suất chiếu không tìm thấy'], 404);
         }
 
-        // Lấy ngày suất chiếu từ bảng show_time_date
         $showtimeDateRecord = $showtime->showTimeDate->first();
         if (!$showtimeDateRecord) {
-            return response()->json(['error' => 'Showtime date not found'], 404);
+            return response()->json(['error' => 'Ngày suất chiếu không tìm thấy'], 404);
         }
-        $showtimeDate = $showtimeDateRecord->show_date; // Lấy show_date từ bảng show_time_date
+        $showtimeDate = $showtimeDateRecord->show_date;
 
-        // Lấy tất cả ghế trong phòng và liên kết với loại ghế
         $seats = Seat::where('room_id', $room_id)
-            ->with(['seatType', 'showTimeSeat' => function ($query) use ($show_time_id) {
-                $query->where('show_time_id', $show_time_id);
+            ->with(['seatType', 'showTimeSeat' => function ($query) use ($showTimeId) {
+                $query->where('show_time_id', $showTimeId);
             }])
             ->get();
         $userId = auth()->id();
 
-        // Tạo ma trận ghế ngồi theo hàng và cột
         $seatingMatrix = [];
         foreach ($seats as $seat) {
-
             if (!isset($seatingMatrix[$seat->row])) {
                 $seatingMatrix[$seat->row] = [];
             }
 
-            // Lấy status từ bảng show_time_seat
+            $seatStatus = $seat->status ?? 'available';
             $showTimeSeat = $seat->showTimeSeat->first();
-            $status = $showTimeSeat ? $showTimeSeat->seat_status : 'available';
+            $showTimeSeatStatus = $showTimeSeat ? $showTimeSeat->seat_status : 'available';
 
-            // Kiểm tra nếu ghế đang bị giữ trong cache
-            $heldSeat = Cache::get("seat_{$show_time_id}_{$seat->id}");
+            // Sửa key để khớp với key trong holdSelectedSeats
+            $heldSeat = Cache::get("seat_{$showTimeId}_{$seat->id}");
             $isHeld = !empty($heldSeat);
             $heldByUser = $isHeld && $heldSeat['user_id'] == $userId;
 
-            // **Nếu ghế đang bị giữ, cập nhật trạng thái**
             if ($isHeld) {
-                $status = 'held';
+                $showTimeSeatStatus = 'held';
             }
 
-            // Tạo mã ghế từ hàng và cột
             $seatCode = $seat->row . $seat->column;
-
-            // Lấy giá ghế theo ngày hiện tại
             $price = SeatTypePrice::getPriceByDate($seat->seat_type_id, $showtimeDate) ?? 0;
 
             $seatingMatrix[$seat->row][$seat->column] = [
                 'id' => $seat->id,
                 'seatCode' => $seatCode,
                 'type' => $seat->seatType->name,
-                'status' => $status,
+                'adminStatus' => $seatStatus,
+                'status' => $showTimeSeatStatus,
                 'isHeld' => $isHeld,
                 'heldByUser' => $heldByUser,
                 'price' => $price,
             ];
         }
 
-        // Phát sự kiện cập nhật ghế cho tất cả người dùng
-        broadcast(new SeatUpdated($room_id, $show_time_id, $seatingMatrix))->toOthers();
-
+        broadcast(new SeatUpdated($room_id, $showTimeId, $seatingMatrix))->toOthers();
         return response()->json(array_values($seatingMatrix));
     }
 
     //Cập nhật trạng thái ghế theo thời gian thực khi chọn ghế
     public function holdSelectedSeats(Request $request)
     {
-        // $request->validate([
-        //     'seats' => 'required|array',
-        //     'seats.*' => 'exists:seats,id'
-        // ]);
-
         $validator = Validator::make($request->all(), [
             'seats' => 'required|array',
             'seats.*' => 'numeric|exists:seats,id',
@@ -105,37 +90,46 @@ class SeatController extends Controller
             'showtime_id' => 'required|numeric|exists:show_times,id'
         ]);
 
-        // Kiểm tra nếu có lỗi xác thực
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $seats = $request->input('seats'); // Lấy danh sách ghế dưới dạng mảng
+        $seats = $request->input('seats');
         $roomId = $request->input('room_id');
         $showTimeId = $request->input('showtime_id');
         $userId = auth()->id();
         $expiresAt = now()->addMinutes(7);
 
-        foreach ($request->seats as $seat) {
-            // Kiểm tra ghế đã bị giữ chưa
-            $cacheKey = "seat_{$showTimeId}_{$seat}";
-            $heldSeat = Cache::get("$cacheKey");
+        foreach ($request->seats as $seatId) {
+            $seat = Seat::find($seatId);
+            if ($seat->status === 'disabled' || $seat->status === 'empty') {
+                return response()->json([
+                    'message' => 'Ghế đang bảo trì, vui lòng chọn ghế khác!',
+                    'seat_id' => $seatId,
+                    'status' => $seat->status
+                ], 400);
+            }
+
+            $cacheKey = "seat_{$showTimeId}_{$seatId}";
+            $heldSeat = Cache::get($cacheKey);
             if (!empty($heldSeat) && $heldSeat['user_id'] !== $userId) {
                 return response()->json(['message' => 'Ghế đã được giữ bởi người khác!'], 409);
             }
+        }
 
-            // Giữ ghế
+        foreach ($request->seats as $seatId) {
+            $cacheKey = "seat_{$showTimeId}_{$seatId}";
             Cache::put($cacheKey, ['user_id' => $userId, 'expires_at' => $expiresAt], $expiresAt);
         }
 
-        // Phát sự kiện cập nhật realtime
+        // Phát sự kiện cho tất cả người dùng, bao gồm cả người dùng hiện tại
         broadcast(new SeatHeldEvent(
-            $request->seat_ids,
+            $request->seats,
             $userId,
             $roomId,
             $showTimeId,
             'held'
-        ))->toOthers();
+        ));
 
         return response()->json(['message' => 'Ghế đã được giữ!', 'seats' => $seats, 'expires_at' => $expiresAt, 'user_id' => $userId]);
     }
@@ -221,11 +215,7 @@ class SeatController extends Controller
     }
 
     /**
-     * Cập nhật trạng thái ghế theo room_id và seat_id cho tất cả suất chiếu
-     *
-     * @param Request $request
-     * @param int $roomId
-     * @return \Illuminate\Http\JsonResponse
+     * Cập nhật trạng thái ghế theo room_id và seat_id
      */
     public function updateSeatStatusForRoom(Request $request, $roomId)
     {
@@ -233,7 +223,6 @@ class SeatController extends Controller
             $status = $request->input('seat_status');
             $seatId = $request->input('seat_id');
 
-            // Kiểm tra input
             if (!$status) {
                 return response()->json(['message' => 'Trạng thái ghế (seat_status) là bắt buộc'], 400);
             }
@@ -241,110 +230,36 @@ class SeatController extends Controller
                 return response()->json(['message' => 'ID ghế (seat_id) là bắt buộc và phải là một số'], 400);
             }
             if (!in_array($status, ['available', 'booked', 'disabled', 'empty'])) {
-                return response()->json(['message' => 'Trạng thái ghế không hợp lệ, chỉ chấp nhận "available", "booked", "disabled" hoặc "empty"'], 400);
+                return response()->json(['message' => 'Trạng thái ghế không hợp lệ!'], 400);
             }
 
-            // Kiểm tra ghế tồn tại
             $seat = Seat::where('id', $seatId)->where('room_id', $roomId)->first();
             if (!$seat) {
                 return response()->json(['message' => "Không tìm thấy ghế ID {$seatId} thuộc phòng ID {$roomId}"], 400);
             }
 
-            // Lấy tất cả suất chiếu trong tương lai liên quan đến phòng
-            $currentTime = now();
-            $showTimes = ShowTime::join('show_time_date', 'show_time_date.show_time_id', '=', 'show_times.id')
-                ->where('show_times.room_id', $roomId)
-                ->whereRaw("CONCAT(show_time_date.show_date, ' ', show_times.end_time) >= ?", [$currentTime])
-                ->select('show_times.*', 'show_time_date.show_date')
-                ->get();
+            $showTimeIds = Showtime::where('room_id', $roomId)->pluck('id');
 
-            // Log số lượng suất chiếu tìm thấy
-            Log::info("Found {$showTimes->count()} show times for Room ID: {$roomId}");
-
-            // Log chi tiết các suất chiếu tìm thấy
-            foreach ($showTimes as $showTime) {
-                Log::info("ShowTime found: ShowTime ID: {$showTime->id}, Show Date: {$showTime->show_date}, Start Time: {$showTime->start_time}, End Time: {$showTime->end_time}");
-            }
-
-            if ($showTimes->isEmpty()) {
-                // Cập nhật trạng thái mặc định cho ghế nếu không có suất chiếu trong tương lai
-                $seat->update(['status' => $status]);
-                return response()->json(['message' => "Đã cập nhật trạng thái mặc định '{$status}' cho ghế ID {$seatId} vì không có suất chiếu trong tương lai"], 200);
-            }
-
-            Log::info("Updating seat status for Seat ID: {$seatId}, Room ID: {$roomId}, New Status: {$status}");
-            Log::info("Current Time: {$currentTime}");
-
-            $updatedCount = 0;
-            $skippedCount = 0;
-
-            // Duyệt qua từng suất chiếu
-            foreach ($showTimes as $showTime) {
-                // Kiểm tra xem ghế đã được liên kết với suất chiếu này trong show_time_seat chưa
-                $showTimeSeat = ShowTimeSeat::where('seat_id', $seatId)
-                    ->where('show_time_id', $showTime->id)
-                    ->first();
-
-                // Nếu chưa có bản ghi trong show_time_seat, tạo mới với trạng thái mặc định của ghế
-                if (!$showTimeSeat) {
-                    $showTimeSeat = ShowTimeSeat::create([
-                        'seat_id' => $seatId,
-                        'show_time_id' => $showTime->id,
-                        'seat_status' => $seat->status ?? 'available', // Lấy trạng thái mặc định từ bảng seats
-                    ]);
-                    Log::info("Created new ShowTimeSeat: Seat ID: {$seatId}, ShowTime ID: {$showTime->id}, Seat Status: {$showTimeSeat->seat_status}");
+            // Kiểm tra ghế có đang bị giữ không
+            foreach ($showTimeIds as $showTimeId) {
+                $cacheKey = "seat_{$showTimeId}_{$seat->id}";
+                if (Cache::has($cacheKey)) {
+                    return response()->json(['message' => "Ghế ID {$seatId} đang được giữ, không thể cập nhật trạng thái!"], 409);
                 }
-
-                // Kiểm tra trạng thái ghế trực tiếp từ cơ sở dữ liệu
-                $seatStatus = ShowTimeSeat::where('id', $showTimeSeat->id)->value('seat_status');
-                Log::info("Direct DB check - Seat ID: {$seatId}, ShowTimeSeat ID: {$showTimeSeat->id}, Seat Status: {$seatStatus}");
-
-                // Lấy ngày suất chiếu từ show_time_date
-                $showDate = \Carbon\Carbon::parse($showTime->show_date);
-                $startDateTime = \Carbon\Carbon::parse($showDate->toDateString() . ' ' . $showTime->start_time);
-                $endDateTime = \Carbon\Carbon::parse($showDate->toDateString() . ' ' . $showTime->end_time);
-
-                // Kiểm tra trạng thái suất chiếu
-                $isPastShowTime = $endDateTime->isPast();
-                $isOngoingShowTime = $startDateTime->lte($currentTime) && $endDateTime->gt($currentTime);
-                $isFutureShowTime = $startDateTime->gt($currentTime);
-
-                // Log chi tiết để debug
-                Log::info("ShowTime ID: {$showTime->id}, Seat ID: {$seatId}, Seat Status (from object): {$showTimeSeat->seat_status}");
-                Log::info("Show Date: {$showDate->toDateString()}, Start Time: {$startDateTime}, End Time: {$endDateTime}");
-                Log::info("Is Past: " . ($isPastShowTime ? 'true' : 'false') .
-                    ", Is Ongoing: " . ($isOngoingShowTime ? 'true' : 'false') .
-                    ", Is Future: " . ($isFutureShowTime ? 'true' : 'false'));
-
-                // Nếu ghế đang booked và suất chiếu chưa kết thúc, bỏ qua suất chiếu này
-                if (strtolower($seatStatus) === 'booked' && !$isPastShowTime) {
-                    $skippedCount++;
-                    Log::info("Skipped update for ShowTime ID: {$showTime->id} - Seat is booked and show is not finished");
-                    continue;
-                }
-
-                // Cập nhật trạng thái cho các suất chiếu không bị booked hoặc đã kết thúc
-                $showTimeSeat->update(['seat_status' => $status]);
-                $updatedCount++;
-                Log::info("Updated ShowTime ID: {$showTime->id} to status: {$status}");
             }
 
-            // Cập nhật trạng thái mặc định cho ghế (áp dụng cho các suất chiếu mới sau này)
             $seat->update(['status' => $status]);
-            Log::info("Updated default seat status to '{$status}' for Seat ID: {$seatId}");
+            Log::info("Updated seat status to '{$status}' for Seat ID: {$seatId}");
 
-            $responseMessage = "Cập nhật thành công {$updatedCount} suất chiếu cho ghế ID {$seatId} thành '{$status}'";
-            if ($skippedCount > 0) {
-                $responseMessage .= ". Bỏ qua {$skippedCount} suất chiếu vì ghế đã được đặt và suất chiếu chưa kết thúc";
-            }
-            $responseMessage .= ". Trạng thái mặc định của ghế đã được cập nhật thành '{$status}' cho các suất chiếu mới.";
-
-            return response()->json(['message' => $responseMessage], 200);
+            return response()->json(['message' => "Đã cập nhật trạng thái ghế ID {$seatId} thành '{$status}'"], 200);
         } catch (\Exception $e) {
             Log::error("Error updating seat status: {$e->getMessage()}");
             return response()->json(['message' => 'Đã xảy ra lỗi khi cập nhật trạng thái ghế', 'error' => $e->getMessage()], 500);
         }
     }
+
+
+
 
     /**
      * Cập nhật trạng thái ghế
@@ -415,58 +330,53 @@ class SeatController extends Controller
             'updated_seats' => $updatedSeats
         ], 200);
     }
-    /**
-     * Lấy ghế theo id phòng
-     */
 
+    /**
+     * Lấy ghế theo id phòng (dành cho admin)
+     */
     public function getSeats($room_id)
     {
-        // Lấy tất cả lịch chiếu của phòng
-        $showTimes = ShowTime::where('room_id', $room_id)->get();
+        // Lấy tất cả ghế trong phòng
+        $seats = Seat::where('room_id', $room_id)
+            ->with(['seatType'])
+            ->get();
 
-        if ($showTimes->isEmpty()) {
+        if ($seats->isEmpty()) {
             return response()->json([
-                'message' => 'Không có lịch chiếu nào cho phòng này',
+                'message' => 'Không tìm thấy ghế trong phòng này',
                 'seatingMatrix' => []
-            ], 200);
+            ], 404);
         }
 
-        // Lấy tất cả ghế trong phòng
-        $seats = Seat::where('room_id', $room_id)->with('seatType', 'showTimeSeat')->get();
-        $currentDate = now()->toDateString();
-
-        // Tạo ma trận ghế ngồi theo hàng và cột
         $seatingMatrix = [];
         foreach ($seats as $seat) {
             if (!isset($seatingMatrix[$seat->row])) {
                 $seatingMatrix[$seat->row] = [];
             }
 
-            // Tạo mã ghế từ hàng và cột
             $seatCode = $seat->row . $seat->column;
 
-            // Lấy giá ghế theo ngày hiện tại
+            // Lấy giá ghế hiện tại
+            $currentDate = date('Y-m-d');
             $price = SeatTypePrice::getPriceByDate($seat->seat_type_id, $currentDate) ?? 0;
 
-            // Lấy trạng thái ghế từ bảng show_time_seat
-            // Kiểm tra xem $seat->showTimeSeat có tồn tại và là collection không
-            $seatStatuses = optional($seat->showTimeSeat)->whereIn('show_time_id', $showTimes->pluck('id'))->pluck('seat_status') ?? collect([]);
+            // Chỉ lấy trạng thái từ bảng seats
+            $seatStatus = $seat->status ?? 'available';
 
-            // Quyết định trạng thái ghế
-            // Nếu ghế bị "booked" trong bất kỳ lịch chiếu nào, thì trạng thái là "booked", nếu không thì là "available"
-            $status = $seatStatuses->contains('booked') ? 'booked' : 'available';
+            // Chuẩn hóa trạng thái ghế (chuyển về chữ thường)
+            $seatStatus = strtolower(trim($seatStatus));
 
-            // Gán thông tin ghế vào ma trận
             $seatingMatrix[$seat->row][$seat->column] = [
                 'id' => $seat->id,
                 'seatCode' => $seatCode,
-                'type' => $seat->seatType->name, // Lấy từ mối quan hệ seatType
-                'status' => $status, // Trạng thái lấy từ show_time_seat
+                'type' => $seat->seatType->name,
+                'status' => $seatStatus,
                 'price' => $price,
             ];
         }
 
-        return response()->json($seatingMatrix);
+        // Theo hình ảnh console, response trả về trực tiếp seatingMatrix
+        return response()->json($seatingMatrix, 200);
     }
 
 
@@ -531,9 +441,130 @@ class SeatController extends Controller
         return response()->json(['message' => 'Thêm ghế thành công', 'data' => $seat], 201);
     }
 
-    public function destroy($seat)
+    /**
+     * Store multiple seats using query parameters.
+     */
+    public function storeMultiple(Request $request)
     {
-        $seat = Seat::findOrFail($seat);
+        // Lấy tham số seats từ query parameters
+        $seatsParam = $request->query('seats');
+
+        // Kiểm tra nếu không có tham số seats
+        if (!$seatsParam) {
+            return response()->json(['error' => 'Tham số seats là bắt buộc'], 400);
+        }
+
+        // Parse chuỗi JSON thành mảng
+        try {
+            $seatsData = json_decode($seatsParam, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json(['error' => 'Tham số seats không đúng định dạng JSON'], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Lỗi khi parse JSON: ' . $e->getMessage()], 400);
+        }
+
+        // Kiểm tra nếu seats không phải là mảng hoặc rỗng
+        if (!is_array($seatsData) || empty($seatsData)) {
+            return response()->json(['error' => 'Tham số seats phải là một mảng không rỗng'], 400);
+        }
+
+        // Xác thực dữ liệu
+        $validator = Validator::make(['seats' => $seatsData], [
+            'seats' => 'required|array|min:1',
+            'seats.*.room_id' => 'required|exists:rooms,id',
+            'seats.*.row' => 'required|max:20',
+            'seats.*.column' => 'required|max:10',
+            'seats.*.seat_type_id' => 'required|exists:seat_types,id',
+        ]);
+
+        // Kiểm tra nếu có lỗi xác thực
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $newSeats = [];
+        $errors = [];
+        $roomIds = [];
+
+        // Kiểm tra trùng lặp và chuẩn bị dữ liệu để thêm
+        foreach ($seatsData as $index => $seatData) {
+            // Kiểm tra ghế có tồn tại trong phòng chưa
+            $existingSeat = Seat::where('room_id', $seatData['room_id'])
+                ->where('row', $seatData['row'])
+                ->where('column', $seatData['column'])
+                ->first();
+
+            if ($existingSeat) {
+                $errors[] = "Ghế tại hàng {$seatData['row']}, cột {$seatData['column']} trong phòng {$seatData['room_id']} đã tồn tại (index: $index)";
+                continue;
+            }
+
+            // Thêm dữ liệu ghế vào mảng để insert
+            $newSeats[] = [
+                'room_id' => $seatData['room_id'],
+                'row' => $seatData['row'],
+                'column' => $seatData['column'],
+                'seat_type_id' => $seatData['seat_type_id'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            // Lưu room_id để cập nhật capacity sau
+            if (!in_array($seatData['room_id'], $roomIds)) {
+                $roomIds[] = $seatData['room_id'];
+            }
+        }
+
+        // Nếu có lỗi trùng lặp, trả về thông báo lỗi
+        if (!empty($errors)) {
+            return response()->json([
+                'message' => 'Một số ghế không thể thêm do đã tồn tại',
+                'errors' => $errors,
+            ], 400);
+        }
+
+        // Thêm tất cả ghế mới vào cơ sở dữ liệu
+        if (!empty($newSeats)) {
+            Seat::insert($newSeats);
+
+            // Cập nhật capacity cho các phòng liên quan
+            foreach ($roomIds as $roomId) {
+                $room = Room::find($roomId);
+                if ($room) {
+                    $seatCount = Seat::where('room_id', $room->id)->count();
+                    $room->capacity = $seatCount;
+                    $room->save();
+                }
+            }
+
+            // Lấy lại danh sách ghế vừa thêm để trả về
+            $insertedSeats = Seat::whereIn('room_id', $roomIds)
+                ->where('created_at', '>=', now()->subSeconds(5))
+                ->get();
+
+            return response()->json([
+                'message' => 'Thêm nhiều ghế thành công',
+                'data' => $insertedSeats,
+            ], 201);
+        }
+
+        return response()->json(['message' => 'Không có ghế nào được thêm'], 400);
+    }
+
+    public function destroy($seatId)
+    {
+        $seat = Seat::findOrFail($seatId);
+        $showTimeIds = Showtime::where('room_id', $seat->room_id)->pluck('id');
+
+        // Kiểm tra nếu ghế này bị giữ trong bất kỳ suất chiếu nào
+        foreach ($showTimeIds as $showTimeId) {
+            $cacheKey = "seat_{$showTimeId}_{$seat->id}";
+            if (Cache::has($cacheKey)) {
+                return response()->json(['message' => 'Ghế đang được giữ, không thể xóa!'], 409);
+            }
+        }
+
         $roomId = $seat->room_id;
         $seat->delete();
 
@@ -547,19 +578,52 @@ class SeatController extends Controller
         return response()->json(['message' => 'Ghế đã được xóa thành công'], 200);
     }
 
-    public function deleteAll($room_id)
+
+
+    public function deleteAll($roomId)
     {
-        $seats = Seat::where('room_id', $room_id)->get();
+        $seats = Seat::where('room_id', $roomId)->get();
+        $showTimeIds = Showtime::where('room_id', $roomId)->pluck('id');
+
+        // Kiểm tra nếu có ghế nào đang bị giữ
         foreach ($seats as $seat) {
-            $seat->delete(); // Xóa mềm hoặc xóa vĩnh viễn tùy cấu hình
+            foreach ($showTimeIds as $showTimeId) {
+                $cacheKey = "seat_{$showTimeId}_{$seat->id}";
+                if (Cache::has($cacheKey)) {
+                    return response()->json(['message' => "Ghế ID {$seat->id} đang được giữ, không thể xóa!"], 409);
+                }
+            }
+        }
+
+        foreach ($seats as $seat) {
+            $seat->delete();
+        }
+
+        // Cập nhật capacity của phòng
+        $room = Room::find($roomId);
+        if ($room) {
+            $seatCount = Seat::where('room_id', $roomId)->count();
+            $room->capacity = $seatCount;
+            $room->save();
         }
         return response()->json(['message' => 'Đã xóa tất cả ghế trong phòng thành công'], 200);
     }
 
 
+
+
     public function update($seatId, Request $request)
     {
         $seat = Seat::findOrFail($seatId);
+        $showTimeIds = Showtime::where('room_id', $seat->room_id)->pluck('id');
+
+        // Kiểm tra ghế có đang bị giữ không
+        foreach ($showTimeIds as $showTimeId) {
+            $cacheKey = "seat_{$showTimeId}_{$seat->id}";
+            if (Cache::has($cacheKey)) {
+                return response()->json(['message' => 'Ghế đang được giữ, không thể cập nhật!'], 409);
+            }
+        }
 
         // Xác thực dữ liệu
         $validator = Validator::make($request->all(), [
@@ -572,7 +636,7 @@ class SeatController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        // Cập nhật các trường được gửi
+        // Cập nhật ghế
         $seat->update($request->only(['row', 'column', 'seat_type_id']));
 
         return response()->json(['message' => 'Cập nhật ghế thành công', 'data' => $seat->load('seatType')], 200);

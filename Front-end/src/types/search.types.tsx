@@ -23,7 +23,11 @@ export interface SearchMovie {
   rated: string;
   description: string;
   trailer: string;
+<<<<<<< HEAD
   movie_status: 'now_showing' | 'coming_soon';
+=======
+  movie_status: "now_showing" | "coming_soon";
+>>>>>>> main
   genres: MovieGenre[];
   actors: MovieActor[];
   directors: MovieDirector;
@@ -38,7 +42,13 @@ export interface SearchResponse {
 
 export interface SearchRequest {
   keyword?: string;
+<<<<<<< HEAD
   status?: 'now_showing' | 'coming_soon';
   genres?: string;
   sort?: 'latest' | 'oldest';
+=======
+  status?: "now_showing" | "coming_soon";
+  genres?: string;
+  sort?: "latest" | "oldest";
+>>>>>>> main
 }

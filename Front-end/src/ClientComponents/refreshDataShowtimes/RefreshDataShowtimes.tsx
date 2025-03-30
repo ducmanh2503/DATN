@@ -5,7 +5,7 @@ import { useSeatsContext } from "../UseContext/SeatsContext";
 import { useStepsContext } from "../UseContext/StepsContext";
 import axios from "axios";
 import { useFilmContext } from "../UseContext/FIlmContext";
-import { useAuthContext } from "../UseContext/TokenContext";
+import { useAuthContext } from "../UseContext/tokenContext";
 import { usePromotionContextContext } from "../UseContext/PromotionContext";
 
 const useShowtimeData = () => {
@@ -27,11 +27,7 @@ const useShowtimeData = () => {
     } = useSeatsContext();
     const { setTotalPrice } = useFinalPriceContext();
     const { setCurrentStep } = useStepsContext();
-    const {
-        roomIdFromShowtimes,
-        showtimeIdFromBooking,
-        setShowtimeIdFromBooking,
-    } = useFilmContext();
+    const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
     const { tokenUserId } = useAuthContext();
     const {
         setQuantityPromotion,
@@ -58,7 +54,6 @@ const useShowtimeData = () => {
         setUsedPoints(0);
         setTotalPricePoint(0);
         setTotalPriceVoucher(0);
-        setShowtimeIdFromBooking(null);
         setSeatRoomPrice(0);
     };
 

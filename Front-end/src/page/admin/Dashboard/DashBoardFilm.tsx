@@ -7,6 +7,7 @@ import {
 import { useState } from "react";
 import clsx from "clsx";
 import styles from "./DashBoard.module.css";
+import dayjs from "dayjs";
 
 const { RangePicker } = DatePicker;
 const DashBoardFilm = () => {
@@ -25,7 +26,10 @@ const DashBoardFilm = () => {
     // xuất file excel khi ấn xuất
     const handleExport = () => {
         exportExcel(
-            { start_date: startDate, end_date: endDate },
+            {
+                start_date: startDate,
+                end_date: endDate,
+            },
             {
                 onSuccess: (blob) => {
                     const url = window.URL.createObjectURL(new Blob([blob]));

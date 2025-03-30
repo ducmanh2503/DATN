@@ -4,6 +4,7 @@ import {
   GET_USER,
   UPDATE_USER_CLIENT,
   CHANGE_PASSWORD,
+  Orders_Recent,
 } from "../../config/ApiConfig";
 import Header from "../../ClientComponents/Header/Header";
 import AppFooter from "../../ClientComponents/Footer/footer";
@@ -29,18 +30,21 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 
-// Hàm tính rank dựa trên tổng chi tiêu
-const getRankFromTotalSpent = (totalSpent) => {
-  if (!totalSpent || totalSpent < 500000) {
+// Hàm tính rank dựa trên số tiền chi tiêu (totalSpent)
+const getRankFromSpent = (spent) => {
+  if (!spent || spent < 500000) {
     return { rank: "Thành viên", color: "#78909c", icon: "👤" };
-  } else if (totalSpent < 2000000) {
+  } else if (spent < 2000000) {
     return { rank: "Bạc", color: "#90a4ae", icon: "🥈" };
-  } else if (totalSpent < 5000000) {
+  } else if (spent < 5000000) {
     return { rank: "Vàng", color: "#ffca28", icon: "🥇" };
   } else {
     return { rank: "Kim cương", color: "#b388ff", icon: "💎" };
   }
 };
+
+// Hàm lấy token từ localStorage
+const getAuthToken = () => localStorage.getItem("auth_token");
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -60,26 +64,32 @@ const UserProfile = () => {
     fetchRecentOrders();
   }, []);
 
-  const fetchUserData = () => {
-    const token = localStorage.getItem("auth_token");
-    axios
-      .get(GET_USER, { headers: { Authorization: `Bearer ${token}` } })
-      .then((response) => {
-        setUser(response.data);
-        setEditedUser(response.data);
-        setLoading(false);
-      })
-      .catch((error) => console.error("Lỗi lấy dữ liệu:", error));
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const token = getAuthToken();
+      const response = await axios.get(GET_USER, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(response.data);
+      setEditedUser(response.data);
+    } catch (error) {
+      console.error("Lỗi lấy dữ liệu người dùng:", error);
+      message.error("Không thể tải thông tin người dùng!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchRecentOrders = async () => {
     try {
       setOrdersLoading(true);
-      const token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       const response = await axios.get(Orders_Recent, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setRecentOrders(response.data);
+      // Đảm bảo dữ liệu trả về là mảng
+      setRecentOrders(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách giao dịch:", error);
       message.error("Không thể tải lịch sử giao dịch!");
@@ -89,24 +99,26 @@ const UserProfile = () => {
   };
 
   const handleEditClick = () => setIsEditing(true);
-  const handleSaveClick = () => {
-    const token = localStorage.getItem("auth_token");
-    axios
-      .put(UPDATE_USER_CLIENT, editedUser, {
+
+  const handleSaveClick = async () => {
+    try {
+      const token = getAuthToken();
+      await axios.put(UPDATE_USER_CLIENT, editedUser, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      })
-      .then(() => {
-        setIsEditing(false);
-        fetchUserData();
-        message.success("Cập nhật thông tin thành công!");
-      })
-      .catch(() => message.error("Lỗi cập nhật thông tin!"));
+      });
+      setIsEditing(false);
+      await fetchUserData();
+      message.success("Cập nhật thông tin thành công!");
+    } catch (error) {
+      console.error("Lỗi cập nhật thông tin:", error);
+      message.error("Lỗi cập nhật thông tin!");
+    }
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (
       !passwordData.oldPassword ||
       !passwordData.password ||
@@ -121,14 +133,14 @@ const UserProfile = () => {
       return;
     }
 
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token) {
       message.error("Bạn cần đăng nhập để đổi mật khẩu!");
       return;
     }
 
-    axios
-      .post(
+    try {
+      await axios.post(
         CHANGE_PASSWORD,
         {
           oldPassword: passwordData.oldPassword,
@@ -136,30 +148,31 @@ const UserProfile = () => {
           password_confirmation: passwordData.password_confirmation,
         },
         { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(() => {
-        message.success("Đổi mật khẩu thành công!");
-        setPasswordData({
-          oldPassword: "",
-          password: "",
-          password_confirmation: "",
-        });
-      })
-      .catch((error) => {
-        if (error.response) {
-          const errorMessage =
-            error.response.data.message || "Có lỗi xảy ra khi đổi mật khẩu!";
-          message.error(errorMessage);
-        } else {
-          message.error("Không thể kết nối đến server!");
-        }
-        console.error("Lỗi đổi mật khẩu:", error);
+      );
+      message.success("Đổi mật khẩu thành công!");
+      setPasswordData({
+        oldPassword: "",
+        password: "",
+        password_confirmation: "",
       });
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Có lỗi xảy ra khi đổi mật khẩu!";
+      message.error(errorMessage);
+      console.error("Lỗi đổi mật khẩu:", error);
+    }
+  };
+
+  const handleUserChange = (field, value) => {
+    setEditedUser((prev) => ({ ...prev, [field]: value }));
   };
 
   if (loading) return <div className={styles.loading}>Đang tải...</div>;
 
-  const { rank, color, icon } = getRankFromTotalSpent(user.totalSpent);
+  const { rank, color, icon } = getRankFromSpent(user?.totalSpent);
+
+  // Định nghĩa mức tối đa cho thanh progress (5 triệu VND để khớp với rank Kim cương)
+  const MAX_SPENT = 5000000;
 
   return (
     <div className={styles.pageWrapper}>
@@ -171,35 +184,45 @@ const UserProfile = () => {
               size={120}
               icon={<UserOutlined />}
               className={styles.profileAvatar}
-              src={user.avatarUrl}
+              src={user?.avatarUrl}
             />
-            <h2 className={styles.profileName}>{user.name}</h2>
+            <h2 className={styles.profileName}>{user?.name}</h2>
             <p className={styles.profileRank}>
-              🎖 {user.role === "admin" ? "Quản trị viên" : rank}
+              {icon} {user?.role === "admin" ? "Quản trị viên" : rank}
             </p>
+            <p className={styles.profileRole}>
+              <UserOutlined /> Thành viên
+            </p>
+
             <div className={styles.expenseSection}>
               <p className={styles.profileExpenseTitle}>Tổng chi tiêu 2025</p>
+              <p className={styles.profileExpenseText}>
+                {user?.totalSpent
+                  ? `${user.totalSpent.toLocaleString()} VND`
+                  : "Chưa có chi tiêu"}
+              </p>
+
+              {/* Thanh progress dựa trên totalSpent */}
               <Progress
                 percent={
-                  user.totalSpent ? (user.totalSpent / 1000000) * 100 : 0
+                  user?.totalSpent ? (user.totalSpent / MAX_SPENT) * 100 : 0
                 }
-                strokeColor={{
-                  "0%": "#108ee9",
-                  "100%": "#87d068",
-                }}
+                strokeColor={{ "0%": "#108ee9", "100%": "#87d068" }}
                 trailColor="#e6f7ff"
                 strokeWidth={12}
                 className={styles.customProgress}
+                format={() =>
+                  `${
+                    user?.totalSpent ? user.totalSpent.toLocaleString() : 0
+                  } VND`
+                }
               />
-              <p className={styles.profileExpenseText}>
-                {user.totalSpent
-                  ? `Đã chi: ${user.totalSpent.toLocaleString()} VND`
-                  : "Chưa có dữ liệu"}
-              </p>
+
               <p className={styles.rankDisplay} style={{ color }}>
-                {icon} Hạng: {rank}
+                Hạng hiện tại: {rank}
               </p>
             </div>
+
             <div className={styles.contactInfo}>
               <p>
                 📞 <a href="tel:19002224">19002224</a>
@@ -238,7 +261,7 @@ const UserProfile = () => {
                                 "DD/MM/YYYY HH:mm"
                               )}
                             </td>
-                            <td>{order.total_amount?.toLocaleString()} VND</td>
+                            <td>{order.total_price?.toLocaleString()} VND</td>
                             <td>
                               <span
                                 className={`${styles.statusBadge} ${
@@ -268,42 +291,44 @@ const UserProfile = () => {
                   <Form.Item label="Họ và tên">
                     <Input
                       prefix={<UserOutlined />}
-                      value={editedUser.name}
+                      value={editedUser?.name || ""}
                       disabled={!isEditing}
                       className={styles.customInput}
-                      onChange={(e) =>
-                        setEditedUser({ ...editedUser, name: e.target.value })
-                      }
+                      onChange={(e) => handleUserChange("name", e.target.value)}
                     />
                   </Form.Item>
                   <Form.Item label="Email">
                     <Input
                       prefix={<MailOutlined />}
-                      value={editedUser.email}
+                      value={editedUser?.email || ""}
                       disabled={!isEditing}
                       className={styles.customInput}
                     />
                   </Form.Item>
                   <Form.Item label="Ngày sinh">
                     <DatePicker
-                      value={dayjs(editedUser.birthdate)}
+                      value={
+                        editedUser?.birthdate
+                          ? dayjs(editedUser.birthdate)
+                          : null
+                      }
                       disabled={!isEditing}
                       format="DD/MM/YYYY"
                       style={{ width: "100%" }}
                       className={styles.customInput}
                       onChange={(date, dateString) =>
-                        setEditedUser({ ...editedUser, birthdate: dateString })
+                        handleUserChange("birthdate", dateString)
                       }
                     />
                   </Form.Item>
                   <Form.Item label="Số điện thoại">
                     <Input
                       prefix={<PhoneOutlined />}
-                      value={editedUser.phone}
+                      value={editedUser?.phone || ""}
                       disabled={!isEditing}
                       className={styles.customInput}
                       onChange={(e) =>
-                        setEditedUser({ ...editedUser, phone: e.target.value })
+                        handleUserChange("phone", e.target.value)
                       }
                     />
                   </Form.Item>
@@ -336,7 +361,7 @@ const UserProfile = () => {
                   </div>
                 </Form>
               </Tabs.TabPane>
-              {user.role !== "admin" && (
+              {user?.role !== "admin" && (
                 <Tabs.TabPane tab="Đổi Mật Khẩu" key="3">
                   <Form layout="vertical" className={styles.profileForm}>
                     <Form.Item label="Mật khẩu cũ">
@@ -344,10 +369,10 @@ const UserProfile = () => {
                         prefix={<LockOutlined />}
                         value={passwordData.oldPassword}
                         onChange={(e) =>
-                          setPasswordData({
-                            ...passwordData,
+                          setPasswordData((prev) => ({
+                            ...prev,
                             oldPassword: e.target.value,
-                          })
+                          }))
                         }
                         className={styles.customInput}
                         iconRender={(visible) =>
@@ -360,10 +385,10 @@ const UserProfile = () => {
                         prefix={<LockOutlined />}
                         value={passwordData.password}
                         onChange={(e) =>
-                          setPasswordData({
-                            ...passwordData,
+                          setPasswordData((prev) => ({
+                            ...prev,
                             password: e.target.value,
-                          })
+                          }))
                         }
                         className={styles.customInput}
                         iconRender={(visible) =>
@@ -376,10 +401,10 @@ const UserProfile = () => {
                         prefix={<LockOutlined />}
                         value={passwordData.password_confirmation}
                         onChange={(e) =>
-                          setPasswordData({
-                            ...passwordData,
+                          setPasswordData((prev) => ({
+                            ...prev,
                             password_confirmation: e.target.value,
-                          })
+                          }))
                         }
                         className={styles.customInput}
                         iconRender={(visible) =>

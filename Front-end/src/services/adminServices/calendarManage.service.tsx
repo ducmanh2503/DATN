@@ -161,7 +161,7 @@ export const useDetailCalendar = (id: number) => {
         retry: 1,
     });
 
-    return { data, isLoading, isError };
+  return { data: data || [], isLoading, isError };
 };
 
 // cập nhật lịch chiếu

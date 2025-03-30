@@ -14,7 +14,15 @@ const MovieSearch = ({ onMovieClick }: MovieSearchProps) => {
   const [keyword, setKeyword] = useState("");
   const [searchTrigger, setSearchTrigger] = useState(0);
 
+<<<<<<< HEAD
   const { data: movies, isLoading, isFetched } = useQuery({
+=======
+  const {
+    data: movies,
+    isLoading,
+    isFetched,
+  } = useQuery({
+>>>>>>> main
     queryKey: ["movieSearch", keyword, searchTrigger],
     queryFn: async () => {
       if (!keyword.trim()) return [];
@@ -26,7 +34,11 @@ const MovieSearch = ({ onMovieClick }: MovieSearchProps) => {
 
   const handleSearch = () => {
     if (!keyword.trim()) return;
+<<<<<<< HEAD
     setSearchTrigger(prev => prev + 1);
+=======
+    setSearchTrigger((prev) => prev + 1);
+>>>>>>> main
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -59,21 +71,36 @@ const MovieSearch = ({ onMovieClick }: MovieSearchProps) => {
       ) : (
         <div className={styles.resultsContainer}>
           {movies?.map((movie: SearchMovie) => (
+<<<<<<< HEAD
             <Card 
+=======
+            <Card
+>>>>>>> main
               key={movie.id}
               hoverable
               className={styles.movieCard}
               cover={
+<<<<<<< HEAD
                 <img 
                   alt={movie.title} 
                   src={`${URL_IMAGE}${movie.poster}`} 
+=======
+                <img
+                  alt={movie.title}
+                  src={`${URL_IMAGE}${movie.poster}`}
+>>>>>>> main
                   className={styles.moviePoster}
                 />
               }
               onClick={() => onMovieClick(movie.id)}
             >
+<<<<<<< HEAD
               <Card.Meta 
                 title={movie.title} 
+=======
+              <Card.Meta
+                title={movie.title}
+>>>>>>> main
                 description={
                   <div className={styles.movieDetails}>
                     <div>
@@ -81,12 +108,20 @@ const MovieSearch = ({ onMovieClick }: MovieSearchProps) => {
                     </div>
                     <div className={styles.tagsContainer}>
                       <strong>Thể loại:</strong>
+<<<<<<< HEAD
                       {movie.genres.map(genre => (
                         <Tag key={genre.id} color="blue">{genre.name_genre}</Tag>
+=======
+                      {movie.genres.map((genre) => (
+                        <Tag key={genre.id} color="blue">
+                          {genre.name_genre}
+                        </Tag>
+>>>>>>> main
                       ))}
                     </div>
                     <div className={styles.tagsContainer}>
                       <strong>Diễn viên:</strong>
+<<<<<<< HEAD
                       {movie.actors.slice(0, 3).map(actor => (
                         <Tag key={actor.id} color="green">{actor.name_actor}</Tag>
                       ))}
@@ -94,6 +129,20 @@ const MovieSearch = ({ onMovieClick }: MovieSearchProps) => {
                     </div>
                     <div>
                       <strong>Đạo diễn:</strong> {movie.directors?.name_director || "Không có thông tin"}
+=======
+                      {movie.actors.slice(0, 3).map((actor) => (
+                        <Tag key={actor.id} color="green">
+                          {actor.name_actor}
+                        </Tag>
+                      ))}
+                      {movie.actors.length > 3 && (
+                        <Tag color="green">+{movie.actors.length - 3}</Tag>
+                      )}
+                    </div>
+                    <div>
+                      <strong>Đạo diễn:</strong>{" "}
+                      {movie.directors?.name_director || "Không có thông tin"}
+>>>>>>> main
                     </div>
                   </div>
                 }

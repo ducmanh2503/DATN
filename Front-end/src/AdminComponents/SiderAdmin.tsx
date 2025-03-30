@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
-    DashboardOutlined,
-    BarChartOutlined,
-    CalendarOutlined,
-    DesktopOutlined,
-    SnippetsOutlined,
-    TeamOutlined,
-    VideoCameraAddOutlined,
-    ShoppingOutlined, // Thêm icon cho đơn hàng
+  DashboardOutlined,
+  BarChartOutlined,
+  CalendarOutlined,
+  DesktopOutlined,
+  SnippetsOutlined,
+  TeamOutlined,
+  VideoCameraAddOutlined,
+  ShoppingOutlined, // Thêm icon cho đơn hàng
 } from "@ant-design/icons";
 import { Menu, type MenuProps } from "antd";
 import Sider from "antd/es/layout/Sider";
@@ -17,17 +17,17 @@ import authService from "../services/auth.service";
 
 type MenuItem = Required<MenuProps>["items"][number];
 function getItem(
-    label: React.ReactNode,
-    key: React.Key,
-    icon?: React.ReactNode,
-    children?: MenuItem[]
+  label: React.ReactNode,
+  key: React.Key,
+  icon?: React.ReactNode,
+  children?: MenuItem[]
 ): MenuItem {
-    return {
-        key,
-        icon,
-        children,
-        label,
-    } as MenuItem;
+  return {
+    key,
+    icon,
+    children,
+    label,
+  } as MenuItem;
 }
 
 const SiderAdmin = () => {

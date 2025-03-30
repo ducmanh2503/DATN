@@ -61,7 +61,11 @@
   .resultsContainer {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> main
   .moviePoster {
     height: 320px;
   }

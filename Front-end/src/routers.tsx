@@ -19,7 +19,6 @@ import ShowtimesManage from "./page/admin/Showtimes/ShowtimesManage";
 import ActorsManage from "./page/admin/Actors/ActorsManage";
 import GenresManage from "./page/admin/Genres/GenresManage";
 import DirectorsManage from "./page/admin/Directors/DirectorsManage";
-import SeatPage from "./page/admin/Seat/SeatPage";
 import RoomPage from "./page/admin/RoomPage/RoomPage";
 import FilmDetail from "./ClientComponents/FilmDetail/FilmDetail";
 import Login from "./page/auth/Login";
@@ -228,10 +227,6 @@ export const router = createBrowserRouter([
           {
             path: "genre",
             element: <GenresManage />,
-          },
-          {
-            path: "seats",
-            element: <SeatPage />,
           },
           {
             path: "rooms",

@@ -98,11 +98,15 @@
 }
 
 .firstRank {
-    background-color: var(--first-rank);
+  background-color: var(--first-rank);
 }
 
 .secondRank {
-    background-color: var(--secound-rank);
+  background-color: var(--secound-rank);
+}
+
+.thirdRank {
+  background-color: var(--third-rank, #cd7f32);
 }
 
 .thirdRank {

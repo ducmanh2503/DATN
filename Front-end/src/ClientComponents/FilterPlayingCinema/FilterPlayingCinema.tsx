@@ -15,7 +15,6 @@ const FilterPlayingCinema = ({ onFilterChange, onFilteredDataChange }: FilterPla
   const [activeFilters, setActiveFilters] = useState({
     sortBy: "Mới nhất",
     genre: "Tất cả",
-    cinema: "Tất cả",
     language: "Tất cả",
     releaseYear: 0, // 0 đại diện cho "Tất cả năm"
     status: "now_showing"
@@ -104,13 +103,6 @@ const FilterPlayingCinema = ({ onFilterChange, onFilteredDataChange }: FilterPla
         console.log("Gọi API movies-index");
         const { data } = await axios.get("http://localhost:8000/api/movies-index");
         filteredMovies = data.now_showing || [];
-      }
-      
-      // Lọc thêm theo rạp (client-side) nếu cần
-      if (activeFilters.cinema !== "Tất cả") {
-        filteredMovies = filteredMovies.filter((movie: any) => 
-          movie.cinemas?.some((c: any) => c.name === activeFilters.cinema) || false
-        );
       }
       
       // Sắp xếp
@@ -202,17 +194,6 @@ const FilterPlayingCinema = ({ onFilterChange, onFilteredDataChange }: FilterPla
           { value: "Hài hước", label: "Hài hước" },
           { value: "Hoạt hình", label: "Hoạt hình" },
           { value: "Bí ẩn", label: "Bí ẩn" },
-        ]}
-        loading={isLoading}
-      />
-      <Select
-        className={clsx(styles.selectOption)}
-        defaultValue="Tất cả"
-        onChange={(value) => handleChange(value, "cinema")}
-        options={[
-          { value: "Tất cả", label: "Tất cả" },
-          { value: "Rạp 1", label: "Rạp 1" },
-          { value: "Rạp 2", label: "Rạp 2" },
         ]}
         loading={isLoading}
       />

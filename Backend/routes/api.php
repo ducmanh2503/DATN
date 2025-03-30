@@ -92,7 +92,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Chỉ admin mới truy cập được
-    Route::middleware(['role:admin'])->group(function () {
+    Route::middleware(['role:admin,staff'])->group(function () {
         Route::middleware(['restrict.staff.statistics'])->group(function () {
             Route::get('/statistics', [StatisticsController::class, 'index']);
             Route::get('/statistics-filter', [StatisticsController::class, 'statsByDateRange']);

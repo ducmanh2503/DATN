@@ -108,6 +108,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
             !!roomIdFromShowtimes && !!showtimeIdFromBooking && !!tokenUserId,
     });
 
+    // lưu ma trậng ghế vào data
     useEffect(() => {
         if (matrixSeats) {
             setMatrixSeatsManage(matrixSeats ?? null);
@@ -309,6 +310,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
         setTotalPrice(totalSeatPrice + totalComboPrice);
     }, [totalSeatPrice, totalComboPrice, currentStep]);
 
+    // kiểm tra xem ghế nào bị held hay booked thì cập nhật isHeld
     useEffect(() => {
         if (!matrixSeats) return;
 
@@ -621,7 +623,12 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                                 const isBooked =
                                                     seat.status === "Booked";
                                                 const isEmpty =
-                                                    seat.status === "Empty";
+                                                    seat.adminStatus ===
+                                                    "empty";
+                                                const isDisabled =
+                                                    seat.adminStatus ===
+                                                    "disabled";
+
                                                 return (
                                                     <button
                                                         className={clsx(
@@ -633,7 +640,11 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                                             isSelected &&
                                                                 styles.selected,
                                                             isEmpty &&
+                                                                !isBooked &&
                                                                 styles.empty,
+                                                            isDisabled &&
+                                                                !isBooked &&
+                                                                styles.disabled,
                                                             seat.type ===
                                                                 "VIP" &&
                                                                 styles.vip,

@@ -59,12 +59,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
-
-
-
-
-
-
     //thông tin và cập nhật khách hàng
     Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
     Route::put('/update-profile', [UserController::class, 'updateProfile']);
@@ -92,7 +86,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Chỉ admin mới truy cập được
+
     Route::middleware(['role:admin,staff'])->group(function () {
+
         Route::middleware(['restrict.staff.statistics'])->group(function () {
             Route::get('/statistics', [StatisticsController::class, 'index']);
             Route::get('/statistics-filter', [StatisticsController::class, 'statsByDateRange']);
@@ -119,10 +115,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         // Seats
-        Route::apiResource('/seats', SeatController::class);
+        Route::apiResource('/seats', SeatController::class)->except(['show']);;
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
         Route::post('/seats/create-multiple', [SeatController::class, 'storeMultiple']);
+        Route::get('/seats/trashed', [SeatController::class, 'getTrashedSeats']);
+        Route::post('/seats/restore/{seatId}', [SeatController::class, 'restore']);
+        Route::post('/seats/restore-all/{roomId}', [SeatController::class, 'restoreAll']);
         Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
         Route::delete('/delete-seats/room/{room_id}', [SeatController::class, 'deleteAll']);
 
@@ -131,22 +130,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
 
 
-
-
-
-
-
-
         // Showtimes
         Route::apiResource('showTime', ShowTimeController::class);
         Route::post('show-times/in-range', [ShowTimeController::class, 'getShowTimesInDateRange']); //danh sách ngày
         Route::post('show-times/by-date', [ShowTimeController::class, 'getShowTimesByDate']); //lọc theo ngày cụ thể
-
-
-
-
-
-
 
 
         // lọc theo khoảng ngày
@@ -155,20 +142,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/showtimes/{id}/destroy-by-date/{selected_date}', [ShowTimeController::class, 'destroyByDate']);
 
 
-
-
-
-
-
-
         // CalendarShow
         Route::apiResource('/calendarShow', CalendarShowController::class);
-
-
-
-
-
-
 
 
         // Combo

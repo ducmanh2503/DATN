@@ -14,43 +14,45 @@ use Illuminate\Support\Facades\Validator;
 
 class MoviesController extends Controller
 {
-    // Xếp hạng phim theo số vé bán ra (dành cho trang chủ)
-    public function moviesRanking(Request $request)
-    {
-        // Lấy ngày hiện tại (hoặc ngày từ request, mặc định là ngày hiện tại 25/3/2025)
-        $date = $request->input('date', '2025-03-25');
-        $startOfMonth = Carbon::parse($date)->startOfMonth();
-        $endOfDay = Carbon::parse($date)->endOfDay();
+   // Xếp hạng phim theo số vé bán ra (dành cho trang chủ)
+   public function moviesRanking(Request $request)
+   {
+       // Lấy ngày hiện tại (hoặc ngày từ request, mặc định là ngày hiện tại 25/3/2025)
+       $date = $request->input('date');
+       $startOfMonth = Carbon::parse($date)->startOfMonth();
+       $endOfDay = Carbon::parse($date)->endOfDay();
 
-        // Lấy danh sách phim và số vé bán ra
-        $movieRankings = BookingDetail::whereHas('booking', function ($query) use ($startOfMonth, $endOfDay) {
-            $query->whereBetween('bookings.created_at', [$startOfMonth, $endOfDay]);
-        })
-            ->whereNotNull('seat_id') // Chỉ tính các booking detail có ghế (vé)
-            ->select('movies.title')
-            ->selectRaw('COUNT(*) as total_tickets')
-            ->join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
-            ->join('show_times', 'bookings.showtime_id', '=', 'show_times.id')
-            ->join('calendar_show', 'show_times.calendar_show_id', '=', 'calendar_show.id')
-            ->join('movies', 'calendar_show.movie_id', '=', 'movies.id')
-            ->groupBy('movies.id', 'movies.title')
-            ->orderBy('total_tickets', 'desc')
-            ->get()
-            ->map(function ($item, $index) use ($startOfMonth) {
-                return [
-                    'rank' => $index + 1, // Thứ hạng (bắt đầu từ 1)
-                    'movie_title' => $item->title,
-                    'total_tickets' => (int) $item->total_tickets,
-                    'month_year' => Carbon::parse($startOfMonth)->format('m/Y'), // Thêm tháng/năm
-                ];
-            });
+       // Lấy danh sách phim và số vé bán ra
+       $movieRankings = BookingDetail::whereHas('booking', function ($query) use ($startOfMonth, $endOfDay) {
+           $query->whereBetween('bookings.created_at', [$startOfMonth, $endOfDay]);
+       })
+           ->whereNotNull('seat_id') // Chỉ tính các booking detail có ghế (vé)
+           ->select('movies.id as movie_id', 'movies.title')
+           ->selectRaw('COUNT(*) as total_tickets')
+           ->join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
+           ->join('show_times', 'bookings.showtime_id', '=', 'show_times.id')
+           ->join('calendar_show', 'show_times.calendar_show_id', '=', 'calendar_show.id')
+           ->join('movies', 'calendar_show.movie_id', '=', 'movies.id')
+           ->groupBy('movies.id', 'movies.title')
+           ->orderBy('total_tickets', 'desc')
+           ->take(10) // Lấy top 10 phim
+           ->get()
+           ->map(function ($item, $index) use ($startOfMonth) {
+               return [
+                   'rank' => $index + 1, // Thứ hạng (bắt đầu từ 1)
+                   'movie_id' => $item->movie_id,
+                   'movie_title' => $item->title,
+                   'total_tickets' => (int) $item->total_tickets,
+                   'month_year' => Carbon::parse($startOfMonth)->format('m/Y'), // Thêm tháng/năm
+               ];
+           });
 
-        // Trả về phản hồi API
-        return response()->json([
-            'message' => 'Xếp hạng phim',
-            'data' => $movieRankings,
-        ]);
-    }
+       // Trả về phản hồi API
+       return response()->json([
+           'message' => 'Xếp hạng phim',
+           'data' => $movieRankings,
+       ]);
+   }
 
     // Lấy danh sách phim cùng thể loại (trừ phim hiện tại)
     public function relatedMovies(Request $request, $movieId)

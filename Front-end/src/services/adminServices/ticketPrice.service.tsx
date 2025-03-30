@@ -6,6 +6,7 @@ import {
     GET_TICKETSPRICE,
     UPDATE_TICKETPRICE,
 } from "../../config/ApiConfig";
+import { handleApiError } from "./utils";
 
 // Hàm lấy dữ liệu ticketPrice
 export const useTicketsPrice = () => {
@@ -41,9 +42,7 @@ export const useDeleteTicketPrice = (messageApi: any) => {
             });
             messageApi.success("Xóa vé thành công");
         },
-        onError: () => {
-            messageApi.error("Không thể xóa vé");
-        },
+        onError: handleApiError,
     });
 };
 
@@ -74,8 +73,6 @@ export const useUpdateTicketPrice = (messageApi: any) => {
             messageApi.success("Xóa vé thành công");
         },
 
-        onError: () => {
-            messageApi.error("không thể xóa vé");
-        },
+        onError: handleApiError,
     });
 };

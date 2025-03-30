@@ -19,7 +19,6 @@ import ShowtimesManage from "./page/admin/Showtimes/ShowtimesManage";
 import ActorsManage from "./page/admin/Actors/ActorsManage";
 import GenresManage from "./page/admin/Genres/GenresManage";
 import DirectorsManage from "./page/admin/Directors/DirectorsManage";
-import SeatPage from "./page/admin/Seat/SeatPage";
 import RoomPage from "./page/admin/RoomPage/RoomPage";
 import FilmDetail from "./ClientComponents/FilmDetail/FilmDetail";
 import Login from "./page/auth/Login";
@@ -46,63 +45,12 @@ import LayoutPaymentResult from "./ClientComponents/Booking/ResultPayment/Layout
 import ProfilePage from "./page/admin/Profilepage/Profilepage";
 import Dashboard from "./page/admin/Dashboard/Dashboard";
 import DashBoardFilm from "./page/admin/Dashboard/DashBoardFilm";
+import AdminStaffRoute from "./components/AdminStaffRoute";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
-
-// Hàm thiết lập interceptors cho axios
-const setupAxiosInterceptors = (navigate: ReturnType<typeof useNavigate>) => {
-  const requestInterceptor = axios.interceptors.request.use(
-    (config) => {
-      const token = authService.getToken();
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.log("[Axios] Token đã được gắn:", token);
-      } else {
-        console.warn("[Axios] Không tìm thấy token trong request");
-      }
-      return config;
-    },
-    (error) => {
-      console.error("[Axios Request Error]:", error);
-      return Promise.reject(error);
-    }
-  );
-
-  const responseInterceptor = axios.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      const { response } = error;
-      if (response) {
-        if (response.status === 401) {
-          console.error("Token hết hạn hoặc không hợp lệ");
-          localStorage.removeItem("auth_token");
-          localStorage.removeItem("user_role");
-          navigate("/auth/login", {
-            state: {
-              message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
-            },
-            replace: true,
-          });
-        } else if (response.status === 403) {
-          console.error("Không có quyền truy cập");
-          navigate("/", {
-            state: {
-              message: "Bạn không có quyền truy cập trang này.",
-            },
-            replace: true,
-          });
-        }
-      }
-      return Promise.reject(error);
-    }
-  );
-
-  return () => {
-    axios.interceptors.request.eject(requestInterceptor);
-    axios.interceptors.response.eject(responseInterceptor);
-  };
-};
 
 // Component hiển thị khi đang tải
 const LoadingComponent = () => (
@@ -134,68 +82,6 @@ const LoadingComponent = () => (
       `}</style>
   </div>
 );
-
-// Route bảo vệ cho các trang yêu cầu đăng nhập
-const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
-  const [role, setRole] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const authStatus = authService.isAuthenticated();
-        if (!authStatus) {
-          console.log("Chưa đăng nhập hoặc không có token");
-          navigate("/auth/login", {
-            state: { message: "Vui lòng đăng nhập để tiếp tục." },
-            replace: true,
-          });
-          return;
-        }
-
-        const userRole = authService.getRole();
-        setIsAuthenticated(true);
-        setRole(userRole);
-
-        if (requiredRole && userRole !== requiredRole) {
-          console.log(`Vai trò không khớp: ${userRole} !== ${requiredRole}`);
-          navigate("/", {
-            state: {
-              message: "Bạn không có quyền truy cập trang này.",
-            },
-            replace: true,
-          });
-          return;
-        }
-
-        const cleanup = setupAxiosInterceptors(navigate);
-        setLoading(false);
-
-        return cleanup;
-      } catch (error) {
-        console.error("Lỗi xác thực:", error);
-        setIsAuthenticated(false);
-        navigate("/auth/login", { replace: true });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [navigate, requiredRole]);
-
-  if (loading) {
-    return <LoadingComponent />;
-  }
-
-  return isAuthenticated && (role === requiredRole || !requiredRole) ? (
-    <Outlet />
-  ) : (
-    <Navigate to="/auth/login" replace />
-  );
-};
 
 // Route công khai cho các trang không yêu cầu đăng nhập
 const PublicRoute = () => {
@@ -290,17 +176,22 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <ProtectedRoute requiredRole="admin" />,
+    element: <AdminStaffRoute />,
     children: [
       {
         path: "/admin",
-        element: <AdminLayout />,
+        element: (
+          <>
+            <ToastContainer />
+            <AdminLayout />
+          </>
+        ),
         children: [
           {
             index: true,
             element: <Dashboard />,
           },
-          { path: "dashboard", element: <Dashboard /> }, // Add this line
+          { path: "dashboard", element: <Dashboard /> },
           {
             path: "dashboardFilm",
             element: <DashBoardFilm />,
@@ -336,10 +227,6 @@ export const router = createBrowserRouter([
           {
             path: "genre",
             element: <GenresManage />,
-          },
-          {
-            path: "seats",
-            element: <SeatPage />,
           },
           {
             path: "rooms",

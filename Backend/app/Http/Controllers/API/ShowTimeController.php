@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
 use App\Models\Movies;
 use App\Models\Room;
+use App\Models\Seat;
 use App\Models\ShowTime;
 use App\Models\ShowTimeDate;
+use App\Models\ShowTimeSeat;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -80,118 +82,116 @@ class ShowTimeController extends Controller
      */
     public function store(Request $request)
     {
-
-
-
-
-        // Validate dữ liệu
+        // Validate dữ liệu đầu vào
         $validator = Validator::make($request->all(), [
             'calendar_show_id' => 'required|exists:calendar_show,id',
             'room_id' => 'required|exists:rooms,id',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
             'status' => 'required|in:referenced,now_showing,coming_soon',
-            'selected_date' => 'required|date', // Thêm trường này để chọn một ngày cụ thể
+            'selected_date' => 'required|date',
         ]);
-
-
-        $room = Room::find($request->room_id);
-        if ($room && !$room->roomType) {
-            return response()->json(['error' => 'Phòng chiếu không có loại phòng hợp lệ.'], 422);
-        }
-
-
-        $roomTypeId = $room ? $room->roomType->id : null;
-
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
+        // Kiểm tra phòng chiếu
+        $room = Room::find($request->room_id);
+        if (!$room || !$room->roomType) {
+            return response()->json(['error' => 'Phòng chiếu không hợp lệ.'], 422);
+        }
 
-        // Kiểm tra xem ngày được chọn có nằm trong khoảng show_date và end_date không
+        // Kiểm tra ngày được chọn
         $calendarShow = CalendarShow::find($request->calendar_show_id);
         $selectedDate = Carbon::parse($request->selected_date);
         $showDate = Carbon::parse($calendarShow->show_date);
         $endDate = Carbon::parse($calendarShow->end_date);
 
-
         if ($selectedDate->lt($showDate) || $selectedDate->gt($endDate)) {
-            return response()->json([
-                'error' => 'Ngày đã chọn không nằm trong khoảng của lịch chiếu'
-            ], 422);
+            return response()->json(['error' => 'Ngày chọn không nằm trong khoảng lịch chiếu.'], 422);
         }
 
-
-        // Kiểm tra xem phòng chiếu có trống vào thời điểm này không
+        // Kiểm tra xung đột thời gian
         $conflictingShowTimes = ShowTime::whereHas('showTimeDate', function ($query) use ($request) {
             $query->whereDate('show_date', $request->selected_date);
         })
             ->where('room_id', $request->room_id)
             ->where(function ($query) use ($request) {
-                // Kiểm tra xung đột thời gian
-                $query->where(function ($q) use ($request) {
-                    $q->where('start_time', '<', $request->end_time)
-                        ->where('end_time', '>', $request->start_time);
-                });
+                $query->where('start_time', '<', $request->end_time)
+                    ->where('end_time', '>', $request->start_time);
             })
             ->count();
 
-
         if ($conflictingShowTimes > 0) {
-            return response()->json([
-                'error' => 'Phòng chiếu đã được đặt trong khoảng thời gian này'
-            ], 422);
+            return response()->json(['error' => 'Phòng chiếu đã được đặt trong khoảng thời gian này.'], 422);
         }
 
-
-        // Thêm lịch chiếu
+        // Tạo suất chiếu mới
         $showTime = ShowTime::create([
             'calendar_show_id' => $request->calendar_show_id,
             'room_id' => $request->room_id,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'status' => $request->status,
-            'room_type_id' => $roomTypeId, // thêm room_tyoe nếu cần
+            'room_type_id' => $room->roomType->id,
         ]);
 
-
-        // Tạo bản ghi trong bảng show_time_date
-        $showTimeDate = ShowTimeDate::create([
+        // Tạo bản ghi ngày chiếu
+        ShowTimeDate::create([
             'show_time_id' => $showTime->id,
-            'show_date' => $request->selected_date
+            'show_date' => $request->selected_date,
         ]);
 
+        // Lấy danh sách ghế của phòng
+        $seats = Seat::where('room_id', $request->room_id)->get();
+        if ($seats->isEmpty()) {
+            return response()->json(['error' => 'Không tìm thấy ghế trong phòng.'], 400);
+        }
+
+        // Tìm suất chiếu gần nhất dựa trên created_at, loại bỏ suất chiếu hiện tại
+        $latestShowTime = ShowTime::join('show_time_date', 'show_time_date.show_time_id', '=', 'show_times.id')
+            ->where('show_times.room_id', $request->room_id)
+            ->where('show_times.created_at', '<', now()) // Chỉ lấy suất chiếu được tạo trước thời điểm hiện tại
+            ->where('show_times.id', '!=', $showTime->id) // Loại bỏ suất chiếu vừa tạo
+            ->orderBy('show_times.created_at', 'desc') // Sắp xếp theo created_at giảm dần
+            ->select('show_times.id', 'show_time_date.show_date', 'show_times.start_time', 'show_times.created_at')
+            ->first();
+
+        // Log chi tiết để kiểm tra
+        Log::info("Request Details: Room ID: {$request->room_id}, Selected Date: {$request->selected_date}, Current Time: " . now());
+        Log::info("Latest ShowTime for Room ID {$request->room_id}: " . ($latestShowTime ? "ID: {$latestShowTime->id}, Date: {$latestShowTime->show_date}, Start: {$latestShowTime->start_time}, Created At: {$latestShowTime->created_at}" : 'None'));
+
+        // Tạo trạng thái ghế cho suất chiếu mới
+        foreach ($seats as $seat) {
+            $seatStatus = 'available'; // Mặc định là 'available'
+
+            if ($latestShowTime) {
+                $latestShowTimeSeat = ShowTimeSeat::where('seat_id', $seat->id)
+                    ->where('show_time_id', $latestShowTime->id)
+                    ->first();
+
+                if ($latestShowTimeSeat) {
+                    Log::info("Seat ID: {$seat->id}, Previous Status: {$latestShowTimeSeat->seat_status}");
+                    $seatStatus = (strtolower($latestShowTimeSeat->seat_status) === 'booked') ? 'available' : $latestShowTimeSeat->seat_status;
+                } else {
+                    Log::info("Seat ID: {$seat->id}, No previous status found in ShowTimeSeat");
+                }
+            }
+
+            Log::info("Seat ID: {$seat->id}, Final New Status: {$seatStatus}");
+
+            ShowTimeSeat::create([
+                'seat_id' => $seat->id,
+                'show_time_id' => $showTime->id,
+                'seat_status' => $seatStatus,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Xuất chiếu đã được thêm thành công',
-            'data' => [
-                'show_time' => $showTime,
-                'show_date' => $showTimeDate,
-                'room_type' => $roomTypeId ? $room->roomType->name : null,
-            ]
+            'data' => $showTime,
         ], 201);
-    }
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-
-
-
-
-        $showTime = ShowTime::with(['calendarShow.movie', 'calendarShow', 'room.roomType'])->find($id);
-
-
-        if (!$showTime) {
-            return response()->json(['message' => 'Xuất chiếu không tồn tại'], 404);
-        }
-
-
-        return response()->json($showTime);
     }
 
 

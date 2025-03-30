@@ -504,14 +504,7 @@ class MoviesController extends Controller
     }
 
     /**
-     * Tìm kiếm phim theo tên phim
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    /**
      * Tìm kiếm phim theo tiêu đề, diễn viên hoặc đạo diễn
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function searchMovies(Request $request)
     {

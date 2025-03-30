@@ -95,10 +95,7 @@ const ChangeShowtimes = () => {
                             )}
                             to={`/booking/${filmId}`}
                             onClick={() => {
-                                console.log(
-                                    "check item",
-                                    item.calendar_show_id
-                                );
+                                // console.log("check item", item);
                                 handleClick(
                                     item.id,
                                     item.start_time,

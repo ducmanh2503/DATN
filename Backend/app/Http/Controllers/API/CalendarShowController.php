@@ -7,6 +7,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
 use App\Models\Movies;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -33,19 +34,15 @@ class CalendarShowController extends Controller
      */
     public function store(Request $request)
     {
-
-
         $validator = Validator::make($request->all(), [
             'movie_id' => 'required|exists:movies,id',
             'show_date' => 'required|date',
             'end_date' => 'required|date',
         ]);
 
-
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
-
 
         // Thêm lịch chiếu
         $calendarShows = CalendarShow::create([
@@ -54,8 +51,19 @@ class CalendarShowController extends Controller
             'end_date' => $request->end_date,
         ]);
 
+        // Lấy ngày hiện tại
+        $currentDate = Carbon::today();
 
-        return response()->json(['message' => 'Lịch chiếu đã được thêm thành công', 'data' => $calendarShows], 201);
+        // Kiểm tra và cập nhật trạng thái phim
+        $movie = Movies::find($request->movie_id);
+        if ($movie && $movie->movie_status === 'coming_soon' && Carbon::parse($request->show_date)->lte($currentDate)) {
+            $movie->update(['movie_status' => 'now_showing']);
+        }
+
+        return response()->json([
+            'message' => 'Lịch chiếu đã được thêm thành công',
+            'data' => $calendarShows
+        ], 201);
     }
 
 

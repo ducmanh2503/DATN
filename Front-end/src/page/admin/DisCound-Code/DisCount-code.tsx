@@ -11,12 +11,13 @@ import {
   message,
 } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 import {
   GET_DISCOUNT_CODE,
   CREATE_DISCOUNT_CODE,
   DELETE_DISCOUNT_CODE,
-  // UPDATE_DISCOUNT_CODE,
+  UPDATE_DISCOUNT_CODE,
 } from "../../../config/ApiConfig";
 
 const { Option } = Select;
@@ -48,6 +49,7 @@ const DiscountManagement = () => {
         ...values,
         start_date: values.start_date.format("YYYY-MM-DD"),
         end_date: values.end_date.format("YYYY-MM-DD"),
+        percent: Math.floor(Number(values.percent)), // Đảm bảo là số nguyên
       };
       await axios.post(CREATE_DISCOUNT_CODE, formattedValues);
       message.success("Thêm mã khuyến mãi thành công!");
@@ -61,14 +63,24 @@ const DiscountManagement = () => {
 
   const handleEditDiscount = async (values) => {
     try {
+      const token = localStorage.getItem("token");
+      // Chỉ gửi những trường đã thay đổi, giữ nguyên các giá trị cũ nếu không thay đổi
       const formattedValues = {
-        ...values,
+        ...selectedDiscount, // Giữ nguyên dữ liệu cũ
+        ...values, // Ghi đè các giá trị mới
         start_date: values.start_date.format("YYYY-MM-DD"),
         end_date: values.end_date.format("YYYY-MM-DD"),
+        percent: Math.floor(Number(values.percent)), // Chuyển thành số nguyên
       };
+
       await axios.put(
         UPDATE_DISCOUNT_CODE(selectedDiscount.id),
-        formattedValues
+        formattedValues,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       message.success("Cập nhật mã khuyến mãi thành công!");
       fetchDiscounts();
@@ -76,7 +88,11 @@ const DiscountManagement = () => {
       setSelectedDiscount(null);
       editForm.resetFields();
     } catch (error) {
-      message.error("Lỗi khi cập nhật mã khuyến mãi");
+      console.error("Lỗi từ server:", error.response?.data);
+      const errorMessage =
+        error.response?.data?.error?.message ||
+        "Lỗi khi cập nhật mã khuyến mãi";
+      message.error(errorMessage);
     }
   };
 
@@ -102,8 +118,9 @@ const DiscountManagement = () => {
     setSelectedDiscount(record);
     editForm.setFieldsValue({
       ...record,
-      start_date: moment(record.start_date),
-      end_date: moment(record.end_date),
+      start_date: dayjs(record.start_date),
+      end_date: dayjs(record.end_date),
+      percent: Math.floor(Number(record.percent)), // Đảm bảo hiển thị số nguyên
     });
     setIsEditModalVisible(true);
   };
@@ -187,7 +204,6 @@ const DiscountManagement = () => {
         footer={null}
       >
         <Form form={addForm} onFinish={handleAddDiscount} layout="vertical">
-          {/* ... Same form fields as before ... */}
           <Form.Item
             name="name_code"
             label="Mã khuyến mãi"
@@ -198,9 +214,28 @@ const DiscountManagement = () => {
           <Form.Item
             name="percent"
             label="Phần trăm giảm"
-            rules={[{ required: true, message: "Nhập phần trăm giảm" }]}
+            rules={[
+              { required: true, message: "Nhập phần trăm giảm" },
+              {
+                validator: (_, value) =>
+                  Number.isInteger(Number(value))
+                    ? Promise.resolve()
+                    : Promise.reject(
+                        new Error("Phần trăm giảm phải là số nguyên")
+                      ),
+              },
+            ]}
           >
-            <Input type="number" />
+            <Input
+              type="number"
+              step="1"
+              min="0"
+              max="100"
+              onChange={(e) => {
+                const value = e.target.value;
+                addForm.setFieldsValue({ percent: Math.floor(Number(value)) });
+              }}
+            />
           </Form.Item>
           <Form.Item
             name="quantity"
@@ -262,9 +297,28 @@ const DiscountManagement = () => {
           <Form.Item
             name="percent"
             label="Phần trăm giảm"
-            rules={[{ required: true, message: "Nhập phần trăm giảm" }]}
+            rules={[
+              { required: true, message: "Nhập phần trăm giảm" },
+              {
+                validator: (_, value) =>
+                  Number.isInteger(Number(value))
+                    ? Promise.resolve()
+                    : Promise.reject(
+                        new Error("Phần trăm giảm phải là số nguyên")
+                      ),
+              },
+            ]}
           >
-            <Input type="number" />
+            <Input
+              type="number"
+              step="1"
+              min="0"
+              max="100"
+              onChange={(e) => {
+                const value = e.target.value;
+                editForm.setFieldsValue({ percent: Math.floor(Number(value)) });
+              }}
+            />
           </Form.Item>
           <Form.Item
             name="quantity"

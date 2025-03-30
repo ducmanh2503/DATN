@@ -25,6 +25,7 @@ export interface MovieRanking {
   movie_title: string;
   movie_id?: number; // ID của phim (nếu có từ API)
   total_tickets: number;
+  poster: string;
   month_year: string;
 }
 

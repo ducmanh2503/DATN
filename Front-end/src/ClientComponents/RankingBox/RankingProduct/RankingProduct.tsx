@@ -36,7 +36,7 @@ const RankingProduct = ({
     <div className={clsx(styles.rProduct, className)}>
       <div className={clsx(styles.imgBox)}>
         <img className={clsx(styles.image)} src={image} alt={name} />
-        <div className={clsx(styles.overlay)}>
+        {/* <div className={clsx(styles.overlay)}>
           {movieId ? (
             <div
               className={clsx(styles.viewDetails)}
@@ -49,7 +49,7 @@ const RankingProduct = ({
               Chưa có thông tin
             </div>
           )}
-        </div>
+        </div> */}
       </div>
       <div className={clsx(styles.title)}>
         <span

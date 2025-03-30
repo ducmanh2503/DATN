@@ -148,7 +148,6 @@ const UserProfile = () => {
         return;
       }
 
-      // Kiểm tra thời gian hết hạn của token
       const decoded = decodeToken(token);
       if (decoded && decoded.exp) {
         const currentTime = Math.floor(Date.now() / 1000);
@@ -161,33 +160,25 @@ const UserProfile = () => {
         }
       }
 
-      const response = await axios
-        .get(GET_USER, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .catch((error) => {
-          console.error(`Error calling GET_USER API:`, error);
-          throw error;
-        });
+      const response = await axios.get(GET_USER, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      // Chuyển đổi dữ liệu từ API để khớp với interface User
       const userData: User = {
         name: response.data.name,
         email: response.data.email,
         phone: response.data.phone || null,
         birthdate: response.data.birthdate || null,
-        totalSpent: parseFloat(response.data.total_spent) || 0, // Chuyển total_spent từ string sang number
+        totalSpent: parseFloat(response.data.total_spent) || 0,
         role: response.data.role,
         avatarUrl: response.data.avatar_url || undefined,
       };
 
-      console.log("Processed user data:", userData); // Kiểm tra dữ liệu đã xử lý
       setUser(userData);
       setEditedUser(userData);
     } catch (error) {
       console.error("Lỗi lấy dữ liệu người dùng:", error);
       if (axios.isAxiosError(error)) {
-        console.log("Error response:", error.response); // Kiểm tra lỗi từ API
         if (error.response?.status === 401) {
           message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
           localStorage.removeItem("auth_token");
@@ -208,93 +199,33 @@ const UserProfile = () => {
     try {
       setOrdersLoading(true);
       const token = getAuthToken();
-      console.log("Auth Token for Orders_Recent:", token);
       if (!token) {
         message.error("Bạn cần đăng nhập để xem lịch sử giao dịch!");
         window.location.href = "/login";
         return;
       }
 
-      const decoded = decodeToken(token);
-      if (decoded && decoded.exp) {
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (decoded.exp < currentTime) {
-          console.warn("Token has expired!");
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login";
-          return;
-        }
-      }
-
-      if (!Orders_Recent || typeof Orders_Recent !== "string") {
-        throw new Error("Invalid Orders_Recent URL. Please check ApiConfig.");
-      }
-
-      const response = await axios
-        .get(Orders_Recent, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        })
-        .catch((error) => {
-          console.error(`Error calling Orders_Recent API:`, error);
-          throw error;
-        });
-
-      console.log("Response Data (Orders_Recent):", response.data.data);
+      const response = await axios.get(Orders_Recent, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       let orders: Order[] = [];
       if (Array.isArray(response.data.data)) {
         orders = response.data.data;
       } else if (response.data.data && Array.isArray(response.data.orders)) {
         orders = response.data.data.orders;
-      } else if (response.data.data && response.data.message) {
-        console.warn(
-          "API Message (Orders_Recent):",
-          response.data.data.message
-        );
-        if (response.data.data.message === "Unauthenticated.") {
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login";
-          return;
-        }
-        if (Array.isArray(response.data.data.orders)) {
-          orders = response.data.data.orders;
-        } else {
-          orders = [];
-          message.info("Hiện tại bạn chưa có giao dịch nào.");
-        }
       } else {
-        throw new Error(
-          `Invalid response format: Expected an array of orders. Received: ${JSON.stringify(
-            response.data.data
-          )}`
-        );
+        orders = [];
+        message.info("Hiện tại bạn chưa có giao dịch nào.");
       }
 
-      console.log("Recent orders fetched successfully:", orders);
       setRecentOrders(orders);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách giao dịch:", error);
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login";
-          return;
-        } else if (error.response?.status === 500) {
-          message.error("Lỗi server! Vui lòng thử lại sau.");
-          return;
-        }
-      }
-      message.error(
-        error instanceof Error
-          ? error.message
-          : "Không thể tải lịch sử giao dịch! Vui lòng thử lại sau."
-      );
+      message.error("Không thể tải lịch sử giao dịch! Vui lòng thử lại sau.");
     } finally {
       setOrdersLoading(false);
     }
@@ -304,45 +235,18 @@ const UserProfile = () => {
     try {
       setOrdersLoading(true);
       const token = getAuthToken();
-      console.log("Auth Token for Orders_Confirmed:", token);
       if (!token) {
         message.error("Bạn cần đăng nhập để xem lịch sử giao dịch!");
         window.location.href = "/login";
         return;
       }
 
-      const decoded = decodeToken(token);
-      if (decoded && decoded.exp) {
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (decoded.exp < currentTime) {
-          console.warn("Token has expired!");
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login";
-          return;
-        }
-      }
-
-      if (!Orders_Confirmed || typeof Orders_Confirmed !== "string") {
-        throw new Error(
-          "Invalid Orders_Confirmed URL. Please check ApiConfig."
-        );
-      }
-
-      const response = await axios
-        .get(Orders_Confirmed, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        })
-        .catch((error) => {
-          console.error(`Error calling Orders_Confirmed API:`, error);
-          throw error;
-        });
-
-      console.log("API Response (Orders_Confirmed):", response);
-      console.log("Response Data (Orders_Confirmed):", response.data.data);
+      const response = await axios.get(Orders_Confirmed, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       let orders: Order[] = [];
       if (Array.isArray(response.data.data)) {
@@ -352,50 +256,16 @@ const UserProfile = () => {
         Array.isArray(response.data.data.orders)
       ) {
         orders = response.data.data.orders;
-      } else if (response.data.data && response.data.data.message) {
-        console.warn(
-          "API Message (Orders_Confirmed):",
-          response.data.data.message
-        );
-        if (response.data.data.message === "Unauthenticated.") {
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login";
-          return;
-        }
-        if (Array.isArray(response.data.data.orders)) {
-          orders = response.data.data.orders;
-        } else {
-          orders = [];
-          message.info("Hiện tại bạn chưa có giao dịch đã xác nhận nào.");
-        }
       } else {
-        throw new Error(
-          `Invalid response format: Expected an array of orders. Received: ${JSON.stringify(
-            response.data.data
-          )}`
-        );
+        orders = [];
+        message.info("Hiện tại bạn chưa có giao dịch đã xác nhận nào.");
       }
 
-      console.log("Confirmed orders fetched successfully:", orders);
       setRecentOrders(orders);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách giao dịch đã xác nhận:", error);
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login";
-          return;
-        } else if (error.response?.status === 500) {
-          message.error("Lỗi server! Vui lòng thử lại sau.");
-          return;
-        }
-      }
       message.error(
-        error instanceof Error
-          ? error.message
-          : "Không thể tải lịch sử giao dịch đã xác nhận! Vui lòng thử lại sau."
+        "Không thể tải lịch sử giao dịch đã xác nhận! Vui lòng thử lại sau."
       );
     } finally {
       setOrdersLoading(false);
@@ -413,46 +283,18 @@ const UserProfile = () => {
         return;
       }
 
-      const decoded = decodeToken(token);
-      if (decoded && decoded.exp) {
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (decoded.exp < currentTime) {
-          console.warn("Token has expired!");
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login";
-          return;
-        }
-      }
-
-      await axios
-        .put(UPDATE_USER_CLIENT, editedUser, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .catch((error) => {
-          console.error(`Error calling UPDATE_USER_CLIENT API:`, error);
-          throw error;
-        });
+      await axios.put(UPDATE_USER_CLIENT, editedUser, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setIsEditing(false);
       await fetchUserData();
       message.success("Cập nhật thông tin thành công!");
     } catch (error) {
       console.error("Lỗi cập nhật thông tin:", error);
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login";
-          return;
-        } else if (error.response?.status === 500) {
-          message.error("Lỗi server! Vui lòng thử lại sau.");
-          return;
-        }
-      }
       message.error("Lỗi cập nhật thông tin!");
     }
   };
@@ -479,33 +321,16 @@ const UserProfile = () => {
       return;
     }
 
-    const decoded = decodeToken(token);
-    if (decoded && decoded.exp) {
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (decoded.exp < currentTime) {
-        console.warn("Token has expired!");
-        message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-        localStorage.removeItem("auth_token");
-        window.location.href = "/login";
-        return;
-      }
-    }
-
     try {
-      await axios
-        .post(
-          CHANGE_PASSWORD,
-          {
-            oldPassword: passwordData.oldPassword,
-            password: passwordData.password,
-            password_confirmation: passwordData.password_confirmation,
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
-        .catch((error) => {
-          console.error(`Error calling CHANGE_PASSWORD API:`, error);
-          throw error;
-        });
+      await axios.post(
+        CHANGE_PASSWORD,
+        {
+          oldPassword: passwordData.oldPassword,
+          password: passwordData.password,
+          password_confirmation: passwordData.password_confirmation,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       message.success("Đổi mật khẩu thành công!");
       setPasswordData({
@@ -515,17 +340,6 @@ const UserProfile = () => {
       });
     } catch (error) {
       console.error("Lỗi đổi mật khẩu:", error);
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login";
-          return;
-        } else if (error.response?.status === 500) {
-          message.error("Lỗi server! Vui lòng thử lại sau.");
-          return;
-        }
-      }
       const errorMessage =
         error.response?.data?.message || "Có lỗi xảy ra khi đổi mật khẩu!";
       message.error(errorMessage);
@@ -542,13 +356,10 @@ const UserProfile = () => {
 
   const MAX_SPENT = 4000000;
 
-  const progressMarks = {
-    0: "0đ",
-    50: "2,000,000đ",
-    100: "4,000,000đ",
-  };
+  const progressPercent = user?.totalSpent
+    ? Math.min((user.totalSpent / MAX_SPENT) * 100, 100)
+    : 0;
 
-  // Define tab items
   const tabItems = [
     {
       key: "1",
@@ -832,24 +643,35 @@ const UserProfile = () => {
             </p>
 
             <div className={styles.expenseSection}>
-              <p className={styles.profileExpenseTitle}>Tổng chi tiêu 2025</p>
-              <p className={styles.profileExpenseText}>
-                {user?.totalSpent
-                  ? `${user.totalSpent.toLocaleString()}đ`
-                  : "0đ"}
-              </p>
+              <div className={styles.expenseHeader}>
+                <p className={styles.profileExpenseTitle}>Tổng chi tiêu 2025</p>
+                <p className={styles.profileExpenseText}>
+                  {user?.totalSpent
+                    ? `${user.totalSpent.toLocaleString()}đ`
+                    : "0đ"}
+                </p>
+              </div>
 
-              <Progress
-                percent={
-                  user?.totalSpent ? (user.totalSpent / MAX_SPENT) * 100 : 0
-                }
-                strokeColor={{ "0%": "#108ee9", "100%": "#87d068" }}
-                trailColor="#e6f7ff"
-                size={12}
-                className={styles.customProgress}
-                showInfo={false}
-                marks={progressMarks}
-              />
+              <div className={styles.progressWrapper}>
+                <div className={styles.progressIcons}>
+                  <span className={styles.icon} style={{ left: "0%" }}>
+                    👤
+                  </span>
+                  <span className={styles.icon} style={{ left: "50%" }}>
+                    🥇
+                  </span>
+                  <span className={styles.icon} style={{ left: "100%" }}>
+                    💎
+                  </span>
+                </div>
+                <Progress
+                  percent={progressPercent}
+                  strokeColor="#1890ff"
+                  trailColor="#d9d9d9"
+                  showInfo={false}
+                  className={styles.customProgress}
+                />
+              </div>
             </div>
 
             <div className={styles.contactInfo}>

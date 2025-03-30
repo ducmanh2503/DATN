@@ -75,39 +75,42 @@ const ChangeShowtimes = () => {
             </span>
 
             {/* Hiển thị Spin khi đang load */}
-
-            {listShowtimes
-                .sort((a: any, b: any) =>
-                    dayjs(a.start_time, "HH:mm:ss").isBefore(
-                        dayjs(b.start_time, "HH:mm:ss")
+            <div className={clsx(styles.listShowtimes)}>
+                {listShowtimes
+                    .sort((a: any, b: any) =>
+                        dayjs(a.start_time, "HH:mm:ss").isBefore(
+                            dayjs(b.start_time, "HH:mm:ss")
+                        )
+                            ? -1
+                            : 1
                     )
-                        ? -1
-                        : 1
-                )
-                .map((item: any) => (
-                    <div key={item.id}>
-                        <Link
-                            className={clsx(
-                                styles.showtimesItem,
-                                showtimeIdFromBooking === item.id
-                                    ? styles.active
-                                    : ""
-                            )}
-                            to={`/booking/${filmId}`}
-                            onClick={() => {
-                                // console.log("check item", item);
-                                handleClick(
-                                    item.id,
-                                    item.start_time,
-                                    item.room.room_type.name,
-                                    item.room.room_type.price
-                                );
-                            }}
-                        >
-                            {dayjs(item.start_time, "HH:mm:ss").format("HH:mm")}
-                        </Link>
-                    </div>
-                ))}
+                    .map((item: any) => (
+                        <div key={item.id}>
+                            <Link
+                                className={clsx(
+                                    styles.showtimesItem,
+                                    showtimeIdFromBooking === item.id
+                                        ? styles.active
+                                        : ""
+                                )}
+                                to={`/booking/${filmId}`}
+                                onClick={() => {
+                                    // console.log("check item", item);
+                                    handleClick(
+                                        item.id,
+                                        item.start_time,
+                                        item.room.room_type.name,
+                                        item.room.room_type.price
+                                    );
+                                }}
+                            >
+                                {dayjs(item.start_time, "HH:mm:ss").format(
+                                    "HH:mm"
+                                )}
+                            </Link>
+                        </div>
+                    ))}
+            </div>
         </div>
     );
 };

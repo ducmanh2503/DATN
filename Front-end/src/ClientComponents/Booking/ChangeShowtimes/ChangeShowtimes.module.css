@@ -1,33 +1,38 @@
 .boxShowtimes {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 60px;
-  font-size: 15px;
-  background-color: white;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 60px;
+    font-size: 15px;
+    background-color: white;
+}
+
+.listShowtimes {
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .changeShowtimes {
-  padding-left: 20px;
-  margin-right: 20px;
+    padding-left: 20px;
+    margin-right: 20px;
 }
 
 .showtimesItem {
-  padding: 8px;
-  margin: 0 5px;
-  color: #1a1a1a;
-  border: 1px solid #eeeeee;
-  border-radius: 6px;
+    padding: 8px;
+    margin: 0 5px;
+    color: #1a1a1a;
+    border: 1px solid #eeeeee;
+    border-radius: 6px;
 }
 
 .showtimesItem:hover {
-  background: var(--border-color);
-  transition: all 0.7s ease;
-  border: 1px solid transparent;
+    background: var(--border-color);
+    transition: all 0.7s ease;
+    border: 1px solid transparent;
 }
 
 .active {
-  border: 1px solid transparent;
-  background-color: var(--border-color);
-  color: white;
+    border: 1px solid transparent;
+    background-color: var(--border-color);
+    color: white;
 }

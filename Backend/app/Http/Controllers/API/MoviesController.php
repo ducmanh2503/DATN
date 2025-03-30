@@ -18,7 +18,7 @@ class MoviesController extends Controller
     public function moviesRanking(Request $request)
     {
         // Lấy ngày hiện tại (hoặc ngày từ request, mặc định là ngày hiện tại 25/3/2025)
-        $date = $request->input('date', '2025-03-25');
+        $date = $request->input('date');
         $startOfMonth = Carbon::parse($date)->startOfMonth();
         $endOfDay = Carbon::parse($date)->endOfDay();
 
@@ -35,6 +35,7 @@ class MoviesController extends Controller
             ->join('movies', 'calendar_show.movie_id', '=', 'movies.id')
             ->groupBy('movies.id', 'movies.title')
             ->orderBy('total_tickets', 'desc')
+            ->take(10) // Lấy top 10 phim
             ->get()
             ->map(function ($item, $index) use ($startOfMonth) {
                 return [

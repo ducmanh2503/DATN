@@ -24,41 +24,15 @@ interface MovieDetail {
 
 interface RelatedMovie {
   id: number;
-  title: string;
+  movie_title: string;
   poster: string | null;
+  release_date?: string;
 }
-
-const HARD_CODED_RELATED_MOVIES: RelatedMovie[] = [
-  {
-    id: 1,
-    title: "Phim Hành Động 1",
-    poster: "https://picsum.photos/200/300?random=1",
-  },
-  {
-    id: 2,
-    title: "Phim Hành Động 2",
-    poster: "https://picsum.photos/200/300?random=2",
-  },
-  {
-    id: 3,
-    title: "Phim Hành Động 3",
-    poster: "https://picsum.photos/200/300?random=3",
-  },
-  {
-    id: 4,
-    title: "Phim Hành Động 4",
-    poster: "https://picsum.photos/200/300?random=4",
-  },
-  {
-    id: 5,
-    title: "Phim Hành Động 5",
-    poster: "https://picsum.photos/200/300?random=5",
-  },
-];
 
 const FilmDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [movie, setMovie] = useState<MovieDetail | null>(null);
+  const [relatedMovies, setRelatedMovies] = useState<RelatedMovie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -87,7 +61,26 @@ const FilmDetail = () => {
       }
     };
 
+    const loadRelatedMovies = async () => {
+      if (!id) return;
+
+      try {
+        // Sử dụng đúng endpoint API cho phim cùng thể loại
+        const response = await axios.get(
+          `http://localhost:8000/api/movies/${id}/related`
+        );
+        console.log("Related movies:", response.data);
+        if (response.data && response.data.data) {
+          setRelatedMovies(response.data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching related movies:", err);
+        // Không hiển thị lỗi này cho người dùng, chỉ log ra console
+      }
+    };
+
     loadMovie();
+    loadRelatedMovies();
   }, [id]);
 
   if (loading) return <div className="loading">Đang tải...</div>;
@@ -202,19 +195,29 @@ const FilmDetail = () => {
             </div>
           </div>
         )}
-        {HARD_CODED_RELATED_MOVIES.length > 0 && (
+        {relatedMovies.length > 0 && (
           <div className="related-movies">
             <h2 className="section-title">Phim cùng thể loại</h2>
             <div className="related-movies-grid">
-              {HARD_CODED_RELATED_MOVIES.map((relatedMovie) => (
-                <div key={relatedMovie.id} className="related-movie-card">
+              {relatedMovies.map((relatedMovie) => (
+                <div
+                  key={relatedMovie.id}
+                  className="related-movie-card"
+                  onClick={() => navigate(`/filmDetail/${relatedMovie.id}`)}
+                  style={{ cursor: "pointer" }}
+                >
                   <img
-                    src={relatedMovie.poster || "https://picsum.photos/200/300"}
-                    alt={relatedMovie.title}
+                    src={
+                      relatedMovie.poster
+                        ? `http://localhost:8000${relatedMovie.poster}`
+                        : "https://picsum.photos/200/300"
+                    }
+                    alt={relatedMovie.movie_title}
                     className="related-movie-poster"
-                    onClick={() => navigate(`/filmDetail/${relatedMovie.id}`)}
                   />
-                  <p className="related-movie-title">{relatedMovie.title}</p>
+                  <p className="related-movie-title">
+                    {relatedMovie.movie_title}
+                  </p>
                 </div>
               ))}
             </div>

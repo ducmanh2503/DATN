@@ -207,8 +207,9 @@ const OrderList = () => {
                 return <Tag color={roomColorMap[value]}>{value}</Tag>;
             },
         },
+
         {
-            title: "Trạng thái",
+            title: "Trạng thái đơn hàng",
             dataIndex: "status",
             key: "status",
             render: (value: string) => {
@@ -220,6 +221,25 @@ const OrderList = () => {
             },
             sorter: (a, b) => a.status.length - b.status.length,
         },
+        {
+            title: "Trạng thái sử dụng",
+            dataIndex: "statusUse",
+            key: "statusUse",
+            render: (value: string, record: any) => {
+                const color =
+                    record.a === "a"
+                        ? "orange"
+                        : record.a === "b"
+                        ? "geekblue"
+                        : record.a === "c"
+                        ? "magenta"
+                        : "default"; // Giá trị mặc định nếu không khớp
+
+                return <Tag color={color}>{record.a}</Tag>;
+            },
+            // sorter: (a, b) => a.status.length - b.status.length,
+        },
+
         {
             title: "Tổng tiền",
             dataIndex: "total_price",

@@ -207,28 +207,32 @@ const CalendarMovies = ({ id }: any) => {
                                                             "minute"
                                                         )
                                                     )
-                                                    .map((item: any) => (
-                                                        <BoxNumbers
-                                                            key={item.id}
-                                                            time={dayjs(
-                                                                item.start_time,
-                                                                "HH:mm:ss"
-                                                            ).format("HH:mm")}
-                                                            onClick={() =>
-                                                                handleShowtimeClick(
-                                                                    item,
-                                                                    setCalendarShowtimeID,
-                                                                    setRoomIdFromShowtimes,
-                                                                    setRoomTypeShowtimes,
-                                                                    setRoomNameShowtimes,
-                                                                    setShowtimeIdFromBooking,
-                                                                    setShowtimesTime,
-                                                                    setShowtimesEndTime,
-                                                                    setSeatRoomPrice
-                                                                )
-                                                            }
-                                                        />
-                                                    ))}
+                                                    .map((item: any) => {
+                                                        return (
+                                                            <BoxNumbers
+                                                                key={item.id}
+                                                                time={dayjs(
+                                                                    item.start_time,
+                                                                    "HH:mm:ss"
+                                                                ).format(
+                                                                    "HH:mm"
+                                                                )}
+                                                                onClick={() =>
+                                                                    handleShowtimeClick(
+                                                                        item,
+                                                                        setCalendarShowtimeID,
+                                                                        setRoomIdFromShowtimes,
+                                                                        setRoomTypeShowtimes,
+                                                                        setRoomNameShowtimes,
+                                                                        setShowtimeIdFromBooking,
+                                                                        setShowtimesTime,
+                                                                        setShowtimesEndTime,
+                                                                        setSeatRoomPrice
+                                                                    )
+                                                                }
+                                                            />
+                                                        );
+                                                    })}
                                             </div>
                                         </div>
                                     ))

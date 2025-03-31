@@ -169,6 +169,11 @@ const BookingMain = () => {
         } else if (status === "success" || status === "error") {
             setCurrentStep(4);
         }
+
+        // refetch time khi current < 2
+        if (currentStep < 2) {
+            sessionStorage.removeItem("timeLeft");
+        }
     }, [currentStep, navigate]);
 
     // giải phóng ghế khi ra ngoài booking

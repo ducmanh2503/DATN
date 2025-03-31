@@ -167,10 +167,9 @@ const CalendarMovies = ({ id }: any) => {
                         <div className={clsx(styles.calendarNumbers)}>
                             {LoadShowByFilmAndDate &&
                             LoadShowByFilmAndDate.filter((item: any) =>
-                                dayjs(item.start_time, "HH:mm:ss").isAfter(
-                                    dayjs(),
-                                    "minute"
-                                )
+                                dayjs(
+                                    `${searchDateRaw} ${item.start_time}`
+                                ).isAfter(dayjs(), "minute")
                             ).length > 0 ? (
                                 Object.entries(
                                     groupByRoom(LoadShowByFilmAndDate)
@@ -178,11 +177,10 @@ const CalendarMovies = ({ id }: any) => {
                                     .filter(([_, showtimes]) =>
                                         showtimes.some((item: any) =>
                                             dayjs(
-                                                item.start_time,
-                                                "HH:mm:ss"
+                                                `${searchDateRaw} ${item.start_time}`
                                             ).isAfter(dayjs(), "minute")
                                         )
-                                    ) // Loại bỏ phòng không có suất hợp lệ
+                                    )
                                     .map(([roomName, showtimes]) => (
                                         <div
                                             key={roomName}
@@ -203,13 +201,12 @@ const CalendarMovies = ({ id }: any) => {
                                                 {showtimes
                                                     .filter((item: any) =>
                                                         dayjs(
-                                                            item.start_time,
-                                                            "HH:mm:ss"
+                                                            `${searchDateRaw} ${item.start_time}`
                                                         ).isAfter(
                                                             dayjs(),
                                                             "minute"
                                                         )
-                                                    ) // Chỉ hiển thị suất hợp lệ
+                                                    )
                                                     .map((item: any) => (
                                                         <BoxNumbers
                                                             key={item.id}

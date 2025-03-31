@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { message } from "antd";
 
 // tạo hàm lấy message lỗi gửi về của BE khi api lỗi

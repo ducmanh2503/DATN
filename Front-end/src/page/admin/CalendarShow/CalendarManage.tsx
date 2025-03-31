@@ -169,9 +169,9 @@ const CalendarManage: React.FC = () => {
         render: (text) => (searchedColumn === dataIndex ? text : text),
     });
 
-    const { data: calendarManage, isLoading } = useCalendarManage();
+    const { data: calendarManage, isLoading } = useCalendarManage(); // lấy danh sách lịch chiếu
 
-    const { mutate: deleteCalendar } = useDeleteCalendar(messageApi);
+    const { mutate: deleteCalendar } = useDeleteCalendar(messageApi); // xóa lịch chiếu
 
     return (
         <div>

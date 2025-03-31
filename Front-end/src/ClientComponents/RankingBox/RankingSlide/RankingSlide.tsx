@@ -13,6 +13,7 @@ import {
 } from "../../../services/FilmRanking.service";
 
 import styles from "./RankingSlide.module.css";
+import { URL_IMAGE } from "../../../config/ApiConfig";
 
 const RankingSlide = () => {
   const [movies, setMovies] = useState<MovieRanking[]>([]);
@@ -109,10 +110,10 @@ const RankingSlide = () => {
   return (
     <div>
       <div className={clsx(styles.rankingHeader)}>
-        <h2 className={styles.rankingTitle}>
+        {/* <h2 className={styles.rankingTitle}>
           <FontAwesomeIcon icon={faTrophy} className={styles.trophyIcon} />
           Xếp hạng phim tháng {movies[0]?.month_year || ""}
-        </h2>
+        </h2> */}
       </div>
       <div className={clsx(styles.carouselContainer)}>
         <button
@@ -143,7 +144,7 @@ const RankingSlide = () => {
                 name={movie.movie_title}
                 tickets={movie.total_tickets}
                 movieId={movie.movie_id}
-                image="https://img.freepik.com/free-vector/cinema-realistic-poster-with-illuminated-bucket-popcorn-drink-3d-glasses-reel-tickets-blue-background-with-glares-vector-illustration_1284-77013.jpg"
+                image={`${URL_IMAGE}${movie.poster}`}
               />
             ))}
           </div>

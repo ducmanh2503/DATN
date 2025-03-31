@@ -26,22 +26,23 @@ class MoviesController extends Controller
         $movieRankings = BookingDetail::whereHas('booking', function ($query) use ($startOfMonth, $endOfDay) {
             $query->whereBetween('bookings.created_at', [$startOfMonth, $endOfDay]);
         })
-            ->whereNotNull('seat_id') // Chỉ tính các booking detail có ghế (vé)
-            ->select('movies.title')
+            ->whereNotNull('seat_id') // Chỉ calcular các booking detail có ghế (vé)
+            ->select('movies.title', 'movies.poster')
             ->selectRaw('COUNT(*) as total_tickets')
             ->join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
             ->join('show_times', 'bookings.showtime_id', '=', 'show_times.id')
             ->join('calendar_show', 'show_times.calendar_show_id', '=', 'calendar_show.id')
             ->join('movies', 'calendar_show.movie_id', '=', 'movies.id')
-            ->groupBy('movies.id', 'movies.title')
+            ->groupBy('movies.id', 'movies.title', 'movies.poster')
             ->orderBy('total_tickets', 'desc')
-            ->take(10) // Lấy top 10 phim
+            ->take(10)
             ->get()
             ->map(function ($item, $index) use ($startOfMonth) {
                 return [
                     'rank' => $index + 1, // Thứ hạng (bắt đầu từ 1)
                     'movie_title' => $item->title,
                     'total_tickets' => (int) $item->total_tickets,
+                    'poster' => $item->poster,
                     'month_year' => Carbon::parse($startOfMonth)->format('m/Y'), // Thêm tháng/năm
                 ];
             });

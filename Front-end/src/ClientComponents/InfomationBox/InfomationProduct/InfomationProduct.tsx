@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import clsx from "clsx";
 import styles from "./InfomationProduct.module.css";
+import { URL_IMAGE } from "../../../config/ApiConfig";
 const InfomationProduct = ({
   className,
   image,
@@ -11,7 +12,10 @@ const InfomationProduct = ({
   return (
     <Link className={clsx(styles.infomationProduct, className)} to={"....."}>
       <div className={clsx(styles.infoThumnail)}>
-        <img className={clsx(styles.productImage)} src={image}></img>
+        <img
+          className={clsx(styles.productImage)}
+          src={`${URL_IMAGE}${image}`}
+        ></img>
       </div>
       <div className={clsx(styles.type)}>
         <h5 className={clsx(styles.category)}>{category}</h5>

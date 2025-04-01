@@ -37,18 +37,21 @@
 }
 
 .normalType {
+    background-color: #8c8c8c;
+    color: var(--word-color);
     border: 3px solid #8c8c8c;
-    color: #8c8c8c;
 }
 
 .VIPType {
+    background-color: #1890ff;
+    color: var(--word-color);
     border: 3px solid #1890ff;
-    color: #1890ff;
 }
 
 .SweetboxType {
+    background-color: #f5222d;
+    color: var(--word-color);
     border: 3px solid #f5222d;
-    color: #f5222d;
 }
 
 .rowLabel {
@@ -64,10 +67,11 @@
 }
 
 .empty {
-    background-color: #1a1a1a;
-    border-color: black;
-    color: white;
-    font-weight: 700;
+    background-color: white;
+    border: 3px solid white;
+    color: black;
+    font-weight: 600;
+    opacity: 0.5;
 }
 
 .disabled {

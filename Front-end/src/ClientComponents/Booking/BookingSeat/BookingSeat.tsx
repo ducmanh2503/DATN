@@ -16,7 +16,7 @@ import ChangeShowtimes from "../ChangeShowtimes/ChangeShowtimes";
 import UISeatsInfo from "../UISeatsInfo/UISeatsInfo";
 import CustomNotification from "../Notification/Notification";
 import { GET_USER } from "../../../config/ApiConfig";
-import { usePromotionContextContext } from "../../UseContext/PromotionContext";
+import { usePromotionContext } from "../../UseContext/PromotionContext";
 
 const BookingSeat = ({ className }: { className?: string }) => {
     const {
@@ -39,7 +39,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
         useStepsContext();
     const { totalComboPrice } = useComboContext();
     const { setRankUser, setUserPoints, totalPricePoint } =
-        usePromotionContextContext();
+        usePromotionContext();
     const { openNotification, contextHolder } = CustomNotification();
 
     const queryClient = useQueryClient();

@@ -4,17 +4,22 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons";
 
 import styles from "./SuccesResult.module.css";
 import { useNavigate } from "react-router-dom";
-import { useStepsContext } from "../../../UseContext/StepsContext";
 import { useFinalPriceContext } from "../../../UseContext/FinalPriceContext";
 import { useFilmContext } from "../../../UseContext/FIlmContext";
 import { useSeatsContext } from "../../../UseContext/SeatsContext";
 import { useComboContext } from "../../../UseContext/CombosContext";
 import dayjs from "dayjs";
 import useShowtimeData from "../../../refreshDataShowtimes/RefreshDataShowtimes";
-import { usePromotionContextContext } from "../../../UseContext/PromotionContext";
+import { usePromotionContext } from "../../../UseContext/PromotionContext";
 import { VerticalAlignBottomOutlined } from "@ant-design/icons";
+import { useGetQRTicket } from "../../../../services/adminServices/getQR.service";
+import { useEffect, useState } from "react";
+import { URL_IMAGE } from "../../../../config/ApiConfig";
 
 const SuccesResult = () => {
+    const [qrCode, setQrCode] = useState<string>(""); // State to hold the QR code image
+    const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
+
     const {
         showtimesTime,
         showtimesEndTime,
@@ -25,15 +30,18 @@ const SuccesResult = () => {
     const { nameSeats, totalSeatPrice } = useSeatsContext();
     const { totalComboPrice, nameCombo } = useComboContext();
     const { totalPrice } = useFinalPriceContext();
-    const { totalPricePoint, totalPriceVoucher } = usePromotionContextContext();
+    const { totalPricePoint, totalPriceVoucher, rankUser } =
+        usePromotionContext();
     const { resetDataShowtimes } = useShowtimeData();
     const storedMovie = sessionStorage.getItem("dataDetailFilm");
     // Kiểm tra giá trị null trước khi parse
     const movieData = storedMovie ? JSON.parse(storedMovie) : null;
 
     const navigate = useNavigate();
+    //lấy năm hiện tại
     const currentYear = dayjs().year();
 
+    // xử lý tải ảnh về máy
     const downloadBlobImage = async (imageUrl: string, fileName: string) => {
         const response = await fetch(imageUrl);
         const blob = await response.blob();
@@ -49,11 +57,40 @@ const SuccesResult = () => {
         document.body.removeChild(link);
     };
 
+    // lấy QR được tạo
     const handleDownload = () => {
-        const imageUrl =
-            "/storage/image/e6b6GFoOGXv9IsBgBLQypTcuBMbu4EaI5v86HkeE.jpg";
+        const imageUrl = `/storage/image/${qrCode}`;
         downloadBlobImage(imageUrl, "poster.jpg");
     };
+
+    // gọi api lấy QR
+    const { mutate } = useGetQRTicket();
+
+    // xử lý api
+    useEffect(() => {
+        mutate(undefined, {
+            onSuccess: (result) => {
+                setQrCode(`data:image/png;base64,${result.data.qr_code}`);
+            },
+        });
+    }, []);
+
+    // tính điểm tích lũy
+    useEffect(() => {
+        let points = 0;
+        const finalPrice =
+            (totalPrice - totalPricePoint - totalPriceVoucher) / 1000;
+
+        if (rankUser === "diamond") {
+            points = Math.floor(finalPrice * 0.1);
+        } else if (rankUser === "gold") {
+            points = Math.floor(finalPrice * 0.05);
+        } else {
+            points = Math.floor(finalPrice * 0.03);
+        }
+
+        setLoyaltyPoints(points);
+    }, [totalPrice, totalPricePoint, totalPriceVoucher, rankUser]);
 
     return (
         <div className={clsx(styles.container, "main-base")}>
@@ -245,18 +282,28 @@ const SuccesResult = () => {
 
                     <div className={clsx(styles.loyaltyPoints)}>
                         Tích lũy được{" "}
-                        <span className={clsx(styles.pointsNumber)}>XX</span>{" "}
+                        <span className={clsx(styles.pointsNumber)}>
+                            {loyaltyPoints}
+                        </span>{" "}
                         điểm <span className={clsx(styles.points)}>Stars</span>
                     </div>
                 </div>
 
                 <div className={clsx(styles.qrSection)}>
                     <div className={clsx(styles.qrCodeBox)}>
-                        <img
-                            className={clsx(styles.qrCode)}
-                            src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
-                            alt="QR Code"
-                        />
+                        {qrCode ? (
+                            <img
+                                className={clsx(styles.qrCode)}
+                                src={qrCode}
+                                alt="QR Code"
+                            />
+                        ) : (
+                            <img
+                                className={clsx(styles.qrCode)}
+                                src={`${URL_IMAGE}/defaultComingSoon.jpg`}
+                                alt=""
+                            />
+                        )}
                     </div>
                     <div className={clsx(styles.qrNote)}>
                         mã QR được sử dụng khi quét vé tại rạp

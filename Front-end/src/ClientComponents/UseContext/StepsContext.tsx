@@ -37,7 +37,10 @@ export const StepsProvider = ({ children }: { children: React.ReactNode }) => {
                   genres: [],
               };
     }); // lưu tạm thời data 1 phim
-    const [paymentType, setPaymentType] = useState<number | null>(); //hình thức thanh toán
+    const [paymentType, setPaymentType] = useState<string | null>(() => {
+        const storedPaymentType = sessionStorage.getItem("paymentType");
+        return storedPaymentType ? JSON.parse(storedPaymentType) : "";
+    }); //hình thức thanh toán
     const [pathName, setPathName] = useState("");
     // thay đổi state dataDetailFilm thì lấy ở sessionStorage
     useEffect(() => {
@@ -60,7 +63,8 @@ export const StepsProvider = ({ children }: { children: React.ReactNode }) => {
             "userIdFromShowtimes",
             JSON.stringify(userIdFromShowtimes)
         );
-    }, [currentStep, calendarShowtimeID, userIdFromShowtimes]);
+        sessionStorage.setItem("paymentType", JSON.stringify(paymentType));
+    }, [currentStep, calendarShowtimeID, userIdFromShowtimes, paymentType]);
 
     return (
         <StepsContext.Provider

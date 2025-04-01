@@ -198,7 +198,19 @@ const OrderList = () => {
             title: "Phòng chiếu",
             dataIndex: "room_name",
             key: "room_name",
-            ...getColumnSearchProps("room_name"),
+            filters: data
+                ? Array.from(
+                      new Set(
+                          data
+                              .map((item: any) => String(item.room_name))
+                              .filter(Boolean)
+                      )
+                  ).map((value) => ({
+                      text: String(value),
+                      value: String(value),
+                  }))
+                : [],
+            onFilter: (value, record) => record.room_name === value,
             render: (value: string) => {
                 // Kiểm tra nếu chưa có màu cho room_name, thì tạo màu mới
                 if (!roomColorMap[value]) {
@@ -212,6 +224,19 @@ const OrderList = () => {
             title: "Trạng thái đơn hàng",
             dataIndex: "status",
             key: "status",
+            filters: data
+                ? Array.from(
+                      new Set(
+                          data
+                              .map((item: any) => String(item.status))
+                              .filter(Boolean)
+                      )
+                  ).map((value) => ({
+                      text: String(value),
+                      value: String(value),
+                  }))
+                : [],
+            onFilter: (value, record) => record.status === value,
             render: (value: string) => {
                 return value === "confirmed" ? (
                     <Tag color="green">Đã thanh toán</Tag>
@@ -219,25 +244,34 @@ const OrderList = () => {
                     <Tag color="red">Đang đợi xử lý</Tag>
                 );
             },
-            sorter: (a, b) => a.status.length - b.status.length,
         },
         {
             title: "Trạng thái sử dụng",
-            dataIndex: "statusUse",
-            key: "statusUse",
-            render: (value: string, record: any) => {
+            dataIndex: "check_in",
+            key: "check_in",
+            filters: data
+                ? Array.from(
+                      new Set(
+                          data
+                              .map((item: any) => String(item.check_in))
+                              .filter(Boolean)
+                      )
+                  ).map((value) => ({
+                      text: String(value),
+                      value: String(value),
+                  }))
+                : [],
+            onFilter: (value, record) => record.check_in === value,
+            render: (value: any, record: any) => {
                 const color =
-                    record.a === "a"
-                        ? "orange"
-                        : record.a === "b"
+                    record.check_in === "checked_in"
                         ? "geekblue"
-                        : record.a === "c"
-                        ? "magenta"
-                        : "default"; // Giá trị mặc định nếu không khớp
+                        : record.check_in === "waiting"
+                        ? "purple"
+                        : "default"; // Giá trị mặc định nếu không vắng
 
-                return <Tag color={color}>{record.a}</Tag>;
+                return <Tag color={color}>{record.check_in}</Tag>;
             },
-            // sorter: (a, b) => a.status.length - b.status.length,
         },
 
         {

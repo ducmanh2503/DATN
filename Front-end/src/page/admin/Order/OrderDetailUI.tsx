@@ -1,9 +1,43 @@
 import clsx from "clsx";
 import styles from "./Order.module.css";
-import { Select, Skeleton, Table, Tag } from "antd";
-import { useDetailOrder } from "../../../services/adminServices/orderManage.service";
+import { message, Select, Skeleton, Table, Tag } from "antd";
+import {
+    useChangeStatusCheckin,
+    useDetailOrder,
+} from "../../../services/adminServices/orderManage.service";
+import { useEffect, useState } from "react";
 
 const OrderDetailUI = ({ id }: { id: number }) => {
+    // State lưu giá trị đã chọn
+    const [selectedCheckIn, setSelectedCheckIn] = useState<string | undefined>(
+        undefined
+    );
+    const [messageApi, contextHolder] = message.useMessage();
+
+    const { data: detailOrder, isLoading } = useDetailOrder(id); // lấy chi tiết đơn hàng từ api
+
+    // Cập nhật state khi `detailOrder?.check_in` thay đổi
+    useEffect(() => {
+        if (detailOrder?.check_in) {
+            setSelectedCheckIn(detailOrder.check_in);
+        }
+    }, [detailOrder?.check_in]);
+
+    // Xử lý khi thay đổi giá trị trong Select
+    const handleChange = (value: string) => {
+        setSelectedCheckIn(value);
+        console.log("Giá trị được chọn:", value); // Kiểm tra giá trị đã chọn
+    };
+
+    // gọi và xử lý khi thay đổi trạng thái sử dụng
+    const { mutate: changeStatusCheckin } = useChangeStatusCheckin(messageApi);
+    const onChangeStatus = () => {
+        changeStatusCheckin({
+            bookingId: detailOrder?.id,
+            check_in: selectedCheckIn,
+        });
+    };
+
     const columnsSeats = [
         {
             title: "Thông tin ghế",
@@ -56,9 +90,9 @@ const OrderDetailUI = ({ id }: { id: number }) => {
         },
     ];
 
-    const { data: detailOrder, isLoading } = useDetailOrder(id);
     return (
         <div className={clsx(styles.container)}>
+            {contextHolder}
             <div className={clsx(styles.orderInfo)}>
                 <div className={clsx(styles.section)}>
                     <h3 className={clsx(styles.title)}>Thông tin khách hàng</h3>
@@ -201,19 +235,33 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                             Trạng thái sử dụng:
                         </h4>
                         <span>
-                            <Select className={clsx(styles.valueSelect)}>
-                                <Select.Option key={1} value={"a"}>
-                                    Đang đợi
-                                </Select.Option>
-                                <Select.Option key={1} value={"b"}>
-                                    Đã đến
-                                </Select.Option>
-                                <Select.Option key={1} value={"c"}>
-                                    Vắng
-                                </Select.Option>
+                            <Select
+                                className={clsx(styles.valueSelect)}
+                                value={selectedCheckIn}
+                                onChange={handleChange}
+                            >
+                                {detailOrder?.check_in_options.map(
+                                    (item: any, index: number) => {
+                                        return (
+                                            <Select.Option
+                                                key={index}
+                                                value={item}
+                                            >
+                                                {item === "waiting"
+                                                    ? "Đang đợi"
+                                                    : item === "checked_in"
+                                                    ? "Đã đến"
+                                                    : "Vắng mặt"}
+                                            </Select.Option>
+                                        );
+                                    }
+                                )}
                             </Select>
                         </span>
-                        <span className={clsx(styles.changeStatus)}>
+                        <span
+                            className={clsx(styles.changeStatus)}
+                            onClick={onChangeStatus}
+                        >
                             Cập nhật
                         </span>
                     </div>

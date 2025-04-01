@@ -24,6 +24,7 @@ use App\Http\Controllers\API\RoomTypeController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
+use App\Http\Controllers\API\SliderController;
 use App\Http\Controllers\API\SocialAuthController;
 use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\TicketController;
@@ -128,6 +129,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //seat_type
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
+
+        Route::apiResource('sliders', SliderController::class);
+        Route::post('sliders/{slider}',[SliderController::class, 'update']);
+        
 
 
         // Showtimes
@@ -240,6 +245,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
     Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
 });
+Route::get('active-sliders', [SliderController::class, 'getActiveSliders']);
 
 
 // Đăng nhập bằng Google & Facebook

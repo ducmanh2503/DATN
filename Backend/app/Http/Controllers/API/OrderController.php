@@ -8,6 +8,7 @@ use App\Models\BookingDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -187,9 +188,10 @@ class OrderController extends Controller
                 'showtime_id',
                 'total_ticket_price',
                 'total_combo_price',
-                'total_price', // Thêm total_price để lấy giá trị từ cơ sở dữ liệu
+                'total_price',
                 'status',
-                'created_at' // Thêm created_at để lấy ngày đặt
+                'check_in', // Đã thêm từ yêu cầu trước
+                'created_at'
             )
             ->find($bookingId);
 
@@ -234,13 +236,13 @@ class OrderController extends Controller
                         'booking_detail_id' => $detail->id,
                         'seat_name' => $seatName,
                         'price' => (int) $detail->price,
-                        'seat_type' => $seatType, // Thêm loại ghế
+                        'seat_type' => $seatType,
                     ];
 
                     // Lấy tên phòng và loại phòng
                     if ($detail->seat->room) {
-                        $room_name = $detail->seat->room->name; // Tên phòng (ví dụ: Cinema 1)
-                        $room_type = $detail->seat->room->roomType ? $detail->seat->room->roomType->name : null; // Loại phòng (ví dụ: 2D)
+                        $room_name = $detail->seat->room->name;
+                        $room_type = $detail->seat->room->roomType ? $detail->seat->room->roomType->name : null;
                     }
                 }
 
@@ -256,13 +258,14 @@ class OrderController extends Controller
         }
 
         // Tính tổng tiền và giảm giá
-        $totalPrice = $booking->total_price; // Lấy total_price từ cơ sở dữ liệu
-        // Nếu total_price không hợp lý (bằng 0), tính lại
+        $totalPrice = $booking->total_price;
         if ($totalPrice == 0) {
             $totalPrice = $booking->total_ticket_price + $booking->total_combo_price;
         }
-        // Tính phần giảm giá: (total_ticket_price + total_combo_price) - total_price
         $discount = ($booking->total_ticket_price + $booking->total_combo_price) - $totalPrice;
+
+        // Lấy danh sách các giá trị ENUM của check_in
+        $checkInOptions = $this->getEnumValues('bookings', 'check_in');
 
         $formattedBooking = [
             'id' => $booking->id,
@@ -272,26 +275,78 @@ class OrderController extends Controller
             'showtime' => $booking->showtime
                 ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                 : 'N/A',
-            'show_date' => $booking->showtime // Đảm bảo lấy từ showtime->start_time
+            'show_date' => $booking->showtime
                 ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
                 : 'N/A',
-            'movie_title' => $movie ? $movie['title'] : 'N/A', // Tên phim
-            'room_name' => $room_name ?? 'N/A', // Tên phòng (thay cho Rạp chiếu)
-            'room_type' => $room_type ?? 'N/A', // Loại phòng (lấy từ room_types)
+            'movie_title' => $movie ? $movie['title'] : 'N/A',
+            'room_name' => $room_name ?? 'N/A',
+            'room_type' => $room_type ?? 'N/A',
             'seats' => $seats,
             'combos' => $combos,
-            'total_ticket_price' => (int) $booking->total_ticket_price, // Thành tiền vé
-            'total_combo_price' => (int) $booking->total_combo_price, // Thành tiền combo
-            'total_price' => (int) $totalPrice, // Tổng tiền (sửa lại)
-            'discount' => (int) $discount, // Phần giảm giá (sửa lại)
+            'total_ticket_price' => (int) $booking->total_ticket_price,
+            'total_combo_price' => (int) $booking->total_combo_price,
+            'total_price' => (int) $totalPrice,
+            'discount' => (int) $discount,
             'status' => $booking->status,
-            'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y') : 'N/A', // Ngày đặt, định dạng ngày-tháng-năm
+            'check_in' => $booking->check_in,
+            'check_in_options' => $checkInOptions,
+            'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y') : 'N/A',
         ];
 
         return response()->json([
             'message' => 'Chi tiết đơn hàng',
             'data' => $formattedBooking,
         ]);
+    }
+
+    /**
+     * Lấy tất cả giá trị ENUM của một cột trong bảng
+     */
+    private function getEnumValues($table, $column)
+    {
+        $result = DB::select("SHOW COLUMNS FROM {$table} WHERE Field = ?", [$column]);
+
+        if (empty($result)) {
+            return [];
+        }
+
+        // Lấy định nghĩa của cột (ví dụ: "enum('absent','checked_in','waiting')")
+        $type = $result[0]->Type;
+
+        // Trích xuất các giá trị từ chuỗi enum
+        preg_match("/^enum\((.*)\)$/", $type, $matches);
+        if (empty($matches[1])) {
+            return [];
+        }
+
+        // Chuyển chuỗi giá trị thành mảng (bỏ dấu nháy đơn)
+        $values = array_map(function ($value) {
+            return trim($value, "'");
+        }, explode(',', $matches[1]));
+
+        return $values;
+    }
+
+    public function updateStatusClient(Request $request, string $id)
+    {
+        //Tìm đơn theo id
+        $booking = Booking::find($id);
+
+        // Validate dữ liệu đầu vào
+        $validated = $request->validate([
+            'check_in' => 'required|in:absent,checked_in,waiting', // Đảm bảo giá trị nằm trong các giá trị ENUM
+        ]);
+
+        // Cập nhật chỉ trường check_in
+        $booking->update([
+            'check_in' => $validated['check_in'],
+        ]);
+
+        // Trả về JSON response
+        return response()->json([
+            'message' => 'Check-in thành công',
+            'data' => $booking,
+        ], 200);
     }
 
     // Tìm kiếm giao dịch

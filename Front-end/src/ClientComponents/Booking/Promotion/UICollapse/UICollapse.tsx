@@ -19,7 +19,7 @@ const UICollapse = () => {
         setQuantityPromotion,
         usedPoints,
         setUsedPoints,
-        setTotalPriceVoucher,
+        totalPriceVoucher,
         rankUser,
     } = usePromotionContextContext();
 
@@ -105,7 +105,9 @@ const UICollapse = () => {
         // Reset lại các trạng thái liên quan
         setPrevPointsNumber(0);
         setTotalPricePoint(0);
-        setQuantityPromotion(0);
+        totalPriceVoucher === 0
+            ? setQuantityPromotion(0)
+            : setQuantityPromotion(1);
         setUsedPoints(0);
         sessionStorage.removeItem("usedPoints");
     };

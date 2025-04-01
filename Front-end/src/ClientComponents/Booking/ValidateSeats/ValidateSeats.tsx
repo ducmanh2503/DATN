@@ -8,14 +8,6 @@ const parseSeatCode = (seatCode: string) => {
 };
 
 const useIsolatedSeatChecker = () => {
-    // Hàm tính maxCol của từng hàng
-    // const getMaxCols = (allSeats: any) => {
-    //   return Object.keys(allSeats).reduce((acc: Record<number, number>, row) => {
-    //     const cols = Object.keys(allSeats[row]).map(Number);
-    //     acc[Number(row)] = Math.max(...cols) + 1; // +1 vì index bắt đầu từ 0
-    //     return acc;
-    //   }, {});
-    // };
     const checkIsolatedSeat = useCallback(
         (selectedSeats: string[], allSeats: any) => {
             // debugger;
@@ -23,7 +15,7 @@ const useIsolatedSeatChecker = () => {
 
             const minCol = 1;
             const maxCol = 13;
-            const maxRow = Object.keys(allSeats).length - 1;
+            const maxRow = Object.keys(allSeats).length + 1;
 
             // Kiểm tra ghế có bị chiếm hay không (tránh truy cập ngoài mảng)
             const isOccupied = (r: number, c: number) => {
@@ -82,7 +74,25 @@ const useIsolatedSeatChecker = () => {
 
                 // Kiểm tra đặc biệt cho ghế cạnh góc (trừ khi ở minCol/maxCol)
                 if (col === minCol + 1 && !left1) return true; // Bỏ trống A1
-                if (col === maxCol - 1 && !right1) return true; // Bỏ trống A13
+
+                // bỏ trống A13 hoặc A13 là các trạng thái khác
+                if (col === maxCol - 1 && !right1) {
+                    const rightSeatCode = `${String.fromCharCode(65 + row)}${
+                        col + 1
+                    }`;
+
+                    // Kiểm tra nếu ghế cuối cùng đã được chọn hoặc đã bị đặt/trống/disabled
+                    if (
+                        selectedSeats.includes(rightSeatCode) ||
+                        allSeats?.[row]?.[col + 1]?.status === "Booked" ||
+                        allSeats?.[row]?.[col + 1]?.adminStatus === "empty" ||
+                        allSeats?.[row]?.[col + 1]?.adminStatus === "disabled"
+                    ) {
+                        continue;
+                    }
+
+                    return true;
+                }
 
                 // Kiểm tra ghế lẻ ở giữa
                 if ((!left1 && left2) || (!right1 && right2)) {

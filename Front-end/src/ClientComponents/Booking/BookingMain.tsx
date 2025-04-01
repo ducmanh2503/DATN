@@ -169,32 +169,37 @@ const BookingMain = () => {
         } else if (status === "success" || status === "error") {
             setCurrentStep(4);
         }
+
+        // refetch time khi current < 2
+        if (currentStep < 2) {
+            sessionStorage.removeItem("timeLeft");
+        }
     }, [currentStep, navigate]);
 
     // giải phóng ghế khi ra ngoài booking
-    useEffect(() => {
-        // Bỏ qua lần chạy đầu tiên
-        if (firstRender.current) {
-            firstRender.current = false;
-            prevPath.current = location.pathname; // Gán giá trị ban đầu
-            return;
-        }
+    // useEffect(() => {
+    //     // Bỏ qua lần chạy đầu tiên
+    //     if (firstRender.current) {
+    //         firstRender.current = false;
+    //         prevPath.current = location.pathname; // Gán giá trị ban đầu
+    //         return;
+    //     }
 
-        console.log("🚀 Path trước:", prevPath.current);
-        console.log("🚀 Path hiện tại:", location.pathname);
+    //     console.log("Path trước:", prevPath.current);
+    //     console.log(" Path hiện tại:", location.pathname);
 
-        // Kiểm tra nếu rời khỏi booking
-        if (
-            prevPath.current.startsWith("/booking") &&
-            !location.pathname.startsWith("/booking")
-        ) {
-            console.log("⚠️ Rời khỏi booking, giải phóng ghế...");
-            releaseSeats();
-        }
+    //     // Kiểm tra nếu rời khỏi booking
+    //     if (
+    //         prevPath.current.startsWith("/booking") &&
+    //         !location.pathname.startsWith("/booking")
+    //     ) {
+    //         console.log(" Rời khỏi booking, giải phóng ghế...");
+    //         releaseSeats();
+    //     }
 
-        // Cập nhật giá trị path trước đó
-        prevPath.current = location.pathname;
-    }, [location.pathname]);
+    //     // Cập nhật giá trị path trước đó
+    //     prevPath.current = location.pathname;
+    // }, [location.pathname]);
 
     const renderStepContent = () => {
         switch (currentStep) {

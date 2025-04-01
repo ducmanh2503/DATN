@@ -16,6 +16,8 @@ const ChangeShowtimes = () => {
         setShowtimeIdFromBooking,
         showtimeIdFromBooking,
         roomIdFromShowtimes,
+        setRoomIdFromShowtimes,
+        setRoomNameShowtimes,
         setShowtimesTime,
         setRoomTypeShowtimes,
     } = useFilmContext();
@@ -58,12 +60,16 @@ const ChangeShowtimes = () => {
         id: number,
         start_time: string,
         name: string,
-        price: string
+        price: string,
+        room_id: number,
+        room_name: string
     ) => {
         setShowtimeIdFromBooking(id); // tahy đổi dữ liệu để chạy lại api lấy ghế
         setShowtimesTime(start_time); // Cập nhật giá trị ở thông tin phim
         setRoomTypeShowtimes(name);
         setSeatRoomPrice(parseInt(price));
+        setRoomIdFromShowtimes(room_id);
+        setRoomNameShowtimes(room_name);
         //reset data ghế nếu có đang chọn
         resetDataShowtimes();
         refetchMatrix();
@@ -95,12 +101,14 @@ const ChangeShowtimes = () => {
                                 )}
                                 to={`/booking/${filmId}`}
                                 onClick={() => {
-                                    // console.log("check item", item);
+                                    console.log("check item", item);
                                     handleClick(
                                         item.id,
                                         item.start_time,
                                         item.room.room_type.name,
-                                        item.room.room_type.price
+                                        item.room.room_type.price,
+                                        item.room_id,
+                                        item.room.name
                                     );
                                 }}
                             >

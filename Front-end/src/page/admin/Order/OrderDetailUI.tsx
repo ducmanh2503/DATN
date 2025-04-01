@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import styles from "./Order.module.css";
-import { Skeleton, Table, Tag } from "antd";
+import { Select, Skeleton, Table, Tag } from "antd";
 import { useDetailOrder } from "../../../services/adminServices/orderManage.service";
 
 const OrderDetailUI = ({ id }: { id: number }) => {
@@ -136,16 +136,6 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                     </div>
                     <hr />
                     <div className={clsx(styles.infoItem)}>
-                        <h4 className={clsx(styles.label)}>Trạng thái:</h4>
-                        <span className={clsx(styles.value)}>
-                            {detailOrder?.status === "confirmed" ? (
-                                <Tag color="green">Đã thanh toán</Tag>
-                            ) : (
-                                <Tag color="red">Đang đợi xử lý</Tag>
-                            )}
-                        </span>
-                    </div>
-                    <div className={clsx(styles.infoItem)}>
                         <h4 className={clsx(styles.label)}>Thành tiền:</h4>
                         <span className={clsx(styles.value)}>
                             {" "}
@@ -179,7 +169,10 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                         <span className={clsx(styles.value)}>
                             {" "}
                             <Tag
-                                className={clsx(styles.tagElement)}
+                                className={clsx(
+                                    styles.tagElement,
+                                    styles.finalTotal
+                                )}
                                 color="blue"
                             >
                                 {detailOrder?.total_price.toLocaleString(
@@ -187,6 +180,41 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                                 )}{" "}
                                 VNĐ
                             </Tag>
+                        </span>
+                    </div>
+                    <hr />
+
+                    <div className={clsx(styles.infoItem)}>
+                        <h4 className={clsx(styles.label)}>
+                            Trạng thái thanh toán:
+                        </h4>
+                        <span className={clsx(styles.value)}>
+                            {detailOrder?.status === "confirmed" ? (
+                                <Tag color="green">Đã thanh toán</Tag>
+                            ) : (
+                                <Tag color="red">Đang đợi xử lý</Tag>
+                            )}
+                        </span>
+                    </div>
+                    <div className={clsx(styles.infoItem)}>
+                        <h4 className={clsx(styles.label)}>
+                            Trạng thái sử dụng:
+                        </h4>
+                        <span>
+                            <Select className={clsx(styles.valueSelect)}>
+                                <Select.Option key={1} value={"a"}>
+                                    Đang đợi
+                                </Select.Option>
+                                <Select.Option key={1} value={"b"}>
+                                    Đã đến
+                                </Select.Option>
+                                <Select.Option key={1} value={"c"}>
+                                    Vắng
+                                </Select.Option>
+                            </Select>
+                        </span>
+                        <span className={clsx(styles.changeStatus)}>
+                            Cập nhật
                         </span>
                     </div>
                 </div>

@@ -209,24 +209,6 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
         enabled: !!calendarShowId, // Chỉ chạy khi có calendarShowId
     });
 
-    // useEffect(() => {
-    //     if (!selectedDate || !filmList || !datesByCalendar) return;
-
-    //     // Lọc ra các lịch chiếu có ngày trùng với selectedDate
-    //     const filteredDates = datesByCalendar.filter(
-    //         (item: any) =>
-    //             item.dates === dayjs(selectedDate).format("YYYY-MM-DD")
-    //     );
-
-    //     // Lọc danh sách phim dựa trên lịch chiếu đã lọc
-
-    //     const filteredFilms = filmList.filter((film: any) =>
-    //         filteredDates.some((calendar: any) => calendar.movie_id === film.id)
-    //     );
-
-    //     setFilteredFilms(filteredFilms);
-    // }, [selectedDate, filmList, datesByCalendar]);
-
     return (
         <>
             {contextHolder}
@@ -331,24 +313,6 @@ const EditShowtimes = ({ id, setShowtimesData, selectedDate }: any) => {
                             value={form.getFieldValue("room_type")}
                         />
                     </Form.Item>
-                    {/* <Form.Item
-                        className={clsx(styles.inputLabel)}
-                        label="Hình thức dịch"
-                        name="id3"
-                        rules={[
-                            {
-                                required: true,
-                                message: "hình thức dịch",
-                            },
-                        ]}
-                    >
-                        <Select placeholder="Nhập hình thức dịch">
-                            <Select.Option value="phiên dịch">
-                                phiên dịch
-                            </Select.Option>
-                            <Select.Option value="phụ đề">phụ đề</Select.Option>
-                        </Select>
-                    </Form.Item> */}
                     <Form.Item
                         className={clsx(styles.inputLabel)}
                         label="Thời gian bắt đầu"

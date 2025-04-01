@@ -3,7 +3,7 @@ import { Collapse, InputNumber, Button, Space } from "antd";
 import clsx from "clsx";
 import styles from "./UICollapse.module.css";
 import { useFinalPriceContext } from "../../../UseContext/FinalPriceContext";
-import { usePromotionContextContext } from "../../../UseContext/PromotionContext";
+import { usePromotionContext } from "../../../UseContext/PromotionContext";
 import CustomNotification from "../../Notification/Notification";
 
 const UICollapse = () => {
@@ -21,7 +21,7 @@ const UICollapse = () => {
         setUsedPoints,
         totalPriceVoucher,
         rankUser,
-    } = usePromotionContextContext();
+    } = usePromotionContext();
 
     // quản lý ẩn hiện tích điểm
     const onChangeActiveCollapse = (key: string | string[]) => {

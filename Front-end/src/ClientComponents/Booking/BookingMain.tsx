@@ -16,7 +16,7 @@ import { useSeatsContext } from "../UseContext/SeatsContext";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useAuthContext } from "../UseContext/TokenContext";
 import useShowtimeData from "../refreshDataShowtimes/RefreshDataShowtimes";
-import { usePromotionContextContext } from "../UseContext/PromotionContext";
+import { usePromotionContext } from "../UseContext/PromotionContext";
 import { useFinalPriceContext } from "../UseContext/FinalPriceContext";
 import { useComboContext } from "../UseContext/CombosContext";
 import LayoutPaymentResult from "./ResultPayment/LayoutPaymentResult";
@@ -34,7 +34,7 @@ const BookingMain = () => {
         useFilmContext();
     const { tokenUserId } = useAuthContext();
     const { setUsedPoints, setTotalPricePoint, setQuantityPromotion } =
-        usePromotionContextContext();
+        usePromotionContext();
     const { setTotalPrice } = useFinalPriceContext();
 
     const { resetDataShowtimes, releaseSeats } = useShowtimeData();
@@ -99,32 +99,11 @@ const BookingMain = () => {
                 console.error("Lỗi khi lưu vào localStorage:", e);
             }
         },
-        onError: (error) => {
-            console.error("🚨 Lỗi khi giữ ghế:", error);
-            message.error("Không thể giữ ghế. Vui lòng thử lại!");
+        onError: () => {
+            message.error("Ghế đã bị giữ bởi người khác. Vui lòng thử lại!");
+            setCurrentStep(1);
         },
     });
-
-    //api giải phóng ghế
-    const releaseSeatsMutation = useMutation({
-        mutationFn: async (seatIds: number[]) => {
-            await axios.post(
-                `http://localhost:8000/api/release-seats`, // API hủy ghế
-                {
-                    seats: seatIds,
-                    room_id: roomIdFromShowtimes,
-                    showtime_id: showtimeIdFromBooking,
-                },
-                { headers: { Authorization: `Bearer ${tokenUserId}` } }
-            );
-        },
-        onSuccess: () => {
-            // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
-            message.success("Giải phóng ghế thành công!");
-        },
-    });
-
-    //
 
     // Xử lý khi ấn tiếp tục
     const nextStep = () => {
@@ -149,7 +128,7 @@ const BookingMain = () => {
         }
 
         if (currentStep === 2 && selectedSeatIds.length > 0) {
-            releaseSeatsMutation.mutate(selectedSeatIds);
+            releaseSeats(selectedSeatIds);
         }
 
         if (currentStep <= 3) {
@@ -170,7 +149,7 @@ const BookingMain = () => {
             setCurrentStep(4);
         }
 
-        // refetch time khi current < 2
+        // refetch thời gian giữ ghế khi current < 2
         if (currentStep < 2) {
             sessionStorage.removeItem("timeLeft");
         }

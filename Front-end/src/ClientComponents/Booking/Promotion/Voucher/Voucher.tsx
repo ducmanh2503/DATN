@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { GET_VOUCHER } from "../../../../config/ApiConfig";
 import { useAuthContext } from "../../../UseContext/TokenContext";
-import { usePromotionContextContext } from "../../../UseContext/PromotionContext";
+import { usePromotionContext } from "../../../UseContext/PromotionContext";
 import { useFinalPriceContext } from "../../../UseContext/FinalPriceContext";
 import CustomNotification from "../../Notification/Notification";
 import { useSeatsContext } from "../../../UseContext/SeatsContext";
@@ -20,7 +20,7 @@ const VoucherInfo = () => {
         setTotalPriceVoucher,
         totalPriceVoucher,
         setPromoCode, // Thêm setPromoCode từ context
-    } = usePromotionContextContext();
+    } = usePromotionContext();
     const { setTotalPrice, totalPrice } = useFinalPriceContext();
     const { openNotification, contextHolder } = CustomNotification();
     const { totalSeatPrice } = useSeatsContext();
@@ -29,6 +29,7 @@ const VoucherInfo = () => {
     const [promoCode, setPromoCodeLocal] = useState<string>(""); // Giữ state cục bộ để quản lý input
     const [isVoucherUsed, setIsVoucherUsed] = useState<boolean>(false);
     const [voucherPrecent, setVoucherPrecent] = useState(""); // lưu % mã giảm giá
+    const [maxPrice, setMaxPrice] = useState<number>(0);
 
     // Cập nhật promoCode vào context và sessionStorage
     const onChangePromotion = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,18 +87,27 @@ const VoucherInfo = () => {
                 { name_code: promoCode },
                 { headers: { Authorization: `Bearer ${tokenUserId}` } }
             );
+            console.log("check-voucher", response.data);
+
             return response.data;
         },
         onSuccess: (data) => {
+            setMaxPrice(data.maxPrice);
             const discountPercent = parseFloat(data.discount_percent);
             setVoucherPrecent(data.discount_percent);
             if (!isNaN(discountPercent)) {
-                const defaultPrice = totalPrice + totalPricePoint;
+                const defaultPrice = totalPrice + totalPricePoint; // tiền trc khi trừ
                 const newPrice =
                     (totalPrice + totalPricePoint) *
-                    (1 - discountPercent / 100);
-                setTotalPrice(newPrice - totalPricePoint);
-                setTotalPriceVoucher(defaultPrice - newPrice);
+                    (1 - discountPercent / 100); // tiền sau trừ
+
+                if (newPrice < maxPrice) {
+                    setTotalPrice(newPrice - totalPricePoint);
+                    setTotalPriceVoucher(defaultPrice - newPrice);
+                } else {
+                    setTotalPrice(defaultPrice - maxPrice);
+                    setTotalPriceVoucher(maxPrice);
+                }
                 setQuantityPromotion(1);
                 setIsVoucherUsed(true);
             }
@@ -138,7 +148,9 @@ const VoucherInfo = () => {
                             {parseInt(voucherPrecent)}
                         </span>
                         % tối đa{" "}
-                        <span className={clsx(styles.detailVoucher)}>XXX</span>{" "}
+                        <span className={clsx(styles.detailVoucher)}>
+                            {maxPrice.toLocaleString("vi-VN")}
+                        </span>{" "}
                         VNĐ
                     </span>
                     <span className={clsx(styles.warning)}>

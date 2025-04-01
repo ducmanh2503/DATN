@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import styles from "../BookingInfo/BookingInfo.module.css";
-import useShowtimeData from "../../refreshDataShowtimes/RefreshDataShowtimes";
+
 const SeatHoldTime = () => {
     const [timeLeft, setTimeLeft] = useState(() => {
         const storedTimeLeft = sessionStorage.getItem("timeLeft");
@@ -29,7 +29,7 @@ const SeatHoldTime = () => {
             setTimeLeft((prevTime: any) => prevTime - 1);
         }, 1000);
 
-        return clearInterval(interval); // Dọn dẹp interval khi unmount
+        return () => clearInterval(interval); // Dọn dẹp interval khi unmount
     }, [timeLeft]);
 
     useEffect(() => {

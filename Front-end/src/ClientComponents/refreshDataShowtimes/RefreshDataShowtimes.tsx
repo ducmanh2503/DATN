@@ -6,7 +6,7 @@ import { useStepsContext } from "../UseContext/StepsContext";
 import axios from "axios";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useAuthContext } from "../UseContext/tokenContext";
-import { usePromotionContextContext } from "../UseContext/PromotionContext";
+import { usePromotionContext } from "../UseContext/PromotionContext";
 
 const useShowtimeData = () => {
     const {
@@ -21,7 +21,6 @@ const useShowtimeData = () => {
         setNameSeats,
         setTotalSeatPrice,
         setQuantitySeats,
-        selectedSeatIds,
         setSelectedSeatIds,
         setSeatRoomPrice,
     } = useSeatsContext();
@@ -34,7 +33,7 @@ const useShowtimeData = () => {
         setTotalPricePoint,
         setUsedPoints,
         setTotalPriceVoucher,
-    } = usePromotionContextContext();
+    } = usePromotionContext();
 
     // Hàm reset dữ liệu
     const resetDataShowtimes = () => {
@@ -74,9 +73,9 @@ const useShowtimeData = () => {
             // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
         },
     });
-    const releaseSeats = () => {
-        if (selectedSeatIds.length > 0) {
-            releaseSeatsMutation.mutate(selectedSeatIds);
+    const releaseSeats = (seatIds?: number[]) => {
+        if (seatIds && seatIds.length > 0) {
+            releaseSeatsMutation.mutate(seatIds);
         }
     };
 

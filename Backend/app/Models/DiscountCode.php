@@ -16,6 +16,7 @@ class DiscountCode extends Model
         'percent',
         'quantity',
         'status',
+        'maxPrice',
         'start_date',
         'end_date',
     ];

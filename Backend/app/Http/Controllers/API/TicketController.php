@@ -26,6 +26,7 @@ use App\Models\Movie;
 use App\Models\Movies;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -196,8 +197,25 @@ class TicketController extends Controller
 
 
 
-    private function saveBooking(array $data, string $status, array $pricing)
+    function saveBooking(array $data, string $status, array $pricing)
     {
+
+        // Kiểm tra xem booking đã tồn tại hay chưa
+        return DB::transaction(function () use ($data, $status, $pricing) {
+            // Kiểm tra booking trùng lặp như trên
+            $existingBooking = Booking::where('user_id', $data['user_id'])
+                ->where('showtime_id', $data['showtime_id'])
+                ->where('status', 'confirmed')
+                ->whereHas('bookingDetails', function ($query) use ($data) {
+                    $query->whereIn('seat_id', $data['seat_ids']);
+                })
+                ->first();
+    
+            if ($existingBooking) {
+                return $existingBooking;
+            }
+
+
         // Lưu booking vào bảng bookings
         $booking = Booking::create([
             'user_id' => $data['user_id'],
@@ -310,6 +328,7 @@ class TicketController extends Controller
         }
 
         return $booking;
+    });
     }
 
     private function getSeatingMatrix($roomId, $showTimeId)

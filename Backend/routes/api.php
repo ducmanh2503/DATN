@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders-search', [OrderController::class, 'searchOrders']); // Tìm kiếm giao dịch
     Route::get('/orders-recent', [OrderController::class, 'recentOrders']); // Lấy danh sách giao dịch gần đây (20 giao dịch gần nhất)
     Route::get('/orders-confirmed', [OrderController::class, 'confirmedOrders']); // Lấy danh sách tất cả giao dịch đã hoàn tất
+    Route::get('/orders-details-client/{bookingId}', [OrderController::class, 'showOrderClinet']); // Lấy danh sách tất cả giao dịch đã hoàn tất
 
 
     //Áp dụng mã giảm giá
@@ -93,6 +94,16 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/statistics', [StatisticsController::class, 'index']);
             Route::get('/statistics-filter', [StatisticsController::class, 'statsByDateRange']);
             Route::get('/export-stats-by-date-range', [StatisticsController::class, 'exportStatsByDateRange']);
+
+            //người dùng
+            Route::apiResource('/user-management', UserController::class);
+            Route::get('/user-management/profile/{user_management}', [UserController::class, 'show']);
+            Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
+            Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
+            Route::post('/restore-user', [UserController::class, 'restore']);
+            Route::get('/user/rank-points', [UserController::class, 'getUserRankAndPoints']);
+            Route::post('/user-management/search/email', [UserController::class, 'searchByEmail']);
+            Route::post('/user-management/search/name', [UserController::class, 'searchByName']);
         });
         // Movies
         Route::apiResource('/movies', MoviesController::class);
@@ -128,6 +139,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //seat_type
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
+
+        Route::apiResource('sliders', SliderController::class);
+        Route::post('sliders/{slider}', [SliderController::class, 'update']);
 
 
         // Showtimes
@@ -171,17 +185,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/discount-code', DiscountCodeController::class);
         //Bài viết
         Route::apiResource('/article', ArticleController::class);
-
-
-        //người dùng
-        Route::apiResource('/user-management', UserController::class);
-        Route::get('/user-management/profile/{user_management}', [UserController::class, 'show']);
-        Route::put('/user-management/restore/{user_management}', [UserController::class, 'restore']);
-        Route::get('/user-management/show-user-destroy/{user_management}', [UserController::class, 'showUserDestroy']);
-        Route::post('/restore-user', [UserController::class, 'restore']);
-        Route::get('/user/rank-points', [UserController::class, 'getUserRankAndPoints']);
-        Route::post('/user-management/search/email', [UserController::class, 'searchByEmail']);
-        Route::post('/user-management/search/name', [UserController::class, 'searchByName']);
 
 
         //Đơn hàng
@@ -240,6 +243,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
     Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
 });
+Route::get('active-sliders', [SliderController::class, 'getActiveSliders']);
 
 
 // Đăng nhập bằng Google & Facebook

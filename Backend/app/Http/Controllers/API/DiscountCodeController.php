@@ -32,7 +32,8 @@ class DiscountCodeController extends Controller
 
         return response()->json([
             'success' => true,
-            'discount_percent' => $DiscountCode->percent,
+            'discount_percent' => (int) $DiscountCode->percent,
+            'maxPrice' => (int) $DiscountCode->maxPrice,
             'message' => 'Áp dụng mã khuyến mãi thành công!',
         ]);
     }
@@ -57,6 +58,7 @@ class DiscountCodeController extends Controller
             'percent' => 'required|integer|max:100',
             'quantity' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',
+            'maxPrice' => 'required|numeric|min:0',
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d',
         ]);
@@ -110,6 +112,7 @@ class DiscountCodeController extends Controller
             'percent' => 'required|integer|max:100',
             'quantity' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',
+            'maxPrice' => 'required|numeric|min:0',
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d',
         ]);

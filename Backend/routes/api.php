@@ -24,6 +24,7 @@ use App\Http\Controllers\API\RoomTypeController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
+use App\Http\Controllers\API\SliderController;
 use App\Http\Controllers\API\SocialAuthController;
 use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\TicketController;

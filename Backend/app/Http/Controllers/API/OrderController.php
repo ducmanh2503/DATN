@@ -59,8 +59,9 @@ class OrderController extends Controller
                 'showtime_id',
                 'total_ticket_price',
                 'total_combo_price',
-                'total_price', // Thêm cột total_price
+                'total_price',
                 'status',
+                'check_in',
                 'created_at'
             )
             ->get()
@@ -128,6 +129,7 @@ class OrderController extends Controller
                     'total_combo_price' => $booking->total_combo_price,
                     'total_price' => $booking->total_price, // Lấy trực tiếp từ cột total_price
                     'status' => $booking->status,
+                    'check_in' => $booking->check_in,
                     'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y') : 'N/A',
                 ];
             });

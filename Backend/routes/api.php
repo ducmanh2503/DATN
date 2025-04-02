@@ -70,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders-search', [OrderController::class, 'searchOrders']); // Tìm kiếm giao dịch
     Route::get('/orders-recent', [OrderController::class, 'recentOrders']); // Lấy danh sách giao dịch gần đây (20 giao dịch gần nhất)
     Route::get('/orders-confirmed', [OrderController::class, 'confirmedOrders']); // Lấy danh sách tất cả giao dịch đã hoàn tất
+    Route::get('/orders-details-client/{bookingId}', [OrderController::class, 'showForClient']);
 
 
     //Áp dụng mã giảm giá
@@ -78,6 +79,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //thanh toán VNPay
     Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
+
+    //Hiển thị vé khi đặt
+    Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
 
 
     //Sơ đồ ghế, giữ ghế, giải phóng ghế
@@ -131,8 +135,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
 
         Route::apiResource('sliders', SliderController::class);
-        Route::post('sliders/{slider}',[SliderController::class, 'update']);
-        
+        Route::post('sliders/{slider}', [SliderController::class, 'update']);
+
 
 
         // Showtimes
@@ -239,12 +243,14 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 
 // Protected customer routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
-    Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
-    Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
-    Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
-});
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
+//     Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
+//     Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
+//     Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
+// });
+
+// Slider show trang chủ
 Route::get('active-sliders', [SliderController::class, 'getActiveSliders']);
 
 

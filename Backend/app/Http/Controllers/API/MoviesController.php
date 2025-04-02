@@ -8,7 +8,6 @@ use App\Models\Movies;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -17,7 +16,7 @@ class MoviesController extends Controller
     // Xếp hạng phim theo số vé bán ra (dành cho trang chủ)
     public function moviesRanking(Request $request)
     {
-        // Lấy ngày hiện tại (hoặc ngày từ request, mặc định là ngày hiện tại 25/3/2025)
+        // Lấy ngày hiện tại (hoặc ngày từ request, mặc định là ngày hiện tại)
         $date = $request->input('date');
         $startOfMonth = Carbon::parse($date)->startOfMonth();
         $endOfDay = Carbon::parse($date)->endOfDay();

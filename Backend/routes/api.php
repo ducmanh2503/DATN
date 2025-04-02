@@ -106,6 +106,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']);
         Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']);
         Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
+        //Import dữ liệu từ excel
+        Route::post('/movies/import', [MoviesController::class, 'import']);
 
 
         // Room
@@ -167,8 +169,8 @@ Route::middleware('auth:sanctum')->group(function () {
         //Vé
         Route::get('/ticket-management', [TicketController::class, 'index']);
         Route::get('/ticket-show/{id}', [TicketController::class, 'show']);
-        Route::post('/ticket-prices', [TicketController::class, 'store']); // Thêm mới
-        Route::put('/ticket-prices/{id}', [TicketController::class, 'update']); // Cập nhật
+        Route::post('/ticket-prices', [TicketController::class, 'store']);
+        Route::put('/ticket-prices/{id}', [TicketController::class, 'update']);
         Route::delete('/ticket-delete/{id}', [TicketController::class, 'destroy']);
 
 

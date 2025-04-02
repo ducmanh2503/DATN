@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Imports\MoviesImport;
 use App\Models\BookingDetail;
 use App\Models\Movies;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Excel as ExcelExcel;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MoviesController extends Controller
 {
@@ -240,6 +244,37 @@ class MoviesController extends Controller
         $movie->genres()->sync($genreIds);
 
         return response()->json(['message' => 'Thêm phim thành công', 'data' => $movie], 201);
+    }
+
+    //Import dữ liệu từ excel
+    public function import(Request $request)
+    {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'excel_file' => 'required|mimes:xlsx,xls|max:2048',
+            'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Chỉ xử lý một file ảnh
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        try {
+            // Lưu file ảnh vào storage và lấy đường dẫn
+            $posterPaths = [];
+            if ($request->hasFile('poster')) {
+                $poster = $request->file('poster');
+                $path = $poster->store('images', 'public');
+                $posterPaths[$poster->getClientOriginalName()] = Storage::url($path);
+                Log::info($posterPaths);
+            }
+            // Import Excel với dữ liệu ảnh
+            Excel::import(new MoviesImport($posterPaths), $request->file('excel_file'));
+
+            return response()->json(['message' => 'Import phim thành công'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Lỗi khi import: ' . $e->getMessage()], 500);
+        }
     }
 
     /**

@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDetail;
+use App\Models\ShowTimeDate;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +32,9 @@ class OrderController extends Controller
                                             $query->select('id', 'title', 'poster');
                                         }
                                     ]);
+                            },
+                            'showTimeDate' => function ($query) {
+                                $query->select('id', 'show_time_id', 'show_date');
                             }
                         ]);
                 },
@@ -83,6 +88,23 @@ class OrderController extends Controller
                     ];
                 }
 
+                // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
+                if ($booking->showtime && $booking->showtime->showTimeDate) {
+                    $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+                        ? $booking->showtime->showTimeDate->first()
+                        : $booking->showtime->showTimeDate;
+
+                    if ($showTimeDate && $showTimeDate->show_date) {
+                        // Chuyển show_date thành đối tượng Carbon và định dạng
+                        try {
+                            $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
+                        } catch (\Exception $e) {
+                            // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
+                            $show_date = $showTimeDate->show_date ?: 'N/A';
+                        }
+                    }
+                }
+
                 if ($booking->bookingDetails) {
                     foreach ($booking->bookingDetails as $detail) {
                         // Thêm ghế nếu có
@@ -121,9 +143,7 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
-                    'show_date' => $booking->showtime
-                        ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
-                        : 'N/A',
+                    'show_date' => $show_date,
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'room_name' => $room_name ?? 'N/A',
                     'room_type' => $room_type ?? 'N/A',
@@ -131,7 +151,7 @@ class OrderController extends Controller
                     'combos' => $combos,
                     'total_ticket_price' => $booking->total_ticket_price,
                     'total_combo_price' => $booking->total_combo_price,
-                    'total_price' => $booking->total_price, // Lấy trực tiếp từ cột total_price
+                    'total_price' => $booking->total_price,
                     'status' => $booking->status,
                     'check_in' => $booking->check_in,
                     'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y') : 'N/A',
@@ -161,6 +181,9 @@ class OrderController extends Controller
                                             $query->select('id', 'title', 'poster'); // Lấy thông tin phim
                                         }
                                     ]);
+                            },
+                            'showTimeDate' => function ($query) {
+                                $query->select('id', 'show_time_id', 'show_date');
                             }
                         ]);
                 },
@@ -218,6 +241,23 @@ class OrderController extends Controller
                 'title' => $booking->showtime->calendarShow->movie->title,
                 'poster' => $booking->showtime->calendarShow->movie->poster,
             ];
+        }
+
+        // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
+        if ($booking->showtime && $booking->showtime->showTimeDate) {
+            $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+                ? $booking->showtime->showTimeDate->first()
+                : $booking->showtime->showTimeDate;
+
+            if ($showTimeDate && $showTimeDate->show_date) {
+                // Chuyển show_date thành đối tượng Carbon và định dạng
+                try {
+                    $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
+                } catch (\Exception $e) {
+                    // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
+                    $show_date = $showTimeDate->show_date ?: 'N/A';
+                }
+            }
         }
 
         if ($booking->bookingDetails) {
@@ -278,9 +318,7 @@ class OrderController extends Controller
             'showtime' => $booking->showtime
                 ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                 : 'N/A',
-            'show_date' => $booking->showtime
-                ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
-                : 'N/A',
+            'show_date' => $show_date,
             'movie_title' => $movie ? $movie['title'] : 'N/A',
             'room_name' => $room_name ?? 'N/A',
             'room_type' => $room_type ?? 'N/A',
@@ -382,6 +420,9 @@ class OrderController extends Controller
                                             $query->select('id', 'title', 'poster');
                                         }
                                     ]);
+                            },
+                            'showTimeDate' => function ($query) {
+                                $query->select('id', 'show_time_id', 'show_date');
                             }
                         ]);
                 },
@@ -454,6 +495,23 @@ class OrderController extends Controller
                     ];
                 }
 
+                // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
+                if ($booking->showtime && $booking->showtime->showTimeDate) {
+                    $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+                        ? $booking->showtime->showTimeDate->first()
+                        : $booking->showtime->showTimeDate;
+
+                    if ($showTimeDate && $showTimeDate->show_date) {
+                        // Chuyển show_date thành đối tượng Carbon và định dạng
+                        try {
+                            $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
+                        } catch (\Exception $e) {
+                            // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
+                            $show_date = $showTimeDate->show_date ?: 'N/A';
+                        }
+                    }
+                }
+
                 if ($booking->bookingDetails) {
                     foreach ($booking->bookingDetails as $detail) {
                         // Thêm ghế nếu có
@@ -489,9 +547,7 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
-                    'show_date' => $booking->showtime
-                        ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
-                        : 'N/A',
+                    'show_date' => $show_date,
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,
                     'room_name' => $room_name ?? 'N/A',
@@ -539,6 +595,9 @@ class OrderController extends Controller
                                             $query->select('id', 'title', 'poster');
                                         }
                                     ]);
+                            },
+                            'showTimeDate' => function ($query) {
+                                $query->select('id', 'show_time_id', 'show_date');
                             }
                         ]);
                 },
@@ -590,6 +649,23 @@ class OrderController extends Controller
                     ];
                 }
 
+                // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
+                if ($booking->showtime && $booking->showtime->showTimeDate) {
+                    $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+                        ? $booking->showtime->showTimeDate->first()
+                        : $booking->showtime->showTimeDate;
+
+                    if ($showTimeDate && $showTimeDate->show_date) {
+                        // Chuyển show_date thành đối tượng Carbon và định dạng
+                        try {
+                            $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
+                        } catch (\Exception $e) {
+                            // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
+                            $show_date = $showTimeDate->show_date ?: 'N/A';
+                        }
+                    }
+                }
+
                 if ($booking->bookingDetails) {
                     foreach ($booking->bookingDetails as $detail) {
                         // Thêm ghế nếu có
@@ -625,9 +701,7 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
-                    'show_date' => $booking->showtime
-                        ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
-                        : 'N/A',
+                    'show_date' => $show_date,
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,
                     'room_name' => $room_name ?? 'N/A',
@@ -675,6 +749,9 @@ class OrderController extends Controller
                                             $query->select('id', 'title', 'poster');
                                         }
                                     ]);
+                            },
+                            'showTimeDate' => function ($query) {
+                                $query->select('id', 'show_time_id', 'show_date');
                             }
                         ]);
                 },
@@ -726,6 +803,23 @@ class OrderController extends Controller
                     ];
                 }
 
+                // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
+                if ($booking->showtime && $booking->showtime->showTimeDate) {
+                    $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+                        ? $booking->showtime->showTimeDate->first()
+                        : $booking->showtime->showTimeDate;
+
+                    if ($showTimeDate && $showTimeDate->show_date) {
+                        // Chuyển show_date thành đối tượng Carbon và định dạng
+                        try {
+                            $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
+                        } catch (\Exception $e) {
+                            // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
+                            $show_date = $showTimeDate->show_date ?: 'N/A';
+                        }
+                    }
+                }
+
                 if ($booking->bookingDetails) {
                     foreach ($booking->bookingDetails as $detail) {
                         // Thêm ghế nếu có
@@ -761,9 +855,7 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
-                    'show_date' => $booking->showtime
-                        ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
-                        : 'N/A',
+                    'show_date' => $show_date,
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,
                     'room_name' => $room_name ?? 'N/A',
@@ -801,6 +893,9 @@ class OrderController extends Controller
                                             $query->select('id', 'title', 'poster'); // Lấy thông tin phim
                                         }
                                     ]);
+                            },
+                            'showTimeDate' => function ($query) {
+                                $query->select('id', 'show_time_id', 'show_date');
                             }
                         ]);
                 },
@@ -858,6 +953,23 @@ class OrderController extends Controller
                 'title' => $booking->showtime->calendarShow->movie->title,
                 'poster' => $booking->showtime->calendarShow->movie->poster,
             ];
+        }
+
+        // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
+        if ($booking->showtime && $booking->showtime->showTimeDate) {
+            $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+                ? $booking->showtime->showTimeDate->first()
+                : $booking->showtime->showTimeDate;
+
+            if ($showTimeDate && $showTimeDate->show_date) {
+                // Chuyển show_date thành đối tượng Carbon và định dạng
+                try {
+                    $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
+                } catch (\Exception $e) {
+                    // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
+                    $show_date = $showTimeDate->show_date ?: 'N/A';
+                }
+            }
         }
 
         if ($booking->bookingDetails) {
@@ -918,9 +1030,7 @@ class OrderController extends Controller
             'showtime' => $booking->showtime
                 ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                 : 'N/A',
-            'show_date' => $booking->showtime
-                ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
-                : 'N/A',
+            'show_date' => $show_date,
             'movie_title' => $movie ? $movie['title'] : 'N/A',
             'room_name' => $room_name ?? 'N/A',
             'room_type' => $room_type ?? 'N/A',

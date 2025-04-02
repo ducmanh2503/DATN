@@ -70,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders-search', [OrderController::class, 'searchOrders']); // Tìm kiếm giao dịch
     Route::get('/orders-recent', [OrderController::class, 'recentOrders']); // Lấy danh sách giao dịch gần đây (20 giao dịch gần nhất)
     Route::get('/orders-confirmed', [OrderController::class, 'confirmedOrders']); // Lấy danh sách tất cả giao dịch đã hoàn tất
+    Route::get('/orders-details-client/{bookingId}', [OrderController::class, 'showForClient']);
 
 
     //Áp dụng mã giảm giá

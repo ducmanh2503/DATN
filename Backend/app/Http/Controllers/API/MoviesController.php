@@ -252,7 +252,7 @@ class MoviesController extends Controller
         // Validate request
         $validator = Validator::make($request->all(), [
             'excel_file' => 'required|mimes:xlsx,xls|max:2048',
-            'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Chỉ xử lý một file ảnh
+            'posters.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -262,12 +262,15 @@ class MoviesController extends Controller
         try {
             // Lưu file ảnh vào storage và lấy đường dẫn
             $posterPaths = [];
-            if ($request->hasFile('poster')) {
-                $poster = $request->file('poster');
-                $path = $poster->store('images', 'public');
-                $posterPaths[$poster->getClientOriginalName()] = Storage::url($path);
-                Log::info($posterPaths);
+            if ($request->hasFile('posters')) {
+                foreach ($request->file('posters') as $poster) {
+                    $originalName = $poster->getClientOriginalName();
+                    $path = $poster->store('images', 'public');
+                    $posterPaths[$originalName] = Storage::url($path);
+                }
+                Log::info('Đường dẫn poster đã tải lên: ' . json_encode($posterPaths));
             }
+
             // Import Excel với dữ liệu ảnh
             Excel::import(new MoviesImport($posterPaths), $request->file('excel_file'));
 

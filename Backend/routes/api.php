@@ -167,6 +167,8 @@ Route::middleware('auth:sanctum')->group(function () {
         //Vé
         Route::get('/ticket-management', [TicketController::class, 'index']);
         Route::get('/ticket-show/{id}', [TicketController::class, 'show']);
+        Route::post('/ticket-prices', [TicketController::class, 'store']); // Thêm mới
+        Route::put('/ticket-prices/{id}', [TicketController::class, 'update']); // Cập nhật
         Route::delete('/ticket-delete/{id}', [TicketController::class, 'destroy']);
 
 
@@ -241,19 +243,10 @@ Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-
-// Protected customer routes
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
-//     Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
-//     Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
-//     Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
-// });
-
 // Slider show trang chủ
 Route::get('active-sliders', [SliderController::class, 'getActiveSliders']);
 
 
-// Đăng nhập bằng Google & Facebook
+// Đăng nhập bằng Google
 Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);

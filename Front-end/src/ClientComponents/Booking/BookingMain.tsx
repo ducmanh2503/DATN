@@ -22,7 +22,6 @@ import { useComboContext } from "../UseContext/CombosContext";
 import LayoutPaymentResult from "./ResultPayment/LayoutPaymentResult";
 import SuccesResult from "./ResultPayment/SuccesResult/SuccesResult";
 import ErrorResult from "./ResultPayment/ErrorResult/ErrorResult";
-import { useLocale } from "antd/es/locale";
 
 const BookingMain = () => {
     const { quantitySeats, selectedSeatIds, setShouldRefetch, totalSeatPrice } =
@@ -43,8 +42,6 @@ const BookingMain = () => {
     const [searchParams] = useSearchParams();
     const status = searchParams.get("status");
     const location = useLocation();
-    const prevPath = useRef(location.pathname);
-    const firstRender = useRef(true); // Biến kiểm tra lần đầu render
 
     // Thông báo phải đặt ghế để tiếp tục
     const { openNotification, contextHolder } = CustomNotification();
@@ -156,29 +153,16 @@ const BookingMain = () => {
     }, [currentStep, navigate]);
 
     // giải phóng ghế khi ra ngoài booking
-    // useEffect(() => {
-    //     // Bỏ qua lần chạy đầu tiên
-    //     if (firstRender.current) {
-    //         firstRender.current = false;
-    //         prevPath.current = location.pathname; // Gán giá trị ban đầu
-    //         return;
-    //     }
-
-    //     console.log("Path trước:", prevPath.current);
-    //     console.log(" Path hiện tại:", location.pathname);
-
-    //     // Kiểm tra nếu rời khỏi booking
-    //     if (
-    //         prevPath.current.startsWith("/booking") &&
-    //         !location.pathname.startsWith("/booking")
-    //     ) {
-    //         console.log(" Rời khỏi booking, giải phóng ghế...");
-    //         releaseSeats();
-    //     }
-
-    //     // Cập nhật giá trị path trước đó
-    //     prevPath.current = location.pathname;
-    // }, [location.pathname]);
+    useEffect(() => {
+        return () => {
+            console.log("out-booking");
+            const storedSeats = sessionStorage.getItem("selectedSeatIds");
+            const selectedSeatIds: number[] = storedSeats
+                ? JSON.parse(storedSeats)
+                : [];
+            releaseSeats(selectedSeatIds);
+        };
+    }, []);
 
     const renderStepContent = () => {
         switch (currentStep) {

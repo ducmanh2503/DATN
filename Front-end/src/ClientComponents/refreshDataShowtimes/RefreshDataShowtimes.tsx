@@ -74,6 +74,7 @@ const useShowtimeData = () => {
         },
     });
     const releaseSeats = (seatIds?: number[]) => {
+        debugger;
         if (seatIds && seatIds.length > 0) {
             releaseSeatsMutation.mutate(seatIds);
         }

@@ -619,11 +619,11 @@ class TicketController extends Controller
      */
     private function generateQrCode($booking, array $ticketDetails)
     {
-        $qrData = "Mã đặt vé: {$booking->id}\n" .
-            "Phim: {$ticketDetails['movie']['title']}\n" .
-            "Ngày chiếu: {$ticketDetails['show_date']}\n" .
-            "Giờ chiếu: {$ticketDetails['show_time']['start_time']} - {$ticketDetails['show_time']['end_time']}\n" .
-            "Phòng: {$ticketDetails['show_time']['room']['name']} ({$ticketDetails['show_time']['room']['room_type']})\n" .
+        $qrData = "Mã đặt vé: {$booking->id}.\n" .
+            "Phim: {$ticketDetails['movie']['title']}.\n" .
+            "Ngày chiếu: {$ticketDetails['show_date']}.\n" .
+            "Giờ chiếu: {$ticketDetails['show_time']['start_time']} - {$ticketDetails['show_time']['end_time']}.\n" .
+            "Phòng: {$ticketDetails['show_time']['room']['name']} ({$ticketDetails['show_time']['room']['room_type']}).\n" .
             "Ghế: " . implode(', ', array_map(fn($seat) => "{$seat['row']}{$seat['column']} ({$seat['seat_type']})", $ticketDetails['seats']->toArray()));
 
         $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);

@@ -79,6 +79,9 @@ Route::middleware('auth:sanctum')->group(function () {
     //thanh toán VNPay
     Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
 
+    //Hiển thị vé khi đặt
+    Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
+
 
     //Sơ đồ ghế, giữ ghế, giải phóng ghế
     Route::get('/get-seats-for-booking/{room_id}/{show_time_id}', [SeatController::class, 'getSeatsForBooking']);
@@ -239,12 +242,14 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 
 // Protected customer routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
-    Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
-    Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
-    Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
-});
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
+//     Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
+//     Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
+//     Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
+// });
+
+// Slider show trang chủ
 Route::get('active-sliders', [SliderController::class, 'getActiveSliders']);
 
 

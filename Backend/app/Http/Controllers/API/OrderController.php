@@ -121,6 +121,9 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
+                    'show_date' => $booking->showtime
+                        ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
+                        : 'N/A',
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'room_name' => $room_name ?? 'N/A',
                     'room_type' => $room_type ?? 'N/A',
@@ -486,6 +489,9 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
+                    'show_date' => $booking->showtime
+                        ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
+                        : 'N/A',
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,
                     'room_name' => $room_name ?? 'N/A',
@@ -619,6 +625,9 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
+                    'show_date' => $booking->showtime
+                        ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
+                        : 'N/A',
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,
                     'room_name' => $room_name ?? 'N/A',
@@ -751,6 +760,9 @@ class OrderController extends Controller
                     'id' => $booking->id,
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
+                        : 'N/A',
+                    'show_date' => $booking->showtime
+                        ? Carbon::parse($booking->showtime->start_time)->format('d-m-Y')
                         : 'N/A',
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,

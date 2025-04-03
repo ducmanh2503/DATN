@@ -42,7 +42,6 @@ class TicketController extends Controller
 
     public function index()
     {
-        // Lấy tất cả bản ghi từ seat_type_price và preload các quan hệ
         $ticketPrices = SeatTypePrice::with([
             'seatType',
             'seatType.seat',
@@ -50,16 +49,14 @@ class TicketController extends Controller
             'seatType.seat.room.roomType'
         ])->get();
 
-        // Nhóm dữ liệu theo seat_type_id để xử lý từng loại ghế
         $groupedBySeatType = $ticketPrices->groupBy('seat_type_id');
 
         $data = [];
+        $counter = 1; // Biến đếm để tạo id duy nhất
         foreach ($groupedBySeatType as $seatTypeId => $group) {
-            // Lấy thông tin seatType từ bản ghi đầu tiên
             $seatType = $group->first()->seatType;
             $seatTypeName = $seatType ? $seatType->name : 'Không xác định';
 
-            // Lấy danh sách tất cả phòng và loại phòng liên quan đến seatType
             $roomData = $seatType->seat
                 ->map(function ($seat) {
                     if ($seat->room && $seat->room->roomType) {
@@ -76,27 +73,23 @@ class TicketController extends Controller
                 })
                 ->values();
 
-            // Nếu không có phòng, thêm một giá trị mặc định
             if ($roomData->isEmpty()) {
                 $roomData = collect([['room_name' => 'Không xác định', 'room_type' => null]]);
             }
 
-            // Tạo bản ghi cho từng phòng và loại phòng
             foreach ($roomData as $roomItem) {
                 $roomTypeName = $roomItem['room_type'] ? $roomItem['room_type']->name : 'Không xác định';
                 $roomTypePrice = $roomItem['room_type'] ? $roomItem['room_type']->price : 0;
                 $roomName = $roomItem['room_name'];
 
-                // Lấy giá cho từng day_type và cộng với giá của loại phòng
                 foreach ($group as $ticketPrice) {
                     $totalPrice = $ticketPrice->price + $roomTypePrice;
-
-                    // Định dạng lại tổng giá
                     $formattedTotalPrice = ($totalPrice == floor($totalPrice))
                         ? number_format($totalPrice, 0)
                         : number_format($totalPrice, 2);
 
                     $data[] = [
+                        'id' => $counter++, // Tạo id duy nhất
                         'seat_type_name' => $seatTypeName,
                         'room_type_name' => $roomTypeName,
                         'room_name' => $roomName,
@@ -107,13 +100,7 @@ class TicketController extends Controller
             }
         }
 
-        // Sắp xếp lại kết quả
-        $data = collect($data)->sortBy([
-            ['seat_type_name', 'asc'],
-            ['room_type_name', 'asc'],
-            ['room_name', 'asc'],
-            ['day_type', 'asc']
-        ])->values();
+        $data = collect($data)->sortBy('id')->values();
 
         return response()->json([
             'message' => 'Lấy danh sách quản lý vé thành công',

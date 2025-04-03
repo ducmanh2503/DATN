@@ -78,6 +78,8 @@ class OrderController extends Controller
                 $room_type = null;
                 $combos = [];
                 $movie = null;
+                // Khai báo $show_date với giá trị mặc định
+                $show_date = 'N/A'; // Giá trị mặc định nếu không tìm thấy show_date
 
                 // Lấy thông tin phim từ showtime -> calendarShow -> movie
                 if ($booking->showtime && $booking->showtime->calendarShow && $booking->showtime->calendarShow->movie) {
@@ -90,7 +92,7 @@ class OrderController extends Controller
 
                 // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
                 if ($booking->showtime && $booking->showtime->showTimeDate) {
-                    $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+                    $showTimeDate = $booking->showtime->showTimeDate instanceof \Illuminate\Support\Collection
                         ? $booking->showtime->showTimeDate->first()
                         : $booking->showtime->showTimeDate;
 
@@ -143,7 +145,7 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
-                    'show_date' => $show_date,
+                    'show_date' => $show_date, // $show_date đã được đảm bảo có giá trị
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'room_name' => $room_name ?? 'N/A',
                     'room_type' => $room_type ?? 'N/A',
@@ -178,7 +180,7 @@ class OrderController extends Controller
                                 $query->select('id', 'movie_id')
                                     ->with([
                                         'movie' => function ($query) {
-                                            $query->select('id', 'title', 'poster'); // Lấy thông tin phim
+                                            $query->select('id', 'title', 'poster');
                                         }
                                     ]);
                             },
@@ -196,7 +198,7 @@ class OrderController extends Controller
                                         $query->select('id', 'name', 'room_type_id')
                                             ->with([
                                                 'roomType' => function ($query) {
-                                                    $query->select('id', 'name'); // Lấy tên loại phòng từ room_types
+                                                    $query->select('id', 'name');
                                                 }
                                             ]);
                                     }
@@ -216,7 +218,7 @@ class OrderController extends Controller
                 'total_combo_price',
                 'total_price',
                 'status',
-                'check_in', // Đã thêm từ yêu cầu trước
+                'check_in',
                 'created_at'
             )
             ->find($bookingId);
@@ -233,6 +235,7 @@ class OrderController extends Controller
         $room_type = null;
         $combos = [];
         $movie = null;
+        $show_date = 'N/A'; // Khai báo giá trị mặc định cho $show_date
 
         // Lấy thông tin phim từ showtime -> calendarShow -> movie
         if ($booking->showtime && $booking->showtime->calendarShow && $booking->showtime->calendarShow->movie) {
@@ -245,16 +248,14 @@ class OrderController extends Controller
 
         // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
         if ($booking->showtime && $booking->showtime->showTimeDate) {
-            $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+            $showTimeDate = $booking->showtime->showTimeDate instanceof \Illuminate\Support\Collection
                 ? $booking->showtime->showTimeDate->first()
                 : $booking->showtime->showTimeDate;
 
             if ($showTimeDate && $showTimeDate->show_date) {
-                // Chuyển show_date thành đối tượng Carbon và định dạng
                 try {
                     $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
                 } catch (\Exception $e) {
-                    // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
                     $show_date = $showTimeDate->show_date ?: 'N/A';
                 }
             }
@@ -301,11 +302,11 @@ class OrderController extends Controller
         }
 
         // Tính tổng tiền và giảm giá
-        $totalPrice = $booking->total_price;
-        if ($totalPrice == 0) {
-            $totalPrice = $booking->total_ticket_price + $booking->total_combo_price;
+        $totalPrice = (int) $booking->total_price;
+        if ($totalPrice === 0) {
+            $totalPrice = (int) ($booking->total_ticket_price + $booking->total_combo_price);
         }
-        $discount = ($booking->total_ticket_price + $booking->total_combo_price) - $totalPrice;
+        $discount = (int) (($booking->total_ticket_price + $booking->total_combo_price) - $totalPrice);
 
         // Lấy danh sách các giá trị ENUM của check_in
         $checkInOptions = $this->getEnumValues('bookings', 'check_in');
@@ -318,7 +319,7 @@ class OrderController extends Controller
             'showtime' => $booking->showtime
                 ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                 : 'N/A',
-            'show_date' => $show_date,
+            'show_date' => $show_date, // Đã đảm bảo $show_date luôn có giá trị
             'movie_title' => $movie ? $movie['title'] : 'N/A',
             'room_name' => $room_name ?? 'N/A',
             'room_type' => $room_type ?? 'N/A',
@@ -326,8 +327,8 @@ class OrderController extends Controller
             'combos' => $combos,
             'total_ticket_price' => (int) $booking->total_ticket_price,
             'total_combo_price' => (int) $booking->total_combo_price,
-            'total_price' => (int) $totalPrice,
-            'discount' => (int) $discount,
+            'total_price' => $totalPrice,
+            'discount' => $discount,
             'status' => $booking->status,
             'check_in' => $booking->check_in,
             'check_in_options' => $checkInOptions,

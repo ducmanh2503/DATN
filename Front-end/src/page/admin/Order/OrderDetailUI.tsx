@@ -281,7 +281,7 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                         dataSource={detailOrder?.seats?.map(
                             (item: any, index: number) => ({
                                 ...item,
-                                key: item.id || index, // Sử dụng id hoặc index làm key
+                                key: item.id || index,
                             })
                         )}
                         pagination={false}
@@ -305,7 +305,7 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                         dataSource={detailOrder?.combos?.map(
                             (item: any, index: number) => ({
                                 ...item,
-                                key: item.id || index, // Sử dụng id hoặc index làm key
+                                key: item.id || index,
                             })
                         )}
                         pagination={false}

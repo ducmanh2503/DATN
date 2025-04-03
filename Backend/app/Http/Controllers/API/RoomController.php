@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Models\Seat;
+use App\Models\ShowTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -117,6 +118,14 @@ class RoomController extends Controller
                 return response()->json(['message' => 'Không tìm thấy phòng'], 404);
             }
 
+            // Kiểm tra xem phòng có suất chiếu hay không
+            $hasShowTimes = ShowTime::where('room_id', $room->id)->exists();
+            if ($hasShowTimes) {
+                return response()->json([
+                    'message' => 'Không thể cập nhật phòng vì phòng đang có suất chiếu.'
+                ], 403);
+            }
+
             // Lấy dữ liệu JSON từ request
             $data = $request->json()->all();
 
@@ -168,6 +177,14 @@ class RoomController extends Controller
             return response()->json(['message' => 'Không tìm thấy phòng'], 404);
         }
 
+        // Kiểm tra xem phòng có suất chiếu hay không
+        $hasShowTimes = ShowTime::where('room_id', $room->id)->exists();
+        if ($hasShowTimes) {
+            return response()->json([
+                'message' => 'Không thể xóa phòng vì phòng đang có suất chiếu.'
+            ], 403);
+        }
+
         // Xóa mềm phòng
         $room->delete();
 
@@ -184,6 +201,15 @@ class RoomController extends Controller
 
         if (empty($ids)) {
             return response()->json(['message' => 'Không có phòng nào được chọn'], 400);
+        }
+
+        // Kiểm tra xem có phòng nào trong danh sách đang có suất chiếu hay không
+        $roomsWithShowTimes = ShowTime::whereIn('room_id', $ids)->pluck('room_id')->toArray();
+        if (!empty($roomsWithShowTimes)) {
+            return response()->json([
+                'message' => 'Không thể xóa vì một số phòng đang có suất chiếu.',
+                'rooms_with_showtimes' => $roomsWithShowTimes // Trả về danh sách ID phòng có suất chiếu (tùy chọn)
+            ], 403);
         }
 
         $deleted = Room::whereIn('id', $ids)->delete();

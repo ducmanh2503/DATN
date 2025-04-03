@@ -109,7 +109,20 @@ class GenreController extends Controller
             return response()->json(['message' => 'Thể loại phim không tồn tại'], 404);
         }
 
-        // Xóa thể loại phim
+        // Kiểm tra xem thể loại có tham gia trong phim nào đang chiếu hoặc sắp chiếu không
+        $movies = $genre->movies()
+            ->whereIn('movie_status', ['now_showing', 'coming_soon'])
+            ->get();
+
+        // Nếu thể loại đang tham gia trong phim đang chiếu hoặc sắp chiếu
+        if ($movies->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Không thể xóa thể loại vì một số phim đang chứa thể loại này',
+                'movies' => $movies->pluck('title') // Trả về danh sách tên phim để người dùng biết
+            ], 403); // 403 Forbidden: Không được phép xóa
+        }
+
+        // Nếu không có phim nào đang chiếu hoặc sắp chiếu, tiến hành xóa thể loại
         $genre->delete();
 
         return response()->json(['message' => 'Xóa thể loại phim thành công'], 200);

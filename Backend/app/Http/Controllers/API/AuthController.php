@@ -21,7 +21,15 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|confirmed|min:6',
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                'min:6',
+                'max:12',
+                'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{6,12}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
+                'different:email', // Không trùng với email
+            ],
             'phone' => 'required|string|min:10|max:15|unique:users',
         ]);
 
@@ -132,7 +140,15 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
             'otp' => 'required|digits:6',
-            'new_password' => 'required|string|confirmed|min:6',
+            'new_password' => [
+                'required',
+                'string',
+                'confirmed',
+                'min:6',
+                'max:12',
+                'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{6,12}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
+                'different:email', // Không trùng với email
+            ],
         ]);
 
         if ($validator->fails()) {

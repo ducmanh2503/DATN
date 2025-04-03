@@ -113,7 +113,20 @@ class ActorController extends Controller
             return response()->json(['message' => 'Diễn viên không tồn tại'], 404);
         }
 
-        // Xóa diễn viên
+        // Kiểm tra xem diễn viên có tham gia trong phim nào đang chiếu hoặc sắp chiếu không
+        $movies = $actor->movies()
+            ->whereIn('movie_status', ['now_showing', 'coming_soon'])
+            ->get();
+
+        // Nếu diễn viên đang tham gia trong phim đang chiếu hoặc sắp chiếu
+        if ($movies->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Không thể xóa diễn viên vì diễn viên đang tham gia trong một bộ phim đang chiếu hoặc sắp chiếu',
+                'movies' => $movies->pluck('title') // Trả về danh sách tên phim để người dùng biết
+            ], 403); // 403 Forbidden: Không được phép xóa
+        }
+
+        // Nếu không có phim nào đang chiếu hoặc sắp chiếu, tiến hành xóa diễn viên
         $actor->delete();
 
         return response()->json(['message' => 'Xóa diễn viên thành công'], 200);

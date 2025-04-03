@@ -13,20 +13,20 @@ class RoleMiddleware
     {
         $user = $request->user();
 
-        // Kiểm tra quyền
-        if ($role === 'admin') {
-            // Chỉ admin mới có quyền truy cập
-            if ($user->role !== 'admin') {
-                return response()->json(['error' => 'Không có quyền truy cập'], 403);
+        // Nếu $roles chứa chuỗi có dấu "|", phân tách nó thành mảng
+        if (count($roles) === 1 && strpos($roles[0], '|') !== false) {
+            $roles = explode('|', $roles[0]);
+        }
+
+        if (!$user || !in_array($user->role, $roles)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Bạn không có quyền truy cập!',
+                    'user_role' => $user ? $user->role : 'No user',
+                    'allowed_roles' => $roles
+                ], 403);
             }
-        } elseif ($role === 'admin_staff') {
-            // Admin và staff đều có quyền truy cập
-            if ($user->role !== 'admin' && $user->role !== 'staff') {
-                return response()->json(['error' => 'Không có quyền truy cập'], 403);
-            }
-        } elseif ($user->role !== $role) {
-            // Các vai trò khác phải khớp chính xác
-            return response()->json(['error' => 'Không có quyền truy cập'], 403);
+            abort(403, 'Bạn không có quyền truy cập!');
         }
 
         return $next($request);

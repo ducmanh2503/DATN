@@ -160,7 +160,9 @@ const OrderList = () => {
     const { data, isLoading, isError } = useOrdersList();
 
     const renderDetailOrder = React.useCallback(
-        (text: string, item: any) => <OrderDetail id={item.id}></OrderDetail>,
+        (text: string, item: any) => (
+            <OrderDetail id={item.id} showDataUser={true}></OrderDetail>
+        ),
         []
     );
 

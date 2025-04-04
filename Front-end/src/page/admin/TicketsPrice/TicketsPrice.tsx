@@ -18,6 +18,7 @@ import {
     useDeleteTicketPrice,
     useTicketsPrice,
 } from "../../../services/adminServices/ticketPrice.service";
+import { useState } from "react";
 
 interface TicketsPrice {
     key: React.Key;
@@ -26,10 +27,14 @@ interface TicketsPrice {
     room_name: string;
     day_type: string;
     price: string;
+    id: number;
 }
 
 const TicketsPrice = () => {
     const [messageApi, contextHolder] = message.useMessage();
+    const [selectedTicket, setSelectedTicket] = useState<TicketsPrice | null>(
+        null
+    );
 
     // lấy data
     const { data: ticketsData, isLoading, error } = useTicketsPrice();
@@ -95,6 +100,26 @@ const TicketsPrice = () => {
     //gọi hàm xóa ticket
     const handleDelete = (id: number) => {
         deleteTicket.mutate(id);
+    };
+
+    // lưu id và các giá trị để sử dụng cho edit ticket price
+    const handleClick = (
+        id: number,
+        day_type: string,
+        price: string,
+        room_name: string,
+        room_type_name: string,
+        seat_type_name: string
+    ) => {
+        setSelectedTicket({
+            id,
+            day_type,
+            price,
+            room_name,
+            room_type_name,
+            seat_type_name,
+            key: id,
+        });
     };
 
     const columns: TableColumnsType<TicketsPrice> = [
@@ -198,7 +223,18 @@ const TicketsPrice = () => {
             title: "Hành động",
             render: (_, items: any) => {
                 return (
-                    <Space>
+                    <Space
+                        onClick={() => {
+                            handleClick(
+                                items.id,
+                                items.day_type,
+                                items.price,
+                                items.room_name,
+                                items.room_type_name,
+                                items.seat_type_name
+                            );
+                        }}
+                    >
                         <Popconfirm
                             title="Xóa phim này?"
                             description="Bạn có chắc chắn muốn xóa không?"
@@ -210,7 +246,10 @@ const TicketsPrice = () => {
                                 <DeleteOutlined /> Xóa
                             </Button>
                         </Popconfirm>
-                        <EditTicketPrice id={items.id}></EditTicketPrice>
+                        <EditTicketPrice
+                            id={items.id}
+                            selectedTicket={selectedTicket}
+                        ></EditTicketPrice>
                     </Space>
                 );
             },

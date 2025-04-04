@@ -387,7 +387,70 @@ const AddFilm = () => {
                         Thêm
                     </Button>
                 </Form>
+                <hr />
+                <h1 className={clsx(styles.titleAddFilm)}>
+                    Thêm mới phim với Excel
+                </h1>
+                <Form
+                    form={form}
+                    name="add-film-form"
+                    labelCol={{ span: 8 }}
+                    wrapperCol={{ span: 16 }}
+                    onFinish={onFinish}
+                >
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                className={clsx(styles.inputLabel)}
+                                label="Poster"
+                                name="poster"
+                            >
+                                <Space.Compact>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        id="uploadFile"
+                                        onChange={handleChangeImage}
+                                        style={{ display: "none" }}
+                                    />
+                                    <label
+                                        htmlFor="uploadFile"
+                                        className={clsx(styles.addImage)}
+                                    >
+                                        <VerticalAlignTopOutlined /> Thêm ảnh
+                                    </label>
+                                    {selectedFile && (
+                                        <Image
+                                            src={preview}
+                                            alt="poster"
+                                            style={{
+                                                marginTop: "8px",
+                                                objectFit: "cover",
+                                            }}
+                                            width={180}
+                                            height={220}
+                                        />
+                                    )}
+                                </Space.Compact>
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                className={clsx(styles.inputLabel)}
+                                label="File Excel"
+                                name="excel_file"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Vui lòng nhập diễn viên",
+                                    },
+                                ]}
+                            ></Form.Item>
+                        </Col>
+                    </Row>
+                </Form>
             </div>
+
             <div className={clsx(styles.listAddFilm)}>
                 <ListNameFilms></ListNameFilms>
             </div>

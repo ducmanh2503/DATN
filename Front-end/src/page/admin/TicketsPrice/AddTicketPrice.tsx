@@ -139,7 +139,7 @@ const AddTicketPrice = ({ id }: any) => {
                     <Form.Item
                         className="input-label"
                         label="Loại phòng chiếu"
-                        name=""
+                        name="room_name"
                         rules={[
                             {
                                 required: true,
@@ -147,16 +147,16 @@ const AddTicketPrice = ({ id }: any) => {
                             },
                         ]}
                     >
-                        {/* <Select
+                        <Select
                             options={getUniqueOptions(
                                 data || [],
-                                "day_type"
+                                "room_name"
                             ).map((item) => ({
-                                label: item.day_type,
-                                value: item.day_type,
+                                label: item.room_name,
+                                value: item.room_name,
                             }))}
                             placeholder="Chọn ngày áp dụng"
-                        /> */}
+                        />
                     </Form.Item>
                     <Form.Item
                         className="input-label"

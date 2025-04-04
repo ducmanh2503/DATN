@@ -1,50 +1,93 @@
 import { EditOutlined } from "@ant-design/icons";
 import { Button, Form, Input, message, Modal, Select } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    useDetailTicketsPrice,
+    useTicketsPrice,
     useUpdateTicketPrice,
 } from "../../../services/adminServices/ticketPrice.service";
 
-const EditTicketPrice = ({ id }: any) => {
+const EditTicketPrice = ({ id, selectedTicket }: any) => {
     const [formTicketPrice] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
     const [open, setOpen] = useState(false);
-    const [confirmLoading, setConfirmLoading] = useState(false);
-    const { data, isLoading, error } = useDetailTicketsPrice(id);
-    console.log("check-data", data);
+    const [totalPrice, setTotalPrice] = useState(
+        selectedTicket ? selectedTicket.price : ""
+    );
 
-    const updateTicket = useUpdateTicketPrice(id);
+    const { data: ticketsData, error } = useTicketsPrice();
+
+    useEffect(() => {
+        if (selectedTicket) {
+            formTicketPrice.setFieldsValue({
+                seat_type_name: selectedTicket.seat_type_name,
+                room_type_name: selectedTicket.room_type_name,
+                room_name: selectedTicket.room_name,
+                day_type: selectedTicket.day_type,
+                total_price: selectedTicket.price,
+            });
+            setTotalPrice(selectedTicket.price);
+        }
+    }, [selectedTicket]); // Chỉ chạy khi selectedTicket hoặc open thay đổi
+
+    const updateTicket = useUpdateTicketPrice(messageApi); // api update
     const showModal = () => {
         setOpen(true);
     };
 
-    const handleOk = () => {
-        setConfirmLoading(true);
-        setTimeout(() => {
-            setOpen(false);
-            setConfirmLoading(false);
-        }, 2000);
-    };
-
-    const handleCancel = () => {
-        console.log("Clicked cancel button");
-        setOpen(false);
+    const handleOk = async () => {
+        try {
+            await formTicketPrice.validateFields();
+            const formData = formTicketPrice.getFieldsValue();
+            // Lấy giá trị của `total_price` trực tiếp từ Input (trường hợp cần thiết)
+            console.log("Dữ liệu gửi API:", formData);
+            onFinish(formData);
+        } catch (error) {
+            console.error("Validation failed:", error);
+        }
     };
 
     const onFinish = (formData: any) => {
-        updateTicket.mutate(formData, {
-            onSuccess: () => {
-                messageApi.success("Cập nhật giá vé thành công");
+        console.log("Dữ liệu gửi API:", formData);
+        const payload = {
+            id,
+            formData: {
+                seat_type_name: formData.seat_type_name,
+                room_type_name: formData.room_type_name,
+                room_name: formData.room_name,
+                day_type: formData.day_type,
+                price: totalPrice,
             },
-            onError: (error: any) => {
-                messageApi.error(
-                    error?.response?.data?.message ||
-                        "Cập nhật thất bại thất bại"
-                );
-            },
+        };
+        updateTicket.mutate(payload);
+        setOpen(false);
+    };
+
+    // Cập nhật state total_price khi người dùng nhập
+    const handleTotalPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setTotalPrice(value); // Cập nhật giá trị của state total_price
+        formTicketPrice.setFieldsValue({
+            total_price: value, // Cập nhật lại giá trị form
         });
     };
+
+    const handleCancel = () => {
+        formTicketPrice.resetFields();
+        setOpen(false);
+    };
+
+    // lấy các option không lặp nhau
+    const getUniqueOptions = (key: string) => {
+        return (
+            ticketsData?.reduce((acc: any[], item: any) => {
+                if (!acc.find((option) => option.value === item[key])) {
+                    acc.push({ label: item[key], value: item[key] });
+                }
+                return acc;
+            }, []) || []
+        );
+    };
+
     return (
         <>
             <Button type="primary" onClick={showModal}>
@@ -64,7 +107,9 @@ const EditTicketPrice = ({ id }: any) => {
                     labelCol={{ span: 8 }}
                     wrapperCol={{ span: 16 }}
                     onFinish={onFinish}
-                    initialValues={data}
+                    onValuesChange={(changedValues, allValues) => {
+                        console.log("Dữ liệu đang nhập:", allValues);
+                    }}
                 >
                     <Form.Item
                         className="input-label"
@@ -78,13 +123,8 @@ const EditTicketPrice = ({ id }: any) => {
                         ]}
                     >
                         <Select
-                            options={
-                                data?.map((item: any) => ({
-                                    label: item.seat_type_name,
-                                    value: item.seat_type_name,
-                                })) || []
-                            }
-                            placeholder="Chọn loại ghế"
+                            options={getUniqueOptions("seat_type_name")}
+                            disabled
                         />
                     </Form.Item>
                     <Form.Item
@@ -99,13 +139,8 @@ const EditTicketPrice = ({ id }: any) => {
                         ]}
                     >
                         <Select
-                            options={
-                                data?.map((item: any) => ({
-                                    label: item.room_type_name,
-                                    value: item.room_type_name,
-                                })) || []
-                            }
-                            placeholder="Chọn loại ghế"
+                            options={getUniqueOptions("room_type_name")}
+                            disabled
                         />
                     </Form.Item>
                     <Form.Item
@@ -120,19 +155,14 @@ const EditTicketPrice = ({ id }: any) => {
                         ]}
                     >
                         <Select
-                            options={
-                                data?.map((item: any) => ({
-                                    label: item.day_type,
-                                    value: item.day_type,
-                                })) || []
-                            }
-                            placeholder="Chọn loại ghế"
+                            options={getUniqueOptions("day_type")}
+                            disabled
                         />
                     </Form.Item>
                     <Form.Item
                         className="input-label"
                         label="Loại phòng chiếu"
-                        name="price"
+                        name="room_name"
                         rules={[
                             {
                                 required: true,
@@ -141,19 +171,14 @@ const EditTicketPrice = ({ id }: any) => {
                         ]}
                     >
                         <Select
-                            options={
-                                data?.map((item: any) => ({
-                                    label: item.price,
-                                    value: item.price,
-                                })) || []
-                            }
-                            placeholder="Chọn loại ghế"
+                            options={getUniqueOptions("room_name")}
+                            disabled
                         />
                     </Form.Item>
                     <Form.Item
                         className="input-label"
                         label="Giá vé"
-                        name="price"
+                        name="total_price"
                         rules={[
                             {
                                 required: true,
@@ -161,7 +186,11 @@ const EditTicketPrice = ({ id }: any) => {
                             },
                         ]}
                     >
-                        <Input placeholder="Giá vé"></Input>
+                        <Input
+                            value={totalPrice}
+                            onChange={handleTotalPriceChange}
+                            placeholder="Giá vé"
+                        />
                     </Form.Item>
                 </Form>
             </Modal>

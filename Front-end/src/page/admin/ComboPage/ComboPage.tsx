@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, Input, message, Form } from "antd";
+import { Table, Button, Modal, Input, message, Form, Upload } from "antd";
 import {
   PlusOutlined,
   EditOutlined,
-  DeleteOutlined,
   EyeInvisibleOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import comboService from "../../../services/combo.service";
 import { Combo } from "../../../types/combo.types";
@@ -18,6 +18,8 @@ const ComboPage = () => {
   const [currentCombo, setCurrentCombo] = useState<Combo | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [form] = Form.useForm();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
 
   useEffect(() => {
     fetchCombos();
@@ -45,19 +47,23 @@ const ComboPage = () => {
         description: combo.description,
         quantity: combo.quantity,
         price: combo.price,
-        image: combo.image,
       });
+      setPreviewUrl(combo.image || "");
     } else {
       setIsEditMode(false);
       setCurrentCombo(null);
       form.resetFields();
+      setPreviewUrl("");
     }
+    setImageFile(null);
     setIsModalVisible(true);
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
+    setImageFile(null);
+    setPreviewUrl("");
   };
 
   const handleCreate = async () => {
@@ -65,7 +71,17 @@ const ComboPage = () => {
       const values = await form.validateFields();
       console.log("Form values before sending:", values);
       
-      const response = await comboService.createCombo(values);
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("description", values.description);
+      formData.append("quantity", values.quantity);
+      formData.append("price", values.price);
+      
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+      
+      const response = await comboService.createCombo(formData);
       console.log("Create combo response:", response);
 
       setCombos([...combos, response.combo]);
@@ -92,7 +108,17 @@ const ComboPage = () => {
       const values = await form.validateFields();
       console.log("Form values before updating:", values);
       
-      const response = await comboService.updateCombo(currentCombo.id, values);
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("description", values.description);
+      formData.append("quantity", values.quantity);
+      formData.append("price", values.price);
+      
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+      
+      const response = await comboService.updateCombo(currentCombo.id, formData);
       console.log("Update combo response:", response);
 
       setCombos(
@@ -115,23 +141,6 @@ const ComboPage = () => {
         console.error("Error updating combo:", error);
       }
     }
-  };
-
-  const handleDelete = (id: string | number) => {
-    Modal.confirm({
-      title: "Xác nhận xóa vĩnh viễn",
-      content: "Bạn có chắc chắn muốn xóa vĩnh viễn combo này?",
-      async onOk() {
-        try {
-          await comboService.permanentDeleteCombo(id);
-          setCombos(combos.filter(combo => combo.id !== id));
-          message.success("Xóa vĩnh viễn combo thành công!");
-        } catch (error) {
-          message.error("Không thể xóa vĩnh viễn combo");
-          console.error(error);
-        }
-      },
-    });
   };
 
   const handleSoftDelete = (id: string | number) => {
@@ -170,37 +179,6 @@ const ComboPage = () => {
           message.success("Khôi phục combo thành công!");
         } catch (error) {
           message.error("Không thể khôi phục combo");
-          console.error(error);
-        }
-      },
-    });
-  };
-
-  const handleForceDeleteMultiple = () => {
-    // Lọc ra những combo đã bị xóa mềm từ danh sách đã chọn
-    const selectedDeletedCombos = combos.filter(
-      combo => selectedRowKeys.includes(combo.id) && combo.deleted_at !== null
-    );
-
-    if (selectedDeletedCombos.length === 0) {
-      message.warning("Vui lòng chọn combo đã bị xóa mềm để xóa vĩnh viễn!");
-      return;
-    }
-
-    // Convert selectedRowKeys to array of string | number
-    const selectedIds = selectedDeletedCombos.map(combo => String(combo.id));
-    
-    Modal.confirm({
-      title: "Xác nhận xóa vĩnh viễn nhiều combo",
-      content: `Bạn có chắc chắn muốn xóa vĩnh viễn ${selectedDeletedCombos.length} combo?`,
-      async onOk() {
-        try {
-          await comboService.forceDeleteMultipleCombos(selectedIds);
-          setCombos(combos.filter(combo => !selectedIds.includes(String(combo.id))));
-          setSelectedRowKeys(selectedRowKeys.filter(key => !selectedIds.includes(String(key))));
-          message.success("Xóa vĩnh viễn nhiều combo thành công!");
-        } catch (error) {
-          message.error("Không thể xóa vĩnh viễn nhiều combo");
           console.error(error);
         }
       },
@@ -330,12 +308,11 @@ const ComboPage = () => {
           </Button>
           {record.deleted_at ? (
             <Button
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id)}
-              style={{ marginRight: 8 }}
+              type="dashed"
+              icon={<EyeInvisibleOutlined />}
+              onClick={() => handleRestore(record.id)}
             >
-              Xóa vĩnh viễn
+              Khôi phục
             </Button>
           ) : (
             <Button
@@ -344,15 +321,6 @@ const ComboPage = () => {
               onClick={() => handleSoftDelete(record.id)}
             >
               Xóa mềm
-            </Button>
-          )}
-          {record.deleted_at && (
-            <Button
-              type="dashed"
-              icon={<EyeInvisibleOutlined />}
-              onClick={() => handleRestore(record.id)}
-            >
-              Khôi phục
             </Button>
           )}
         </>
@@ -387,15 +355,6 @@ const ComboPage = () => {
           disabled={selectedRowKeys.length === 0}
         >
           Xóa mềm nhiều
-        </Button>
-        <Button
-          danger
-          icon={<DeleteOutlined />}
-          onClick={handleForceDeleteMultiple}
-          style={{ marginRight: 8 }}
-          disabled={selectedRowKeys.length === 0}
-        >
-          Xóa vĩnh viễn nhiều
         </Button>
         <Button
           type="dashed"
@@ -501,13 +460,35 @@ const ComboPage = () => {
           
           <Form.Item
             name="image"
-            label="URL Hình ảnh"
+            label="Hình ảnh"
             rules={[
-              { required: true, message: "Vui lòng nhập URL hình ảnh!" },
-              { type: 'url', message: 'Vui lòng nhập URL hợp lệ!' }
+              { required: !isEditMode, message: "Vui lòng tải lên hình ảnh!" }
             ]}
           >
-            <Input placeholder="Nhập URL hình ảnh" />
+            <div>
+              <Upload
+                accept="image/*"
+                beforeUpload={(file) => {
+                  setImageFile(file);
+                  setPreviewUrl(URL.createObjectURL(file));
+                  return false;
+                }}
+                fileList={imageFile ? [{ uid: '-1', name: imageFile.name, status: 'done', url: previewUrl }] : []}
+                onRemove={() => {
+                  setImageFile(null);
+                  setPreviewUrl("");
+                }}
+                listType="picture"
+              >
+                <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
+              </Upload>
+              {previewUrl && !imageFile && (
+                <div style={{ marginTop: 10 }}>
+                  <p>Ảnh hiện tại:</p>
+                  <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '150px' }} />
+                </div>
+              )}
+            </div>
           </Form.Item>
         </Form>
       </Modal>

@@ -52,51 +52,30 @@ class TicketController extends Controller
         $groupedBySeatType = $ticketPrices->groupBy('seat_type_id');
 
         $data = [];
-        $counter = 1; // Biến đếm để tạo id duy nhất
+        $counter = 1;
         foreach ($groupedBySeatType as $seatTypeId => $group) {
             $seatType = $group->first()->seatType;
             $seatTypeName = $seatType ? $seatType->name : 'Không xác định';
 
-            $roomData = $seatType->seat
-                ->map(function ($seat) {
-                    if ($seat->room && $seat->room->roomType) {
-                        return [
-                            'room_name' => $seat->room->name,
-                            'room_type' => $seat->room->roomType
-                        ];
-                    }
-                    return null;
-                })
-                ->filter()
-                ->unique(function ($item) {
-                    return $item['room_type']->id . '|' . $item['room_name'];
-                })
-                ->values();
+            // Lấy thông tin phòng và loại phòng đầu tiên thay vì mảng
+            $seat = $seatType->seat->first();
+            $room = $seat ? $seat->room : null;
+            $roomName = $room ? $room->name : 'Không xác định';
+            $roomType = $room && $room->roomType ? $room->roomType : null;
+            $roomTypeName = $roomType ? $roomType->name : 'Không xác định';
+            $roomTypePrice = $roomType ? $roomType->price : 0;
 
-            if ($roomData->isEmpty()) {
-                $roomData = collect([['room_name' => 'Không xác định', 'room_type' => null]]);
-            }
+            foreach ($group as $ticketPrice) {
+                $totalPrice = $ticketPrice->price + $roomTypePrice;
 
-            foreach ($roomData as $roomItem) {
-                $roomTypeName = $roomItem['room_type'] ? $roomItem['room_type']->name : 'Không xác định';
-                $roomTypePrice = $roomItem['room_type'] ? $roomItem['room_type']->price : 0;
-                $roomName = $roomItem['room_name'];
-
-                foreach ($group as $ticketPrice) {
-                    $totalPrice = $ticketPrice->price + $roomTypePrice;
-                    $formattedTotalPrice = ($totalPrice == floor($totalPrice))
-                        ? number_format($totalPrice, 0)
-                        : number_format($totalPrice, 2);
-
-                    $data[] = [
-                        'id' => $counter++, // Tạo id duy nhất
-                        'seat_type_name' => $seatTypeName,
-                        'room_type_name' => $roomTypeName,
-                        'room_name' => $roomName,
-                        'day_type' => ucfirst($ticketPrice->day_type),
-                        'price' => $formattedTotalPrice,
-                    ];
-                }
+                $data[] = [
+                    'id' => $counter++,
+                    'seat_type_name' => $seatTypeName,
+                    'room_type_name' => $roomTypeName, // Không còn là mảng
+                    'room_name' => $roomName,
+                    'day_type' => ucfirst($ticketPrice->day_type),
+                    'price' => (int) $totalPrice,
+                ];
             }
         }
 
@@ -122,7 +101,6 @@ class TicketController extends Controller
             $seatType = $ticketPrice->seatType;
             $seatTypeName = $seatType ? $seatType->name : 'Không xác định';
 
-            // Lấy thông tin phòng và loại phòng
             $room = $seatType->seat->first() ? $seatType->seat->first()->room : null;
             $roomName = $room ? $room->name : 'Không xác định';
             $roomType = $room && $room->roomType ? $room->roomType : null;
@@ -130,19 +108,16 @@ class TicketController extends Controller
             $roomTypePrice = $roomType ? $roomType->price : 0;
 
             $totalPrice = $ticketPrice->price + $roomTypePrice;
-            $formattedTotalPrice = ($totalPrice == floor($totalPrice))
-                ? number_format($totalPrice, 0)
-                : number_format($totalPrice, 2);
 
             $data = [
                 'ticket_price_id' => $ticketPrice->id,
                 'seat_type_name' => $seatTypeName,
-                'room_type_name' => $roomTypeName,
+                'room_type_name' => $roomTypeName, // Đảm bảo là chuỗi
                 'room_name' => $roomName,
                 'day_type' => ucfirst($ticketPrice->day_type),
-                'base_price' => $ticketPrice->price,
-                'room_type_price' => $roomTypePrice,
-                'total_price' => $formattedTotalPrice,
+                'base_price' => (int) $ticketPrice->price,
+                'room_type_price' => (int) $roomTypePrice,
+                'total_price' => (int) $totalPrice,
                 'created_at' => $ticketPrice->created_at,
                 'updated_at' => $ticketPrice->updated_at
             ];
@@ -161,7 +136,6 @@ class TicketController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        // Validate dữ liệu đầu vào
         $validated = $request->validate([
             'seat_type_name' => 'required|string',
             'room_type_name' => 'required|string|in:2D,3D',
@@ -169,59 +143,50 @@ class TicketController extends Controller
             'price' => 'required|numeric|min:0',
         ]);
 
-        // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu
         DB::beginTransaction();
         try {
-            // Bước 1: Tìm hoặc tạo SeatType
             $seatType = SeatType::firstOrCreate(
                 ['name' => $validated['seat_type_name']],
                 ['name' => $validated['seat_type_name']]
             );
 
-            // Bước 2: Kiểm tra xem đã tồn tại bản ghi trong SeatTypePrice với seat_type_id và day_type hay chưa
             $existingSeatTypePrice = SeatTypePrice::where('seat_type_id', $seatType->id)
                 ->where('day_type', $validated['day_type'])
                 ->first();
 
             if ($existingSeatTypePrice) {
-                // Nếu đã tồn tại, trả về lỗi
                 return response()->json([
                     'message' => 'Bản ghi giá vé đã tồn tại cho loại ghế ' . $seatType->name . ' và loại ngày ' . $validated['day_type'] . '. Vui lòng cập nhật thay vì thêm mới.',
-                ], 422); // 422 Unprocessable Entity
+                ], 422);
             }
 
-            // Bước 3: Tìm hoặc tạo RoomType
             $roomType = RoomType::firstOrCreate(
                 ['name' => $validated['room_type_name']],
                 ['name' => $validated['room_type_name']]
             );
 
-            // Bước 4: Tìm hoặc tạo Room
             $roomName = $validated['room_type_name'] === '2D' ? 'Cinema 1' : 'Cinema 5';
             $room = Room::firstOrCreate(
                 ['name' => $roomName, 'room_type_id' => $roomType->id],
                 ['name' => $roomName, 'room_type_id' => $roomType->id]
             );
 
-            // Bước 5: Tìm hoặc tạo Seat
             $seat = Seat::firstOrCreate(
                 ['room_id' => $room->id, 'seat_type_id' => $seatType->id],
                 ['room_id' => $room->id, 'seat_type_id' => $seatType->id]
             );
 
-            // Bước 6: Tạo mới SeatTypePrice
             $seatTypePrice = SeatTypePrice::create([
                 'seat_type_id' => $seatType->id,
                 'day_type' => $validated['day_type'],
                 'price' => $validated['price'],
             ]);
 
-            // Kết quả trả về
             $result = [
                 'seat_type_name' => $seatType->name,
-                'room_type_name' => $roomType->name,
+                'room_type_name' => $roomType->name, // Chuỗi đơn giản
                 'day_type' => $seatTypePrice->day_type,
-                'price' => $seatTypePrice->price,
+                'price' => (int) $seatTypePrice->price,
             ];
 
             DB::commit();
@@ -239,7 +204,6 @@ class TicketController extends Controller
 
     public function update(Request $request, $id): JsonResponse
     {
-        // Validate dữ liệu đầu vào
         $validated = $request->validate([
             'seat_type_name' => 'required|string',
             'room_type_name' => 'required|string|in:2D,3D',
@@ -247,50 +211,42 @@ class TicketController extends Controller
             'price' => 'required|numeric|min:0',
         ]);
 
-        // Tìm bản ghi SeatTypePrice cần cập nhật
         $seatTypePrice = SeatTypePrice::findOrFail($id);
 
-        // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu
         DB::beginTransaction();
         try {
-            // Bước 1: Tìm hoặc tạo SeatType
             $seatType = SeatType::firstOrCreate(
                 ['name' => $validated['seat_type_name']],
                 ['name' => $validated['seat_type_name']]
             );
 
-            // Bước 2: Tìm hoặc tạo RoomType
             $roomType = RoomType::firstOrCreate(
                 ['name' => $validated['room_type_name']],
                 ['name' => $validated['room_type_name']]
             );
 
-            // Bước 3: Tìm hoặc tạo Room
             $roomName = $validated['room_type_name'] === '2D' ? 'Cinema 1' : 'Cinema 5';
             $room = Room::firstOrCreate(
                 ['name' => $roomName, 'room_type_id' => $roomType->id],
                 ['name' => $roomName, 'room_type_id' => $roomType->id]
             );
 
-            // Bước 4: Tìm hoặc tạo Seat
             $seat = Seat::firstOrCreate(
                 ['room_id' => $room->id, 'seat_type_id' => $seatType->id],
                 ['room_id' => $room->id, 'seat_type_id' => $seatType->id]
             );
 
-            // Bước 5: Cập nhật SeatTypePrice
             $seatTypePrice->update([
                 'seat_type_id' => $seatType->id,
                 'day_type' => $validated['day_type'],
                 'price' => $validated['price'],
             ]);
 
-            // Kết quả trả về
             $result = [
                 'seat_type_name' => $seatType->name,
-                'room_type_name' => $roomType->name,
+                'room_type_name' => $roomType->name, // Chuỗi đơn giản
                 'day_type' => $seatTypePrice->day_type,
-                'price' => $seatTypePrice->price,
+                'price' => (int) $seatTypePrice->price,
             ];
 
             DB::commit();

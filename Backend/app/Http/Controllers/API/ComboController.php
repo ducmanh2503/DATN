@@ -4,14 +4,39 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Combo;
+use App\Models\Seat;
+use App\Models\ShowTime;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class ComboController extends Controller
 {
+    /**
+     * Kiểm tra xem có ghế nào đang được giữ trong cache hay không
+     */
+    private function hasSeatsInCache()
+    {
+        // Lấy tất cả showTimeIds
+        $showTimeIds = ShowTime::pluck('id');
+
+        // Lấy tất cả seatIds
+        $seatIds = Seat::pluck('id');
+
+        // Kiểm tra từng showTimeId và seatId trong cache
+        foreach ($showTimeIds as $showTimeId) {
+            foreach ($seatIds as $seatId) {
+                $cacheKey = "seat_{$showTimeId}_{$seatId}";
+                if (Cache::has($cacheKey)) {
+                    return true; // Có ít nhất một ghế đang được giữ trong cache
+                }
+            }
+        }
+
+        return false; // Không có ghế nào đang được giữ trong cache
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -85,6 +110,13 @@ class ComboController extends Controller
     {
         $combo = Combo::findOrFail($id);
 
+        // Kiểm tra xem có ghế nào đang được giữ trong cache không
+        if ($this->hasSeatsInCache()) {
+            return response()->json([
+                'message' => 'Có người đang mua vé, không thể cập nhật combo!'
+            ], 409);
+        }
+
         try {
             $validated = $request->validate([
                 'name' => 'sometimes|string|unique:combos,name,' . $id,
@@ -94,9 +126,7 @@ class ComboController extends Controller
                 'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
 
-            // Xử lý upload ảnh giống MoviesController
             if (isset($validated['image']) && $validated['image'] instanceof \Illuminate\Http\UploadedFile) {
-                // Xóa ảnh cũ nếu tồn tại
                 if ($combo->image && Storage::disk('public')->exists(str_replace('/storage/', '', $combo->image))) {
                     Storage::disk('public')->delete(str_replace('/storage/', '', $combo->image));
                 }
@@ -122,24 +152,25 @@ class ComboController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Soft delete multiple combos.
      */
-
-    //Xóa mềm nhiều Combo
     public function destroyMultiple(Request $request)
     {
+        $ids = $request->input('ids');
 
-        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
-
-        // Nếu không có phim nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có Combo nào được chọn'], 400);
         }
 
-        //Xóa mềm các phim được chọn
+        // Kiểm tra xem có ghế nào đang được giữ trong cache không
+        if ($this->hasSeatsInCache()) {
+            return response()->json([
+                'message' => 'Có người đang mua vé, không thể xóa combo!'
+            ], 409);
+        }
+
         $deleted = Combo::whereIn('id', $ids)->delete();
 
-        //Kiểm tra xem có phim nào được xóa không
         if ($deleted) {
             return response()->json(['message' => 'Xóa combo thành công'], 200);
         }
@@ -149,19 +180,23 @@ class ComboController extends Controller
 
 
 
-    //Xóa mềm 1 Combo
+    /**
+     * Remove the specified resource from storage (soft delete).
+     */
     public function destroy($id)
     {
-
-
         try {
-            // Tìm combo theo ID
             $combo = Combo::findOrFail($id);
 
-            // Xóa combo
+            // Kiểm tra xem có ghế nào đang được giữ trong cache không
+            if ($this->hasSeatsInCache()) {
+                return response()->json([
+                    'message' => 'Có người đang mua vé, không thể xóa combo!'
+                ], 409);
+            }
+
             $combo->delete();
 
-            // Trả về phản hồi thành công
             return response()->json(['message' => 'Xóa combo thành công'], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Lỗi khi xóa combo: ' . $e->getMessage()], 500);
@@ -169,54 +204,53 @@ class ComboController extends Controller
     }
 
     //Xóa vĩnh viễn nhiều Combo
-    // Xóa vĩnh viễn nhiều Combo
-    public function forceDeleteMultiple(Request $request)
-    {
+    // public function forceDeleteMultiple(Request $request)
+    // {
 
 
-        $ids = $request->input('ids'); // Lấy danh sách ID combo cần xóa vĩnh viễn
+    //     $ids = $request->input('ids'); // Lấy danh sách ID combo cần xóa vĩnh viễn
 
-        // Nếu không có combo nào được chọn
-        if (empty($ids)) {
-            return response()->json(['message' => 'Không có combo nào được chọn để xóa vĩnh viễn'], 400);
-        }
+    //     // Nếu không có combo nào được chọn
+    //     if (empty($ids)) {
+    //         return response()->json(['message' => 'Không có combo nào được chọn để xóa vĩnh viễn'], 400);
+    //     }
 
-        // Kiểm tra nếu combo có tồn tại trong bảng bị xóa mềm
-        $combos = Combo::onlyTrashed()->whereIn('id', $ids)->get();
+    //     // Kiểm tra nếu combo có tồn tại trong bảng bị xóa mềm
+    //     $combos = Combo::onlyTrashed()->whereIn('id', $ids)->get();
 
-        // Nếu không có combo nào bị xóa mềm
-        if ($combos->isEmpty()) {
-            return response()->json(['message' => 'Không tìm thấy combo nào đã bị xóa mềm'], 404);
-        }
+    //     // Nếu không có combo nào bị xóa mềm
+    //     if ($combos->isEmpty()) {
+    //         return response()->json(['message' => 'Không tìm thấy combo nào đã bị xóa mềm'], 404);
+    //     }
 
-        // Xóa vĩnh viễn tất cả các combo đã bị xóa mềm
-        $deletedCount = $combos->count();
-        Combo::onlyTrashed()->whereIn('id', $ids)->forceDelete();
+    //     // Xóa vĩnh viễn tất cả các combo đã bị xóa mềm
+    //     $deletedCount = $combos->count();
+    //     Combo::onlyTrashed()->whereIn('id', $ids)->forceDelete();
 
-        // Trả về phản hồi thành công
-        return response()->json(['message' => "Xóa vĩnh viễn $deletedCount combo thành công"], 200);
-    }
-
-
-    // Xóa vĩnh viễn 1 Combo 
-    public function forceDeleteSingle($id)
-    {
+    //     // Trả về phản hồi thành công
+    //     return response()->json(['message' => "Xóa vĩnh viễn $deletedCount combo thành công"], 200);
+    // }
 
 
-        // Tìm combo đã xóa mềm theo ID
-        $combo = Combo::onlyTrashed()->find($id);
+    // // Xóa vĩnh viễn 1 Combo 
+    // public function forceDeleteSingle($id)
+    // {
 
-        // Kiểm tra nếu không tìm thấy combo
-        if (!$combo) {
-            return response()->json(['message' => 'Combo không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
-        }
 
-        // Xóa vĩnh viễn combo
-        $combo->forceDelete();
+    //     // Tìm combo đã xóa mềm theo ID
+    //     $combo = Combo::onlyTrashed()->find($id);
 
-        // Trả về phản hồi thành công
-        return response()->json(['message' => 'Xóa vĩnh viễn combo thành công'], 200);
-    }
+    //     // Kiểm tra nếu không tìm thấy combo
+    //     if (!$combo) {
+    //         return response()->json(['message' => 'Combo không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
+    //     }
+
+    //     // Xóa vĩnh viễn combo
+    //     $combo->forceDelete();
+
+    //     // Trả về phản hồi thành công
+    //     return response()->json(['message' => 'Xóa vĩnh viễn combo thành công'], 200);
+    // }
 
 
     // Khôi phục 1 Combo
@@ -270,23 +304,4 @@ class ComboController extends Controller
             'combos' => $combos,
         ], 200);
     }
-
-    // //thêm chức năng tìm kiếm
-    // public function showCombosForClient(Request $request)
-    // {
-    //     $searchTerm = $request->input('search', '');
-
-    //     $combos = Combo::query()
-    //         ->select('id', 'name', 'description', 'quantity', 'price', 'image')
-    //         ->where('name', 'LIKE', "%$searchTerm%") // Tìm kiếm theo tên
-    //         ->orWhere('description', 'LIKE', "%$searchTerm%") // Tìm kiếm theo mô tả
-    //         ->latest('id')
-    //         ->paginate(10)->get();
-
-    //     return response()->json([
-    //         'message' => 'Danh sách combo',
-    //         'combos' => $combos,
-    //     ], 200);
-    // }
-
 }

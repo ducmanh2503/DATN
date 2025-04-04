@@ -406,26 +406,34 @@ class MoviesController extends Controller
     }
 
 
-    //check chung 
+    /**
+     * Kiểm tra xem phim có lịch chiếu hiện tại hoặc tương lai hay không
+     */
     private function hasCalendarShow($movieIds)
     {
+        $currentTime = now(); // Lấy thời gian hiện tại
+
         if (is_array($movieIds)) {
-            return DB::table('calendar_show')->whereIn('movie_id', $movieIds)->exists() ||
-                DB::table('show_times')->whereExists(function ($query) use ($movieIds) {
+            return DB::table('calendar_show')
+                ->whereIn('movie_id', $movieIds)
+                ->whereExists(function ($query) use ($currentTime) {
                     $query->select(DB::raw(1))
-                        ->from('calendar_show')
+                        ->from('show_times')
                         ->whereColumn('calendar_show.id', 'show_times.calendar_show_id')
-                        ->whereIn('calendar_show.movie_id', $movieIds);
-                })->exists();
+                        ->where('show_times.end_time', '>=', $currentTime); // Lịch chiếu hiện tại hoặc tương lai
+                })
+                ->exists();
         }
 
-        return DB::table('calendar_show')->where('movie_id', $movieIds)->exists() ||
-            DB::table('show_times')->whereExists(function ($query) use ($movieIds) {
+        return DB::table('calendar_show')
+            ->where('movie_id', $movieIds)
+            ->whereExists(function ($query) use ($currentTime) {
                 $query->select(DB::raw(1))
-                    ->from('calendar_show')
+                    ->from('show_times')
                     ->whereColumn('calendar_show.id', 'show_times.calendar_show_id')
-                    ->where('calendar_show.movie_id', $movieIds);
-            })->exists();
+                    ->where('show_times.end_time', '>=', $currentTime); // Lịch chiếu hiện tại hoặc tương lai
+            })
+            ->exists();
     }
 
     /**
@@ -456,17 +464,22 @@ class MoviesController extends Controller
         return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
     }
 
-    //Xóa mềm 1 phim
+    /**
+     * Xóa một phim (soft delete)
+     */
     public function destroy($id)
     {
-
         try {
             // Tìm phim theo ID
             $movie = Movies::findOrFail($id);
 
+            // Kiểm tra xem phim có lịch chiếu hiện tại hoặc tương lai không
             if ($this->hasCalendarShow($id)) {
-                return response()->json(['message' => 'Không thể xóa phim vì phim đang có lịch chiếu'], 400);
+                return response()->json([
+                    'message' => 'Không thể xóa phim vì phim đang có lịch chiếu hiện tại hoặc tương lai'
+                ], 400);
             }
+
             // Xóa phim
             $movie->delete();
 
@@ -494,53 +507,53 @@ class MoviesController extends Controller
     }
 
     //Xóa vĩnh viễn nhiều phim
-    public function forceDeleteMultiple(Request $request)
-    {
+    // public function forceDeleteMultiple(Request $request)
+    // {
 
-        $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
+    //     $ids = $request->input('ids'); // Lấy danh sách id phim cần xóa
 
-        // Nếu không có phim nào được chọn
-        if (empty($ids)) {
-            return response()->json(['message' => 'Không có phim nào được chọn'], 400);
-        }
+    //     // Nếu không có phim nào được chọn
+    //     if (empty($ids)) {
+    //         return response()->json(['message' => 'Không có phim nào được chọn'], 400);
+    //     }
 
-        if ($this->hasCalendarShow($ids)) {
-            return response()->json(['message' => 'Không thể xóa vĩnh viễn vì một hoặc nhiều phim đang có lịch chiếu'], 400);
-        }
+    //     if ($this->hasCalendarShow($ids)) {
+    //         return response()->json(['message' => 'Không thể xóa vĩnh viễn vì một hoặc nhiều phim đang có lịch chiếu'], 400);
+    //     }
 
-        //Xóa vĩnh viễn các phim được chọn
-        $deleted = Movies::onlyTrashed()->whereIn('id', $ids)->forceDelete();
+    //     //Xóa vĩnh viễn các phim được chọn
+    //     $deleted = Movies::onlyTrashed()->whereIn('id', $ids)->forceDelete();
 
-        //Kiểm tra xem có phim nào được xóa không
-        if ($deleted) {
-            return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
-        }
+    //     //Kiểm tra xem có phim nào được xóa không
+    //     if ($deleted) {
+    //         return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
+    //     }
 
-        return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
-    }
+    //     return response()->json(['message' => 'Không tìm thấy phim nào'], 404);
+    // }
 
-    //Xóa vĩnh viễn 1 phim
-    public function forceDeleteSingle($id)
-    {
+    // //Xóa vĩnh viễn 1 phim
+    // public function forceDeleteSingle($id)
+    // {
 
-        // Tìm phim đã xóa mềm theo ID
-        $movie = Movies::onlyTrashed()->find($id);
+    //     // Tìm phim đã xóa mềm theo ID
+    //     $movie = Movies::onlyTrashed()->find($id);
 
-        // Kiểm tra nếu không tìm thấy phim
-        if (!$movie) {
-            return response()->json(['message' => 'Phim không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
-        }
+    //     // Kiểm tra nếu không tìm thấy phim
+    //     if (!$movie) {
+    //         return response()->json(['message' => 'Phim không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
+    //     }
 
-        if ($this->hasCalendarShow($id)) {
-            return response()->json(['message' => 'Không thể xóa vĩnh viễn phim vì phim đang có lịch chiếu'], 400);
-        }
+    //     if ($this->hasCalendarShow($id)) {
+    //         return response()->json(['message' => 'Không thể xóa vĩnh viễn phim vì phim đang có lịch chiếu'], 400);
+    //     }
 
-        // Xóa vĩnh viễn phim
-        $movie->forceDelete();
+    //     // Xóa vĩnh viễn phim
+    //     $movie->forceDelete();
 
-        // Trả về phản hồi thành công
-        return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
-    }
+    //     // Trả về phản hồi thành công
+    //     return response()->json(['message' => 'Xóa vĩnh viễn phim thành công'], 200);
+    // }
 
     /**
      * Tìm kiếm phim theo tiêu đề, diễn viên hoặc đạo diễn

@@ -52,30 +52,48 @@ class TicketController extends Controller
         $groupedBySeatType = $ticketPrices->groupBy('seat_type_id');
 
         $data = [];
-        $counter = 1;
+        $counter = 1; // Biến đếm để tạo id duy nhất
         foreach ($groupedBySeatType as $seatTypeId => $group) {
             $seatType = $group->first()->seatType;
             $seatTypeName = $seatType ? $seatType->name : 'Không xác định';
 
-            // Lấy thông tin phòng và loại phòng đầu tiên thay vì mảng
-            $seat = $seatType->seat->first();
-            $room = $seat ? $seat->room : null;
-            $roomName = $room ? $room->name : 'Không xác định';
-            $roomType = $room && $room->roomType ? $room->roomType : null;
-            $roomTypeName = $roomType ? $roomType->name : 'Không xác định';
-            $roomTypePrice = $roomType ? $roomType->price : 0;
+            $roomData = $seatType->seat
+                ->map(function ($seat) {
+                    if ($seat->room && $seat->room->roomType) {
+                        return [
+                            'room_name' => $seat->room->name,
+                            'room_type' => $seat->room->roomType
+                        ];
+                    }
+                    return null;
+                })
+                ->filter()
+                ->unique(function ($item) {
+                    return $item['room_type']->id . '|' . $item['room_name'];
+                })
+                ->values();
 
-            foreach ($group as $ticketPrice) {
-                $totalPrice = $ticketPrice->price + $roomTypePrice;
+            if ($roomData->isEmpty()) {
+                $roomData = collect([['room_name' => 'Không xác định', 'room_type' => null]]);
+            }
 
-                $data[] = [
-                    'id' => $counter++,
-                    'seat_type_name' => $seatTypeName,
-                    'room_type_name' => $roomTypeName, // Không còn là mảng
-                    'room_name' => $roomName,
-                    'day_type' => ucfirst($ticketPrice->day_type),
-                    'price' => (int) $totalPrice,
-                ];
+            foreach ($roomData as $roomItem) {
+                $roomTypeName = $roomItem['room_type'] ? $roomItem['room_type']->name : 'Không xác định';
+                $roomTypePrice = $roomItem['room_type'] ? $roomItem['room_type']->price : 0;
+                $roomName = $roomItem['room_name'];
+
+                foreach ($group as $ticketPrice) {
+                    $totalPrice = $ticketPrice->price + $roomTypePrice;
+
+                    $data[] = [
+                        'id' => $counter++, // Tạo id duy nhất
+                        'seat_type_name' => $seatTypeName,
+                        'room_type_name' => $roomTypeName,
+                        'room_name' => $roomName,
+                        'day_type' => ucfirst($ticketPrice->day_type),
+                        'price' => (int) $totalPrice,
+                    ];
+                }
             }
         }
 
@@ -101,6 +119,7 @@ class TicketController extends Controller
             $seatType = $ticketPrice->seatType;
             $seatTypeName = $seatType ? $seatType->name : 'Không xác định';
 
+            // Lấy thông tin phòng và loại phòng
             $room = $seatType->seat->first() ? $seatType->seat->first()->room : null;
             $roomName = $room ? $room->name : 'Không xác định';
             $roomType = $room && $room->roomType ? $room->roomType : null;
@@ -112,7 +131,7 @@ class TicketController extends Controller
             $data = [
                 'ticket_price_id' => $ticketPrice->id,
                 'seat_type_name' => $seatTypeName,
-                'room_type_name' => $roomTypeName, // Đảm bảo là chuỗi
+                'room_type_name' => $roomTypeName,
                 'room_name' => $roomName,
                 'day_type' => ucfirst($ticketPrice->day_type),
                 'base_price' => (int) $ticketPrice->price,

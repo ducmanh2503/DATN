@@ -16,11 +16,9 @@ const ENDPOINTS = {
   CREATE_COMBO: `${BASE_URL}/combo`,
   UPDATE_COMBO: (id: string | number) => `${BASE_URL}/combo/${id}`,
   DELETE_COMBO: (id: string | number) => `${BASE_URL}/combo/${id}`,
-  DELETE_MULTIPLE_COMBOS: `${BASE_URL}/combo`, // Endpoint cho xóa mềm nhiều
+  DELETE_MULTIPLE_COMBOS: `${BASE_URL}/combo`,
   RESTORE_COMBO: (id: string | number) => `${BASE_URL}/combo/restore/${id}`,
-  RESTORE_MULTIPLE_COMBOS: `${BASE_URL}/combo/multiple/restore`, // Endpoint cho khôi phục nhiều
-  FORCE_DELETE: (id: string | number) => `${BASE_URL}/combo/force/${id}`, // Endpoint cho xóa vĩnh viễn
-  FORCE_DELETE_MULTIPLE: `${BASE_URL}/combos/force-delete-multiple`, // Endpoint cho xóa vĩnh viễn nhiều
+  RESTORE_MULTIPLE_COMBOS: `${BASE_URL}/combo/multiple/restore`,
 };
 
 const normalizeId = (id: string | number): string => String(id);
@@ -40,6 +38,7 @@ const handleApiError = (error: any): never => {
   throw error;
 };
 
+// Lấy danh sách combo, có thể bao gồm cả combo bị xóa mềm
 export const getCombos = async (
   includeDeleted: boolean = false
 ): Promise<ComboListResponse> => {
@@ -64,6 +63,7 @@ export const getCombos = async (
   }
 };
 
+// Lấy thông tin một combo
 export const getCombo = async (id: string | number): Promise<Combo> => {
   const comboId = normalizeId(id);
   try {
@@ -78,8 +78,9 @@ export const getCombo = async (id: string | number): Promise<Combo> => {
   }
 };
 
+// Tạo combo mới
 export const createCombo = async (
-  data: ComboCreateRequest
+  data: FormData
 ): Promise<ComboCreateResponse> => {
   try {
     const response = await axios.post<ComboCreateResponse>(
@@ -87,7 +88,7 @@ export const createCombo = async (
       data,
       {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${getAuthToken()}`,
         },
       }
@@ -104,9 +105,10 @@ export const createCombo = async (
   }
 };
 
+// Cập nhật combo
 export const updateCombo = async (
   id: string | number,
-  data: ComboUpdateRequest
+  data: FormData
 ): Promise<ComboUpdateResponse> => {
   const comboId = normalizeId(id);
   try {
@@ -115,7 +117,7 @@ export const updateCombo = async (
       data,
       {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${getAuthToken()}`,
         },
       }
@@ -132,6 +134,7 @@ export const updateCombo = async (
   }
 };
 
+// Xóa mềm một combo
 export const deleteCombo = async (id: string | number): Promise<void> => {
   const comboId = normalizeId(id);
   try {
@@ -148,7 +151,7 @@ export const deleteCombo = async (id: string | number): Promise<void> => {
 export const deleteMultipleCombos = async (ids: (string | number)[]): Promise<void> => {
   try {
     await axios.delete(ENDPOINTS.DELETE_MULTIPLE_COMBOS, {
-      data: { ids }, // Gửi data trong body của DELETE request
+      data: { ids },
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
       },
@@ -158,6 +161,7 @@ export const deleteMultipleCombos = async (ids: (string | number)[]): Promise<vo
   }
 };
 
+// Khôi phục một combo
 export const restoreCombo = async (id: string | number): Promise<void> => {
   const comboId = normalizeId(id);
   try {
@@ -218,6 +222,4 @@ export default {
   deleteMultipleCombos,
   restoreCombo,
   restoreMultipleCombos,
-  permanentDeleteCombo,
-  forceDeleteMultipleCombos,
 };

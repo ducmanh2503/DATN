@@ -5,10 +5,12 @@ import {
   EditOutlined,
   EyeInvisibleOutlined,
   UploadOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import comboService from "../../../services/combo.service";
 import { Combo } from "../../../types/combo.types";
 import styles from "./Combo.module.css";
+import { URL_IMAGE } from "../../../config/ApiConfig";
 
 const ComboPage = () => {
   const [combos, setCombos] = useState<Combo[]>([]);
@@ -28,8 +30,8 @@ const ComboPage = () => {
   const fetchCombos = async () => {
     setLoading(true);
     try {
-      const response = await comboService.getCombos(true);
-      console.log("Fetched combos:", response);
+      const response = await comboService.getCombos(true); // Lấy cả combo bị xóa mềm
+      console.log("Danh sách combo từ server:", response.combo); // Log để kiểm tra
       setCombos(response.combo);
     } catch (error) {
       message.error("Không thể tải danh sách combo");
@@ -82,8 +84,6 @@ const ComboPage = () => {
       }
       
       const response = await comboService.createCombo(formData);
-      console.log("Create combo response:", response);
-
       setCombos([...combos, response.combo]);
       message.success("Thêm combo thành công!");
       handleCancel();
@@ -97,7 +97,6 @@ const ComboPage = () => {
         errorMessages.forEach(msg => message.error(msg));
       } else {
         message.error(`Không thể thêm combo: ${error.message || error}`);
-        console.error("Error creating combo:", error);
       }
     }
   };
@@ -138,7 +137,6 @@ const ComboPage = () => {
         errorMessages.forEach(msg => message.error(msg));
       } else {
         message.error(`Không thể cập nhật combo: ${error.message || error}`);
-        console.error("Error updating combo:", error);
       }
     }
   };
@@ -171,11 +169,7 @@ const ComboPage = () => {
       async onOk() {
         try {
           await comboService.restoreCombo(id);
-          setCombos(
-            combos.map((combo) =>
-              combo.id === id ? { ...combo, deleted_at: null } : combo
-            )
-          );
+          await fetchCombos(); // Làm mới danh sách từ server
           message.success("Khôi phục combo thành công!");
         } catch (error) {
           message.error("Không thể khôi phục combo");
@@ -205,13 +199,7 @@ const ComboPage = () => {
       async onOk() {
         try {
           await comboService.deleteMultipleCombos(selectedIds);
-          setCombos(
-            combos.map((combo) =>
-              selectedIds.includes(String(combo.id))
-                ? { ...combo, deleted_at: new Date().toISOString() }
-                : combo
-            )
-          );
+          await fetchCombos(); // Làm mới danh sách từ server
           setSelectedRowKeys([]);
           message.success("Xóa mềm nhiều combo thành công!");
         } catch (error) {
@@ -223,8 +211,12 @@ const ComboPage = () => {
   };
 
   const handleRestoreMultiple = () => {
-    if (selectedRowKeys.length === 0) {
-      message.warning("Vui lòng chọn ít nhất một combo để khôi phục!");
+    const selectedDeletedCombos = combos.filter(
+      (combo) => selectedRowKeys.includes(combo.id) && combo.deleted_at !== null
+    );
+
+    if (selectedDeletedCombos.length === 0) {
+      message.warning("Vui lòng chọn combo đã bị xóa mềm để khôi phục!");
       return;
     }
 
@@ -233,17 +225,11 @@ const ComboPage = () => {
     
     Modal.confirm({
       title: "Xác nhận khôi phục nhiều combo",
-      content: `Bạn có chắc chắn muốn khôi phục ${selectedRowKeys.length} combo?`,
+      content: `Bạn có chắc chắn muốn khôi phục ${selectedDeletedCombos.length} combo?`,
       async onOk() {
         try {
           await comboService.restoreMultipleCombos(selectedIds);
-          setCombos(
-            combos.map((combo) =>
-              selectedRowKeys.includes(combo.id)
-                ? { ...combo, deleted_at: null }
-                : combo
-            )
-          );
+          await fetchCombos(); // Làm mới danh sách từ server
           setSelectedRowKeys([]);
           message.success("Khôi phục nhiều combo thành công!");
         } catch (error) {
@@ -275,7 +261,7 @@ const ComboPage = () => {
         }
         return (
           <img
-            src={image}
+            src={image.startsWith('http') ? image : `${URL_IMAGE}${image.startsWith('/') ? '' : '/'}${image}`}
             alt="combo"
             className={styles.tableImage}
             onError={(e: any) => {
@@ -358,7 +344,7 @@ const ComboPage = () => {
         </Button>
         <Button
           type="dashed"
-          icon={<EyeInvisibleOutlined />}
+          icon={<UndoOutlined />}
           onClick={handleRestoreMultiple}
           disabled={selectedRowKeys.length === 0}
         >

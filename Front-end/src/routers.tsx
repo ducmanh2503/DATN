@@ -185,110 +185,99 @@ export const router = createBrowserRouter([
           </>
         ),
         children: [
-            {
-                path: "/admin",
-                element: (
-                    <>
-                        <ToastContainer />
-                        <AdminLayout />
-                    </>
-                ),
-                children: [
-                    {
-                        index: true,
-                        element: <Dashboard />,
-                    },
-                    { path: "dashboard", element: <Dashboard /> },
-                    {
-                        path: "dashboardFilm",
-                        element: <DashBoardFilm />,
-                    },
-                    {
-                        path: "film",
-                        element: <FilmManage />,
-                    },
-                    {
-                        path: "addFilm",
-                        element: <AddFilm />,
-                    },
-                    {
-                        path: "stoppedMovie",
-                        element: <StoppedMovies />,
-                    },
-                    {
-                        path: "calendarShow",
-                        element: <CalendarManage />,
-                    },
-                    {
-                        path: "showtimes",
-                        element: <ShowtimesManage />,
-                    },
-                    {
-                        path: "checkin",
-                        element: <CheckinManage />,
-                    },
-                    {
-                        path: "actors",
-                        element: <ActorsManage />,
-                    },
-                    {
-                        path: "directors",
-                        element: <DirectorsManage />,
-                    },
-                    {
-                        path: "genre",
-                        element: <GenresManage />,
-                    },
-                    {
-                        path: "rooms",
-                        element: <RoomPage />,
-                    },
-                    {
-                        path: "articlelist",
-                        element: <ArticleList />,
-                    },
-                    // {
-                    //     path: "create-article",
-                    //     element: <CreatePost />,
-                    // },
-                    {
-                        path: "discount-code",
-                        element: <DiscountManagement />,
-                    },
-                    {
-                        path: "ticketsPrice",
-                        element: <TicketsPrice></TicketsPrice>,
-                    },
-                    {
-                        path: "orders",
-                        element: <OrderList />,
-                    },
-                    {
-                        path: "order/orderDetail",
-                        element: <OrderDetail />,
-                    },
-                    {
-                        path: "users",
-                        element: <Userlist />,
-                    },
-                    {
-                        path: "userpage/useradd",
-                        element: <Useradd />,
-                    },
-                    {
-                        path: "userpage/userdetail",
-                        element: <UserDetail />,
-                    },
-                    {
-                        path: "combo",
-                        element: <Combo />,
-                    },
-                    {
-                        path: "profile",
-                        element: <ProfilePage />,
-                    },
-                ],
-            },
+          {
+            index: true,
+            element: <Dashboard />,
+          },
+          { path: "dashboard", element: <Dashboard /> },
+          {
+            path: "dashboardFilm",
+            element: <DashBoardFilm />,
+          },
+          {
+            path: "film",
+            element: <FilmManage />,
+          },
+          {
+            path: "addFilm",
+            element: <AddFilm />,
+          },
+          {
+            path: "stoppedMovie",
+            element: <StoppedMovies />,
+          },
+          {
+            path: "calendarShow",
+            element: <CalendarManage />,
+          },
+          {
+            path: "showtimes",
+            element: <ShowtimesManage />,
+          },
+          {
+            path: "checkin",
+            element: <CheckinManage />,
+          },
+          {
+            path: "actors",
+            element: <ActorsManage />,
+          },
+          {
+            path: "directors",
+            element: <DirectorsManage />,
+          },
+          {
+            path: "genre",
+            element: <GenresManage />,
+          },
+          {
+            path: "rooms",
+            element: <RoomPage />,
+          },
+          {
+            path: "articlelist",
+            element: <ArticleList />,
+          },
+          // {
+          //     path: "create-article",
+          //     element: <CreatePost />,
+          // },
+          {
+            path: "discount-code",
+            element: <DiscountManagement />,
+          },
+          {
+            path: "ticketsPrice",
+            element: <TicketsPrice></TicketsPrice>,
+          },
+          {
+            path: "orders",
+            element: <OrderList />,
+          },
+          {
+            path: "order/orderDetail",
+            element: <OrderDetail />,
+          },
+          {
+            path: "users",
+            element: <Userlist />,
+          },
+          {
+            path: "userpage/useradd",
+            element: <Useradd />,
+          },
+          {
+            path: "userpage/userdetail",
+            element: <UserDetail />,
+          },
+          {
+            path: "combo",
+            element: <Combo />,
+          },
+          {
+            path: "profile",
+            element: <ProfilePage />,
+          },
         ],
       },
     ],

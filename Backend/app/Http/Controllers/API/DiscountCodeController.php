@@ -43,7 +43,7 @@ class DiscountCodeController extends Controller
             'name_code' => 'required|string',
         ]);
 
-        $DiscountCode = DiscountCode::where('name_code', $request->name_code)
+        $DiscountCode = DiscountCode::where('name_code', trim($request->name_code))
             ->where('status', 'active')
             ->where('start_date', '<=', Carbon::now())
             ->where('end_date', '>=', Carbon::now())

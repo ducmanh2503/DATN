@@ -11,7 +11,6 @@ use App\Http\Controllers\API\ActorController;
 use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalendarShowController;
-use App\Http\Controllers\API\CartItemController;
 use App\Http\Controllers\API\ComboController;
 use App\Http\Controllers\API\DirectorController;
 use App\Http\Controllers\API\DiscountCodeController;

@@ -146,8 +146,8 @@ class PaymentController extends Controller
 
         $vnp_TxnRef = time() . "";
         $bookingData['unique_token'] = Str::random(32); // Thêm token duy nhất
-    Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData));
-       
+        Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData));
+
 
         $vnp_Url = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
         $vnp_Returnurl = env('VNP_RETURN_URL', 'http://localhost:8000/api/VNPay/return');
@@ -190,7 +190,7 @@ class PaymentController extends Controller
     public function VNPayReturn(Request $request)
     {
         Log::info('VNPay Return Request: ' . json_encode($request->all()));
-        $vnp_HashSecret = env('VNP_HASH_SECRET', 'Y7EVYR6BH7GXOWUSYIFLWW9JHZV5DK7E');
+        $vnp_HashSecret = env('VNP_HASH_SECRET', '9ZPL73553WBRODW6D6IX3LCW2Z30EFF2');
         $vnp_SecureHash = $request->vnp_SecureHash;
         $inputData = $request->except('vnp_SecureHash');
 
@@ -207,10 +207,10 @@ class PaymentController extends Controller
             }
 
             // Kiểm tra xem token đã được xử lý chưa
-        $processedKey = "processed_booking:{$bookingData['unique_token']}";
-        if (Redis::exists($processedKey)) {
-            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Đơn hàng đã được xử lý trước đó'));
-        }
+            $processedKey = "processed_booking:{$bookingData['unique_token']}";
+            if (Redis::exists($processedKey)) {
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Đơn hàng đã được xử lý trước đó'));
+            }
 
             $bookingData['is_payment_completed'] = true;
             Log::info('Merged Booking Data: ' . json_encode($bookingData));
@@ -226,7 +226,7 @@ class PaymentController extends Controller
             }
 
             Redis::setex($processedKey, 3600, 'processed');
-        Redis::del("booking:$request->vnp_TxnRef");
+            Redis::del("booking:$request->vnp_TxnRef");
 
             // Trừ điểm nếu sử dụng
             $usedPoints = $bookingData['pricing']['used_points'] ?? 0;

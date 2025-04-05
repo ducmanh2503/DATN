@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RankingProduct from "../RankingProduct/RankingProduct";
 import clsx from "clsx";
 import { fetchMoviesRanking, MovieRanking } from "../../../services/FilmRanking.service";
+import axios from "axios";
 
 import styles from "./RankingSlide.module.css";
 
@@ -21,16 +22,56 @@ const RankingSlide = () => {
     const getMoviesRanking = async () => {
       try {
         setLoading(true);
-        const response = await fetchMoviesRanking();
-        if (response && response.data) {
-          // Thêm một placeholder cho movie_id nếu không có
-          const moviesWithFallbackId = response.data.map((movie: MovieRanking) => ({
+        
+        // Lấy dữ liệu từ API xếp hạng phim
+        const rankingResponse = await fetchMoviesRanking();
+        let rankingData: MovieRanking[] = [];
+        
+        if (rankingResponse && rankingResponse.data) {
+          rankingData = rankingResponse.data.map((movie: MovieRanking) => ({
             ...movie,
-            // Nếu không có movie_id, sử dụng undefined
             movie_id: movie.movie_id || undefined
           }));
-          setMovies(moviesWithFallbackId);
         }
+        
+        // Lấy danh sách tất cả phim đang chiếu
+        const moviesResponse = await axios.get("http://localhost:8000/api/movies-index");
+        const nowShowingMovies = moviesResponse.data.now_showing || [];
+        
+        // Tạo danh sách các phim đã có trong ranking
+        const existingMovieIds = new Set(rankingData.map(movie => movie.movie_id));
+        
+        // Thêm phim chưa có trong ranking vào danh sách với số vé là 0
+        const currentMonth = new Date().getMonth() + 1;
+        const currentYear = new Date().getFullYear();
+        const monthYear = `${currentMonth < 10 ? '0' + currentMonth : currentMonth}/${currentYear}`;
+        
+        let finalRanking = [...rankingData];
+        
+        // Thêm các phim chưa có trong ranking
+        nowShowingMovies.forEach((movie: any) => {
+          if (!existingMovieIds.has(movie.id)) {
+            finalRanking.push({
+              rank: 0, // Sẽ được cập nhật sau
+              movie_id: movie.id,
+              movie_title: movie.title,
+              total_tickets: 0,
+              month_year: monthYear
+            });
+          }
+        });
+        
+        // Sắp xếp lại và gán rank
+        finalRanking.sort((a, b) => b.total_tickets - a.total_tickets);
+        finalRanking = finalRanking.map((movie, index) => ({
+          ...movie,
+          rank: index + 1
+        }));
+        
+        // Giới hạn chỉ lấy 10 phim
+        finalRanking = finalRanking.slice(0, 10);
+        
+        setMovies(finalRanking);
         setLoading(false);
       } catch (err) {
         console.error("Lỗi khi lấy dữ liệu xếp hạng phim:", err);

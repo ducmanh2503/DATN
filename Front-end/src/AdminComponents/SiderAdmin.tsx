@@ -100,8 +100,11 @@ const SiderAdmin = () => {
                 ),
                 getItem(<Link to="create-article">Thêm bài viết</Link>, "sub13-2"),
             ]),
-            getItem("Quản lý Khuyến Mãi", "sub14", <BarChartOutlined />, [
+            getItem("Quản lý Khuyến Mãi", "sub14", <BarChartOutlined />, [
                 getItem(<Link to="discount-code">Khuyến mãi</Link>, "sub14-1"),
+            ]),
+            getItem("Quản lý Slider", "sub15", <BarChartOutlined />, [
+                getItem(<Link to="sliders">Danh sách slider</Link>, "sub15-1"),
             ]),
         ];
         

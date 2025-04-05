@@ -158,7 +158,6 @@ const FilterComingCinema = ({ onFilterChange, onFilteredDataChange }: FilterComi
           { value: "Mới nhất", label: "Mới nhất" },
           { value: "Phổ biến", label: "Phổ biến" },
         ]}
-        loading={isLoading}
       />
       <Select
         className={clsx(styles.selectOption)}
@@ -174,7 +173,6 @@ const FilterComingCinema = ({ onFilterChange, onFilteredDataChange }: FilterComi
           { value: "Hoạt hình", label: "Hoạt hình" },
           { value: "Bí ẩn", label: "Bí ẩn" },
         ]}
-        loading={isLoading}
       />
       <Select
         className={clsx(styles.selectOption)}
@@ -184,7 +182,6 @@ const FilterComingCinema = ({ onFilterChange, onFilteredDataChange }: FilterComi
           { value: 0, label: "Tất cả năm" },
           ...releaseYears.map(year => ({ value: year, label: `Năm ${year}` }))
         ]}
-        loading={isLoading}
       />
       <Select
         className={clsx(styles.selectOption)}
@@ -194,7 +191,6 @@ const FilterComingCinema = ({ onFilterChange, onFilteredDataChange }: FilterComi
           { value: "Tất cả", label: "Tất cả ngôn ngữ" },
           ...languages
         ]}
-        loading={isLoading}
       />
     </div>
   );

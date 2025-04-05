@@ -107,10 +107,10 @@ const DashBoardFilm = () => {
                 <Table
                     columns={columns}
                     dataSource={dashboardData?.movie_stats
-                        .filter(
+                        ?.filter(
                             (item: any) => item.movie_status === "now_showing"
                         )
-                        .map((item: any, index: number) => ({
+                        ?.map((item: any, index: number) => ({
                             ...item,
                             key: item.movie_id || index,
                         }))}
@@ -123,10 +123,10 @@ const DashBoardFilm = () => {
                 <Table
                     columns={columns}
                     dataSource={dashboardData?.movie_stats
-                        .filter(
+                        ?.filter(
                             (item: any) => item.movie_status === "coming_soon"
                         )
-                        .map((item: any, index: number) => ({
+                        ?.map((item: any, index: number) => ({
                             ...item,
                             key: item.movie_id || index,
                         }))}

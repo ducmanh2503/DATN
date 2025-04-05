@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import dayjs from "dayjs";
+import axios from "axios";
 import {
     CREATE_CALENDAR,
     DELETE_CALENDAR,
@@ -8,9 +8,11 @@ import {
     GET_FILM_LIST,
     UPDATE_CALENDAR,
 } from "../../config/ApiConfig";
-import axiosInstance from "../../utils/axios-instance";
+import dayjs from "dayjs";
+import { message } from "antd";
+import { handleApiError } from "./utils";
 
-// danh sách lịch chiếu
+// danh sách lịch chiếu
 export const useCalendarManage = () => {
     const { data, isLoading, isError } = useQuery({
         queryKey: ["showtimesFilm"],

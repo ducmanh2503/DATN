@@ -7,9 +7,10 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    gap: 30px;
 }
 .orderInfo {
-    width: 52%;
+    width: 55%;
     display: flex;
     align-items: flex-start;
 }
@@ -46,6 +47,20 @@
     flex: 1;
 }
 
+.valueSelect {
+    width: 110px;
+    margin-left: 5px;
+}
+
+.changeStatus {
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-weight: 500;
+    color: var(--border-color);
+    cursor: pointer;
+}
+
 .titleFilm,
 .customerInfo {
     color: var(--border-color);
@@ -68,5 +83,9 @@
 
 .totalSub {
     margin-bottom: 40px;
+    font-weight: 600;
+}
+
+.finalTotal {
     font-weight: 600;
 }

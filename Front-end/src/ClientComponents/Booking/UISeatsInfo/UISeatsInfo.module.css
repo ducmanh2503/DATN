@@ -47,8 +47,20 @@
 }
 
 .seatsMaintenance {
+    position: relative;
     background-color: #3e3f5b;
     border: 2px solid #3e3f5b;
+}
+
+.seatsMaintenance::before {
+    display: inline-block;
+    content: "x";
+    font-size: 12px;
+    color: antiquewhite;
+    position: absolute;
+    top: -40%;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .seatsInfo {

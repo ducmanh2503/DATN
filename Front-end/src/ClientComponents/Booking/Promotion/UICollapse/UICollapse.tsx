@@ -3,7 +3,7 @@ import { Collapse, InputNumber, Button, Space } from "antd";
 import clsx from "clsx";
 import styles from "./UICollapse.module.css";
 import { useFinalPriceContext } from "../../../UseContext/FinalPriceContext";
-import { usePromotionContextContext } from "../../../UseContext/PromotionContext";
+import { usePromotionContext } from "../../../UseContext/PromotionContext";
 import CustomNotification from "../../Notification/Notification";
 
 const UICollapse = () => {
@@ -19,9 +19,9 @@ const UICollapse = () => {
         setQuantityPromotion,
         usedPoints,
         setUsedPoints,
-        setTotalPriceVoucher,
+        totalPriceVoucher,
         rankUser,
-    } = usePromotionContextContext();
+    } = usePromotionContext();
 
     // quản lý ẩn hiện tích điểm
     const onChangeActiveCollapse = (key: string | string[]) => {
@@ -105,7 +105,9 @@ const UICollapse = () => {
         // Reset lại các trạng thái liên quan
         setPrevPointsNumber(0);
         setTotalPricePoint(0);
-        setQuantityPromotion(0);
+        totalPriceVoucher === 0
+            ? setQuantityPromotion(0)
+            : setQuantityPromotion(1);
         setUsedPoints(0);
         sessionStorage.removeItem("usedPoints");
     };

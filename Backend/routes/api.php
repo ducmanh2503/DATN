@@ -19,7 +19,6 @@ use App\Http\Controllers\API\ActorController;
 use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalendarShowController;
-use App\Http\Controllers\API\CartItemController;
 use App\Http\Controllers\API\ComboController;
 use App\Http\Controllers\API\DirectorController;
 use App\Http\Controllers\API\DiscountCodeController;
@@ -32,6 +31,7 @@ use App\Http\Controllers\API\RoomTypeController;
 use App\Http\Controllers\API\SeatController;
 use App\Http\Controllers\API\SeatTypeController;
 use App\Http\Controllers\API\ShowTimeController;
+use App\Http\Controllers\API\SliderController;
 use App\Http\Controllers\API\SocialAuthController;
 use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\TicketController;
@@ -81,18 +81,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     //thông tin và cập nhật khách hàng
     Route::get('/show-user-locked', [UserController::class, 'showUserDestroy']);
     Route::put('/update-profile', [UserController::class, 'updateProfile']);
@@ -105,6 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders-search', [OrderController::class, 'searchOrders']); // Tìm kiếm giao dịch
     Route::get('/orders-recent', [OrderController::class, 'recentOrders']); // Lấy danh sách giao dịch gần đây (20 giao dịch gần nhất)
     Route::get('/orders-confirmed', [OrderController::class, 'confirmedOrders']); // Lấy danh sách tất cả giao dịch đã hoàn tất
+    Route::get('/orders-details-client/{bookingId}', [OrderController::class, 'showForClient']);
 
 
 
@@ -119,6 +108,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
 
 
+    //Hiển thị vé khi đặt
+    Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
+
+
 
 
     //Sơ đồ ghế, giữ ghế, giải phóng ghế
@@ -130,7 +123,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Chỉ admin mới truy cập được
+
+
     Route::middleware(['role:admin,staff'])->group(function () {
+
+
         Route::middleware(['restrict.staff.statistics'])->group(function () {
             Route::get('/statistics', [StatisticsController::class, 'index']);
             Route::get('/statistics-filter', [StatisticsController::class, 'statsByDateRange']);
@@ -143,6 +140,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/movies/force-delete-multiple', [MoviesController::class, 'forceDeleteMultiple']);
         Route::put('/movies/restore/{movie}', [MoviesController::class, 'restore']);
         Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
+        //Import dữ liệu từ excel
+        Route::post('/movies/import', [MoviesController::class, 'import']);
 
 
 
@@ -163,10 +162,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         // Seats
-        Route::apiResource('/seats', SeatController::class);
+        Route::apiResource('/seats', SeatController::class)->except(['show']);;
         Route::get('/seats/room/{room_id}', [SeatController::class, 'getSeats']);
         Route::post('/seats/update-status', [SeatController::class, 'updateSeatStatus']);
         Route::post('/seats/create-multiple', [SeatController::class, 'storeMultiple']);
+        Route::get('/seats/trashed', [SeatController::class, 'getTrashedSeats']);
+        Route::post('/seats/restore/{seatId}', [SeatController::class, 'restore']);
+        Route::post('/seats/restore-all/{roomId}', [SeatController::class, 'restoreAll']);
         Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
         Route::delete('/delete-seats/room/{room_id}', [SeatController::class, 'deleteAll']);
 
@@ -177,14 +179,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
 
 
-
-
-
-
-
-
-
-
+        //slider
+        Route::apiResource('sliders', SliderController::class);
+        Route::post('sliders/{slider}', [SliderController::class, 'update']);
 
 
 
@@ -199,18 +196,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
         // lọc theo khoảng ngày
         Route::post('show-times/get-date-range-by-calendar', [ShowTimeController::class, 'getDateRangeByCalendarShow']);
         //xóa theo ngày cụ thể
@@ -219,32 +204,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
         // CalendarShow
         Route::apiResource('/calendarShow', CalendarShowController::class);
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -263,6 +224,8 @@ Route::middleware('auth:sanctum')->group(function () {
         //Vé
         Route::get('/ticket-management', [TicketController::class, 'index']);
         Route::get('/ticket-show/{id}', [TicketController::class, 'show']);
+        Route::post('/ticket-prices', [TicketController::class, 'store']);
+        Route::put('/ticket-prices/{id}', [TicketController::class, 'update']);
         Route::delete('/ticket-delete/{id}', [TicketController::class, 'destroy']);
 
 
@@ -300,6 +263,7 @@ Route::middleware('auth:sanctum')->group(function () {
         //Đơn hàng
         Route::get('/order', [OrderController::class, 'index']);
         Route::get('/order/{bookingId}/order-details', [OrderController::class, 'show']);
+        Route::post('/order/{bookingId}/update-status', [OrderController::class, 'updateStatusClient']);
     });
     // Đăng xuất
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -357,20 +321,13 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 
-
-
-// Protected customer routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
-    Route::post('/cart/add-seat', [CartItemController::class, 'addSeatToCart']);
-    Route::post('/cart/add-showtime', [CartItemController::class, 'addShowtimeToBooking']);
-    Route::post('/cart/checkout', [CartItemController::class, 'checkout']);
-});
+// Slider show trang chủ
+Route::get('active-sliders', [SliderController::class, 'getActiveSliders']);
 
 
 
 
-// Đăng nhập bằng Google & Facebook
+// Đăng nhập bằng Google
 Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 

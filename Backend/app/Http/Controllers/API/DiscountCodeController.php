@@ -4,12 +4,39 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\DiscountCode;
+use App\Models\Seat;
+use App\Models\ShowTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 
 class DiscountCodeController extends Controller
 {
+    /**
+     * Kiểm tra xem có ghế nào đang được giữ trong cache hay không
+     */
+    private function hasSeatsInCache()
+    {
+        // Lấy tất cả showTimeIds
+        $showTimeIds = ShowTime::pluck('id');
+
+        // Lấy tất cả seatIds
+        $seatIds = Seat::pluck('id');
+
+        // Kiểm tra từng showTimeId và seatId trong cache
+        foreach ($showTimeIds as $showTimeId) {
+            foreach ($seatIds as $seatId) {
+                $cacheKey = "seat_{$showTimeId}_{$seatId}";
+                if (Cache::has($cacheKey)) {
+                    return true; // Có ít nhất một ghế đang được giữ trong cache
+                }
+            }
+        }
+
+        return false; // Không có ghế nào đang được giữ trong cache
+    }
+
     public function applyDiscountCode(Request $request)
     {
         $request->validate([
@@ -18,7 +45,6 @@ class DiscountCodeController extends Controller
 
         $DiscountCode = DiscountCode::where('name_code', $request->name_code)
             ->where('status', 'active')
-            ->where('quantity', '>', 0)
             ->where('start_date', '<=', Carbon::now())
             ->where('end_date', '>=', Carbon::now())
             ->first();
@@ -30,12 +56,22 @@ class DiscountCodeController extends Controller
             ], 404);
         }
 
+        // Kiểm tra quantity riêng
+        if ($DiscountCode->quantity <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Rất tiếc, mã khuyến mãi này đã hết.',
+            ], 404);
+        }
+
         return response()->json([
             'success' => true,
-            'discount_percent' => $DiscountCode->percent,
+            'discount_percent' => (int) $DiscountCode->percent,
+            'maxPrice' => (int) $DiscountCode->maxPrice,
             'message' => 'Áp dụng mã khuyến mãi thành công!',
         ]);
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -57,6 +93,7 @@ class DiscountCodeController extends Controller
             'percent' => 'required|integer|max:100',
             'quantity' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',
+            'maxPrice' => 'required|numeric|min:0',
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d',
         ]);
@@ -104,12 +141,20 @@ class DiscountCodeController extends Controller
             return response()->json(['message' => 'không tìm thấy mã khuyến mãi'], 404);
         }
 
+        // Kiểm tra xem có ghế nào đang được giữ trong cache không
+        if ($this->hasSeatsInCache()) {
+            return response()->json([
+                'message' => 'Có người đang dùng mã khuyến mãi này, không thể cập nhật!'
+            ], 409);
+        }
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'name_code' => 'required|string|max:255|unique:discount_code,name_code',
             'percent' => 'required|integer|max:100',
             'quantity' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',
+            'maxPrice' => 'required|numeric|min:0',
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d',
         ]);
@@ -140,6 +185,13 @@ class DiscountCodeController extends Controller
 
         if (!$DiscountCode) {
             return response()->json(['message' => 'không tìm thấy mã khuyến mãi'], 404);
+        }
+
+        // Kiểm tra xem có ghế nào đang được giữ trong cache không
+        if ($this->hasSeatsInCache()) {
+            return response()->json([
+                'message' => 'Có người đang dùng mã khuyến mãi này, không thể xóa!'
+            ], 409);
         }
 
         //Xóa mã khuyến mãi

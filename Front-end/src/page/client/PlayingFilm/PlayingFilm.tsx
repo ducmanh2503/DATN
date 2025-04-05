@@ -8,9 +8,9 @@ const PlayingFilm = () => {
     const navigate = useNavigate();
     const [filteredMovies, setFilteredMovies] = useState<any[]>([]);
 
-  const handleMovieClick = (movieId: number) => {
-    navigate(`/filmDetail/${movieId}`);
-  };
+    const handleMovieClick = (movieId: number) => {
+        navigate(`/filmDetail/${movieId}`);
+    };
 
     const handleFilterChange = (filterType: string, value: string | number) => {
         console.log(`Filter thay đổi: ${filterType} = ${value}`);

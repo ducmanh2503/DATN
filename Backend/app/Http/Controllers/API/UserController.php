@@ -191,7 +191,24 @@ class UserController extends Controller
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'oldPassword' => 'required|string',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                'min:6',
+                'max:12',
+                'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{6,12}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
+                'different:email', // Không trùng với email
+                function ($attribute, $value, $fail) {
+                    // Lấy người dùng hiện tại
+                    $user = auth()->user();
+
+                    // Kiểm tra xem password có trùng với mật khẩu cũ không
+                    if (Hash::check($value, $user->password)) {
+                        $fail('Mật khẩu mới không được trùng với mật khẩu cũ.');
+                    }
+                },
+            ],
         ]);
 
         if ($validator->fails()) {

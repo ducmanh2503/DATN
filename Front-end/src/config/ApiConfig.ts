@@ -69,6 +69,7 @@ const GET_COMBOS = `${BASE_URL}/combos`;
 
 const GET_DISCOUNT_CODE = `${BASE_URL}/discount-code`;
 const CREATE_DISCOUNT_CODE = `${BASE_URL}/discount-code`;
+const UPDATE_DISCOUNT_CODE = (id: number) => `${BASE_URL}/discount-code/${id}`;
 const DELETE_DISCOUNT_CODE = (id: number) => `${BASE_URL}/discount-code/${id}`;
 
 const GET_TICKETSPRICE = `${BASE_URL}/ticket-management`;
@@ -87,11 +88,15 @@ const GET_VOUCHER = (code: string) =>
 const ORDERS_LIST = `${BASE_URL}/order`; // danh sách đơn hàng
 const DETAIL_ORDER = (bookingId: number) =>
     `${BASE_URL}/order/${bookingId}/order-details`; // chi tiết đơn hàng
+const CHANGE_CHECKIN_ORDER = (bookingId: number) =>
+    `${BASE_URL}/order/${bookingId}/update-status`; // thay đổi trạng thái check in đơn hàng
 
 const Orders_Recent = `${BASE_URL}/orders-recent`;
 const Orders_Search = `${BASE_URL}/orders-search`;
 const Orders_Confirmed = `${BASE_URL}/orders-confirmed`;
 const CHANGE_PASSWORD = `${BASE_URL}/change-password`; // đổi mật khẩu
+
+const TICKET_DETAIL = `${BASE_URL}/ticket-details`; // chi tiết ticket để lấy QR
 
 export {
     CHANGE_PASSWORD,
@@ -100,6 +105,7 @@ export {
     Orders_Recent,
     GET_DISCOUNT_CODE,
     CREATE_DISCOUNT_CODE,
+    UPDATE_DISCOUNT_CODE,
     DELETE_DISCOUNT_CODE,
     GOOGLE_CALLBACK,
     UPDATE_USER_CLIENT,
@@ -148,6 +154,7 @@ export {
     GET_VOUCHER,
     ORDERS_LIST,
     DETAIL_ORDER,
+    CHANGE_CHECKIN_ORDER,
     RELEASE_SEAT,
     HOLD_SELECTED_SEATS,
     CREATE_SEAT,
@@ -163,4 +170,5 @@ export {
     GET_SEATS_TYPE,
     UPDATE_SEAT_STATUS,
     HOLD_SEAT,
+    TICKET_DETAIL,
 };

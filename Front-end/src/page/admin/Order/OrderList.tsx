@@ -171,7 +171,6 @@ const OrderList = () => {
             key: "id",
             width: "100px",
             render: renderDetailOrder,
-            // ...getColumnSearchProps("id"),
         },
         {
             title: "Tên phim",
@@ -198,7 +197,19 @@ const OrderList = () => {
             title: "Phòng chiếu",
             dataIndex: "room_name",
             key: "room_name",
-            ...getColumnSearchProps("room_name"),
+            filters: data
+                ? Array.from(
+                      new Set(
+                          data
+                              .map((item: any) => String(item.room_name))
+                              .filter(Boolean)
+                      )
+                  ).map((value) => ({
+                      text: String(value),
+                      value: String(value),
+                  }))
+                : [],
+            onFilter: (value, record) => record.room_name === value,
             render: (value: string) => {
                 // Kiểm tra nếu chưa có màu cho room_name, thì tạo màu mới
                 if (!roomColorMap[value]) {
@@ -207,10 +218,24 @@ const OrderList = () => {
                 return <Tag color={roomColorMap[value]}>{value}</Tag>;
             },
         },
+
         {
-            title: "Trạng thái",
+            title: "Trạng thái đơn hàng",
             dataIndex: "status",
             key: "status",
+            filters: data
+                ? Array.from(
+                      new Set(
+                          data
+                              .map((item: any) => String(item.status))
+                              .filter(Boolean)
+                      )
+                  ).map((value) => ({
+                      text: String(value),
+                      value: String(value),
+                  }))
+                : [],
+            onFilter: (value, record) => record.status === value,
             render: (value: string) => {
                 return value === "confirmed" ? (
                     <Tag color="green">Đã thanh toán</Tag>
@@ -218,8 +243,44 @@ const OrderList = () => {
                     <Tag color="red">Đang đợi xử lý</Tag>
                 );
             },
-            sorter: (a, b) => a.status.length - b.status.length,
         },
+        {
+            title: "Trạng thái sử dụng",
+            dataIndex: "check_in",
+            key: "check_in",
+            filters: data
+                ? Array.from(
+                      new Set(
+                          data
+                              .map((item: any) => String(item.check_in))
+                              .filter(Boolean)
+                      )
+                  ).map((value) => ({
+                      text: String(value),
+                      value: String(value),
+                  }))
+                : [],
+            onFilter: (value, record) => record.check_in === value,
+            render: (value: any, record: any) => {
+                const color =
+                    record.check_in === "checked_in"
+                        ? "geekblue"
+                        : record.check_in === "waiting"
+                        ? "purple"
+                        : "default"; // Giá trị mặc định nếu không vắng
+
+                return (
+                    <Tag color={color}>
+                        {record.check_in === "checked_in"
+                            ? "Đã đến"
+                            : record.check_in === "waiting"
+                            ? "Đang đợi"
+                            : "Vắng mặt"}
+                    </Tag>
+                );
+            },
+        },
+
         {
             title: "Tổng tiền",
             dataIndex: "total_price",

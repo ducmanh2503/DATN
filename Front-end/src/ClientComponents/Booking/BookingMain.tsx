@@ -16,13 +16,12 @@ import { useSeatsContext } from "../UseContext/SeatsContext";
 import { useFilmContext } from "../UseContext/FIlmContext";
 import { useAuthContext } from "../UseContext/TokenContext";
 import useShowtimeData from "../refreshDataShowtimes/RefreshDataShowtimes";
-import { usePromotionContextContext } from "../UseContext/PromotionContext";
+import { usePromotionContext } from "../UseContext/PromotionContext";
 import { useFinalPriceContext } from "../UseContext/FinalPriceContext";
 import { useComboContext } from "../UseContext/CombosContext";
 import LayoutPaymentResult from "./ResultPayment/LayoutPaymentResult";
 import SuccesResult from "./ResultPayment/SuccesResult/SuccesResult";
 import ErrorResult from "./ResultPayment/ErrorResult/ErrorResult";
-import { useLocale } from "antd/es/locale";
 
 const BookingMain = () => {
     const { quantitySeats, selectedSeatIds, setShouldRefetch, totalSeatPrice } =
@@ -34,7 +33,7 @@ const BookingMain = () => {
         useFilmContext();
     const { tokenUserId } = useAuthContext();
     const { setUsedPoints, setTotalPricePoint, setQuantityPromotion } =
-        usePromotionContextContext();
+        usePromotionContext();
     const { setTotalPrice } = useFinalPriceContext();
 
     const { resetDataShowtimes, releaseSeats } = useShowtimeData();
@@ -43,8 +42,6 @@ const BookingMain = () => {
     const [searchParams] = useSearchParams();
     const status = searchParams.get("status");
     const location = useLocation();
-    const prevPath = useRef(location.pathname);
-    const firstRender = useRef(true); // Biến kiểm tra lần đầu render
 
     // Thông báo phải đặt ghế để tiếp tục
     const { openNotification, contextHolder } = CustomNotification();
@@ -99,32 +96,11 @@ const BookingMain = () => {
                 console.error("Lỗi khi lưu vào localStorage:", e);
             }
         },
-        onError: (error) => {
-            console.error("🚨 Lỗi khi giữ ghế:", error);
-            message.error("Không thể giữ ghế. Vui lòng thử lại!");
+        onError: () => {
+            message.error("Ghế đã bị giữ bởi người khác. Vui lòng thử lại!");
+            setCurrentStep(1);
         },
     });
-
-    //api giải phóng ghế
-    const releaseSeatsMutation = useMutation({
-        mutationFn: async (seatIds: number[]) => {
-            await axios.post(
-                `http://localhost:8000/api/release-seats`, // API hủy ghế
-                {
-                    seats: seatIds,
-                    room_id: roomIdFromShowtimes,
-                    showtime_id: showtimeIdFromBooking,
-                },
-                { headers: { Authorization: `Bearer ${tokenUserId}` } }
-            );
-        },
-        onSuccess: () => {
-            // Chỉ cập nhật lại ghế đã giải phóng, giữ nguyên ghế đang chọn
-            message.success("Giải phóng ghế thành công!");
-        },
-    });
-
-    //
 
     // Xử lý khi ấn tiếp tục
     const nextStep = () => {
@@ -149,7 +125,7 @@ const BookingMain = () => {
         }
 
         if (currentStep === 2 && selectedSeatIds.length > 0) {
-            releaseSeatsMutation.mutate(selectedSeatIds);
+            releaseSeats(selectedSeatIds);
         }
 
         if (currentStep <= 3) {
@@ -169,32 +145,24 @@ const BookingMain = () => {
         } else if (status === "success" || status === "error") {
             setCurrentStep(4);
         }
+
+        // refetch thời gian giữ ghế khi current < 2
+        if (currentStep < 2) {
+            sessionStorage.removeItem("timeLeft");
+        }
     }, [currentStep, navigate]);
 
     // giải phóng ghế khi ra ngoài booking
     useEffect(() => {
-        // Bỏ qua lần chạy đầu tiên
-        if (firstRender.current) {
-            firstRender.current = false;
-            prevPath.current = location.pathname; // Gán giá trị ban đầu
-            return;
-        }
-
-        console.log("🚀 Path trước:", prevPath.current);
-        console.log("🚀 Path hiện tại:", location.pathname);
-
-        // Kiểm tra nếu rời khỏi booking
-        if (
-            prevPath.current.startsWith("/booking") &&
-            !location.pathname.startsWith("/booking")
-        ) {
-            console.log("⚠️ Rời khỏi booking, giải phóng ghế...");
-            releaseSeats();
-        }
-
-        // Cập nhật giá trị path trước đó
-        prevPath.current = location.pathname;
-    }, [location.pathname]);
+        return () => {
+            console.log("out-booking");
+            const storedSeats = sessionStorage.getItem("selectedSeatIds");
+            const selectedSeatIds: number[] = storedSeats
+                ? JSON.parse(storedSeats)
+                : [];
+            releaseSeats(selectedSeatIds);
+        };
+    }, []);
 
     const renderStepContent = () => {
         switch (currentStep) {

@@ -14,10 +14,7 @@ use App\Models\ShowTimeDate;
 use App\Models\ShowTimeSeat;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
-//new
-use Illuminate\Support\Facades\Log;
 
 
 
@@ -159,8 +156,8 @@ class ShowTimeController extends Controller
             ->first();
 
         // Log chi tiết để kiểm tra
-        Log::info("Request Details: Room ID: {$request->room_id}, Selected Date: {$request->selected_date}, Current Time: " . now());
-        Log::info("Latest ShowTime for Room ID {$request->room_id}: " . ($latestShowTime ? "ID: {$latestShowTime->id}, Date: {$latestShowTime->show_date}, Start: {$latestShowTime->start_time}, Created At: {$latestShowTime->created_at}" : 'None'));
+        // Log::info("Request Details: Room ID: {$request->room_id}, Selected Date: {$request->selected_date}, Current Time: " . now());
+        // Log::info("Latest ShowTime for Room ID {$request->room_id}: " . ($latestShowTime ? "ID: {$latestShowTime->id}, Date: {$latestShowTime->show_date}, Start: {$latestShowTime->start_time}, Created At: {$latestShowTime->created_at}" : 'None'));
 
         // Tạo trạng thái ghế cho suất chiếu mới
         foreach ($seats as $seat) {
@@ -172,14 +169,14 @@ class ShowTimeController extends Controller
                     ->first();
 
                 if ($latestShowTimeSeat) {
-                    Log::info("Seat ID: {$seat->id}, Previous Status: {$latestShowTimeSeat->seat_status}");
-                    $seatStatus = (strtolower($latestShowTimeSeat->seat_status) === 'booked') ? 'available' : $latestShowTimeSeat->seat_status;
-                } else {
-                    Log::info("Seat ID: {$seat->id}, No previous status found in ShowTimeSeat");
+                    //     Log::info("Seat ID: {$seat->id}, Previous Status: {$latestShowTimeSeat->seat_status}");
+                    //     $seatStatus = (strtolower($latestShowTimeSeat->seat_status) === 'booked') ? 'available' : $latestShowTimeSeat->seat_status;
+                    // } else {
+                    //     Log::info("Seat ID: {$seat->id}, No previous status found in ShowTimeSeat");
                 }
             }
 
-            Log::info("Seat ID: {$seat->id}, Final New Status: {$seatStatus}");
+            // Log::info("Seat ID: {$seat->id}, Final New Status: {$seatStatus}");
 
             ShowTimeSeat::create([
                 'seat_id' => $seat->id,
@@ -194,70 +191,85 @@ class ShowTimeController extends Controller
         ], 201);
     }
 
-
     /**
-     * Update the specified resource in storage.
+     * Display the specified resource.
      */
-    public function update(Request $request, string $id)
+    public function show(string $id)
     {
 
 
 
 
+        $showTime = ShowTime::with(['calendarShow.movie', 'calendarShow', 'room.roomType'])->find($id);
+
+
+        if (!$showTime) {
+            return response()->json(['message' => 'Xuất chiếu không tồn tại'], 404);
+        }
+
+
+        return response()->json($showTime);
+    }
+
+    /**
+     * Kiểm tra xem suất chiếu có ghế đã được đặt (seat_status = 'booked') hay không
+     */
+    private function hasBookedSeats($showTime)
+    {
+        // Kiểm tra xem suất chiếu có ghế nào với seat_status là 'booked' hay không
+        return $showTime->showTimeSeat()
+            ->where('seat_status', 'booked')
+            ->exists();
+    }
+
+
+    public function update(Request $request, string $id)
+    {
         // Bước 1: Xác thực dữ liệu đầu vào
         $validated = $request->validate([
             'calendar_show_id' => 'required|exists:calendar_show,id',
             'room_id' => 'required|exists:rooms,id',
-            'start_time' => 'required|date_format:H:i',  // Kiểu thời gian theo format H:i
-            'end_time' => 'required|date_format:H:i',    // Kiểu thời gian theo format H:i
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
             'status' => 'required|in:referenced,now_showing,coming_soon',
         ]);
 
-
         // Bước 2: Tìm bản ghi ShowTime theo id
         $showTime = ShowTime::find($id);
-
 
         if (!$showTime) {
             return response()->json(['message' => 'Không tìm thấy xuất chiếu'], 404);
         }
 
+        // Bước 3: Kiểm tra nếu status là 'referenced' hoặc 'now_showing'
+        if (in_array($showTime->status, ['referenced', 'now_showing'])) {
+            return response()->json([
+                'message' => 'Không thể cập nhật suất chiếu đang chiếu hoặc đã chiếu'
+            ], 403);
+        }
 
-        // Bước 3: Kiểm tra xem ngày chiếu có nằm trong khoảng show_date và end_date không (tuỳ chọn)
+        // Bước 4: Kiểm tra xem suất chiếu có ghế đã được đặt không
+        if ($this->hasBookedSeats($showTime)) {
+            return response()->json([
+                'message' => 'Không thể cập nhật suất chiếu vì đã có ghế được đặt'
+            ], 403);
+        }
+
+        // Bước 5: Kiểm tra xem ngày chiếu có nằm trong khoảng show_date và end_date không
         $calendarShow = CalendarShow::find($validated['calendar_show_id']);
         $showDate = Carbon::parse($calendarShow->show_date);
         $endDate = Carbon::parse($calendarShow->end_date);
         $selectedDate = Carbon::parse($request->input('selected_date'));
 
-
         if ($selectedDate->lt($showDate) || $selectedDate->gt($endDate)) {
             return response()->json(['error' => 'Ngày chiếu không hợp lệ'], 422);
         }
 
-
-        // Bước 4: Kiểm tra xem phòng chiếu có bị trùng lịch không (có thể thay đổi điều kiện tùy theo yêu cầu)
-        // $conflictingShowTimes = ShowTime::where('room_id', $validated['room_id'])
-        //     ->where(function ($query) use ($validated) {
-        //         $query->where('start_time', '<', $validated['end_time'])
-        //             ->where('end_time', '>', $validated['start_time']);
-        //     })
-        //     ->whereHas('showTimeDate', function ($query) use ($selectedDate) {
-        //         $query->whereDate('show_date', $selectedDate);
-        //     })
-        //     ->count();
-
-
-        // if ($conflictingShowTimes > 0) {
-        //     return response()->json(['error' => 'Phòng chiếu đã có suất chiếu trùng giờ'], 422);
-        // }
-
-
-        //new
+        // Bước 6: Kiểm tra xem phòng chiếu có bị trùng lịch không
         try {
-            //code...
             $conflictingShowTimes = ShowTime::where('room_id', $validated['room_id'])
                 ->where(function ($query) use ($validated, $id) {
-                    $query->where('id', '!=', $id) // Loại trừ suất chiếu đang cập nhật
+                    $query->where('id', '!=', $id)
                         ->where('start_time', '<', $validated['end_time'])
                         ->where('end_time', '>', $validated['start_time']);
                 })
@@ -266,49 +278,19 @@ class ShowTimeController extends Controller
                 })
                 ->exists();
         } catch (\Throwable $th) {
-            // throw $th;
-            return response()->json(['error' => throw $th], 422);
+            return response()->json(['error' => $th->getMessage()], 422);
         }
 
-
-
-
-        // ->toSql();
-
-
-
-
         if ($conflictingShowTimes) {
-            Log::info("showtime befor: " . $showTime);
-            Log::info($conflictingShowTimes);
-            Log::info("data update: ", $validated);
-            Log::info($selectedDate);
-
-
-
-
-
-
             return response()->json(['error' => 'Phòng chiếu đã có suất chiếu trùng giờ'], 422);
         }
 
-
+        // Bước 7: Lấy thông tin phòng và loại phòng
         $room = Room::find($validated['room_id']);
         $roomType = $room ? $room->roomType : null;
         $roomTypeId = $roomType ? $roomType->id : null;
 
-
-
-
-        // // Bước 5: Cập nhật thông tin ShowTime
-        // $showTime->calendar_show_id = $validated['calendar_show_id'];
-        // $showTime->room_id = $validated['room_id'];
-        // $showTime->start_time = $validated['start_time'];
-        // $showTime->end_time = $validated['end_time'];
-        // $showTime->status = $validated['status'];
-
-
-        // Bước 6: Lưu lại thay đổi
+        // Bước 8: Cập nhật thông tin ShowTime
         try {
             $showTime->update([
                 'calendar_show_id' => $validated['calendar_show_id'],
@@ -319,27 +301,16 @@ class ShowTimeController extends Controller
                 'room_type_id' => $roomTypeId,
             ]);
 
-
-            // $showTime->save();
-            //new
             return response()->json([
                 'message' => 'Cập nhật xuất chiếu thành công',
                 'data' => [
                     'show_time' => $showTime,
-                    'room_type' => $roomType ? $roomType->name : null,  // Trả về tên loại phòng nếu có
+                    'room_type' => $roomType ? $roomType->name : null,
                 ]
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Cập nhật thất bại: ' . $e->getMessage()], 500);
         }
-
-
-        // Bước 7: Trả về kết quả thành công
-        // old
-        // return response()->json([
-        //     'message' => 'Cập nhật xuất chiếu thành công',
-        //     'data' => $showTime
-        // ]);
     }
 
 
@@ -350,24 +321,31 @@ class ShowTimeController extends Controller
      */
     public function destroy(string $id)
     {
-
-
-
-
         $showTime = ShowTime::find($id);
-
 
         if (!$showTime) {
             return response()->json(['message' => 'Không tìm thấy xuất chiếu'], 404);
         }
 
+        // Kiểm tra nếu status là 'referenced' hoặc 'now_showing'
+        if (in_array($showTime->status, ['referenced', 'now_showing'])) {
+            return response()->json([
+                'message' => 'Không thể xóa suất chiếu đang chiếu hoặc đã chiếu'
+            ], 403);
+        }
+
+        // Kiểm tra xem suất chiếu có ghế đã được đặt không
+        if ($this->hasBookedSeats($showTime)) {
+            return response()->json([
+                'message' => 'Không thể xóa suất chiếu vì đã có ghế được đặt'
+            ], 403);
+        }
 
         $showTime->delete();
 
-
         return response()->json([
             'message' => 'Xuất chiếu đã được gỡ'
-        ]);
+        ], 200);
     }
 
 
@@ -393,6 +371,20 @@ class ShowTimeController extends Controller
 
         if (!$showTimeDate) {
             return response()->json(['message' => 'Không tìm thấy xuất chiếu vào ngày này'], 404);
+        }
+
+        // Kiểm tra nếu status là 'referenced' hoặc 'now_showing'
+        if (in_array($showTime->status, ['referenced', 'now_showing'])) {
+            return response()->json([
+                'message' => 'Không thể xóa suất chiếu đang chiếu hoặc đã chiếu'
+            ], 403);
+        }
+
+        // Kiểm tra xem suất chiếu có ghế đã được đặt không
+        if ($this->hasBookedSeats($showTime)) {
+            return response()->json([
+                'message' => 'Không thể xóa suất chiếu vì đã có ghế được đặt'
+            ], 403);
         }
 
 

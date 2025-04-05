@@ -58,7 +58,7 @@ const ComingMain = ({ showChill, filteredMovies }: ComingMainProps) => {
           poster={`${URL_IMAGE}${film.poster}`}
           genres={film.genres.map((genre: any) => genre.name_genre).join(", ")}
           release_date={film.release_date}
-          showChill={showChill}
+          showChill={false}
           onClick={() => {
             handleClick(film.id);
           }}

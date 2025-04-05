@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import authService from '../services/auth.service';
 import { toast } from 'react-toastify';
 
@@ -14,13 +14,9 @@ const axiosInstance = axios.create({
 
 // Interceptor cho request
 axiosInstance.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = authService.getToken();
     const userRole = authService.getRole();
-    
-    if (!config.headers) {
-      config.headers = {};
-    }
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -32,12 +28,16 @@ axiosInstance.interceptors.request.use(
       config.headers['X-User-Role'] = userRole;
       console.log("[Axios Instance] Đã thêm X-User-Role header:", userRole);
       
-      // Thêm role vào params
-      if (!config.params) {
-        config.params = {};
+      // Chỉ thêm role vào params nếu không phải multipart/form-data request
+      // Điều này sẽ tránh thêm role vào các request upload file
+      const contentType = String(config.headers['Content-Type'] || '');
+      if (!contentType.includes('multipart/form-data')) {
+        if (!config.params) {
+          config.params = {};
+        }
+        config.params.role = userRole;
+        console.log("[Axios Instance] Đã thêm role vào params:", userRole);
       }
-      config.params.role = userRole;
-      console.log("[Axios Instance] Đã thêm role vào params:", userRole);
     }
     
     return config;

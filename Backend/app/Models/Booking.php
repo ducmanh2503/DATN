@@ -17,6 +17,11 @@ class Booking extends Model
         'discount_code_id',
         'total_price',
         'status',
+        'check_in',
+    ];
+
+    protected $casts = [
+        'check_in' => 'string',
     ];
 
     //quan hệ n-1 với bảng DiscountCode

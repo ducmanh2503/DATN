@@ -120,6 +120,20 @@ class DirectorController extends Controller
             return response()->json(['message' => 'Đạo diễn không tồn tại'], 404);
         }
 
+        // Kiểm tra xem đạo diễn có tham gia trong phim nào đang chiếu hoặc sắp chiếu không
+        $movies = $director->movies()
+            ->whereIn('movie_status', ['now_showing', 'coming_soon'])
+            ->get();
+
+        // Nếu đạo diễn đang tham gia trong phim đang chiếu hoặc sắp chiếu
+        if ($movies->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Không thể xóa đạo diễn vì đạo diễn đang tham gia trong một bộ phim đang chiếu hoặc sắp chiếu',
+                'movies' => $movies->pluck('title') // Trả về danh sách tên phim để người dùng biết
+            ], 403); // 403 Forbidden: Không được phép xóa
+        }
+
+        // Nếu không có phim nào đang chiếu hoặc sắp chiếu, tiến hành xóa đạo diễn
         $director->delete();
 
         return response()->json(['message' => 'Xóa đạo diễn thành công'], 200);

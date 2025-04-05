@@ -28,9 +28,8 @@ import authService from "./services/auth.service";
 import Booking from "./page/client/Booking/Booking";
 import ForgotPassword from "./page/auth/ForgotPassword";
 import TicketsPrice from "./page/admin/TicketsPrice/TicketsPrice";
-import BoxNumbers from "./ClientComponents/CalendarMovies/BoxNumbers/BoxNumbers";
 import ArticleList from "./page/admin/Article/Article";
-import CreatePost from "./page/admin/Article/CreateArticle";
+// import CreatePost from "./page/admin/Article/CreateArticle";
 import UserProfile from "./ClientComponents/UserProfile/UserProfile";
 import DiscountManagement from "./page/admin/DisCound-Code/DisCount-code";
 import OrderList from "./page/admin/Order/OrderList";
@@ -39,8 +38,6 @@ import Userlist from "./page/admin/Userpage/Userlist";
 import Useradd from "./page/admin/Userpage/Useradd";
 import UserDetail from "./page/admin/Userpage/Userdetails";
 import Combo from "./page/admin/ComboPage/ComboPage";
-import SuccesResult from "./ClientComponents/Booking/ResultPayment/SuccesResult/SuccesResult";
-import ErrorResult from "./ClientComponents/Booking/ResultPayment/ErrorResult/ErrorResult";
 import LayoutPaymentResult from "./ClientComponents/Booking/ResultPayment/LayoutPaymentResult";
 import ProfilePage from "./page/admin/Profilepage/Profilepage";
 import Dashboard from "./page/admin/Dashboard/Dashboard";
@@ -48,10 +45,13 @@ import DashBoardFilm from "./page/admin/Dashboard/DashBoardFilm";
 import AdminStaffRoute from "./components/AdminStaffRoute";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import CheckinManage from "./page/admin/CheckInOut/CheckinManage";
 import SliderPage from "./page/admin/Slider/SliderPage";
+
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
+
 
 // Component hiển thị khi đang tải
 const LoadingComponent = () => (
@@ -84,17 +84,20 @@ const LoadingComponent = () => (
   </div>
 );
 
+
 // Route công khai cho các trang không yêu cầu đăng nhập
 const PublicRoute = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const authStatus = authService.isAuthenticated();
         setIsAuthenticated(authStatus);
+
 
         if (authStatus) {
           const userRole = authService.getRole();
@@ -109,15 +112,19 @@ const PublicRoute = () => {
       }
     };
 
+
     checkAuth();
   }, [navigate]);
+
 
   if (loading) {
     return <LoadingComponent />;
   }
 
+
   return !isAuthenticated ? <Outlet /> : null;
 };
+
 
 // Cấu hình router
 export const router = createBrowserRouter([
@@ -218,6 +225,10 @@ export const router = createBrowserRouter([
             element: <ShowtimesManage />,
           },
           {
+            path: "checkin",
+            element: <CheckinManage />,
+          },
+          {
             path: "actors",
             element: <ActorsManage />,
           },
@@ -237,10 +248,10 @@ export const router = createBrowserRouter([
             path: "articlelist",
             element: <ArticleList />,
           },
-          {
-            path: "create-article",
-            element: <CreatePost />,
-          },
+          // {
+          //     path: "create-article",
+          //     element: <CreatePost />,
+          // },
           {
             path: "discount-code",
             element: <DiscountManagement />,
@@ -248,10 +259,6 @@ export const router = createBrowserRouter([
           {
             path: "ticketsPrice",
             element: <TicketsPrice></TicketsPrice>,
-          },
-          {
-            path: "sliders",
-            element: <SliderPage />,
           },
           {
             path: "orders",
@@ -281,6 +288,10 @@ export const router = createBrowserRouter([
             path: "profile",
             element: <ProfilePage />,
           },
+          {
+            path: "sliders",
+            element: <SliderPage />,
+          },
         ],
       },
     ],
@@ -291,4 +302,10 @@ export const router = createBrowserRouter([
   },
 ]);
 
+
 export default router;
+
+
+
+
+

@@ -7,6 +7,8 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\CalendarShow;
 use App\Models\Movies;
+use App\Models\ShowTime;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -33,19 +35,15 @@ class CalendarShowController extends Controller
      */
     public function store(Request $request)
     {
-
-
         $validator = Validator::make($request->all(), [
             'movie_id' => 'required|exists:movies,id',
             'show_date' => 'required|date',
             'end_date' => 'required|date',
         ]);
 
-
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
-
 
         // Thêm lịch chiếu
         $calendarShows = CalendarShow::create([
@@ -54,8 +52,19 @@ class CalendarShowController extends Controller
             'end_date' => $request->end_date,
         ]);
 
+        // Lấy ngày hiện tại
+        $currentDate = Carbon::today();
 
-        return response()->json(['message' => 'Lịch chiếu đã được thêm thành công', 'data' => $calendarShows], 201);
+        // Kiểm tra và cập nhật trạng thái phim
+        $movie = Movies::find($request->movie_id);
+        if ($movie && $movie->movie_status === 'coming_soon' && Carbon::parse($request->show_date)->lte($currentDate)) {
+            $movie->update(['movie_status' => 'now_showing']);
+        }
+
+        return response()->json([
+            'message' => 'Lịch chiếu đã được thêm thành công',
+            'data' => $calendarShows
+        ], 201);
     }
 
 
@@ -133,26 +142,40 @@ class CalendarShowController extends Controller
 
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (soft delete).
      */
     public function destroy(string $id)
     {
+        try {
+            // Tìm lịch chiếu theo ID
+            $calendarShow = CalendarShow::find($id);
 
+            // Nếu không tìm thấy lịch chiếu
+            if (!$calendarShow) {
+                return response()->json(['message' => 'Không tìm thấy lịch chiếu'], 404);
+            }
 
-        $calendarShows = CalendarShow::find($id);
+            // Kiểm tra xem lịch chiếu có suất chiếu liên quan không
+            $hasShowtimes = ShowTime::where('calendar_show_id', $id)->exists();
 
+            if ($hasShowtimes) {
+                return response()->json([
+                    'message' => 'Không thể xóa lịch chiếu vì lịch chiếu đang có suất chiếu'
+                ], 400);
+            }
 
-        if (!$calendarShows) {
-            return response()->json(['message' => 'Không tìm thấy lịch chiếu'], 404);
+            // Xóa lịch chiếu
+            $calendarShow->delete();
+
+            // Trả về phản hồi thành công
+            return response()->json([
+                'message' => 'Lịch chiếu đã được gỡ'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi khi xóa lịch chiếu: ' . $e->getMessage()
+            ], 500);
         }
-
-
-        $calendarShows->delete();
-
-
-        return response()->json([
-            'message' => 'Lịch chiếu đã được gỡ'
-        ]);
     }
 
 

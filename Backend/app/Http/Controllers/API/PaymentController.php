@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Str;
 
 
 class PaymentController extends Controller
@@ -144,7 +145,9 @@ class PaymentController extends Controller
         Log::info('Booking Data: ', $bookingData);
 
         $vnp_TxnRef = time() . "";
-        Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData));
+        $bookingData['unique_token'] = Str::random(32); // Thêm token duy nhất
+    Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData));
+       
 
         $vnp_Url = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
         $vnp_Returnurl = env('VNP_RETURN_URL', 'http://localhost:8000/api/VNPay/return');
@@ -203,6 +206,12 @@ class PaymentController extends Controller
                 return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé'));
             }
 
+            // Kiểm tra xem token đã được xử lý chưa
+        $processedKey = "processed_booking:{$bookingData['unique_token']}";
+        if (Redis::exists($processedKey)) {
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Đơn hàng đã được xử lý trước đó'));
+        }
+
             $bookingData['is_payment_completed'] = true;
             Log::info('Merged Booking Data: ' . json_encode($bookingData));
 
@@ -215,6 +224,9 @@ class PaymentController extends Controller
                 // Nếu có lỗi (ví dụ: combo hoặc discount code không đủ số lượng), redirect theo URL trong response
                 return redirect()->away($data['redirect']);
             }
+
+            Redis::setex($processedKey, 3600, 'processed');
+        Redis::del("booking:$request->vnp_TxnRef");
 
             // Trừ điểm nếu sử dụng
             $usedPoints = $bookingData['pricing']['used_points'] ?? 0;

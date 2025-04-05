@@ -7,6 +7,7 @@ import axios from "axios";
 import { Modal } from "antd";
 import CalendarMovies from "../CalendarMovies/CalendarMovies";
 
+
 interface MovieDetail {
   id: number;
   title: string;
@@ -22,12 +23,14 @@ interface MovieDetail {
   actors: { id: number; name_actor: string }[];
 }
 
+
 interface RelatedMovie {
   id: number;
   movie_title: string;
   poster: string | null;
   release_date?: string;
 }
+
 
 const FilmDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +40,7 @@ const FilmDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+
 
   useEffect(() => {
     const loadMovie = async () => {
@@ -48,7 +52,9 @@ const FilmDetail = () => {
       try {
         setLoading(true);
         // Sử dụng endpoint movies-details thay vì movies
-        const response = await axios.get(`http://localhost:8000/api/movies-details/${id}`);
+        const response = await axios.get(
+          `http://localhost:8000/api/movies-details/${id}`
+        );
         console.log("Movie data:", response.data);
         setMovie(response.data.data);
       } catch (err) {
@@ -59,12 +65,16 @@ const FilmDetail = () => {
       }
     };
 
+
     const loadRelatedMovies = async () => {
       if (!id) return;
-      
+
+
       try {
         // Sử dụng đúng endpoint API cho phim cùng thể loại
-        const response = await axios.get(`http://localhost:8000/api/movies/${id}/related`);
+        const response = await axios.get(
+          `http://localhost:8000/api/movies/${id}/related`
+        );
         console.log("Related movies:", response.data);
         if (response.data && response.data.data) {
           setRelatedMovies(response.data.data);
@@ -75,22 +85,27 @@ const FilmDetail = () => {
       }
     };
 
+
     loadMovie();
     loadRelatedMovies();
   }, [id]);
 
+
   if (loading) return <div className="loading">Đang tải...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!movie) return <div className="not-found">Không tìm thấy phim</div>;
+
 
   const handleViewShowtimesAndBook = () => {
     // Mở modal lịch chiếu thay vì chuyển hướng
     setIsModalOpen(true);
   };
 
+
   const handleCancelModal = () => {
     setIsModalOpen(false);
   };
+
 
   return (
     <ClientLayout>
@@ -98,7 +113,11 @@ const FilmDetail = () => {
         <div className="film-header">
           <div className="poster-container">
             <img
-              src={movie.poster ? `http://localhost:8000${movie.poster}` : "https://picsum.photos/300/450"}
+              src={
+                movie.poster
+                  ? `http://localhost:8000${movie.poster}`
+                  : "https://picsum.photos/300/450"
+              }
               alt={movie.title}
               className="film-poster"
             />
@@ -109,7 +128,7 @@ const FilmDetail = () => {
               <div className="info-item">
                 <span className="info-label">Thể loại:</span>
                 <span className="info-value">
-                  {movie.genres && movie.genres.length > 0 
+                  {movie.genres && movie.genres.length > 0
                     ? movie.genres.map((g) => g.name_genre).join(", ")
                     : "Không có thông tin"}
                 </span>
@@ -117,22 +136,28 @@ const FilmDetail = () => {
               <div className="info-item">
                 <span className="info-label">Ngày phát hành:</span>
                 <span className="info-value">
-                  {movie.release_date 
+                  {movie.release_date
                     ? new Date(movie.release_date).toLocaleDateString("vi-VN")
                     : "Không có thông tin"}
                 </span>
               </div>
               <div className="info-item">
                 <span className="info-label">Thời lượng:</span>
-                <span className="info-value">{movie.running_time || "Không có thông tin"}</span>
+                <span className="info-value">
+                  {movie.running_time || "Không có thông tin"}
+                </span>
               </div>
               <div className="info-item">
                 <span className="info-label">Ngôn ngữ:</span>
-                <span className="info-value">{movie.language || "Không có thông tin"}</span>
+                <span className="info-value">
+                  {movie.language || "Không có thông tin"}
+                </span>
               </div>
               <div className="info-item">
                 <span className="info-label">Đánh giá:</span>
-                <span className="info-value">{movie.rated || "Không có thông tin"}</span>
+                <span className="info-value">
+                  {movie.rated || "Không có thông tin"}
+                </span>
               </div>
               <div className="info-item">
                 <span className="info-label">Đạo diễn:</span>
@@ -186,24 +211,31 @@ const FilmDetail = () => {
             <h2 className="section-title">Phim cùng thể loại</h2>
             <div className="related-movies-grid">
               {relatedMovies.map((relatedMovie) => (
-                <div 
-                  key={relatedMovie.id} 
+                <div
+                  key={relatedMovie.id}
                   className="related-movie-card"
                   onClick={() => navigate(`/filmDetail/${relatedMovie.id}`)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: "pointer" }}
                 >
                   <img
-                    src={relatedMovie.poster ? `http://localhost:8000${relatedMovie.poster}` : "https://picsum.photos/200/300"}
+                    src={
+                      relatedMovie.poster
+                        ? `http://localhost:8000${relatedMovie.poster}`
+                        : "https://picsum.photos/200/300"
+                    }
                     alt={relatedMovie.movie_title}
                     className="related-movie-poster"
                   />
-                  <p className="related-movie-title">{relatedMovie.movie_title}</p>
+                  <p className="related-movie-title">
+                    {relatedMovie.movie_title}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         )}
       </div>
+
 
       {/* Modal lịch chiếu */}
       <Modal
@@ -213,10 +245,18 @@ const FilmDetail = () => {
         onCancel={handleCancelModal}
         footer={null}
       >
-        {movie && <CalendarMovies id={movie.id} setIsModalOpen2={setIsModalOpen} />}
+        {movie && (
+          <CalendarMovies id={movie.id} setIsModalOpen2={setIsModalOpen} />
+        )}
       </Modal>
     </ClientLayout>
   );
 };
 
+
 export default FilmDetail;
+
+
+
+
+

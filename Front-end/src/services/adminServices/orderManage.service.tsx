@@ -1,7 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { DETAIL_ORDER, ORDERS_LIST } from "../../config/ApiConfig";
+import {
+    CHANGE_CHECKIN_ORDER,
+    DETAIL_ORDER,
+    ORDERS_LIST,
+} from "../../config/ApiConfig";
 import { useAuthContext } from "../../ClientComponents/UseContext/TokenContext";
+import { handleApiError } from "./utils";
 
 export const useOrdersList = () => {
     const { tokenUserId } = useAuthContext();
@@ -33,4 +38,29 @@ export const useDetailOrder = (id: number) => {
         staleTime: 1000 * 60 * 20,
     });
     return { data, isLoading };
+};
+
+// chỉnh sửa trạng thái check in
+export const useChangeStatusCheckin = (messageApi: any) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({
+            bookingId,
+            check_in,
+        }: {
+            bookingId: number;
+            check_in: undefined | string;
+        }) => {
+            await axios.post(CHANGE_CHECKIN_ORDER(bookingId), { check_in });
+        },
+        onSuccess: () => {
+            messageApi.success(
+                "Cập nhật trạng thái sử dụng đơn hàng thành công"
+            );
+            queryClient.invalidateQueries({
+                queryKey: ["OrdersList"],
+            });
+        },
+        onError: handleApiError,
+    });
 };

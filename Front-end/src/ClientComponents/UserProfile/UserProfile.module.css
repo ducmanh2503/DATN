@@ -1,393 +1,373 @@
+/* Base Layout */
 .pageWrapper {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(145deg, #f0f4f8 0%, #d9e2ec 100%);
   font-family: "Poppins", sans-serif;
 }
 
 .profileContainer {
   flex: 1;
-  padding: 50px 20px;
-  max-width: 1300px;
+  padding: 60px 20px;
+  max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
 }
 
+/* Grid Layout */
 .profileWrapper {
   display: grid;
   grid-template-columns: 1fr 2.5fr;
-  gap: 30px;
+  gap: 40px;
+  padding: 0 20px;
 }
 
+/* Sidebar Styling */
 .profileSidebar {
-  padding: 30px;
+  padding: 40px;
   text-align: center;
-  background: linear-gradient(120deg, #ffffff 0%, #e6f0fa 100%);
-  border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f5faff 100%);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .profileSidebar:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
 }
 
 .profileAvatar {
-  border: 4px solid #40c4ff;
-  margin-bottom: 20px;
-  transition: transform 0.3s ease;
+  border: 5px solid #4dabf7;
+  margin-bottom: 25px;
+  transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
 .profileAvatar:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);
+  border-color: #339af0;
 }
 
 .profileName {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
-  margin: 10px 0;
-  color: #1a237e;
+  margin: 15px 0;
+  color: #172554;
+  letter-spacing: 0.5px;
 }
 
 .profileRank {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 500;
-  color: #546e7a;
-  margin-bottom: 25px;
+  color: #64748b;
+  margin-bottom: 30px;
+  padding: 6px 12px;
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 12px;
 }
 
+/* Expense Section */
 .expenseSection {
-  margin: 25px 0;
+  margin: 30px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+}
+
+.expenseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
 .profileExpenseTitle {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #37474f;
-}
-
-.customProgress {
-  margin: 10px 0;
+  color: #2d3748;
 }
 
 .profileExpenseText {
-  font-size: 15px;
-  font-weight: 500;
-  color: #0288d1;
-  margin-top: 10px;
-}
-
-.rankDisplay {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  margin-top: 10px;
-  transition: all 0.3s ease;
+  color: #0284c7;
 }
 
+.progressWrapper {
+  position: relative;
+}
+
+.progressIcons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.progressIcons .icon {
+  font-size: 22px;
+  transition: transform 0.3s ease;
+}
+
+.progressIcons .icon:hover {
+  transform: scale(1.2);
+}
+
+.customProgress {
+  margin: 15px 0;
+}
+
+.progressLabels span {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Contact Info */
 .contactInfo p {
-  margin: 12px 0;
-  font-size: 14px;
-  color: #455a64;
+  margin: 15px 0;
+  font-size: 15px;
+  color: #475569;
 }
 
 .contactInfo a {
-  color: #0288d1;
+  color: #1d4ed8;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 .contactInfo a:hover {
-  color: #01579b;
+  color: #1e3a8a;
   text-decoration: underline;
 }
 
+/* Main Content */
 .profileContent {
-  padding: 30px;
+  padding: 40px;
   background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .profileContent:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
 }
 
+/* Tabs */
 .customTabs .ant-tabs-nav {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #e5e7eb;
 }
 
 .customTabs .ant-tabs-tab {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
-  padding: 12px 25px;
-  transition: all 0.3s ease;
+  padding: 12px 30px;
+  color: #4b5563;
 }
 
 .customTabs .ant-tabs-tab:hover {
-  color: #0288d1;
+  color: #2563eb;
 }
 
 .customTabs .ant-tabs-tab-active {
-  color: #0288d1;
-  font-weight: 700;
+  color: #2563eb;
 }
 
+/* Form Elements */
 .profileForm .ant-form-item-label > label {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #263238;
+  color: #1f2937;
 }
 
 .customInput {
-  border-radius: 10px;
-  padding: 10px;
-  transition: all 0.3s ease;
+  border-radius: 12px;
+  padding: 12px 15px;
+  border: 1px solid #d1d5db;
 }
 
 .customInput:hover,
 .customInput:focus {
-  border-color: #40c4ff;
-  box-shadow: 0 0 8px rgba(64, 196, 255, 0.3);
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
 }
 
+/* Buttons */
 .profileButtons {
   display: flex;
-  gap: 15px;
+  gap: 20px;
   justify-content: flex-end;
+  margin-top: 25px;
 }
 
 .customButton {
-  padding: 8px 25px;
-  border-radius: 10px;
+  padding: 10px 30px;
+  border-radius: 12px;
   font-weight: 600;
-  transition: all 0.3s ease;
+  background: #3b82f6;
+  border: none;
+  color: white;
 }
 
 .customButton:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+  background: #2563eb;
+}
+
+/* Table Styling */
+.ordersTable {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+}
+
+.transactionTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.transactionTable th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #4b5563;
+  padding: 15px 20px;
+}
+
+.transactionTable td {
+  padding: 15px 20px;
+  color: #374151;
+}
+
+.transactionRow:hover {
+  background: #f9fafb;
+}
+
+.moviePoster {
+  width: 45px;
+  height: 65px;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.moviePoster:hover {
+  transform: scale(1.1);
+}
+
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* Status Colors */
+.confirmed {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+.cancelled {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.failed {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Utility Classes */
+.loading {
+  text-align: center;
+  font-size: 22px;
+  padding: 80px;
+  color: #64748b;
 }
 
 .emptyContent {
   text-align: center;
-  color: #78909c;
-  padding: 30px;
-  font-size: 16px;
-  font-style: italic;
+  padding: 50px;
+  color: #94a3b8;
+  font-size: 18px;
 }
 
-.loading {
-  text-align: center;
-  font-size: 20px;
-  padding: 60px;
-  color: #546e7a;
-  font-weight: 500;
-}
-
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 768px) {
   .profileWrapper {
     grid-template-columns: 1fr;
+    gap: 30px;
   }
 
   .profileSidebar,
   .profileContent {
-    padding: 20px;
-  }
-
-  .profileAvatar {
-    size: 100;
+    padding: 25px;
   }
 
   .profileName {
-    font-size: 24px;
+    font-size: 26px;
   }
-  .ordersTable {
+
+  .customTabs .ant-tabs-tab {
+    padding: 10px 20px;
+    font-size: 16px;
+  }
+  /* Progress Section */
+  .progressWrapper {
+    position: relative;
     width: 100%;
-    margin-top: 20px;
+    padding: 0 10px; /* Add padding to ensure labels don't get too close to edges */
   }
 
-  .transactionTable {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .transactionTable th,
-  .transactionTable td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #f0f0f0;
-  }
-
-  .transactionTable th {
-    background-color: #fafafa;
-    font-weight: 600;
-  }
-
-  .statusBadge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-  }
-
-  .confirmed {
-    background-color: #e6ffe6;
-    color: #52c41a;
-  }
-
-  .pending {
-    background-color: #fff7e6;
-    color: #fa8c16;
-  }
-  .rankMilestones {
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .milestone {
+  .progressIcons {
+    position: relative;
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
-  }
-  .customProgress .ant-progress-text {
-    display: none; /* Ẩn text mặc định nếu cần */
+    margin-bottom: 8px;
   }
 
-  .customProgress .ant-progress-mark-text {
-    font-size: 12px;
-    color: #666;
+  .progressIcons .icon {
+    font-size: 22px;
+    transition: transform 0.3s ease;
   }
 
-  /* Tùy chỉnh màu sắc cho mốc số tiền hiện tại */
-  .customProgress .ant-progress-mark-text[data-percent="currentPercent"] {
-    color: #108ee9; /* Màu xanh giống màu thanh Progress */
-    font-weight: bold;
-  }
-  /* Container for the orders table */
-  .ordersTable {
-    width: 100%;
-    overflow-x: auto;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    padding: 16px;
+  .progressIcons .icon:hover {
+    transform: scale(1.2);
   }
 
-  /* Styling the transaction table */
-  .transactionTable {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    color: #333;
+  .customProgress {
+    margin: 15px 0;
   }
 
-  .transactionTable th,
-  .transactionTable td {
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid #f0f0f0;
-  }
-
-  .transactionTable th {
-    background: #fafafa;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #555;
-  }
-
-  .transactionTable tbody tr {
-    transition: background 0.2s ease;
-  }
-
-  .transactionRow:hover {
-    background: #f5f5f5;
-  }
-
-  /* Movie cell with poster */
-  .movieCell {
+  /* Updated Progress Labels */
+  .progressLabels {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    justify-content: space-between;
+    margin-top: 8px;
+    position: relative;
   }
 
-  .moviePoster {
-    width: 40px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  .progressLabels span {
+    font-size: 13px;
+    color: #6b7280;
+    flex: 1; /* Ensure each label takes equal space */
+    text-align: center; /* Center the text within its flex space */
+    position: static; /* Remove absolute positioning */
+    transform: none; /* Remove transform to prevent overlap */
   }
 
-  .noPoster {
-    width: 40px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #e0e0e0;
-    border-radius: 4px;
-    font-size: 12px;
-    color: #888;
+  /* Optional: Add a small wrapper to prevent overlap */
+  .progressLabels span:first-child {
+    text-align: left; /* Align the first label to the left */
   }
 
-  /* Status badge styling */
-  .statusBadge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  .confirmed {
-    background: #e6ffe6;
-    color: #28a745;
-  }
-
-  .pending {
-    background: #fff3e6;
-    color: #ff9800;
-  }
-
-  .cancelled {
-    background: #ffe6e6;
-    color: #dc3545;
-  }
-
-  .failed {
-    background: #f0f0f0;
-    color: #6c757d;
-  }
-
-  /* Loading and empty content */
-  .loading {
-    text-align: center;
-    padding: 20px;
-    color: #888;
-    font-size: 16px;
-  }
-
-  .emptyContent {
-    text-align: center;
-    padding: 40px;
-    color: #888;
-  }
-
-  .emptyContent p {
-    margin-bottom: 16px;
-    font-size: 16px;
-  }
-
-  /* Custom button styling (if not already defined) */
-  .customButton {
-    background: #1890ff;
-    border-color: #1890ff;
-  }
-
-  .customButton:hover {
-    background: #40a9ff;
-    border-color: #40a9ff;
+  .progressLabels span:last-child {
+    text-align: right; /* Align the last label to the right */
   }
 }

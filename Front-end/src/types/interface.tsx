@@ -117,4 +117,5 @@ export interface OrdersType {
     created_at: string;
     room_name: string;
     showtime: string;
+    check_in: string;
 }

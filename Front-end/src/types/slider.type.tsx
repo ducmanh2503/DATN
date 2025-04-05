@@ -14,13 +14,13 @@ export interface SliderFormData {
 }
 
 export interface SliderResponse {
-    status: string;
-    message: string;
+    success: boolean;
     data: Slider[];
+    message?: string;
 }
 
 export interface SliderDetailResponse {
-    status: string;
-    message: string;
+    success: boolean;
     data: Slider;
-}
+    message?: string;
+} 

@@ -7,6 +7,7 @@ use App\Events\SeatHeldEvent;
 use App\Events\SeatUpdated;
 use App\Http\Controllers\Controller;
 use App\Mail\BookingConfirmation;
+use App\Models\RoomType;
 use App\Models\SeatTypePrice;
 use App\Models\ShowTimeDate;
 use App\Models\ShowTimeSeat;
@@ -15,17 +16,17 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\Seat;
-use App\Models\SeatType;
-use App\Models\Room;
-use App\Models\RoomType;
 use App\Models\Combo;
 use App\Models\ShowTime;
 use App\Models\CalendarShow;
 use App\Models\DiscountCode;
-use App\Models\Movie;
 use App\Models\Movies;
+use App\Models\Room;
+use App\Models\SeatType;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -41,7 +42,6 @@ class TicketController extends Controller
 
     public function index()
     {
-        // Lấy tất cả bản ghi từ seat_type_price và preload các quan hệ
         $ticketPrices = SeatTypePrice::with([
             'seatType',
             'seatType.seat',
@@ -49,16 +49,14 @@ class TicketController extends Controller
             'seatType.seat.room.roomType'
         ])->get();
 
-        // Nhóm dữ liệu theo seat_type_id để xử lý từng loại ghế
         $groupedBySeatType = $ticketPrices->groupBy('seat_type_id');
 
         $data = [];
+        $counter = 1; // Biến đếm để tạo id duy nhất
         foreach ($groupedBySeatType as $seatTypeId => $group) {
-            // Lấy thông tin seatType từ bản ghi đầu tiên
             $seatType = $group->first()->seatType;
             $seatTypeName = $seatType ? $seatType->name : 'Không xác định';
 
-            // Lấy danh sách tất cả phòng và loại phòng liên quan đến seatType
             $roomData = $seatType->seat
                 ->map(function ($seat) {
                     if ($seat->room && $seat->room->roomType) {
@@ -75,44 +73,31 @@ class TicketController extends Controller
                 })
                 ->values();
 
-            // Nếu không có phòng, thêm một giá trị mặc định
             if ($roomData->isEmpty()) {
                 $roomData = collect([['room_name' => 'Không xác định', 'room_type' => null]]);
             }
 
-            // Tạo bản ghi cho từng phòng và loại phòng
             foreach ($roomData as $roomItem) {
                 $roomTypeName = $roomItem['room_type'] ? $roomItem['room_type']->name : 'Không xác định';
                 $roomTypePrice = $roomItem['room_type'] ? $roomItem['room_type']->price : 0;
                 $roomName = $roomItem['room_name'];
 
-                // Lấy giá cho từng day_type và cộng với giá của loại phòng
                 foreach ($group as $ticketPrice) {
                     $totalPrice = $ticketPrice->price + $roomTypePrice;
 
-                    // Định dạng lại tổng giá
-                    $formattedTotalPrice = ($totalPrice == floor($totalPrice))
-                        ? number_format($totalPrice, 0)
-                        : number_format($totalPrice, 2);
-
                     $data[] = [
+                        'id' => $counter++, // Tạo id duy nhất
                         'seat_type_name' => $seatTypeName,
                         'room_type_name' => $roomTypeName,
                         'room_name' => $roomName,
                         'day_type' => ucfirst($ticketPrice->day_type),
-                        'price' => $formattedTotalPrice,
+                        'price' => (int) $totalPrice,
                     ];
                 }
             }
         }
 
-        // Sắp xếp lại kết quả
-        $data = collect($data)->sortBy([
-            ['seat_type_name', 'asc'],
-            ['room_type_name', 'asc'],
-            ['room_name', 'asc'],
-            ['day_type', 'asc']
-        ])->values();
+        $data = collect($data)->sortBy('id')->values();
 
         return response()->json([
             'message' => 'Lấy danh sách quản lý vé thành công',
@@ -120,7 +105,12 @@ class TicketController extends Controller
         ], 200);
     }
 
-    //---------------------------------test---------------------------------//
+    /**
+     * Lấy thông tin chi tiết vé theo ID
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
     public function show($id)
     {
         try {
@@ -142,9 +132,6 @@ class TicketController extends Controller
             $roomTypePrice = $roomType ? $roomType->price : 0;
 
             $totalPrice = $ticketPrice->price + $roomTypePrice;
-            $formattedTotalPrice = ($totalPrice == floor($totalPrice))
-                ? number_format($totalPrice, 0)
-                : number_format($totalPrice, 2);
 
             $data = [
                 'ticket_price_id' => $ticketPrice->id,
@@ -152,9 +139,9 @@ class TicketController extends Controller
                 'room_type_name' => $roomTypeName,
                 'room_name' => $roomName,
                 'day_type' => ucfirst($ticketPrice->day_type),
-                'base_price' => $ticketPrice->price,
-                'room_type_price' => $roomTypePrice,
-                'total_price' => $formattedTotalPrice,
+                'base_price' => (int) $ticketPrice->price,
+                'room_type_price' => (int) $roomTypePrice,
+                'total_price' => (int) $totalPrice,
                 'created_at' => $ticketPrice->created_at,
                 'updated_at' => $ticketPrice->updated_at
             ];
@@ -171,145 +158,322 @@ class TicketController extends Controller
         }
     }
 
-    // Phương thức xóa vé
-    public function destroy($id)
+    public function store(Request $request): JsonResponse
     {
-        try {
-            $ticketPrice = SeatTypePrice::findOrFail($id);
-            $ticketPrice->delete();
-
-            return response()->json([
-                'message' => 'Xóa vé thành công',
-                'ticket_price_id' => $id
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Không thể xóa vé',
-                'error' => $e->getMessage()
-            ], 404);
-        }
-    }
-    //---------------------------------end-test---------------------------------//
-
-
-
-
-
-
-    private function saveBooking(array $data, string $status, array $pricing)
-    {
-        // Lưu booking vào bảng bookings
-        $booking = Booking::create([
-            'user_id' => $data['user_id'],
-            'showtime_id' => $data['showtime_id'],
-            'total_ticket_price' => $pricing['total_ticket_price'],
-            'total_combo_price' => $pricing['total_combo_price'],
-            'total_price_point' => $pricing['total_price_point'],
-            'total_price_voucher' => $pricing['total_price_voucher'],
-            'total_price' => $pricing['total_price'], // Sử dụng total_price từ FE
-            'discount_code_id' => $pricing['discount_code_id'] ?? null,
-            'status' => $status,
-            'payment_method' => $data['payment_method'],
+        $validated = $request->validate([
+            'seat_type_name' => 'required|string',
+            'room_type_name' => 'required|string|in:2D,3D',
+            'day_type' => 'required|string|in:Holiday,Weekday,Weekend',
+            'price' => 'required|numeric|min:0',
         ]);
 
-        $pricePerSeat = $pricing['total_ticket_price'] / count($data['seat_ids']);
+        DB::beginTransaction();
+        try {
+            $seatType = SeatType::firstOrCreate(
+                ['name' => $validated['seat_type_name']],
+                ['name' => $validated['seat_type_name']]
+            );
 
-        $showTime = ShowTime::find($data['showtime_id']);
-        $roomId = $showTime->room_id;
-
-        $showDate = ShowTimeDate::where('show_time_id', $data['showtime_id'])
-            ->value('show_date');
-
-        if (!$showDate) {
-            throw new \Exception('Không tìm thấy ngày suất chiếu');
-        }
-
-        foreach ($data['seat_ids'] as $seatId) {
-            BookingDetail::create([
-                'booking_id' => $booking->id,
-                'seat_id' => $seatId,
-                'price' => $pricePerSeat,
-                'combo_ids' => null,
-                'quantity' => 1,
-            ]);
-
-            $showTimeSeat = ShowTimeSeat::where('show_time_id', $data['showtime_id'])
-                ->where('seat_id', $seatId)
+            $existingSeatTypePrice = SeatTypePrice::where('seat_type_id', $seatType->id)
+                ->where('day_type', $validated['day_type'])
                 ->first();
 
-            if ($showTimeSeat) {
-                $showTimeSeat->seat_status = 'booked';
-                $showTimeSeat->save();
-            } else {
-                ShowTimeSeat::create([
-                    'show_time_id' => $data['showtime_id'],
-                    'seat_id' => $seatId,
-                    'seat_status' => 'booked'
-                ]);
+            if ($existingSeatTypePrice) {
+                return response()->json([
+                    'message' => 'Bản ghi giá vé đã tồn tại cho loại ghế ' . $seatType->name . ' và loại ngày ' . $validated['day_type'] . '. Vui lòng cập nhật thay vì thêm mới.',
+                ], 422);
             }
 
-            $cacheKey = "seat_{$data['showtime_id']}_{$seatId}";
-            if (Cache::has($cacheKey)) {
-                Cache::forget($cacheKey);
-            }
-        }
-
-        // Lưu thông tin combo và giảm quantity
-        if (!empty($data['combo_ids'])) {
-            $comboQuantities = collect($data['combo_ids'])->groupBy(fn($id) => $id);
-            $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
-
-            foreach ($combos as $combo) {
-                $quantity = $comboQuantities[$combo->id]->count();
-
-                // Kiểm tra quantity của combo
-                if (!isset($combo->quantity)) {
-                    Log::warning("Combo ID {$combo->id} does not have a quantity column.");
-                    continue;
-                }
-
-                if ($combo->quantity < $quantity) {
-                    throw new \Exception("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}");
-                }
-
-                // Giảm quantity của combo
-                $combo->quantity -= $quantity;
-                $combo->save();
-
-                // Lưu vào booking_details
-                $bookingDetail = BookingDetail::create([
-                    'booking_id' => $booking->id,
-                    'seat_id' => null,
-                    'price' => $combo->price,
-                    'combo_id' => $combo->id,
-                    'quantity' => $quantity,
-                ]);
-            }
-        }
-
-        broadcast(new SeatHeldEvent(
-            $data['seat_ids'],
-            $data['user_id'],
-            $roomId,
-            $data['showtime_id'],
-            'booked'
-        ))->toOthers();
-
-        $seatingMatrix = $this->getSeatingMatrix($roomId, $data['showtime_id']);
-        broadcast(new SeatUpdated($roomId, $data['showtime_id'], $seatingMatrix))->toOthers();
-
-        if ($status == 'confirmed') {
-            $userData = $this->userRankService->updateRankAndPoints(
-                $data['user_id'],
-                $pricing['total_price'],
-                $booking->id
+            $roomType = RoomType::firstOrCreate(
+                ['name' => $validated['room_type_name']],
+                ['name' => $validated['room_type_name']]
             );
-            if ($userData === false) {
-                Log::warning("Không tìm thấy người dùng để cập nhật điểm và hạng: user_id = {$data['user_id']}");
-            }
-        }
 
-        return $booking;
+            $roomName = $validated['room_type_name'] === '2D' ? 'Cinema 1' : 'Cinema 5';
+            $room = Room::firstOrCreate(
+                ['name' => $roomName, 'room_type_id' => $roomType->id],
+                ['name' => $roomName, 'room_type_id' => $roomType->id]
+            );
+
+            $seat = Seat::firstOrCreate(
+                ['room_id' => $room->id, 'seat_type_id' => $seatType->id],
+                ['room_id' => $room->id, 'seat_type_id' => $seatType->id]
+            );
+
+            $seatTypePrice = SeatTypePrice::create([
+                'seat_type_id' => $seatType->id,
+                'day_type' => $validated['day_type'],
+                'price' => $validated['price'],
+            ]);
+
+            $result = [
+                'seat_type_name' => $seatType->name,
+                'room_type_name' => $roomType->name, // Chuỗi đơn giản
+                'day_type' => $seatTypePrice->day_type,
+                'price' => (int) $seatTypePrice->price,
+            ];
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Thêm giá vé thành công!',
+                'data' => $result
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Có lỗi xảy ra: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function update(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'seat_type_name' => 'required|string',
+            'room_type_name' => 'required|string|in:2D,3D',
+            'day_type' => 'required|string|in:Holiday,Weekday,Weekend',
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        $seatTypePrice = SeatTypePrice::findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            $seatType = SeatType::firstOrCreate(
+                ['name' => $validated['seat_type_name']],
+                ['name' => $validated['seat_type_name']]
+            );
+
+            $roomType = RoomType::firstOrCreate(
+                ['name' => $validated['room_type_name']],
+                ['name' => $validated['room_type_name']]
+            );
+
+            $roomName = $validated['room_type_name'] === '2D' ? 'Cinema 1' : 'Cinema 5';
+            $room = Room::firstOrCreate(
+                ['name' => $roomName, 'room_type_id' => $roomType->id],
+                ['name' => $roomName, 'room_type_id' => $roomType->id]
+            );
+
+            $seat = Seat::firstOrCreate(
+                ['room_id' => $room->id, 'seat_type_id' => $seatType->id],
+                ['room_id' => $room->id, 'seat_type_id' => $seatType->id]
+            );
+
+            $seatTypePrice->update([
+                'seat_type_id' => $seatType->id,
+                'day_type' => $validated['day_type'],
+                'price' => $validated['price'],
+            ]);
+
+            $result = [
+                'seat_type_name' => $seatType->name,
+                'room_type_name' => $roomType->name, // Chuỗi đơn giản
+                'day_type' => $seatTypePrice->day_type,
+                'price' => (int) $seatTypePrice->price,
+            ];
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Cập nhật giá vé thành công!',
+                'data' => $result
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Có lỗi xảy ra: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // Phương thức xóa vé
+    public function destroy($id): JsonResponse
+    {
+        // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu
+        DB::beginTransaction();
+        try {
+            // Tìm bản ghi SeatTypePrice
+            $ticketPrice = SeatTypePrice::findOrFail($id);
+
+            // Kiểm tra xem bản ghi có đang được sử dụng hay không (nếu cần)
+            // Ví dụ: Kiểm tra xem có Seat nào liên quan đến SeatTypePrice này không
+            $relatedSeats = Seat::where('seat_type_id', $ticketPrice->seat_type_id)->exists();
+            if ($relatedSeats) {
+                return response()->json([
+                    'message' => 'Không thể xóa giá vé.',
+                ], 422);
+            }
+
+            // Xóa bản ghi
+            $ticketPrice->delete();
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Xóa giá vé thành công',
+                'ticket_price_id' => $id
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Nếu không tìm thấy bản ghi
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Không tìm thấy giá vé với ID: ' . $id,
+            ], 404); // 404 Not Found
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Nếu có lỗi liên quan đến cơ sở dữ liệu (ví dụ: vi phạm ràng buộc khóa ngoại)
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Không thể xóa giá vé do lỗi cơ sở dữ liệu.',
+                'error' => $e->getMessage(),
+            ], 422);
+        } catch (\Exception $e) {
+            // Các lỗi khác
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Có lỗi xảy ra khi xóa giá vé.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+
+
+
+
+
+    function saveBooking(array $data, string $status, array $pricing)
+    {
+
+        // Kiểm tra xem booking đã tồn tại hay chưa
+        return DB::transaction(function () use ($data, $status, $pricing) {
+            // Kiểm tra booking trùng lặp như trên
+            $existingBooking = Booking::where('user_id', $data['user_id'])
+                ->where('showtime_id', $data['showtime_id'])
+                ->where('status', 'confirmed')
+                ->whereHas('bookingDetails', function ($query) use ($data) {
+                    $query->whereIn('seat_id', $data['seat_ids']);
+                })
+                ->first();
+
+            if ($existingBooking) {
+                return $existingBooking;
+            }
+
+
+            // Lưu booking vào bảng bookings
+            $booking = Booking::create([
+                'user_id' => $data['user_id'],
+                'showtime_id' => $data['showtime_id'],
+                'total_ticket_price' => $pricing['total_ticket_price'],
+                'total_combo_price' => $pricing['total_combo_price'],
+                'total_price_point' => $pricing['total_price_point'],
+                'total_price_voucher' => $pricing['total_price_voucher'],
+                'total_price' => $pricing['total_price'], // Sử dụng total_price từ FE
+                'discount_code_id' => $pricing['discount_code_id'] ?? null,
+                'status' => $status,
+                'payment_method' => $data['payment_method'],
+            ]);
+
+            $pricePerSeat = $pricing['total_ticket_price'] / count($data['seat_ids']);
+
+            $showTime = ShowTime::find($data['showtime_id']);
+            $roomId = $showTime->room_id;
+
+            $showDate = ShowTimeDate::where('show_time_id', $data['showtime_id'])
+                ->value('show_date');
+
+            if (!$showDate) {
+                throw new \Exception('Không tìm thấy ngày suất chiếu');
+            }
+
+            foreach ($data['seat_ids'] as $seatId) {
+                BookingDetail::create([
+                    'booking_id' => $booking->id,
+                    'seat_id' => $seatId,
+                    'price' => $pricePerSeat,
+                    'combo_ids' => null,
+                    'quantity' => 1,
+                ]);
+
+                $showTimeSeat = ShowTimeSeat::where('show_time_id', $data['showtime_id'])
+                    ->where('seat_id', $seatId)
+                    ->first();
+
+                if ($showTimeSeat) {
+                    $showTimeSeat->seat_status = 'booked';
+                    $showTimeSeat->save();
+                } else {
+                    ShowTimeSeat::create([
+                        'show_time_id' => $data['showtime_id'],
+                        'seat_id' => $seatId,
+                        'seat_status' => 'booked'
+                    ]);
+                }
+
+                $cacheKey = "seat_{$data['showtime_id']}_{$seatId}";
+                if (Cache::has($cacheKey)) {
+                    Cache::forget($cacheKey);
+                }
+            }
+
+            // Lưu thông tin combo và giảm quantity
+            if (!empty($data['combo_ids'])) {
+                $comboQuantities = collect($data['combo_ids'])->groupBy(fn($id) => $id);
+                $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
+
+                foreach ($combos as $combo) {
+                    $quantity = $comboQuantities[$combo->id]->count();
+
+                    // Kiểm tra quantity của combo
+                    if (!isset($combo->quantity)) {
+                        Log::warning("Combo ID {$combo->id} does not have a quantity column.");
+                        continue;
+                    }
+
+                    if ($combo->quantity < $quantity) {
+                        throw new \Exception("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}");
+                    }
+
+                    // Giảm quantity của combo
+                    $combo->quantity -= $quantity;
+                    $combo->save();
+
+                    // Lưu vào booking_details
+                    $bookingDetail = BookingDetail::create([
+                        'booking_id' => $booking->id,
+                        'seat_id' => null,
+                        'price' => $combo->price,
+                        'combo_id' => $combo->id,
+                        'quantity' => $quantity,
+                    ]);
+                }
+            }
+
+            broadcast(new SeatHeldEvent(
+                $data['seat_ids'],
+                $data['user_id'],
+                $roomId,
+                $data['showtime_id'],
+                'booked'
+            ))->toOthers();
+
+            $seatingMatrix = $this->getSeatingMatrix($roomId, $data['showtime_id']);
+            broadcast(new SeatUpdated($roomId, $data['showtime_id'], $seatingMatrix))->toOthers();
+
+            if ($status == 'confirmed') {
+                $userData = $this->userRankService->updateRankAndPoints(
+                    $data['user_id'],
+                    $pricing['total_price'],
+                    $booking->id
+                );
+                if ($userData === false) {
+                    Log::warning("Không tìm thấy người dùng để cập nhật điểm và hạng: user_id = {$data['user_id']}");
+                }
+            }
+
+            return $booking;
+        });
     }
 
     private function getSeatingMatrix($roomId, $showTimeId)
@@ -420,11 +584,11 @@ class TicketController extends Controller
      */
     private function generateQrCode($booking, array $ticketDetails)
     {
-        $qrData = "Mã đặt vé: {$booking->id}\n" .
-            "Phim: {$ticketDetails['movie']['title']}\n" .
-            "Ngày chiếu: {$ticketDetails['show_date']}\n" .
-            "Giờ chiếu: {$ticketDetails['show_time']['start_time']} - {$ticketDetails['show_time']['end_time']}\n" .
-            "Phòng: {$ticketDetails['show_time']['room']['name']} ({$ticketDetails['show_time']['room']['room_type']})\n" .
+        $qrData = "Mã đặt vé: {$booking->id}.\n" .
+            "Phim: {$ticketDetails['movie']['title']}.\n" .
+            "Ngày chiếu: {$ticketDetails['show_date']}.\n" .
+            "Giờ chiếu: {$ticketDetails['show_time']['start_time']} - {$ticketDetails['show_time']['end_time']}.\n" .
+            "Phòng: {$ticketDetails['show_time']['room']['name']} ({$ticketDetails['show_time']['room']['room_type']}).\n" .
             "Ghế: " . implode(', ', array_map(fn($seat) => "{$seat['row']}{$seat['column']} ({$seat['seat_type']})", $ticketDetails['seats']->toArray()));
 
         $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);

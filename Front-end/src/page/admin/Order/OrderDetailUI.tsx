@@ -1,9 +1,43 @@
 import clsx from "clsx";
 import styles from "./Order.module.css";
-import { Skeleton, Table, Tag } from "antd";
-import { useDetailOrder } from "../../../services/adminServices/orderManage.service";
+import { message, Select, Skeleton, Table, Tag } from "antd";
+import {
+    useChangeStatusCheckin,
+    useDetailOrder,
+} from "../../../services/adminServices/orderManage.service";
+import { useEffect, useState } from "react";
 
 const OrderDetailUI = ({ id }: { id: number }) => {
+    // State lưu giá trị đã chọn
+    const [selectedCheckIn, setSelectedCheckIn] = useState<string | undefined>(
+        undefined
+    );
+    const [messageApi, contextHolder] = message.useMessage();
+
+    const { data: detailOrder, isLoading } = useDetailOrder(id); // lấy chi tiết đơn hàng từ api
+
+    // Cập nhật state khi `detailOrder?.check_in` thay đổi
+    useEffect(() => {
+        if (detailOrder?.check_in) {
+            setSelectedCheckIn(detailOrder.check_in);
+        }
+    }, [detailOrder?.check_in]);
+
+    // Xử lý khi thay đổi giá trị trong Select
+    const handleChange = (value: string) => {
+        setSelectedCheckIn(value);
+        console.log("Giá trị được chọn:", value); // Kiểm tra giá trị đã chọn
+    };
+
+    // gọi và xử lý khi thay đổi trạng thái sử dụng
+    const { mutate: changeStatusCheckin } = useChangeStatusCheckin(messageApi);
+    const onChangeStatus = () => {
+        changeStatusCheckin({
+            bookingId: detailOrder?.id,
+            check_in: selectedCheckIn,
+        });
+    };
+
     const columnsSeats = [
         {
             title: "Thông tin ghế",
@@ -56,9 +90,9 @@ const OrderDetailUI = ({ id }: { id: number }) => {
         },
     ];
 
-    const { data: detailOrder, isLoading } = useDetailOrder(id);
     return (
         <div className={clsx(styles.container)}>
+            {contextHolder}
             <div className={clsx(styles.orderInfo)}>
                 <div className={clsx(styles.section)}>
                     <h3 className={clsx(styles.title)}>Thông tin khách hàng</h3>
@@ -136,16 +170,6 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                     </div>
                     <hr />
                     <div className={clsx(styles.infoItem)}>
-                        <h4 className={clsx(styles.label)}>Trạng thái:</h4>
-                        <span className={clsx(styles.value)}>
-                            {detailOrder?.status === "confirmed" ? (
-                                <Tag color="green">Đã thanh toán</Tag>
-                            ) : (
-                                <Tag color="red">Đang đợi xử lý</Tag>
-                            )}
-                        </span>
-                    </div>
-                    <div className={clsx(styles.infoItem)}>
                         <h4 className={clsx(styles.label)}>Thành tiền:</h4>
                         <span className={clsx(styles.value)}>
                             {" "}
@@ -179,7 +203,10 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                         <span className={clsx(styles.value)}>
                             {" "}
                             <Tag
-                                className={clsx(styles.tagElement)}
+                                className={clsx(
+                                    styles.tagElement,
+                                    styles.finalTotal
+                                )}
                                 color="blue"
                             >
                                 {detailOrder?.total_price.toLocaleString(
@@ -187,6 +214,55 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                                 )}{" "}
                                 VNĐ
                             </Tag>
+                        </span>
+                    </div>
+                    <hr />
+
+                    <div className={clsx(styles.infoItem)}>
+                        <h4 className={clsx(styles.label)}>
+                            Trạng thái thanh toán:
+                        </h4>
+                        <span className={clsx(styles.value)}>
+                            {detailOrder?.status === "confirmed" ? (
+                                <Tag color="green">Đã thanh toán</Tag>
+                            ) : (
+                                <Tag color="red">Đang đợi xử lý</Tag>
+                            )}
+                        </span>
+                    </div>
+                    <div className={clsx(styles.infoItem)}>
+                        <h4 className={clsx(styles.label)}>
+                            Trạng thái sử dụng:
+                        </h4>
+                        <span>
+                            <Select
+                                className={clsx(styles.valueSelect)}
+                                value={selectedCheckIn}
+                                onChange={handleChange}
+                            >
+                                {detailOrder?.check_in_options.map(
+                                    (item: any, index: number) => {
+                                        return (
+                                            <Select.Option
+                                                key={index}
+                                                value={item}
+                                            >
+                                                {item === "waiting"
+                                                    ? "Đang đợi"
+                                                    : item === "checked_in"
+                                                    ? "Đã đến"
+                                                    : "Vắng mặt"}
+                                            </Select.Option>
+                                        );
+                                    }
+                                )}
+                            </Select>
+                        </span>
+                        <span
+                            className={clsx(styles.changeStatus)}
+                            onClick={onChangeStatus}
+                        >
+                            Cập nhật
                         </span>
                     </div>
                 </div>
@@ -205,7 +281,7 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                         dataSource={detailOrder?.seats?.map(
                             (item: any, index: number) => ({
                                 ...item,
-                                key: item.id || index, // Sử dụng id hoặc index làm key
+                                key: item.id || index,
                             })
                         )}
                         pagination={false}
@@ -229,7 +305,7 @@ const OrderDetailUI = ({ id }: { id: number }) => {
                         dataSource={detailOrder?.combos?.map(
                             (item: any, index: number) => ({
                                 ...item,
-                                key: item.id || index, // Sử dụng id hoặc index làm key
+                                key: item.id || index,
                             })
                         )}
                         pagination={false}

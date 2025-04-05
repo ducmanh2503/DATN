@@ -16,6 +16,8 @@ const ChangeShowtimes = () => {
         setShowtimeIdFromBooking,
         showtimeIdFromBooking,
         roomIdFromShowtimes,
+        setRoomIdFromShowtimes,
+        setRoomNameShowtimes,
         setShowtimesTime,
         setRoomTypeShowtimes,
     } = useFilmContext();
@@ -58,12 +60,16 @@ const ChangeShowtimes = () => {
         id: number,
         start_time: string,
         name: string,
-        price: string
+        price: string,
+        room_id: number,
+        room_name: string
     ) => {
         setShowtimeIdFromBooking(id); // tahy đổi dữ liệu để chạy lại api lấy ghế
         setShowtimesTime(start_time); // Cập nhật giá trị ở thông tin phim
         setRoomTypeShowtimes(name);
         setSeatRoomPrice(parseInt(price));
+        setRoomIdFromShowtimes(room_id);
+        setRoomNameShowtimes(room_name);
         //reset data ghế nếu có đang chọn
         resetDataShowtimes();
         refetchMatrix();
@@ -75,39 +81,44 @@ const ChangeShowtimes = () => {
             </span>
 
             {/* Hiển thị Spin khi đang load */}
-
-            {listShowtimes
-                .sort((a: any, b: any) =>
-                    dayjs(a.start_time, "HH:mm:ss").isBefore(
-                        dayjs(b.start_time, "HH:mm:ss")
+            <div className={clsx(styles.listShowtimes)}>
+                {listShowtimes
+                    .sort((a: any, b: any) =>
+                        dayjs(a.start_time, "HH:mm:ss").isBefore(
+                            dayjs(b.start_time, "HH:mm:ss")
+                        )
+                            ? -1
+                            : 1
                     )
-                        ? -1
-                        : 1
-                )
-                .map((item: any) => (
-                    <div key={item.id}>
-                        <Link
-                            className={clsx(
-                                styles.showtimesItem,
-                                showtimeIdFromBooking === item.id
-                                    ? styles.active
-                                    : ""
-                            )}
-                            to={`/booking/${filmId}`}
-                            onClick={() => {
-                                // console.log("check item", item);
-                                handleClick(
-                                    item.id,
-                                    item.start_time,
-                                    item.room.room_type.name,
-                                    item.room.room_type.price
-                                );
-                            }}
-                        >
-                            {dayjs(item.start_time, "HH:mm:ss").format("HH:mm")}
-                        </Link>
-                    </div>
-                ))}
+                    .map((item: any) => (
+                        <div key={item.id}>
+                            <Link
+                                className={clsx(
+                                    styles.showtimesItem,
+                                    showtimeIdFromBooking === item.id
+                                        ? styles.active
+                                        : ""
+                                )}
+                                to={`/booking/${filmId}`}
+                                onClick={() => {
+                                    console.log("check item", item);
+                                    handleClick(
+                                        item.id,
+                                        item.start_time,
+                                        item.room.room_type.name,
+                                        item.room.room_type.price,
+                                        item.room_id,
+                                        item.room.name
+                                    );
+                                }}
+                            >
+                                {dayjs(item.start_time, "HH:mm:ss").format(
+                                    "HH:mm"
+                                )}
+                            </Link>
+                        </div>
+                    ))}
+            </div>
         </div>
     );
 };

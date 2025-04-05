@@ -1,85 +1,89 @@
 .spaceEle {
-  margin-top: 20px;
+    margin-top: 20px;
 }
 
 .screen {
-  background-color: #1a1a1a;
-  padding: 10px 0;
-  text-align: center;
-  color: white;
-  margin: 20px auto 70px;
-  transform: perspective(300px) rotateX(-10deg);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 90%;
+    background-color: #1a1a1a;
+    padding: 10px 0;
+    text-align: center;
+    color: white;
+    margin: 20px auto 70px;
+    transform: perspective(300px) rotateX(-10deg);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
 }
 
 .loadingIcon {
-  display: flex;
-  justify-content: center;
+    display: flex;
+    justify-content: center;
 }
 
 .seatRow {
-  display: flex;
-  gap: 55px;
-  justify-content: space-between;
+    display: flex;
+    gap: 48px;
+    justify-content: space-between;
 }
 
 .seat {
-  min-width: 25px;
-  padding: 3px 1px;
-  margin-right: 4px;
-  margin-bottom: 4px;
-  border: 3px solid black;
-  border-radius: 7px;
-  cursor: pointer;
-  font-size: 13px;
-  text-align: center;
+    min-width: 25px;
+    padding: 3px 1px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    border: 3px solid black;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: center;
 }
 
 .normalType {
-  border: 3px solid #8c8c8c;
-  color: #8c8c8c;
+    background-color: #8c8c8c;
+    color: var(--word-color);
+    border: 3px solid #8c8c8c;
 }
 
 .VIPType {
-  border: 3px solid #1890ff;
-  color: #1890ff;
+    background-color: #1890ff;
+    color: var(--word-color);
+    border: 3px solid #1890ff;
 }
 
 .SweetboxType {
-  border: 3px solid #f5222d;
-  color: #f5222d;
+    background-color: #f5222d;
+    color: var(--word-color);
+    border: 3px solid #f5222d;
 }
 
 .rowLabel {
-  width: 20px;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.9;
+    width: 20px;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.9;
 }
 
 .rowSeats {
-  width: 100%;
-  display: flex;
+    width: 100%;
+    display: flex;
 }
 
 .empty {
-  background-color: #1a1a1a;
-  border-color: black;
-  color: white;
-  font-weight: 700;
+    background-color: white;
+    border: 3px solid white;
+    color: black;
+    font-weight: 600;
+    opacity: 0.5;
 }
 
 .disabled {
-  background-color: #3e3f5b;
-  border: 2px solid #3e3f5b;
+    background-color: #3e3f5b;
+    border: 3px solid #3e3f5b;
 }
 
 .updatePrice {
-  background-color: var(--backgroud-product);
+    background-color: var(--backgroud-product);
 }
 
 .updateStatus {
-  border: 2px solid var(--backgroud-product);
-  color: var(--backgroud-product);
+    border: 3px solid var(--backgroud-product);
+    color: var(--backgroud-product);
 }

@@ -223,17 +223,14 @@ class ShowTimeController extends Controller
     }
 
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         // Bước 1: Xác thực dữ liệu đầu vào
         $validated = $request->validate([
             'calendar_show_id' => 'required|exists:calendar_show,id',
             'room_id' => 'required|exists:rooms,id',
-            'start_time' => 'required|date_format:H:i',  // Kiểu thời gian theo format H:i
-            'end_time' => 'required|date_format:H:i',    // Kiểu thời gian theo format H:i
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
             'status' => 'required|in:referenced,now_showing,coming_soon',
         ]);
 
@@ -244,14 +241,21 @@ class ShowTimeController extends Controller
             return response()->json(['message' => 'Không tìm thấy xuất chiếu'], 404);
         }
 
-        // Bước 3: Kiểm tra xem suất chiếu có ghế đã được đặt không
+        // Bước 3: Kiểm tra nếu status là 'referenced' hoặc 'now_showing'
+        if (in_array($showTime->status, ['referenced', 'now_showing'])) {
+            return response()->json([
+                'message' => 'Không thể cập nhật suất chiếu đang chiếu hoặc đã chiếu'
+            ], 403);
+        }
+
+        // Bước 4: Kiểm tra xem suất chiếu có ghế đã được đặt không
         if ($this->hasBookedSeats($showTime)) {
             return response()->json([
                 'message' => 'Không thể cập nhật suất chiếu vì đã có ghế được đặt'
             ], 403);
         }
 
-        // Bước 4: Kiểm tra xem ngày chiếu có nằm trong khoảng show_date và end_date không
+        // Bước 5: Kiểm tra xem ngày chiếu có nằm trong khoảng show_date và end_date không
         $calendarShow = CalendarShow::find($validated['calendar_show_id']);
         $showDate = Carbon::parse($calendarShow->show_date);
         $endDate = Carbon::parse($calendarShow->end_date);
@@ -261,11 +265,11 @@ class ShowTimeController extends Controller
             return response()->json(['error' => 'Ngày chiếu không hợp lệ'], 422);
         }
 
-        // Bước 5: Kiểm tra xem phòng chiếu có bị trùng lịch không
+        // Bước 6: Kiểm tra xem phòng chiếu có bị trùng lịch không
         try {
             $conflictingShowTimes = ShowTime::where('room_id', $validated['room_id'])
                 ->where(function ($query) use ($validated, $id) {
-                    $query->where('id', '!=', $id) // Loại trừ suất chiếu đang cập nhật
+                    $query->where('id', '!=', $id)
                         ->where('start_time', '<', $validated['end_time'])
                         ->where('end_time', '>', $validated['start_time']);
                 })
@@ -281,12 +285,12 @@ class ShowTimeController extends Controller
             return response()->json(['error' => 'Phòng chiếu đã có suất chiếu trùng giờ'], 422);
         }
 
-        // Bước 6: Lấy thông tin phòng và loại phòng
+        // Bước 7: Lấy thông tin phòng và loại phòng
         $room = Room::find($validated['room_id']);
         $roomType = $room ? $room->roomType : null;
         $roomTypeId = $roomType ? $roomType->id : null;
 
-        // Bước 7: Cập nhật thông tin ShowTime
+        // Bước 8: Cập nhật thông tin ShowTime
         try {
             $showTime->update([
                 'calendar_show_id' => $validated['calendar_show_id'],
@@ -321,6 +325,13 @@ class ShowTimeController extends Controller
 
         if (!$showTime) {
             return response()->json(['message' => 'Không tìm thấy xuất chiếu'], 404);
+        }
+
+        // Kiểm tra nếu status là 'referenced' hoặc 'now_showing'
+        if (in_array($showTime->status, ['referenced', 'now_showing'])) {
+            return response()->json([
+                'message' => 'Không thể xóa suất chiếu đang chiếu hoặc đã chiếu'
+            ], 403);
         }
 
         // Kiểm tra xem suất chiếu có ghế đã được đặt không
@@ -360,6 +371,13 @@ class ShowTimeController extends Controller
 
         if (!$showTimeDate) {
             return response()->json(['message' => 'Không tìm thấy xuất chiếu vào ngày này'], 404);
+        }
+
+        // Kiểm tra nếu status là 'referenced' hoặc 'now_showing'
+        if (in_array($showTime->status, ['referenced', 'now_showing'])) {
+            return response()->json([
+                'message' => 'Không thể xóa suất chiếu đang chiếu hoặc đã chiếu'
+            ], 403);
         }
 
         // Kiểm tra xem suất chiếu có ghế đã được đặt không

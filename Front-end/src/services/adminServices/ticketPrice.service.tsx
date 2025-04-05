@@ -15,15 +15,7 @@ export const useTicketsPrice = () => {
         queryFn: async () => {
             const { data } = await axios.get(GET_TICKETSPRICE);
             console.log("check", data.data);
-
-            return data.data.map((item: any, index: any) => ({
-                key: item.id || index,
-                seat_type_name: item.seat_type_name,
-                room_type_name: item.room_type_name,
-                room_name: item.room_name,
-                day_type: item.day_type,
-                price: item.price,
-            }));
+            return data.data.map((item: any) => ({ ...item, key: item.id }));
         },
         staleTime: 1000 * 60 * 10, // Dữ liệu cache trong 10 phút
     });
@@ -36,6 +28,7 @@ export const useDeleteTicketPrice = (messageApi: any) => {
         mutationFn: async (id: any) => {
             await axios.delete(DELETE_TICKETPRICE(id));
         },
+
         onSuccess: () => {
             query.invalidateQueries({
                 queryKey: ["ticketsPrice"],
@@ -47,15 +40,16 @@ export const useDeleteTicketPrice = (messageApi: any) => {
 };
 
 // hàm lấy chi tiết giá vé
-export const useDetailTicketsPrice = (id: any) => {
+export const useDetailTicketsPrice = (id: any, open: boolean) => {
     return useQuery({
         queryKey: ["detailTicketsPrice", id],
         queryFn: async () => {
             const { data } = await axios.get(DETAIL_TICKETPRICE(id));
 
-            return data;
+            return data.data;
         },
         staleTime: 1000 * 60 * 10, // Dữ liệu cache trong 10 phút
+        enabled: id && open === true,
     });
 };
 
@@ -63,16 +57,15 @@ export const useDetailTicketsPrice = (id: any) => {
 export const useUpdateTicketPrice = (messageApi: any) => {
     const query = useQueryClient();
     return useMutation({
-        mutationFn: async (id: any) => {
-            await axios.put(UPDATE_TICKETPRICE(id));
+        mutationFn: async ({ id, formData }: { id: any; formData: any }) => {
+            await axios.put(UPDATE_TICKETPRICE(id), formData);
         },
         onSuccess: () => {
             query.invalidateQueries({
                 queryKey: ["ticketsPrice"],
             });
-            messageApi.success("Xóa vé thành công");
+            messageApi.success("Cập nhật vé thành công");
         },
-
         onError: handleApiError,
     });
 };

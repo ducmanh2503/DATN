@@ -19,6 +19,7 @@ type DataIndex = keyof OrdersType;
 const CheckinTable = ({ orderListManage }: any) => {
     const [searchText, setSearchText] = useState("");
     const [searchedColumn, setSearchedColumn] = useState("");
+    const [showDataUser, setShowDataUser] = useState(false);
     const searchInput = useRef<InputRef>(null);
 
     const handleSearch = (
@@ -153,7 +154,9 @@ const CheckinTable = ({ orderListManage }: any) => {
     };
 
     const renderDetailOrder = React.useCallback(
-        (text: string, item: any) => <OrderDetail id={item.id}></OrderDetail>,
+        (text: string, item: any) => (
+            <OrderDetail id={item.id} showDataUser={false}></OrderDetail>
+        ),
         []
     );
 

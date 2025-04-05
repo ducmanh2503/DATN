@@ -7,7 +7,13 @@ import {
 } from "../../../services/adminServices/orderManage.service";
 import { useEffect, useState } from "react";
 
-const OrderDetailUI = ({ id }: { id: number }) => {
+const OrderDetailUI = ({
+    id,
+    showDataUser,
+}: {
+    id: number;
+    showDataUser: boolean;
+}) => {
     // State lưu giá trị đã chọn
     const [selectedCheckIn, setSelectedCheckIn] = useState<string | undefined>(
         undefined
@@ -94,36 +100,44 @@ const OrderDetailUI = ({ id }: { id: number }) => {
         <div className={clsx(styles.container)}>
             {contextHolder}
             <div className={clsx(styles.orderInfo)}>
-                <div className={clsx(styles.section)}>
-                    <h3 className={clsx(styles.title)}>Thông tin khách hàng</h3>
-                    <div className={clsx(styles.infoGroup)}>
-                        <div className={clsx(styles.infoItem)}>
-                            <h4 className={clsx(styles.label)}>Khách hàng:</h4>
-                            <span
-                                className={clsx(
-                                    styles.value,
-                                    styles.customerInfo
-                                )}
-                            >
-                                {detailOrder?.customer_name}
-                            </span>
-                        </div>
-                        <div className={clsx(styles.infoItem)}>
-                            <h4 className={clsx(styles.label)}>Điện thoại:</h4>
-                            <span className={clsx(styles.value)}>
-                                {detailOrder?.phone === "N/A"
-                                    ? "chưa cập nhật"
-                                    : detailOrder?.phone}
-                            </span>
-                        </div>
-                        <div className={clsx(styles.infoItem)}>
-                            <h4 className={clsx(styles.label)}>Email:</h4>
-                            <span className={clsx(styles.value)}>
-                                {detailOrder?.email}
-                            </span>
+                {showDataUser && (
+                    <div className={clsx(styles.section)}>
+                        <h3 className={clsx(styles.title)}>
+                            Thông tin khách hàng
+                        </h3>
+                        <div className={clsx(styles.infoGroup)}>
+                            <div className={clsx(styles.infoItem)}>
+                                <h4 className={clsx(styles.label)}>
+                                    Khách hàng:
+                                </h4>
+                                <span
+                                    className={clsx(
+                                        styles.value,
+                                        styles.customerInfo
+                                    )}
+                                >
+                                    {detailOrder?.customer_name}
+                                </span>
+                            </div>
+                            <div className={clsx(styles.infoItem)}>
+                                <h4 className={clsx(styles.label)}>
+                                    Điện thoại:
+                                </h4>
+                                <span className={clsx(styles.value)}>
+                                    {detailOrder?.phone === "N/A"
+                                        ? "chưa cập nhật"
+                                        : detailOrder?.phone}
+                                </span>
+                            </div>
+                            <div className={clsx(styles.infoItem)}>
+                                <h4 className={clsx(styles.label)}>Email:</h4>
+                                <span className={clsx(styles.value)}>
+                                    {detailOrder?.email}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
                 <div className={clsx(styles.section)}>
                     <h3 className={clsx(styles.title)}>Thông tin đơn hàng</h3>
 

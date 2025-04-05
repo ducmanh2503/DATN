@@ -105,7 +105,12 @@ class TicketController extends Controller
         ], 200);
     }
 
-    //---------------------------------test---------------------------------//
+    /**
+     * Lấy thông tin chi tiết vé theo ID
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
     public function show($id)
     {
         try {
@@ -295,8 +300,8 @@ class TicketController extends Controller
             $relatedSeats = Seat::where('seat_type_id', $ticketPrice->seat_type_id)->exists();
             if ($relatedSeats) {
                 return response()->json([
-                    'message' => 'Không thể xóa giá vé vì loại ghế này đang được sử dụng trong các ghế khác.',
-                ], 422); // 422 Unprocessable Entity
+                    'message' => 'Không thể xóa giá vé.',
+                ], 422);
             }
 
             // Xóa bản ghi
@@ -306,8 +311,7 @@ class TicketController extends Controller
             return response()->json([
                 'message' => 'Xóa giá vé thành công',
                 'ticket_price_id' => $id
-            ], 200); // Hoặc trả về 204 nếu không cần nội dung
-
+            ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             // Nếu không tìm thấy bản ghi
             DB::rollBack();
@@ -321,18 +325,17 @@ class TicketController extends Controller
             return response()->json([
                 'message' => 'Không thể xóa giá vé do lỗi cơ sở dữ liệu.',
                 'error' => $e->getMessage(),
-            ], 422); // 422 Unprocessable Entity
-
+            ], 422);
         } catch (\Exception $e) {
             // Các lỗi khác
             DB::rollBack();
             return response()->json([
                 'message' => 'Có lỗi xảy ra khi xóa giá vé.',
                 'error' => $e->getMessage(),
-            ], 500); // 500 Internal Server Error
+            ], 500);
         }
     }
-    //---------------------------------end-test---------------------------------//
+
 
 
 

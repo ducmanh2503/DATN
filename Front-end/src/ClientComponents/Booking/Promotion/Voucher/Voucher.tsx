@@ -91,25 +91,23 @@ const VoucherInfo = () => {
             return response.data;
         },
         onSuccess: (data) => {
-            // debugger;
-            console.log("check-voucher", data);
-
-            setMaxPriceTotal(data.maxPrice);
-
+            // debugger
             const discountPercent = parseFloat(data.discount_percent);
-            setVoucherPrecent(data.discount_percent);
-            if (!isNaN(discountPercent)) {
-                const defaultPrice = totalPrice + totalPricePoint; // tiền trc khi trừ
-                const newPrice =
-                    (totalPrice + totalPricePoint) *
-                    (1 - discountPercent / 100); // tiền sau trừ
+            const maxDiscount = data.maxPrice;
 
-                if (newPrice < data.maxPrice) {
+            setVoucherPrecent(String(discountPercent));
+            setMaxPriceTotal(maxDiscount);
+
+            const defaultPrice = totalPrice + totalPricePoint;
+            const newPrice = defaultPrice * (1 - discountPercent / 100);
+
+            if (!isNaN(discountPercent)) {
+                if (newPrice < maxDiscount) {
                     setTotalPrice(newPrice - totalPricePoint);
                     setTotalPriceVoucher(defaultPrice - newPrice);
                 } else {
-                    setTotalPrice(defaultPrice - maxPriceTotal);
-                    setTotalPriceVoucher(maxPriceTotal);
+                    setTotalPrice(defaultPrice - maxDiscount);
+                    setTotalPriceVoucher(maxDiscount);
                 }
                 setQuantityPromotion(1);
                 setIsVoucherUsed(true);

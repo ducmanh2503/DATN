@@ -442,7 +442,7 @@ const AddFilm = () => {
                                 rules={[
                                     {
                                         required: true,
-                                        message: "Vui lòng nhập diễn viên",
+                                        message: "Vui lòng chọn file Excel",
                                     },
                                 ]}
                             ></Form.Item>

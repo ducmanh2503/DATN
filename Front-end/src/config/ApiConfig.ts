@@ -72,18 +72,17 @@ const CREATE_DISCOUNT_CODE = `${BASE_URL}/discount-code`;
 const UPDATE_DISCOUNT_CODE = (id: number) => `${BASE_URL}/discount-code/${id}`;
 const DELETE_DISCOUNT_CODE = (id: number) => `${BASE_URL}/discount-code/${id}`;
 
-const GET_TICKETSPRICE = `${BASE_URL}/ticket-management`;
-const DETAIL_TICKETPRICE = (id: number) =>
-    `${BASE_URL}/ticket-management/${id}`;
-const ADD_TICKETSPRICE = `${BASE_URL}/ticket-management`;
-const DELETE_TICKETPRICE = (id: number) =>
-    `${BASE_URL}/ticket-management/${id}`;
-const UPDATE_TICKETPRICE = (id: number) =>
-    `${BASE_URL}/ticket-management/${id}`;
+const GET_TICKETSPRICE = `${BASE_URL}/ticket-management`; // danh sách giá vé
+const DETAIL_TICKETPRICE = (id: number) => `${BASE_URL}/ticket-show/${id}`; // chi tiết giá vé
+const ADD_TICKETSPRICE = `${BASE_URL}/ticket-prices`; // thêm mới giá vé
+const DELETE_TICKETPRICE = (id: number) => `${BASE_URL}/ticket-delete/${id}`; // xóa giá vé
+const UPDATE_TICKETPRICE = (id: number) => `${BASE_URL}/ticket-prices/${id}`; // cập nhật giá
 const PAYMENT_WITH_VNPAY = `${BASE_URL}/VNPay/create`; // thanh toán bằng VNPay
 
 const GET_VOUCHER = (code: string) =>
-    `${BASE_URL}/apply-discount-code?name_code=${encodeURIComponent(code)}`; // nhập voucher giảm giá
+    `${BASE_URL}/apply-discount-code?name_code=${encodeURIComponent(
+        code.trim()
+    )}`; // nhập voucher giảm giá
 
 const ORDERS_LIST = `${BASE_URL}/order`; // danh sách đơn hàng
 const DETAIL_ORDER = (bookingId: number) =>

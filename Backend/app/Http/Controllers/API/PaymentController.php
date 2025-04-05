@@ -190,7 +190,7 @@ class PaymentController extends Controller
     public function VNPayReturn(Request $request)
     {
         Log::info('VNPay Return Request: ' . json_encode($request->all()));
-        $vnp_HashSecret = env('VNP_HASH_SECRET', '9ZPL73553WBRODW6D6IX3LCW2Z30EFF2');
+        $vnp_HashSecret = env('VNP_HASH_SECRET', 'Y7EVYR6BH7GXOWUSYIFLWW9JHZV5DK7E');
         $vnp_SecureHash = $request->vnp_SecureHash;
         $inputData = $request->except('vnp_SecureHash');
 

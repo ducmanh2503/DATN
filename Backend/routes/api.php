@@ -135,6 +135,7 @@ Route::middleware('auth:sanctum')->group(function () {
         //seat_type
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
 
+        //slider
         Route::apiResource('sliders', SliderController::class);
         Route::post('sliders/{slider}', [SliderController::class, 'update']);
 

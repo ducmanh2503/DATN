@@ -28,8 +28,8 @@ import authService from "./services/auth.service";
 import Booking from "./page/client/Booking/Booking";
 import ForgotPassword from "./page/auth/ForgotPassword";
 import TicketsPrice from "./page/admin/TicketsPrice/TicketsPrice";
-import BoxNumbers from "./ClientComponents/CalendarMovies/BoxNumbers/BoxNumbers";
 import ArticleList from "./page/admin/Article/Article";
+// import CreatePost from "./page/admin/Article/CreateArticle";
 import UserProfile from "./ClientComponents/UserProfile/UserProfile";
 import DiscountManagement from "./page/admin/DisCound-Code/DisCount-code";
 import OrderList from "./page/admin/Order/OrderList";
@@ -38,8 +38,6 @@ import Userlist from "./page/admin/Userpage/Userlist";
 import Useradd from "./page/admin/Userpage/Useradd";
 import UserDetail from "./page/admin/Userpage/Userdetails";
 import Combo from "./page/admin/ComboPage/ComboPage";
-import SuccesResult from "./ClientComponents/Booking/ResultPayment/SuccesResult/SuccesResult";
-import ErrorResult from "./ClientComponents/Booking/ResultPayment/ErrorResult/ErrorResult";
 import LayoutPaymentResult from "./ClientComponents/Booking/ResultPayment/LayoutPaymentResult";
 import ProfilePage from "./page/admin/Profilepage/Profilepage";
 import Dashboard from "./page/admin/Dashboard/Dashboard";
@@ -240,6 +238,10 @@ export const router = createBrowserRouter([
             path: "articlelist",
             element: <ArticleList />,
           },
+          // {
+          //     path: "create-article",
+          //     element: <CreatePost />,
+          // },
           {
             path: "discount-code",
             element: <DiscountManagement />,

@@ -18,23 +18,18 @@ class ComboController extends Controller
      */
     private function hasSeatsInCache()
     {
-        // Lấy tất cả showTimeIds
         $showTimeIds = ShowTime::pluck('id');
-
-        // Lấy tất cả seatIds
         $seatIds = Seat::pluck('id');
 
-        // Kiểm tra từng showTimeId và seatId trong cache
         foreach ($showTimeIds as $showTimeId) {
             foreach ($seatIds as $seatId) {
                 $cacheKey = "seat_{$showTimeId}_{$seatId}";
                 if (Cache::has($cacheKey)) {
-                    return true; // Có ít nhất một ghế đang được giữ trong cache
+                    return true;
                 }
             }
         }
-
-        return false; // Không có ghế nào đang được giữ trong cache
+        return false;
     }
 
     /**
@@ -42,14 +37,15 @@ class ComboController extends Controller
      */
     public function index(Request $request)
     {
-
-        // Lấy danh sách combo
-        $combo = Combo::query()->latest('id')->get();
+        $query = Combo::query()->latest('id');
+        if ($request->query('include_deleted')) {
+            $query->withTrashed(); // Lấy cả combo đã xóa mềm
+        }
+        $combo = $query->get();
 
         return response()->json([
             'message' => 'Danh sách Combo',
             'combo' => $combo,
-
         ], 200);
     }
 
@@ -67,7 +63,6 @@ class ComboController extends Controller
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
 
-            // Xử lý upload ảnh giống MoviesController
             if (isset($validated['image']) && $validated['image'] instanceof \Illuminate\Http\UploadedFile) {
                 $imagePath = $validated['image']->store('images', 'public');
                 $validated['image'] = Storage::url($imagePath);
@@ -97,8 +92,6 @@ class ComboController extends Controller
      */
     public function show(string $id)
     {
-
-
         $combo = Combo::findOrFail($id);
         return response()->json($combo);
     }
@@ -110,7 +103,6 @@ class ComboController extends Controller
     {
         $combo = Combo::findOrFail($id);
 
-        // Kiểm tra xem có ghế nào đang được giữ trong cache không
         if ($this->hasSeatsInCache()) {
             return response()->json([
                 'message' => 'Có người đang mua vé, không thể cập nhật combo!'
@@ -162,7 +154,6 @@ class ComboController extends Controller
             return response()->json(['message' => 'Không có Combo nào được chọn'], 400);
         }
 
-        // Kiểm tra xem có ghế nào đang được giữ trong cache không
         if ($this->hasSeatsInCache()) {
             return response()->json([
                 'message' => 'Có người đang mua vé, không thể xóa combo!'
@@ -178,8 +169,6 @@ class ComboController extends Controller
         return response()->json(['message' => 'Không tìm thấy combo nào'], 404);
     }
 
-
-
     /**
      * Remove the specified resource from storage (soft delete).
      */
@@ -188,7 +177,6 @@ class ComboController extends Controller
         try {
             $combo = Combo::findOrFail($id);
 
-            // Kiểm tra xem có ghế nào đang được giữ trong cache không
             if ($this->hasSeatsInCache()) {
                 return response()->json([
                     'message' => 'Có người đang mua vé, không thể xóa combo!'
@@ -203,88 +191,31 @@ class ComboController extends Controller
         }
     }
 
-    //Xóa vĩnh viễn nhiều Combo
-    // public function forceDeleteMultiple(Request $request)
-    // {
-
-
-    //     $ids = $request->input('ids'); // Lấy danh sách ID combo cần xóa vĩnh viễn
-
-    //     // Nếu không có combo nào được chọn
-    //     if (empty($ids)) {
-    //         return response()->json(['message' => 'Không có combo nào được chọn để xóa vĩnh viễn'], 400);
-    //     }
-
-    //     // Kiểm tra nếu combo có tồn tại trong bảng bị xóa mềm
-    //     $combos = Combo::onlyTrashed()->whereIn('id', $ids)->get();
-
-    //     // Nếu không có combo nào bị xóa mềm
-    //     if ($combos->isEmpty()) {
-    //         return response()->json(['message' => 'Không tìm thấy combo nào đã bị xóa mềm'], 404);
-    //     }
-
-    //     // Xóa vĩnh viễn tất cả các combo đã bị xóa mềm
-    //     $deletedCount = $combos->count();
-    //     Combo::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-
-    //     // Trả về phản hồi thành công
-    //     return response()->json(['message' => "Xóa vĩnh viễn $deletedCount combo thành công"], 200);
-    // }
-
-
-    // // Xóa vĩnh viễn 1 Combo 
-    // public function forceDeleteSingle($id)
-    // {
-
-
-    //     // Tìm combo đã xóa mềm theo ID
-    //     $combo = Combo::onlyTrashed()->find($id);
-
-    //     // Kiểm tra nếu không tìm thấy combo
-    //     if (!$combo) {
-    //         return response()->json(['message' => 'Combo không tồn tại hoặc đã bị xóa vĩnh viễn'], 404);
-    //     }
-
-    //     // Xóa vĩnh viễn combo
-    //     $combo->forceDelete();
-
-    //     // Trả về phản hồi thành công
-    //     return response()->json(['message' => 'Xóa vĩnh viễn combo thành công'], 200);
-    // }
-
-
     // Khôi phục 1 Combo
     public function restore($id)
     {
-
-
         $combo = Combo::onlyTrashed()->find($id);
 
         if (!$combo) {
             return response()->json(['message' => 'Không tìm thấy combo đã bị xóa'], 404);
         }
 
-        $combo->restore(); // Khôi phục combo
+        $combo->restore();
 
         return response()->json(['message' => 'Khôi phục combo thành công'], 200);
     }
 
-    //Khôi phục nhiều Combo
+    // Khôi phục nhiều Combo
     public function restoreMultiple(Request $request)
     {
+        $ids = $request->input('ids');
 
-
-        $ids = $request->input('ids'); // Lấy danh sách id combo cần khôi phục
-
-        // Nếu không có combo nào được chọn
         if (empty($ids)) {
             return response()->json(['message' => 'Không có combo nào được chọn để khôi phục'], 400);
         }
 
-        // Khôi phục các combo đã bị xóa mềm
         $restored = Combo::onlyTrashed()->whereIn('id', $ids)->restore();
 
-        // Kiểm tra xem có combo nào được khôi phục không
         if ($restored) {
             return response()->json(['message' => 'Khôi phục combo thành công'], 200);
         }
@@ -297,7 +228,7 @@ class ComboController extends Controller
     public function showCombosForClient(Request $request)
     {
         $combos = Combo::query()
-            ->select('id', 'name', 'description', 'quantity', 'price', 'image') //lựa chọn trường cần thiét
+            ->select('id', 'name', 'description', 'quantity', 'price', 'image')
             ->latest('id')->get();
         return response()->json([
             'message' => 'Danh sách combo',

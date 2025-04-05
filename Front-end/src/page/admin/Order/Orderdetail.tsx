@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAdminContext } from "../../../AdminComponents/UseContextAdmin/adminContext";
 import OrderDetailUI from "./OrderDetailUI";
 
-const OrderDetail = ({ id }: any) => {
+const OrderDetail = ({ id, showDataUser }: any) => {
     const { siderWidth } = useAdminContext();
     const [open, setOpen] = useState(false);
 
@@ -25,7 +25,10 @@ const OrderDetail = ({ id }: any) => {
                 width={`calc(100% - ${siderWidth}px)`}
                 open={open}
             >
-                <OrderDetailUI id={id}></OrderDetailUI>
+                <OrderDetailUI
+                    id={id}
+                    showDataUser={showDataUser}
+                ></OrderDetailUI>
             </Drawer>
         </>
     );

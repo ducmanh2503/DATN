@@ -253,7 +253,7 @@ const Header: React.FC = () => {
                   className={styles.viewAllResults}
                   onClick={() => onSearch(keyword)}
                 >
-                  <SearchOutlined /> Xem tất cả kết quả
+               
                 </div>
               </div>
             )}

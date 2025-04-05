@@ -17,7 +17,6 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class MoviesController extends Controller
 {
-<<<<<<< HEAD
    // Xếp hạng phim theo số vé bán ra (dành cho trang chủ)
    public function moviesRanking(Request $request)
    {
@@ -50,40 +49,6 @@ class MoviesController extends Controller
                    'month_year' => Carbon::parse($startOfMonth)->format('m/Y'), // Thêm tháng/năm
                ];
            });
-=======
-    // Xếp hạng phim theo số vé bán ra (dành cho trang chủ)
-    public function moviesRanking(Request $request)
-    {
-        // Lấy ngày hiện tại (hoặc ngày từ request, mặc định là ngày hiện tại)
-        $date = $request->input('date');
-        $startOfMonth = Carbon::parse($date)->startOfMonth();
-        $endOfDay = Carbon::parse($date)->endOfDay();
-
-        // Lấy danh sách phim và số vé bán ra
-        $movieRankings = BookingDetail::whereHas('booking', function ($query) use ($startOfMonth, $endOfDay) {
-            $query->whereBetween('bookings.created_at', [$startOfMonth, $endOfDay]);
-        })
-            ->whereNotNull('seat_id') // Chỉ calcular các booking detail có ghế (vé)
-            ->select('movies.title', 'movies.poster')
-            ->selectRaw('COUNT(*) as total_tickets')
-            ->join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
-            ->join('show_times', 'bookings.showtime_id', '=', 'show_times.id')
-            ->join('calendar_show', 'show_times.calendar_show_id', '=', 'calendar_show.id')
-            ->join('movies', 'calendar_show.movie_id', '=', 'movies.id')
-            ->groupBy('movies.id', 'movies.title', 'movies.poster')
-            ->orderBy('total_tickets', 'desc')
-            ->take(10)
-            ->get()
-            ->map(function ($item, $index) use ($startOfMonth) {
-                return [
-                    'rank' => $index + 1, // Thứ hạng (bắt đầu từ 1)
-                    'movie_title' => $item->title,
-                    'total_tickets' => (int) $item->total_tickets,
-                    'poster' => $item->poster,
-                    'month_year' => Carbon::parse($startOfMonth)->format('m/Y'), // Thêm tháng/năm
-                ];
-            });
->>>>>>> main
 
        // Trả về phản hồi API
        return response()->json([

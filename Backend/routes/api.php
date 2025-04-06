@@ -159,6 +159,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // CalendarShow
         Route::apiResource('/calendarShow', CalendarShowController::class);
+        Route::post('/calendarShow/{id}/publish', [CalendarShowController::class, 'publish']); // Public lịch chiếu
 
 
         // Combo

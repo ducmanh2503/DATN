@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\CalendarShow;
 use App\Models\Combo;
 use App\Models\DiscountCode;
@@ -12,6 +13,7 @@ use App\Models\Seat;
 use App\Models\SeatTypePrice;
 use App\Models\ShowTime;
 use App\Models\ShowTimeDate;
+use App\Services\PayPalService;
 use App\Services\UserRankService;
 use App\Services\ZaloPayService;
 use Illuminate\Http\Request;
@@ -27,13 +29,13 @@ class PaymentController extends Controller
 
 
     private $userRankService;
-    private $zaloPayService;
+    protected $paypalService;
 
 
-    public function __construct(UserRankService $userRankService, ZaloPayService $zaloPayService)
+    public function __construct(UserRankService $userRankService, PayPalService $paypalService)
     {
         $this->userRankService = $userRankService;
-        $this->zaloPayService = $zaloPayService;
+        $this->paypalService = $paypalService;
     }
 
 
@@ -286,16 +288,15 @@ class PaymentController extends Controller
         return response()->json(['success' => true]);
     }
 
-    //-----------------------------------------------test-----------------------------------------------------//
-
-    public function createZaloPay(Request $request)
+    //PayPal
+    public function createPaypal(Request $request)
     {
         // Đảm bảo người dùng đã đăng nhập
         if (!auth()->check()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        // Validation: Nhận tất cả dữ liệu từ request (giống VNPay)
+        // Validation: Nhận tất cả dữ liệu từ request
         $request->validate([
             'totalPrice' => 'required|numeric|min:0',
             'total_combo_price' => 'required|numeric|min:0',
@@ -314,10 +315,11 @@ class PaymentController extends Controller
         ]);
 
         $bookingData = $request->all();
-        $bookingData['payment_method'] = 'ZaloPay';
+        $bookingData['payment_method'] = "PayPal";
         $bookingData['user_id'] = auth()->id();
+        $bookingData['unique_token'] = Str::random(32);
 
-        Log::info('Booking Data request (ZaloPay): ', $bookingData);
+        Log::info('Booking Data request: ', $bookingData);
 
         // Kiểm tra usedPoints
         $usedPoints = $request->input('usedPoints', 0);
@@ -378,6 +380,7 @@ class PaymentController extends Controller
             }
 
             $discountCodeId = $discount->id;
+            // Chưa trừ quantity ở đây, sẽ trừ sau khi thanh toán thành công
         }
 
         // Lấy dữ liệu pricing từ request (không tính lại)
@@ -396,89 +399,114 @@ class PaymentController extends Controller
 
         // Ghi dữ liệu giá vào bookingData
         $bookingData['pricing'] = $pricing;
-        Log::info('Booking Data (ZaloPay): ', $bookingData);
+        Log::info('Booking Data: ', $bookingData);
 
-        // Tạo đơn hàng ZaloPay bằng ZaloPayService
-        $amount = $request->input('totalPrice');
-        $orderId = 'ORDER_' . time(); // ID đơn hàng
-        $description = 'Thanh toán vé xem phim - ' . $orderId;
-        $appUser = 'user_' . auth()->id(); // Tùy chỉnh appuser dựa trên user_id
+        // Tạo transaction reference giống VNPay
+        $paypalTxnRef = time() . "";
+        Redis::setex("booking:paypal:$paypalTxnRef", 3600, json_encode($bookingData));
 
+        // Convert từ VND sang USD (giá để gọi PayPal)
+        $usdRate = 25000;
+        $priceInUSD = round($request->totalPrice / $usdRate, 2);
+
+        // Chuẩn bị thông tin thanh toán PayPal
         try {
-            $result = $this->zaloPayService->createOrder($amount, $orderId, $description, $appUser);
+            $result = $this->paypalService->createPayment(
+                $priceInUSD,
+                'USD',
+                'Thanh toán vé xem phim',
+                route('paypal.return') . "?txn_ref=$paypalTxnRef",
+                route('paypal.cancel') . "?txn_ref=$paypalTxnRef"
+            );
 
-            $appTransId = $result['app_trans_id'];
-            $response = $result['response'];
 
-            // Lưu bookingData vào Redis với app_trans_id
-            $bookingData['app_trans_id'] = $appTransId;
-            $bookingData['unique_token'] = Str::random(32); // Thêm token duy nhất để kiểm tra trùng lặp
-            Redis::setex("booking:$appTransId", 3600, json_encode($bookingData));
-
-            // Kiểm tra phản hồi từ ZaloPay
-            if (is_array($response) && isset($response['returncode']) && $response['returncode'] == 1) {
+            if ($result['status'] === 'success') {
+                Log::info('PayPal payment created successfully', ['payment_id' => $result['payment_id']]);
                 return response()->json([
                     'code' => '00',
                     'message' => 'Thanh toán thành công',
-                    'data' => $response['orderurl'], // URL để thanh toán
+                    'data' => $result['approval_url']
                 ]);
+            } else {
+                Log::error('Failed to create PayPal payment', $result);
+                return response()->json([
+                    'code' => '01',
+                    'message' => 'Không thể tạo giao dịch PayPal',
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không thể tạo giao dịch PayPal')
+                ], 400);
             }
-
-            // Log lỗi nếu có
-            Log::error('ZaloPay Create Order Failed:', ['response' => $response]);
-
-            return response()->json([
-                'code' => '01',
-                'message' => $response['returnmessage'] ?? 'Không thể tạo đơn hàng ZaloPay',
-            ], 400);
         } catch (\Exception $e) {
-            Log::error('ZaloPay Create Order Exception:', ['error' => $e->getMessage()]);
+            Log::error('PayPal payment exception: ' . $e->getMessage());
             return response()->json([
                 'code' => '01',
-                'message' => 'Lỗi khi tạo đơn hàng ZaloPay: ' . $e->getMessage(),
+                'message' => 'Lỗi khi xử lý thanh toán PayPal',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    // Xử lý callback từ ZaloPay
-    public function zaloPayReturn(Request $request)
+    // Method to handle PayPal return URL
+    public function paypalReturn(Request $request)
     {
-        Log::info('ZaloPay Return Request:', $request->all());
+        Log::info('PayPal Return Request: ' . json_encode($request->all()));
 
-        $data = $request->all();
+        // Lấy transaction reference
+        $txnRef = $request->txn_ref;
+        if (!$txnRef) {
+            Log::error('Missing transaction reference in PayPal return');
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thiếu thông tin giao dịch'));
+        }
 
-        // Xác thực callback từ ZaloPay
-        if ($this->zaloPayService->verifyCallback($data)) {
-            $dataJson = json_decode($data['data'], true);
-            $appTransId = $dataJson['app_trans_id'];
-            $bookingData = json_decode(Redis::get("booking:$appTransId"), true);
+        // Kiểm tra và xử lý thanh toán PayPal
+        $paymentId = $request->paymentId;
+        $payerId = $request->PayerID;
 
-            if (!$bookingData) {
-                Log::error('Booking data not found for app_trans_id: ' . $appTransId);
-                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé'));
+        if (!$paymentId || !$payerId) {
+            Log::error('Missing payment ID or payer ID', ['paymentId' => $paymentId, 'payerId' => $payerId]);
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thiếu thông tin thanh toán PayPal'));
+        }
+
+        // Lấy dữ liệu booking từ Redis
+        $bookingData = json_decode(Redis::get("booking:paypal:$txnRef"), true);
+        if (!$bookingData) {
+            Log::error('Booking data not found for TxnRef: ' . $txnRef);
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé'));
+        }
+
+        // Kiểm tra xem token đã được xử lý chưa
+        $processedKey = "processed_booking:{$bookingData['unique_token']}";
+        if (Redis::exists($processedKey)) {
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Đơn hàng đã được xử lý trước đó'));
+        }
+
+        // Thực hiện thanh toán PayPal
+        try {
+            $result = $this->paypalService->executePayment($paymentId, $payerId);
+
+            if ($result['status'] !== 'success') {
+                Log::error('Failed to execute PayPal payment', $result);
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thanh toán PayPal thất bại'));
             }
 
-            // Kiểm tra xem token đã được xử lý chưa
-            $processedKey = "processed_booking:{$bookingData['unique_token']}";
-            if (Redis::exists($processedKey)) {
-                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Đơn hàng đã được xử lý trước đó'));
-            }
-
+            // Đánh dấu thanh toán đã hoàn thành
             $bookingData['is_payment_completed'] = true;
-            Log::info('Merged Booking Data (ZaloPay):', $bookingData);
+            Log::info('Booking payment completed: ', $bookingData);
 
+            // Xử lý tạo vé giống như VNPay
             $ticketController = new TicketController(app(UserRankService::class));
             $response = $ticketController->getTicketDetails(new Request($bookingData));
 
             // Kiểm tra JSON response từ getTicketDetails()
-            $data = $response->getData(true); // Lấy dữ liệu dưới dạng mảng
-            if ($data['success'] === false) {
-                // Nếu có lỗi (ví dụ: combo hoặc discount code không đủ số lượng), redirect theo URL trong response
-                return redirect()->away($data['redirect']);
+            $data = $response->getData(true);
+            Log::info('Response from getTicketDetails:', $data);
+            if (!isset($data['success']) || $data['success'] === false) {
+                return redirect()->away($data['redirect'] ?? 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Có lỗi xảy ra trong quá trình xử lý thanh toán'));
             }
 
+
+            // Đánh dấu đã xử lý để tránh trùng lặp
             Redis::setex($processedKey, 3600, 'processed');
-            Redis::del("booking:$appTransId");
+            Redis::del("booking:paypal:$txnRef");
 
             // Trừ điểm nếu sử dụng
             $usedPoints = $bookingData['pricing']['used_points'] ?? 0;
@@ -489,18 +517,39 @@ class PaymentController extends Controller
                 }
             }
 
-            // Khi thanh toán thành công
+            // Xử lý mã giảm giá nếu có
+            if (!empty($bookingData['pricing']['discount_code_id'])) {
+                $discountCode = DiscountCode::find($bookingData['pricing']['discount_code_id']);
+                if ($discountCode) {
+                    $discountCode->decrement('quantity');
+                    Log::info("Đã giảm số lượng mã giảm giá {$discountCode->name_code}");
+                }
+            }
+
+            // Khi thanh toán thành công, chuyển hướng tới trang kết quả
             $bookingId = $data['booking_id'] ?? null;
             if (!$bookingId) {
-                Log::error('Booking ID not found in response:', ['response' => $data]);
+                Log::error('Booking ID not found in response', ['response' => $data]);
                 return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy booking ID'));
             }
 
             return redirect()->away("http://localhost:5173/booking/{$bookingId}/payment-result?status=success");
-        } else {
-            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thanh toán ZaloPay thất bại'));
+        } catch (\Exception $e) {
+            Log::error('PayPal execute payment exception: ' . $e->getMessage());
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Lỗi xử lý thanh toán: ' . $e->getMessage()));
         }
     }
 
-    //-----------------------------------------------end-test-----------------------------------------------------//
+    // Method to handle PayPal cancel URL
+    public function paypalCancel(Request $request)
+    {
+        Log::info('PayPal Cancel Request: ' . json_encode($request->all()));
+
+        $txnRef = $request->txn_ref;
+        if ($txnRef) {
+            Redis::del("booking:paypal:$txnRef");
+        }
+
+        return redirect()->away('http://localhost:5173/booking/payment-result?status=cancelled&message=' . urlencode('Bạn đã hủy thanh toán'));
+    }
 }

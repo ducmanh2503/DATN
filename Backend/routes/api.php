@@ -79,9 +79,8 @@ Route::middleware('auth:sanctum')->group(function () {
     //thanh toán VNPay
     Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
 
-    // Route mới cho ZaloPay
-    Route::post('/zalopay/create', [PaymentController::class, 'createZaloPay']);
-    Route::post('/zalopay/return', [PaymentController::class, 'zaloPayReturn']);
+    //thanh toán PayPal
+    Route::post('paypal/create', [PaymentController::class, 'createPaypal']);
 
     //Hiển thị vé khi đặt
     Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
@@ -210,6 +209,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
+Route::get('/paypal/return', [PaymentController::class, 'paypalReturn'])->name('paypal.return');
+Route::get('/paypal/cancel', [PaymentController::class, 'paypalCancel'])->name('paypal.cancel');
 // Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
 
 

@@ -8,7 +8,7 @@ const UPDATE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const DELETE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const RESTORE_FILM = (id: number) => `${BASE_URL}/movies/restore/${id}`;
 const DETAIL_DELETE_FILM = (id: number) =>
-    `${BASE_URL}/movies/show-movie-destroy/${id}`;
+  `${BASE_URL}/movies/show-movie-destroy/${id}`;
 
 const GET_DIRECTORS_LIST = `${BASE_URL}/directors`;
 const UPDATE_DIRECTORS = (id: number) => `${BASE_URL}/directors/${id}`;
@@ -30,7 +30,7 @@ const DETAIL_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/by-date`; // tìm kiếm suất chiếu qua ngày và phòng chiếu
 const UPDATE_SHOWTIMES = `${BASE_URL}/showTime`;
 const DELETE_ONE_SHOWTIMES = (id: number, selected_date: string) =>
-    `${BASE_URL}/showtimes/${id}/destroy-by-date/${selected_date}`; // xóa suất chiếu
+  `${BASE_URL}/showtimes/${id}/destroy-by-date/${selected_date}`; // xóa suất chiếu
 const GET_DETAIL_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // chi tiết suất chiếu
 const UPDATE_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // cập nhật suất chiếu
 const GET_DATES_BY_CALENDAR = `${BASE_URL}/show-times/get-date-range-by-calendar`; // lấy những ngày trong lịch chiếu
@@ -43,10 +43,10 @@ const DELETE_ROOM = (id: string | number) => `${BASE_URL}/room/${id}`; // Xóa 
 const GET_ROOM_TYPES = `${BASE_URL}/room-type`; // lấy danh sách loại phòng
 
 const GET_SEATS_BY_ROOM = (roomId: number) =>
-    `${BASE_URL}/seats/room/${roomId}`; // lấy ma trận ghế của phòng chiếu
+  `${BASE_URL}/seats/room/${roomId}`; // lấy ma trận ghế của phòng chiếu
 const GET_SEATS_TYPE = `${BASE_URL}/seat-type`; // lấy danh sách các loại ghế
 const UPDATE_SEAT_STATUS = (roomId: number) =>
-    `${BASE_URL}/show-time-seats/update-status/${roomId}`; // cập nhật trạng thái ghế
+  `${BASE_URL}/show-time-seats/update-status/${roomId}`; // cập nhật trạng thái ghế
 const HOLD_SEAT = `${BASE_URL}/seats/hold`; // giữ ghế
 const RELEASE_SEAT = `${BASE_URL}/seats/release`; // giải phóng ghế
 const HOLD_SELECTED_SEATS = `${BASE_URL}/seats/hold-selected`; // giữ chọn ghế
@@ -54,7 +54,7 @@ const CREATE_SEAT = `${BASE_URL}/seats`; // thêm mới ghế
 const UPDATE_SEAT = (seatId: number) => `${BASE_URL}/seats/${seatId}`; // cập nhật ghế
 const DELETE_SEAT = (seatId: number) => `${BASE_URL}/seats/${seatId}`; // xóa 1 ghế
 const DELETE_ALL_SEATS_IN_ROOM = (roomId: number) =>
-    `${BASE_URL}/delete-seats/room/${roomId}`; // xóa tất cả ghế của phòng
+  `${BASE_URL}/delete-seats/room/${roomId}`; // xóa tất cả ghế của phòng
 
 const GET_SHOW_BY_FILM_DATE = `${BASE_URL}/showtimes-client/by-date`; // lấy suất chiếu qua ngày chiếu
 
@@ -80,15 +80,15 @@ const UPDATE_TICKETPRICE = (id: number) => `${BASE_URL}/ticket-prices/${id}`; //
 const PAYMENT_WITH_VNPAY = `${BASE_URL}/VNPay/create`; // thanh toán bằng VNPay
 
 const GET_VOUCHER = (code: string) =>
-    `${BASE_URL}/apply-discount-code?name_code=${encodeURIComponent(
-        code.trim()
-    )}`; // nhập voucher giảm giá
+  `${BASE_URL}/apply-discount-code?name_code=${encodeURIComponent(
+    code.trim()
+  )}`; // nhập voucher giảm giá
 
 const ORDERS_LIST = `${BASE_URL}/order`; // danh sách đơn hàng
 const DETAIL_ORDER = (bookingId: number) =>
-    `${BASE_URL}/order/${bookingId}/order-details`; // chi tiết đơn hàng
+  `${BASE_URL}/order/${bookingId}/order-details`; // chi tiết đơn hàng
 const CHANGE_CHECKIN_ORDER = (bookingId: number) =>
-    `${BASE_URL}/order/${bookingId}/update-status`; // thay đổi trạng thái check in đơn hàng
+  `${BASE_URL}/order/${bookingId}/update-status`; // thay đổi trạng thái check in đơn hàng
 
 const Orders_Recent = `${BASE_URL}/orders-recent`;
 const Orders_Search = `${BASE_URL}/orders-search`;
@@ -97,77 +97,81 @@ const CHANGE_PASSWORD = `${BASE_URL}/change-password`; // đổi mật khẩu
 
 const TICKET_DETAIL = `${BASE_URL}/ticket-details`; // chi tiết ticket để lấy QR
 
+const Orders_Details_Client = (bookingId: number) =>
+  `${BASE_URL}/orders-details-client/${bookingId}`;
+
 export {
-    CHANGE_PASSWORD,
-    Orders_Confirmed,
-    Orders_Search,
-    Orders_Recent,
-    GET_DISCOUNT_CODE,
-    CREATE_DISCOUNT_CODE,
-    UPDATE_DISCOUNT_CODE,
-    DELETE_DISCOUNT_CODE,
-    GOOGLE_CALLBACK,
-    UPDATE_USER_CLIENT,
-    GET_USER,
-    GET_ARTICLE,
-    CREATE_ARTICLE,
-    UPDATE_ARTICLE,
-    DELETE_ARTICLE,
-    GET_FILM_LIST,
-    GET_FILM_DETAIL,
-    CREATE_FILM,
-    UPDATE_FILM,
-    DELETE_FILM,
-    RESTORE_FILM,
-    DETAIL_DELETE_FILM,
-    GET_DIRECTORS_LIST,
-    UPDATE_DIRECTORS,
-    DELETE_DIRECTORS,
-    GET_ACTOR_LIST,
-    UPDATE_ACTOR,
-    DELETE_ACTOR,
-    GET_GENRES,
-    DELETE_GENRES,
-    URL_IMAGE,
-    GET_ONE_SHOWTIMES,
-    GET_CALENDAR,
-    DELETE_CALENDAR,
-    CREATE_CALENDAR,
-    UPDATE_CALENDAR,
-    DETAIL_CALENDAR,
-    // GET_ALL_SHOWTIMES,
-    UPDATE_SHOWTIMES,
-    DELETE_ONE_SHOWTIMES,
-    GET_DETAIL_ONE_SHOWTIMES,
-    GET_DATES_BY_CALENDAR,
-    UPDATE_ONE_SHOWTIMES,
-    GET_ROOMS,
-    GET_SHOW_BY_FILM_DATE,
-    GET_COMBOS,
-    GET_TICKETSPRICE,
-    ADD_TICKETSPRICE,
-    DELETE_TICKETPRICE,
-    UPDATE_TICKETPRICE,
-    DETAIL_TICKETPRICE,
-    PAYMENT_WITH_VNPAY,
-    GET_VOUCHER,
-    ORDERS_LIST,
-    DETAIL_ORDER,
-    CHANGE_CHECKIN_ORDER,
-    RELEASE_SEAT,
-    HOLD_SELECTED_SEATS,
-    CREATE_SEAT,
-    UPDATE_SEAT,
-    DELETE_SEAT,
-    DELETE_ALL_SEATS_IN_ROOM,
-    GET_ONE_ROOM,
-    CREATE_ROOM,
-    UPDATE_ROOM,
-    DELETE_ROOM,
-    GET_ROOM_TYPES,
-    GET_SEATS_BY_ROOM,
-    GET_SEATS_TYPE,
-    UPDATE_SEAT_STATUS,
-    HOLD_SEAT,
-    TICKET_DETAIL,
+  Orders_Details_Client,
+  CHANGE_PASSWORD,
+  Orders_Confirmed,
+  Orders_Search,
+  Orders_Recent,
+  GET_DISCOUNT_CODE,
+  CREATE_DISCOUNT_CODE,
+  UPDATE_DISCOUNT_CODE,
+  DELETE_DISCOUNT_CODE,
+  GOOGLE_CALLBACK,
+  UPDATE_USER_CLIENT,
+  GET_USER,
+  GET_ARTICLE,
+  CREATE_ARTICLE,
+  UPDATE_ARTICLE,
+  DELETE_ARTICLE,
+  GET_FILM_LIST,
+  GET_FILM_DETAIL,
+  CREATE_FILM,
+  UPDATE_FILM,
+  DELETE_FILM,
+  RESTORE_FILM,
+  DETAIL_DELETE_FILM,
+  GET_DIRECTORS_LIST,
+  UPDATE_DIRECTORS,
+  DELETE_DIRECTORS,
+  GET_ACTOR_LIST,
+  UPDATE_ACTOR,
+  DELETE_ACTOR,
+  GET_GENRES,
+  DELETE_GENRES,
+  URL_IMAGE,
+  GET_ONE_SHOWTIMES,
+  GET_CALENDAR,
+  DELETE_CALENDAR,
+  CREATE_CALENDAR,
+  UPDATE_CALENDAR,
+  DETAIL_CALENDAR,
+  // GET_ALL_SHOWTIMES,
+  UPDATE_SHOWTIMES,
+  DELETE_ONE_SHOWTIMES,
+  GET_DETAIL_ONE_SHOWTIMES,
+  GET_DATES_BY_CALENDAR,
+  UPDATE_ONE_SHOWTIMES,
+  GET_ROOMS,
+  GET_SHOW_BY_FILM_DATE,
+  GET_COMBOS,
+  GET_TICKETSPRICE,
+  ADD_TICKETSPRICE,
+  DELETE_TICKETPRICE,
+  UPDATE_TICKETPRICE,
+  DETAIL_TICKETPRICE,
+  PAYMENT_WITH_VNPAY,
+  GET_VOUCHER,
+  ORDERS_LIST,
+  DETAIL_ORDER,
+  CHANGE_CHECKIN_ORDER,
+  RELEASE_SEAT,
+  HOLD_SELECTED_SEATS,
+  CREATE_SEAT,
+  UPDATE_SEAT,
+  DELETE_SEAT,
+  DELETE_ALL_SEATS_IN_ROOM,
+  GET_ONE_ROOM,
+  CREATE_ROOM,
+  UPDATE_ROOM,
+  DELETE_ROOM,
+  GET_ROOM_TYPES,
+  GET_SEATS_BY_ROOM,
+  GET_SEATS_TYPE,
+  UPDATE_SEAT_STATUS,
+  HOLD_SEAT,
+  TICKET_DETAIL,
 };

@@ -37,7 +37,15 @@ const DiscountManagement = () => {
   const fetchDiscounts = async () => {
     try {
       const response = await axios.get(GET_DISCOUNT_CODE);
-      setDiscounts(response.data);
+      // Log the raw data to debug
+      console.log("Raw data from backend:", response.data);
+
+      // Transform maxPrice to 0 if null
+      const transformedData = response.data.map((discount) => ({
+        ...discount,
+        maxPrice: discount.maxPrice ?? 0, // Default to 0 if maxPrice is null
+      }));
+      setDiscounts(transformedData);
     } catch (error) {
       message.error("Lỗi khi lấy danh sách mã khuyến mãi");
     }
@@ -49,14 +57,23 @@ const DiscountManagement = () => {
         ...values,
         start_date: values.start_date.format("YYYY-MM-DD"),
         end_date: values.end_date.format("YYYY-MM-DD"),
-        percent: Math.floor(Number(values.percent)), // Đảm bảo là số nguyên
+        percent: Math.floor(Number(values.percent)),
+        maxPrice: Number(values.maxPrice), // Ensure maxPrice is a number
       };
-      await axios.post(CREATE_DISCOUNT_CODE, formattedValues);
+
+      // Log the data being sent to the backend
+      console.log("Data sent to backend (ADD):", formattedValues);
+
+      const response = await axios.post(CREATE_DISCOUNT_CODE, formattedValues);
+      // Log the backend response
+      console.log("Backend response (ADD):", response.data);
+
       message.success("Thêm mã khuyến mãi thành công!");
       fetchDiscounts();
       setIsAddModalVisible(false);
       addForm.resetFields();
     } catch (error) {
+      console.error("Error from server (ADD):", error.response?.data);
       message.error("Lỗi khi tạo mã khuyến mãi");
     }
   };
@@ -64,16 +81,19 @@ const DiscountManagement = () => {
   const handleEditDiscount = async (values) => {
     try {
       const token = localStorage.getItem("token");
-      // Chỉ gửi những trường đã thay đổi, giữ nguyên các giá trị cũ nếu không thay đổi
       const formattedValues = {
-        ...selectedDiscount, // Giữ nguyên dữ liệu cũ
-        ...values, // Ghi đè các giá trị mới
+        ...selectedDiscount,
+        ...values,
         start_date: values.start_date.format("YYYY-MM-DD"),
         end_date: values.end_date.format("YYYY-MM-DD"),
-        percent: Math.floor(Number(values.percent)), // Chuyển thành số nguyên
+        percent: Math.floor(Number(values.percent)),
+        maxPrice: Number(values.maxPrice), // Ensure maxPrice is a number
       };
 
-      await axios.put(
+      // Log the data being sent to the backend
+      console.log("Data sent to backend (EDIT):", formattedValues);
+
+      const response = await axios.put(
         UPDATE_DISCOUNT_CODE(selectedDiscount.id),
         formattedValues,
         {
@@ -82,17 +102,17 @@ const DiscountManagement = () => {
           },
         }
       );
+      // Log the backend response
+      console.log("Backend response (EDIT):", response.data);
+
       message.success("Cập nhật mã khuyến mãi thành công!");
       fetchDiscounts();
       setIsEditModalVisible(false);
       setSelectedDiscount(null);
       editForm.resetFields();
     } catch (error) {
-      console.error("Lỗi từ server:", error.response?.data);
-      const errorMessage =
-        error.response?.data?.error?.message ||
-        "Lỗi khi cập nhật mã khuyến mãi";
-      message.error(errorMessage);
+      console.error("Error from server (EDIT):", error.response?.data);
+      message.error("Lỗi khi cập nhật mã khuyến mãi");
     }
   };
 
@@ -120,7 +140,8 @@ const DiscountManagement = () => {
       ...record,
       start_date: dayjs(record.start_date),
       end_date: dayjs(record.end_date),
-      percent: Math.floor(Number(record.percent)), // Đảm bảo hiển thị số nguyên
+      percent: record.percent,
+      maxPrice: record.maxPrice, // Already a number due to fetchDiscounts
     });
     setIsEditModalVisible(true);
   };
@@ -135,6 +156,12 @@ const DiscountManagement = () => {
       title: "Giảm giá (%)",
       dataIndex: "percent",
       key: "percent",
+    },
+    {
+      title: "Số tiền giới hạn",
+      dataIndex: "maxPrice",
+      key: "maxPrice",
+      render: (maxPrice) => `${maxPrice.toLocaleString()} đ`, // maxPrice is always a number
     },
     {
       title: "Số lượng",
@@ -185,6 +212,7 @@ const DiscountManagement = () => {
         type="primary"
         icon={<PlusOutlined />}
         onClick={() => setIsAddModalVisible(true)}
+        style={{ marginBottom: 16 }}
       >
         Thêm mã khuyến mãi
       </Button>
@@ -214,35 +242,32 @@ const DiscountManagement = () => {
           <Form.Item
             name="percent"
             label="Phần trăm giảm"
+            rules={[{ required: true, message: "Nhập phần trăm giảm" }]}
+          >
+            <Input type="number" step="1" min="0" max="100" />
+          </Form.Item>
+          <Form.Item
+            name="maxPrice"
+            label="Số tiền giới hạn"
+            initialValue={0} // Default to 0 to ensure it's never null
             rules={[
-              { required: true, message: "Nhập phần trăm giảm" },
+              { required: true, message: "Nhập số tiền giới hạn" },
               {
-                validator: (_, value) =>
-                  Number.isInteger(Number(value))
-                    ? Promise.resolve()
-                    : Promise.reject(
-                        new Error("Phần trăm giảm phải là số nguyên")
-                      ),
+                type: "number",
+                min: 0,
+                message: "Số tiền giới hạn phải là số không âm",
+                transform: (value) => Number(value), // Convert to number for validation
               },
             ]}
           >
-            <Input
-              type="number"
-              step="1"
-              min="0"
-              max="100"
-              onChange={(e) => {
-                const value = e.target.value;
-                addForm.setFieldsValue({ percent: Math.floor(Number(value)) });
-              }}
-            />
+            <Input type="number" min="0" addonAfter="đ" />
           </Form.Item>
           <Form.Item
             name="quantity"
             label="Số lượng"
             rules={[{ required: true, message: "Nhập số lượng" }]}
           >
-            <Input type="number" />
+            <Input type="number" min="0" />
           </Form.Item>
           <Form.Item
             name="status"
@@ -297,35 +322,32 @@ const DiscountManagement = () => {
           <Form.Item
             name="percent"
             label="Phần trăm giảm"
+            rules={[{ required: true, message: "Nhập phần trăm giảm" }]}
+          >
+            <Input type="number" step="1" min="0" max="100" />
+          </Form.Item>
+          <Form.Item
+            name="maxPrice"
+            label="Số tiền giới hạn"
+            initialValue={0} // Default to 0 to ensure it's never null
             rules={[
-              { required: true, message: "Nhập phần trăm giảm" },
+              { required: true, message: "Nhập số tiền giới hạn" },
               {
-                validator: (_, value) =>
-                  Number.isInteger(Number(value))
-                    ? Promise.resolve()
-                    : Promise.reject(
-                        new Error("Phần trăm giảm phải là số nguyên")
-                      ),
+                type: "number",
+                min: 0,
+                message: "Số tiền giới hạn phải là số không âm",
+                transform: (value) => Number(value), // Convert to number for validation
               },
             ]}
           >
-            <Input
-              type="number"
-              step="1"
-              min="0"
-              max="100"
-              onChange={(e) => {
-                const value = e.target.value;
-                editForm.setFieldsValue({ percent: Math.floor(Number(value)) });
-              }}
-            />
+            <Input type="number" min="0" addonAfter="đ" />
           </Form.Item>
           <Form.Item
             name="quantity"
             label="Số lượng"
             rules={[{ required: true, message: "Nhập số lượng" }]}
           >
-            <Input type="number" />
+            <Input type="number" min="0" />
           </Form.Item>
           <Form.Item
             name="status"

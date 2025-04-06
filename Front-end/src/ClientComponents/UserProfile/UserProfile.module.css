@@ -1,373 +1,435 @@
-/* Base Layout */
+/* Overall Layout */
 .pageWrapper {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(145deg, #f0f4f8 0%, #d9e2ec 100%);
-  font-family: "Poppins", sans-serif;
+  min-height: 100vh;
+  background-color: #f9f9f9; /* Màu nền nhẹ nhàng hơn */
 }
 
 .profileContainer {
   flex: 1;
-  padding: 60px 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
+  padding: 15px; /* Giảm padding */
+  background-color: #f9f9f9;
 }
 
-/* Grid Layout */
 .profileWrapper {
-  display: grid;
-  grid-template-columns: 1fr 2.5fr;
-  gap: 40px;
-  padding: 0 20px;
+  display: flex;
+  gap: 15px; /* Giảm khoảng cách giữa sidebar và nội dung */
+  max-width: 1100px; /* Giảm chiều rộng tối đa */
+  margin: 0 auto;
 }
 
-/* Sidebar Styling */
+/* Sidebar */
 .profileSidebar {
-  padding: 40px;
+  flex: 1;
+  max-width: 260px; /* Giảm chiều rộng */
   text-align: center;
-  background: linear-gradient(135deg, #ffffff 0%, #f5faff 100%);
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 20px 15px; /* Giảm padding */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Giảm bóng */
+  background-color: #fff;
+  border-radius: 6px; /* Bo góc nhẹ hơn */
 }
 
-.profileSidebar:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-}
-
+/* Avatar */
 .profileAvatar {
-  border: 5px solid #4dabf7;
-  margin-bottom: 25px;
-  transition: transform 0.3s ease, border-color 0.3s ease;
+  margin-bottom: 12px;
+  width: 80px !important; /* Giảm kích thước avatar */
+  height: 80px !important;
 }
 
-.profileAvatar:hover {
-  transform: scale(1.08);
-  border-color: #339af0;
-}
-
+/* Profile Name */
 .profileName {
-  font-size: 30px;
-  font-weight: 700;
-  margin: 15px 0;
-  color: #172554;
-  letter-spacing: 0.5px;
+  font-size: 18px; /* Giảm kích thước font */
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #333;
 }
 
+/* Profile Rank */
 .profileRank {
-  font-size: 17px;
-  font-weight: 500;
-  color: #64748b;
-  margin-bottom: 30px;
-  padding: 6px 12px;
-  background: rgba(148, 163, 184, 0.1);
-  border-radius: 12px;
+  font-size: 13px; /* Giảm kích thước font */
+  color: #777; /* Màu nhạt hơn */
+  margin-bottom: 5px;
+}
+
+/* Profile Points */
+.profilePoints {
+  font-size: 13px; /* Giảm kích thước font */
+  color: #fadb14;
+  margin-bottom: 20px; /* Tăng khoảng cách để thoáng */
 }
 
 /* Expense Section */
 .expenseSection {
-  margin: 30px 0;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 16px;
+  margin: 15px 0; /* Giảm khoảng cách */
+  padding: 0;
 }
 
+/* Expense Header */
 .expenseHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .profileExpenseTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2d3748;
+  font-size: 11px; /* Giảm kích thước font */
+  color: #999; /* Màu nhạt hơn */
 }
 
 .profileExpenseText {
-  font-size: 18px;
+  font-size: 13px; /* Giảm kích thước font */
   font-weight: 600;
-  color: #0284c7;
+  color: #333;
 }
 
+/* Progress Wrapper */
 .progressWrapper {
   position: relative;
+  margin: 12px auto; /* Tăng nhẹ khoảng cách để thoáng hơn */
+  width: 100%;
+  max-width: 240px; /* Tăng nhẹ chiều rộng để cân đối */
 }
 
-.progressIcons {
+/* Progress Line */
+.progressLine {
+  height: 2px; /* Thanh mỏng hơn, giống trong hình */
+  background-color: #e0e0e0; /* Màu xám nhạt */
+  border-radius: 1px; /* Bo góc nhẹ hơn */
+  position: relative;
+  overflow: visible;
+}
+
+/* Progress Fill */
+.progressFill {
+  height: 100%;
+  background-color: #1890ff; /* Màu xanh dương đậm hơn một chút */
+  border-radius: 1px;
+  transition: width 0.3s ease;
+}
+
+/* Milestone Item */
+.milestoneItem {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+/* Milestone Circle */
+.milestoneCircle {
+  width: 28px; /* Tăng nhẹ kích thước hình tròn */
+  height: 28px;
+  background-color: #f5f5f5; /* Màu nền xám nhạt, giống trong hình */
+  border: 1px solid #e0e0e0; /* Viền xám nhạt */
+  border-radius: 50%;
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 3;
+  transition: transform 0.3s ease, border-color 0.3s ease,
+    background-color 0.3s ease;
 }
 
-.progressIcons .icon {
-  font-size: 22px;
-  transition: transform 0.3s ease;
+/* Milestone Circle Active */
+.milestoneCircleActive {
+  transform: scale(1.1);
+  border-color: #1890ff; /* Viền xanh khi đạt mốc */
+  background-color: #e6f7ff; /* Màu nền xanh nhạt khi đạt mốc */
 }
 
-.progressIcons .icon:hover {
-  transform: scale(1.2);
+/* Milestone Circle Hover */
+.milestoneCircle:hover {
+  transform: scale(1.15); /* Phóng to nhẹ khi hover */
+  border-color: #40c4ff; /* Viền xanh nhạt khi hover */
 }
 
-.customProgress {
-  margin: 15px 0;
-}
-
-.progressLabels span {
-  font-size: 13px;
-  color: #6b7280;
-}
-
-/* Contact Info */
-.contactInfo p {
-  margin: 15px 0;
-  font-size: 15px;
-  color: #475569;
-}
-
-.contactInfo a {
-  color: #1d4ed8;
-  text-decoration: none;
+/* Milestone Icon */
+.milestoneIcon {
+  font-size: 14px; /* Tăng nhẹ kích thước icon */
+  line-height: 1;
+  color: #666; /* Màu icon xám đậm hơn một chút */
   transition: color 0.3s ease;
 }
 
+.milestoneCircleActive .milestoneIcon {
+  color: #1890ff; /* Màu icon xanh khi đạt mốc */
+}
+
+/* Milestone Labels */
+.milestoneLabels {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px; /* Tăng nhẹ khoảng cách */
+}
+
+/* Milestone Label Wrapper */
+.milestoneLabelWrapper {
+  position: absolute;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+/* Milestone Label */
+.milestoneLabel {
+  font-size: 10px; /* Tăng nhẹ kích thước font */
+  color: #888;
+  white-space: nowrap;
+}
+
+/* Contact Info */
+.contactInfo {
+  margin-top: 20px;
+  font-size: 11px; /* Giảm kích thước font */
+  color: #888;
+}
+
+.contactInfo p {
+  margin: 5px 0; /* Giảm khoảng cách giữa các dòng */
+  line-height: 1.3;
+}
+
+.contactInfo a {
+  color: #40c4ff; /* Màu xanh nhạt hơn */
+  text-decoration: none;
+}
+
 .contactInfo a:hover {
-  color: #1e3a8a;
   text-decoration: underline;
 }
 
-/* Main Content */
+/* Content Area */
 .profileContent {
-  padding: 40px;
-  background: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  flex: 3;
+  padding: 15px; /* Giảm padding */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Giảm bóng */
+  background-color: #fff;
+  border-radius: 6px;
 }
 
-.profileContent:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+.customTabs {
+  /* Đảm bảo các tab được căn chỉnh đồng đều */
 }
 
-/* Tabs */
-.customTabs .ant-tabs-nav {
-  margin-bottom: 25px;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.customTabs .ant-tabs-tab {
-  font-size: 18px;
-  font-weight: 600;
-  padding: 12px 30px;
-  color: #4b5563;
-}
-
-.customTabs .ant-tabs-tab:hover {
-  color: #2563eb;
-}
-
-.customTabs .ant-tabs-tab-active {
-  color: #2563eb;
-}
-
-/* Form Elements */
-.profileForm .ant-form-item-label > label {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.customInput {
-  border-radius: 12px;
-  padding: 12px 15px;
-  border: 1px solid #d1d5db;
-}
-
-.customInput:hover,
-.customInput:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
-}
-
-/* Buttons */
-.profileButtons {
+/* Search Section */
+.searchSection {
+  margin-bottom: 15px; /* Giảm khoảng cách */
   display: flex;
-  gap: 20px;
-  justify-content: flex-end;
-  margin-top: 25px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.searchInput {
+  width: 250px; /* Giảm chiều rộng */
+  margin-right: 8px; /* Giảm khoảng cách */
+  font-size: 13px; /* Giảm kích thước font */
+}
+
+/* Button Group */
+.buttonGroup {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px; /* Giảm khoảng cách giữa các nút */
 }
 
 .customButton {
-  padding: 10px 30px;
-  border-radius: 12px;
-  font-weight: 600;
-  background: #3b82f6;
-  border: none;
-  color: white;
+  font-size: 13px; /* Giảm kích thước font */
+  padding: 4px 12px; /* Giảm padding để nút nhỏ hơn */
 }
 
-.customButton:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
-  background: #2563eb;
-}
-
-/* Table Styling */
+/* Transaction Table */
 .ordersTable {
   overflow-x: auto;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  padding: 20px;
 }
 
 .transactionTable {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: none; /* Bỏ bóng để nhẹ nhàng hơn */
+}
+
+.transactionTable th,
+.transactionTable td {
+  padding: 8px 12px; /* Giảm padding */
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0; /* Màu viền nhạt hơn */
+  font-size: 13px; /* Giảm kích thước font */
+}
+
+/* Định nghĩa chiều rộng cột */
+.transactionTable th:nth-child(1),
+.transactionTable td:nth-child(1) {
+  width: 8%;
+}
+
+.transactionTable th:nth-child(2),
+.transactionTable td:nth-child(2) {
+  width: 12%;
+}
+
+.transactionTable th:nth-child(3),
+.transactionTable td:nth-child(3) {
+  width: 12%;
+}
+
+.transactionTable th:nth-child(4),
+.transactionTable td:nth-child(4) {
+  width: 20%;
+}
+
+.transactionTable th:nth-child(5),
+.transactionTable td:nth-child(5) {
+  width: 10%;
+}
+
+.transactionTable th:nth-child(6),
+.transactionTable td:nth-child(6) {
+  width: 10%;
+}
+
+.transactionTable th:nth-child(7),
+.transactionTable td:nth-child(7) {
+  width: 10%;
+}
+
+.transactionTable th:nth-child(8),
+.transactionTable td:nth-child(8) {
+  width: 12%;
+}
+
+.transactionTable th:nth-child(9),
+.transactionTable td:nth-child(9) {
+  width: 10%;
 }
 
 .transactionTable th {
-  background: #f8fafc;
+  background-color: #f5f5f5; /* Màu nền nhạt hơn */
   font-weight: 600;
-  color: #4b5563;
-  padding: 15px 20px;
-}
-
-.transactionTable td {
-  padding: 15px 20px;
-  color: #374151;
+  color: #555; /* Màu chữ nhạt hơn */
 }
 
 .transactionRow:hover {
-  background: #f9fafb;
+  background-color: #fafafa; /* Màu hover nhạt hơn */
+}
+
+.movieCell {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Giảm khoảng cách */
 }
 
 .moviePoster {
-  width: 45px;
-  height: 65px;
-  border-radius: 8px;
-  transition: transform 0.3s ease;
+  width: 32px; /* Giảm kích thước ảnh */
+  height: 48px;
+  object-fit: cover;
+  border-radius: 3px;
 }
 
-.moviePoster:hover {
-  transform: scale(1.1);
+.noPoster {
+  width: 32px;
+  height: 48px;
+  background-color: #e8e8e8; /* Màu nhạt hơn */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px; /* Giảm kích thước font */
+  color: #999;
+  border-radius: 3px;
 }
 
 .statusBadge {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-weight: 500;
+  padding: 3px 6px; /* Giảm padding */
+  border-radius: 10px;
+  font-size: 11px; /* Giảm kích thước font */
 }
 
-/* Status Colors */
 .confirmed {
-  background: #dcfce7;
-  color: #16a34a;
+  background-color: #e6f7ff;
+  color: #40c4ff; /* Màu nhạt hơn */
 }
+
 .pending {
-  background: #fef3c7;
-  color: #d97706;
+  background-color: #fffbe6;
+  color: #faad14;
 }
+
 .cancelled {
-  background: #fee2e2;
-  color: #dc2626;
+  background-color: #fff1f0;
+  color: #f5222d;
 }
+
 .failed {
-  background: #f3f4f6;
-  color: #6b7280;
+  background-color: #f5f5f5;
+  color: #999;
 }
 
-/* Utility Classes */
-.loading {
-  text-align: center;
-  font-size: 22px;
-  padding: 80px;
-  color: #64748b;
-}
-
+/* Empty Content */
 .emptyContent {
   text-align: center;
-  padding: 50px;
-  color: #94a3b8;
-  font-size: 18px;
+  padding: 30px 0; /* Giảm padding */
+  color: #888;
+}
+
+.emptyContent p {
+  margin-bottom: 12px; /* Giảm khoảng cách */
+  font-size: 13px; /* Giảm kích thước font */
+}
+
+/* Profile Form */
+.profileForm {
+  max-width: 400px; /* Giảm chiều rộng form */
+  margin: 0 auto;
+}
+
+.customInput {
+  font-size: 13px; /* Giảm kích thước font */
+}
+
+.profileButtons {
+  text-align: center;
+  margin-top: 15px; /* Giảm khoảng cách */
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 30px 0;
+  color: #888;
+  font-size: 13px; /* Giảm kích thước font */
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .profileWrapper {
-    grid-template-columns: 1fr;
-    gap: 30px;
+    flex-direction: column;
   }
 
-  .profileSidebar,
-  .profileContent {
-    padding: 25px;
+  .profileSidebar {
+    max-width: 100%;
   }
 
-  .profileName {
-    font-size: 26px;
+  .searchSection {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .customTabs .ant-tabs-tab {
-    padding: 10px 20px;
-    font-size: 16px;
-  }
-  /* Progress Section */
-  .progressWrapper {
-    position: relative;
+  .searchInput {
     width: 100%;
-    padding: 0 10px; /* Add padding to ensure labels don't get too close to edges */
-  }
-
-  .progressIcons {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
     margin-bottom: 8px;
+    margin-right: 0;
   }
 
-  .progressIcons .icon {
-    font-size: 22px;
-    transition: transform 0.3s ease;
+  .buttonGroup {
+    flex-direction: column;
+    gap: 8px;
   }
 
-  .progressIcons .icon:hover {
-    transform: scale(1.2);
-  }
-
-  .customProgress {
-    margin: 15px 0;
-  }
-
-  /* Updated Progress Labels */
-  .progressLabels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 8px;
-    position: relative;
-  }
-
-  .progressLabels span {
-    font-size: 13px;
-    color: #6b7280;
-    flex: 1; /* Ensure each label takes equal space */
-    text-align: center; /* Center the text within its flex space */
-    position: static; /* Remove absolute positioning */
-    transform: none; /* Remove transform to prevent overlap */
-  }
-
-  /* Optional: Add a small wrapper to prevent overlap */
-  .progressLabels span:first-child {
-    text-align: left; /* Align the first label to the left */
-  }
-
-  .progressLabels span:last-child {
-    text-align: right; /* Align the last label to the right */
+  .buttonGroup .customButton {
+    width: 100%;
   }
 }

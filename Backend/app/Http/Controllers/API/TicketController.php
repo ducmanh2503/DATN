@@ -616,7 +616,7 @@ class TicketController extends Controller
             'seat_ids.*' => 'exists:seats,id',
             'combo_ids' => 'nullable|array',
             'combo_ids.*' => 'exists:combos,id',
-            'payment_method' => 'required|in:cash,VNpay,Momo,Zalopay',
+            'payment_method' => 'required|in:cash,VNpay,PayPal',
             'is_payment_completed' => 'sometimes|boolean',
             'user_id' => 'required|exists:users,id',
             'usedPoints' => 'nullable|integer|min:0',

@@ -77,7 +77,9 @@ const DETAIL_TICKETPRICE = (id: number) => `${BASE_URL}/ticket-show/${id}`; // c
 const ADD_TICKETSPRICE = `${BASE_URL}/ticket-prices`; // thêm mới giá vé
 const DELETE_TICKETPRICE = (id: number) => `${BASE_URL}/ticket-delete/${id}`; // xóa giá vé
 const UPDATE_TICKETPRICE = (id: number) => `${BASE_URL}/ticket-prices/${id}`; // cập nhật giá
+
 const PAYMENT_WITH_VNPAY = `${BASE_URL}/VNPay/create`; // thanh toán bằng VNPay
+const PAYMENT_WITH_PAYPAL = `${BASE_URL}/paypal/create`; // thanh toán bằng Paypal
 
 const GET_VOUCHER = (code: string) =>
     `${BASE_URL}/apply-discount-code?name_code=${encodeURIComponent(
@@ -150,6 +152,7 @@ export {
     UPDATE_TICKETPRICE,
     DETAIL_TICKETPRICE,
     PAYMENT_WITH_VNPAY,
+    PAYMENT_WITH_PAYPAL,
     GET_VOUCHER,
     ORDERS_LIST,
     DETAIL_ORDER,

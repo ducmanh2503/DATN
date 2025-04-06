@@ -108,3 +108,20 @@
     align-items: flex-start;
     justify-content: space-between;
 }
+
+.addSubValue {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    justify-content: center;
+    margin-left: auto;
+}
+.collapse {
+    width: 300px;
+    margin-left: auto;
+}
+
+.collapse2 {
+    border: 2px solid var(--border-color);
+    text-align: center;
+}

@@ -60,10 +60,10 @@ const AddActor = () => {
                 onClick={showModal}
                 className={clsx(styles.addBtnForm)}
             >
-                <PlusCircleOutlined /> Thêm mới
+                <PlusCircleOutlined /> Thêm mới diễn viên
             </Button>
             <Modal
-                title="Thêm mới đạo diễn"
+                title="Thêm mới diễn viên"
                 open={open}
                 onOk={handleOk}
                 onCancel={handleCancel}
@@ -77,7 +77,7 @@ const AddActor = () => {
                 >
                     <Form.Item
                         className={clsx(styles.inputLabel)}
-                        label="Tên đạo diễn"
+                        label="Tên diễn viên"
                         name="name_actor"
                         rules={[
                             {
@@ -90,22 +90,8 @@ const AddActor = () => {
                             },
                         ]}
                     >
-                        <Input placeholder="Nhập tên đạo diễn" />
+                        <Input placeholder="Nhập tên diễn viên" />
                     </Form.Item>
-
-                    {/* <Form.Item
-                        className="input-label"
-                        label="ID"
-                        name="id"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Phải có ID",
-                            },
-                        ]}
-                    >
-                        <InputNumber placeholder="Nhập id"></InputNumber>
-                    </Form.Item> */}
                 </Form>
             </Modal>
         </>

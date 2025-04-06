@@ -60,7 +60,7 @@ const AddDirector = () => {
                 onClick={showModal}
                 className={clsx(styles.addBtnForm)}
             >
-                <PlusCircleOutlined /> Thêm mới
+                <PlusCircleOutlined /> Thêm mới đạo diễn
             </Button>
             <Modal
                 title="Thêm mới đạo diễn"

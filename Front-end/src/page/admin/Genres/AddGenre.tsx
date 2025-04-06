@@ -60,7 +60,7 @@ const AddGenre = () => {
                 onClick={showModal}
                 className={clsx(styles.addBtnForm)}
             >
-                <PlusCircleOutlined /> Thêm mới
+                <PlusCircleOutlined /> Thêm mới thể loại
             </Button>
             <Modal
                 title="Thêm mới thể loại"

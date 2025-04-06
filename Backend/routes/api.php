@@ -79,6 +79,10 @@ Route::middleware('auth:sanctum')->group(function () {
     //thanh toán VNPay
     Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
 
+    // Route mới cho ZaloPay
+    Route::post('/zalopay/create', [PaymentController::class, 'createZaloPay']);
+    Route::post('/zalopay/return', [PaymentController::class, 'zaloPayReturn']);
+
     //Hiển thị vé khi đặt
     Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
 

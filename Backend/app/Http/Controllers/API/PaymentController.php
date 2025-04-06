@@ -13,11 +13,13 @@ use App\Models\SeatTypePrice;
 use App\Models\ShowTime;
 use App\Models\ShowTimeDate;
 use App\Services\UserRankService;
+use App\Services\ZaloPayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use Str;
+use Illuminate\Support\Str;
 
 
 class PaymentController extends Controller
@@ -25,11 +27,13 @@ class PaymentController extends Controller
 
 
     private $userRankService;
+    private $zaloPayService;
 
 
-    public function __construct(UserRankService $userRankService)
+    public function __construct(UserRankService $userRankService, ZaloPayService $zaloPayService)
     {
         $this->userRankService = $userRankService;
+        $this->zaloPayService = $zaloPayService;
     }
 
 
@@ -281,4 +285,222 @@ class PaymentController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    //-----------------------------------------------test-----------------------------------------------------//
+
+    public function createZaloPay(Request $request)
+    {
+        // Đảm bảo người dùng đã đăng nhập
+        if (!auth()->check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Validation: Nhận tất cả dữ liệu từ request (giống VNPay)
+        $request->validate([
+            'totalPrice' => 'required|numeric|min:0',
+            'total_combo_price' => 'required|numeric|min:0',
+            'total_ticket_price' => 'required|numeric|min:0',
+            'total_price_point' => 'nullable|numeric|min:0',
+            'total_price_voucher' => 'nullable|numeric|min:0',
+            'movie_id' => 'required|exists:movies,id',
+            'showtime_id' => 'required|exists:show_times,id',
+            'calendar_show_id' => 'required|exists:calendar_show,id',
+            'seat_ids' => 'required|array',
+            'seat_ids.*' => 'exists:seats,id',
+            'combo_ids' => 'nullable|array',
+            'combo_ids.*' => 'exists:combos,id',
+            'usedPoints' => 'nullable|integer|min:0',
+            'discount_code' => 'nullable|string',
+        ]);
+
+        $bookingData = $request->all();
+        $bookingData['payment_method'] = 'ZaloPay';
+        $bookingData['user_id'] = auth()->id();
+
+        Log::info('Booking Data request (ZaloPay): ', $bookingData);
+
+        // Kiểm tra usedPoints
+        $usedPoints = $request->input('usedPoints', 0);
+        $userData = $this->userRankService->getRankAndPoints(auth()->id());
+        if ($usedPoints > $userData['points']) {
+            return response()->json(['message' => 'Số điểm sử dụng vượt quá điểm tích lũy'], 400);
+        }
+
+        // Kiểm tra số lượng combo
+        if (!empty($request->combo_ids)) {
+            $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
+            $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
+
+            foreach ($combos as $combo) {
+                $quantity = $comboQuantities[$combo->id]->count();
+
+                if (!isset($combo->quantity)) {
+                    Log::warning("Combo ID {$combo->id} does not have a quantity column.");
+                    continue;
+                }
+
+                if ($combo->quantity < $quantity) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
+                        'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
+                    ], 400);
+                }
+            }
+        }
+
+        // Xử lý mã khuyến mại
+        $discountCode = $request->input('discount_code');
+        $discountCodeId = null;
+
+        if ($discountCode) {
+            $discount = DiscountCode::where('name_code', $discountCode)
+                ->where('status', 'active')
+                ->where('quantity', '>', 0)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->first();
+
+            if (!$discount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn',
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
+                ], 400);
+            }
+
+            if ($discount->quantity < 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Mã khuyến mại {$discount->name_code} đã hết số lượng",
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
+                ], 400);
+            }
+
+            $discountCodeId = $discount->id;
+        }
+
+        // Lấy dữ liệu pricing từ request (không tính lại)
+        $pricing = [
+            'total_ticket_price' => $request->total_ticket_price,
+            'total_combo_price' => $request->total_combo_price,
+            'total_price_before_discount' => $request->total_ticket_price + $request->total_combo_price,
+            'total_price_point' => $request->total_price_point,
+            'total_price_voucher' => $request->total_price_voucher,
+            'point_discount' => $usedPoints * 1000,
+            'discount_code_id' => $discountCodeId,
+            'discount_code' => $discountCode,
+            'total_price' => $request->totalPrice,
+            'used_points' => $usedPoints,
+        ];
+
+        // Ghi dữ liệu giá vào bookingData
+        $bookingData['pricing'] = $pricing;
+        Log::info('Booking Data (ZaloPay): ', $bookingData);
+
+        // Tạo đơn hàng ZaloPay bằng ZaloPayService
+        $amount = $request->input('totalPrice');
+        $orderId = 'ORDER_' . time(); // ID đơn hàng
+        $description = 'Thanh toán vé xem phim - ' . $orderId;
+        $appUser = 'user_' . auth()->id(); // Tùy chỉnh appuser dựa trên user_id
+
+        try {
+            $result = $this->zaloPayService->createOrder($amount, $orderId, $description, $appUser);
+
+            $appTransId = $result['app_trans_id'];
+            $response = $result['response'];
+
+            // Lưu bookingData vào Redis với app_trans_id
+            $bookingData['app_trans_id'] = $appTransId;
+            $bookingData['unique_token'] = Str::random(32); // Thêm token duy nhất để kiểm tra trùng lặp
+            Redis::setex("booking:$appTransId", 3600, json_encode($bookingData));
+
+            // Kiểm tra phản hồi từ ZaloPay
+            if (is_array($response) && isset($response['returncode']) && $response['returncode'] == 1) {
+                return response()->json([
+                    'code' => '00',
+                    'message' => 'Thanh toán thành công',
+                    'data' => $response['orderurl'], // URL để thanh toán
+                ]);
+            }
+
+            // Log lỗi nếu có
+            Log::error('ZaloPay Create Order Failed:', ['response' => $response]);
+
+            return response()->json([
+                'code' => '01',
+                'message' => $response['returnmessage'] ?? 'Không thể tạo đơn hàng ZaloPay',
+            ], 400);
+        } catch (\Exception $e) {
+            Log::error('ZaloPay Create Order Exception:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'code' => '01',
+                'message' => 'Lỗi khi tạo đơn hàng ZaloPay: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // Xử lý callback từ ZaloPay
+    public function zaloPayReturn(Request $request)
+    {
+        Log::info('ZaloPay Return Request:', $request->all());
+
+        $data = $request->all();
+
+        // Xác thực callback từ ZaloPay
+        if ($this->zaloPayService->verifyCallback($data)) {
+            $dataJson = json_decode($data['data'], true);
+            $appTransId = $dataJson['app_trans_id'];
+            $bookingData = json_decode(Redis::get("booking:$appTransId"), true);
+
+            if (!$bookingData) {
+                Log::error('Booking data not found for app_trans_id: ' . $appTransId);
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé'));
+            }
+
+            // Kiểm tra xem token đã được xử lý chưa
+            $processedKey = "processed_booking:{$bookingData['unique_token']}";
+            if (Redis::exists($processedKey)) {
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Đơn hàng đã được xử lý trước đó'));
+            }
+
+            $bookingData['is_payment_completed'] = true;
+            Log::info('Merged Booking Data (ZaloPay):', $bookingData);
+
+            $ticketController = new TicketController(app(UserRankService::class));
+            $response = $ticketController->getTicketDetails(new Request($bookingData));
+
+            // Kiểm tra JSON response từ getTicketDetails()
+            $data = $response->getData(true); // Lấy dữ liệu dưới dạng mảng
+            if ($data['success'] === false) {
+                // Nếu có lỗi (ví dụ: combo hoặc discount code không đủ số lượng), redirect theo URL trong response
+                return redirect()->away($data['redirect']);
+            }
+
+            Redis::setex($processedKey, 3600, 'processed');
+            Redis::del("booking:$appTransId");
+
+            // Trừ điểm nếu sử dụng
+            $usedPoints = $bookingData['pricing']['used_points'] ?? 0;
+            if ($usedPoints > 0) {
+                $success = $this->userRankService->deductPoints($bookingData['user_id'], $usedPoints);
+                if (!$success) {
+                    Log::warning("Không thể trừ $usedPoints điểm cho user_id = {$bookingData['user_id']}");
+                }
+            }
+
+            // Khi thanh toán thành công
+            $bookingId = $data['booking_id'] ?? null;
+            if (!$bookingId) {
+                Log::error('Booking ID not found in response:', ['response' => $data]);
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy booking ID'));
+            }
+
+            return redirect()->away("http://localhost:5173/booking/{$bookingId}/payment-result?status=success");
+        } else {
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thanh toán ZaloPay thất bại'));
+        }
+    }
+
+    //-----------------------------------------------end-test-----------------------------------------------------//
 }

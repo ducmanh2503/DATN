@@ -11,7 +11,6 @@ use App\Http\Controllers\API\ActorController;
 use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalendarShowController;
-use App\Http\Controllers\API\CartItemController;
 use App\Http\Controllers\API\ComboController;
 use App\Http\Controllers\API\DirectorController;
 use App\Http\Controllers\API\DiscountCodeController;
@@ -80,6 +79,9 @@ Route::middleware('auth:sanctum')->group(function () {
     //thanh toán VNPay
     Route::post('/VNPay/create', [PaymentController::class, 'createVNPay']);
 
+    //thanh toán PayPal
+    Route::post('paypal/create', [PaymentController::class, 'createPaypal']);
+
     //Hiển thị vé khi đặt
     Route::post('/ticket-details', [TicketController::class, 'getTicketDetails']);
 
@@ -136,6 +138,7 @@ Route::middleware('auth:sanctum')->group(function () {
         //seat_type
         Route::get('/seat-type', [SeatTypeController::class, 'index']);
 
+        //slider
         Route::apiResource('sliders', SliderController::class);
         Route::post('sliders/{slider}', [SliderController::class, 'update']);
 
@@ -206,6 +209,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
+Route::get('/paypal/return', [PaymentController::class, 'paypalReturn'])->name('paypal.return');
+Route::get('/paypal/cancel', [PaymentController::class, 'paypalCancel'])->name('paypal.cancel');
 // Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
 
 

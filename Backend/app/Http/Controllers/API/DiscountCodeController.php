@@ -150,7 +150,7 @@ class DiscountCodeController extends Controller
 
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
-            'name_code' => 'required|string|max:255|unique:discount_code,name_code',
+            'name_code' => 'required|string|max:255|unique:discount_code,name_code,' . $id,
             'percent' => 'required|integer|max:100',
             'quantity' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',

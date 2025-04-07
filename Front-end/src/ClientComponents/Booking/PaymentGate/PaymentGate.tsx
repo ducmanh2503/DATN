@@ -29,7 +29,7 @@ const PaymentGate = ({ className }: any) => {
           value={paymentType}
           options={[
             { value: "VNpay", label: "VN Pay" },
-            { value: "MoMo", label: "Ví điện tử MoMo" },
+            { value: "PayPal", label: "PayPal" },
             { value: "ZaloPay", label: "Zalo Pay" },
           ]}
           className={clsx(styles.paymentRadioGroup)}

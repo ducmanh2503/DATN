@@ -384,6 +384,72 @@ class ShowTimeController extends Controller
 
 
     //------------------------------------showTime-------------------------------------------------
+    public function getShowTimesByMovie(Request $request, string $movie_id)
+    {
+        // Kiểm tra movie_id có tồn tại không
+        if (!Movies::where('id', $movie_id)->exists()) {
+            return response()->json(['error' => 'Phim không tồn tại'], 404);
+        }
+
+        // Query cơ bản để lấy tất cả suất chiếu của phim
+        $query = ShowTime::whereHas('calendarShow', function ($query) use ($movie_id) {
+            $query->where('movie_id', $movie_id)
+                ->where('is_public', true); // Chỉ lấy lịch chiếu đã public
+        })->with(['calendarShow.movie', 'calendarShow', 'room.roomType', 'showTimeDate']);
+
+        // Lọc theo ngày nếu có
+        if ($request->has('date')) {
+            if (!strtotime($request->date)) {
+                return response()->json(['error' => 'Ngày không hợp lệ'], 422);
+            }
+            $query->whereHas('showTimeDate', function ($q) use ($request) {
+                $q->where('show_date', $request->date);
+            });
+        }
+
+        // Lọc theo phòng nếu có
+        if ($request->has('room_id')) {
+            $query->where('room_id', $request->query('room_id'));
+        }
+
+        // Lọc theo loại phòng nếu có
+        if ($request->has('room_type_id')) {
+            $query->whereHas('room', function ($q) use ($request) {
+                $q->where('room_type_id', $request->query('room_type_id'));
+            });
+        }
+
+        // Lấy danh sách suất chiếu
+        $showTimes = $query->get();
+
+        if ($showTimes->isEmpty()) {
+            return response()->json(['message' => 'Không có suất chiếu nào cho phim này'], 404);
+        }
+
+        // Tùy chỉnh dữ liệu trả về
+        $result = $showTimes->map(function ($showTime) {
+            return [
+                'id' => $showTime->id,
+                'calendar_show_id' => $showTime->calendar_show_id,
+                'movie' => $showTime->calendarShow->movie->title ?? null,
+                'start_time' => $showTime->start_time,
+                'end_time' => $showTime->end_time,
+                'status' => $showTime->status,
+                'room' => [
+                    'id' => $showTime->room->id ?? null,
+                    'name' => $showTime->room->name ?? null,
+                    'room_type' => $showTime->room->roomType->name ?? null,
+                ],
+                'show_dates' => $showTime->showTimeDate->pluck('show_date') ?? [],
+            ];
+        });
+
+        return response()->json([
+            'movie_id' => $movie_id,
+            'show_times' => $result
+        ], 200);
+    }
+
     public function getShowTimesByDateClient(string $movie_id, string $date, Request $request)
     {
         // Kiểm tra movie_id có tồn tại không

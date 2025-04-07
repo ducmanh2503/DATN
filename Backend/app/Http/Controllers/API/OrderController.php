@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\ShowTimeDate;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -261,14 +262,21 @@ class OrderController extends Controller
             }
         }
 
+        // Tạo danh sách vé (tickets) dựa trên số ghế
+        $tickets = [];
+        $comboDetails = []; // Lưu thông tin combo riêng
+
         if ($booking->bookingDetails) {
             foreach ($booking->bookingDetails as $detail) {
+                // Xử lý ghế (mỗi ghế là một vé)
                 if ($detail->seat) {
                     $seatName = "{$detail->seat->row}{$detail->seat->column}";
                     // Xác định loại ghế (seat_type) dựa trên room_type
                     $seatType = 'Thường'; // Mặc định là Thường
                     if ($detail->seat->room && $detail->seat->room->roomType) {
-                        $roomTypeName = $detail->seat->room->roomType->name;
+                        $room_name = $detail->seat->room->name;
+                        $room_type = $detail->seat->room->roomType->name;
+                        $roomTypeName = $room_type;
                         if (stripos($roomTypeName, 'VIP') !== false) {
                             $seatType = 'VIP';
                         } elseif (stripos($roomTypeName, 'Sweetbox') !== false) {
@@ -276,18 +284,29 @@ class OrderController extends Controller
                         }
                     }
 
-                    $seats[] = [
+                    $ticket = [
+                        'ticket_id' => "TICKET-{$booking->id}-{$detail->id}", // ID vé duy nhất
+                        'booking_id' => $booking->id,
                         'booking_detail_id' => $detail->id,
+                        'customer_name' => $booking->user->name ?? 'N/A',
+                        'phone' => $booking->user->phone ?? 'N/A',
+                        'email' => $booking->user->email ?? 'N/A',
+                        'movie_title' => $movie ? $movie['title'] : 'N/A',
+                        'showtime' => $booking->showtime
+                            ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
+                            : 'N/A',
+                        'show_date' => $show_date,
+                        'room_name' => $room_name ?? 'N/A',
+                        'room_type' => $room_type ?? 'N/A',
                         'seat_name' => $seatName,
-                        'price' => (int) $detail->price,
                         'seat_type' => $seatType,
+                        'price' => (int) $detail->price,
+                        'status' => $booking->status,
+                        'check_in' => $booking->check_in,
+                        'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y') : 'N/A',
                     ];
 
-                    // Lấy tên phòng và loại phòng
-                    if ($detail->seat->room) {
-                        $room_name = $detail->seat->room->name;
-                        $room_type = $detail->seat->room->roomType ? $detail->seat->room->roomType->name : null;
-                    }
+                    $tickets[] = $ticket;
                 }
 
                 if ($detail->combo) {
@@ -312,7 +331,7 @@ class OrderController extends Controller
         $checkInOptions = $this->getEnumValues('bookings', 'check_in');
 
         $formattedBooking = [
-            'id' => $booking->id,
+            'booking_id' => $booking->id,
             'customer_name' => $booking->user->name ?? 'N/A',
             'phone' => $booking->user->phone ?? 'N/A',
             'email' => $booking->user->email ?? 'N/A',
@@ -323,8 +342,8 @@ class OrderController extends Controller
             'movie_title' => $movie ? $movie['title'] : 'N/A',
             'room_name' => $room_name ?? 'N/A',
             'room_type' => $room_type ?? 'N/A',
-            'seats' => $seats,
-            'combos' => $combos,
+            'tickets' => $tickets, // Danh sách vé riêng biệt
+            'combos' => $comboDetails, // Danh sách combo
             'total_ticket_price' => (int) $booking->total_ticket_price,
             'total_combo_price' => (int) $booking->total_combo_price,
             'total_price' => $totalPrice,
@@ -1052,4 +1071,49 @@ class OrderController extends Controller
             'data' => $formattedBooking,
         ]);
     }
+
+
+    //---------------------------------------------test--------------------------------------------//
+    public function exportTicketsToPdf($bookingId)
+{
+    // Gọi phương thức show để lấy dữ liệu
+    $response = $this->show($bookingId);
+    $data = json_decode($response->getContent(), true);
+
+    // Kiểm tra nếu không tìm thấy đơn hàng
+    if ($response->getStatusCode() === 404) {
+        return $response; // Trả về JSON lỗi 404 từ show
+    }
+
+    $bookingData = $data['data'];
+    $tickets = $bookingData['tickets'];
+    $combos = $bookingData['combos'];
+
+    // Tạo HTML ngắn gọn cho PDF
+    $html = '<h1 style="text-align: center;">Vé Xem Phim</h1>';
+    foreach ($tickets as $index => $ticket) {
+        $html .= '<div style="border: 2px dashed #000; padding: 15px; margin-bottom: 20px;">';
+        $html .= '<h2>Vé ' . ($index + 1) . ' - Mã vé: ' . $ticket['ticket_id'] . '</h2>';
+        $html .= '<p><strong>Khách hàng:</strong> ' . $ticket['customer_name'] . '</p>';
+        $html .= '<p><strong>Phim:</strong> ' . $ticket['movie_title'] . '</p>';
+        $html .= '<p><strong>Suất chiếu:</strong> ' . $ticket['showtime'] . ' - ' . $ticket['show_date'] . '</p>';
+        $html .= '<p><strong>Phòng:</strong> ' . $ticket['room_name'] . ' (' . $ticket['room_type'] . ')</p>';
+        $html .= '<p><strong>Ghế:</strong> ' . $ticket['seat_name'] . ' (' . $ticket['seat_type'] . ')</p>';
+        $html .= '<p><strong>Giá:</strong> ' . number_format($ticket['price'], 0, ',', '.') . ' VND</p>';
+        $html .= '</div>';
+    }
+
+    // Thêm combo nếu có
+    if (!empty($combos)) {
+        $html .= '<h2 style="text-align: center;">Combo</h2>';
+        foreach ($combos as $combo) {
+            $html .= '<p><strong>' . $combo['combo_name'] . ' x' . $combo['quantity'] . ':</strong> ' . number_format($combo['price'], 0, ',', '.') . ' VND</p>';
+        }
+    }
+
+    // Tạo và trả về PDF
+    $pdf = Pdf::loadHTML($html)->setPaper('A4', 'portrait');
+    return $pdf->download('tickets_booking_' . $bookingId . '.pdf');
+}
+    //---------------------------------------------end-test--------------------------------------------//
 }

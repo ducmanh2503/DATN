@@ -134,26 +134,66 @@ class CalendarShowController extends Controller
     /**
      * Public lịch chiếu
      */
-    public function publish(string $id)
-    {
-        $calendarShow = CalendarShow::find($id);
+    // public function publish(string $id)
+    // {
+    //     $calendarShow = CalendarShow::find($id);
 
-        if (!$calendarShow) {
-            return response()->json(['message' => 'Không tìm thấy lịch chiếu'], 404);
-        }
+    //     if (!$calendarShow) {
+    //         return response()->json(['message' => 'Không tìm thấy lịch chiếu'], 404);
+    //     }
 
-        $calendarShow->update(['is_public' => true]);
+    //     $calendarShow->update(['is_public' => true]);
 
-        $movie = Movies::find($calendarShow->movie_id);
-        if ($movie && $movie->movie_status === 'coming_soon' && Carbon::parse($calendarShow->show_date)->lte(Carbon::today())) {
-            $movie->update(['movie_status' => 'now_showing']);
-        }
+    //     $movie = Movies::find($calendarShow->movie_id);
+    //     if ($movie && $movie->movie_status === 'coming_soon' && Carbon::parse($calendarShow->show_date)->lte(Carbon::today())) {
+    //         $movie->update(['movie_status' => 'now_showing']);
+    //     }
 
-        return response()->json([
-            'message' => 'Lịch chiếu đã được public thành công',
-            'data' => $calendarShow->load('showTimes')
-        ], 200);
+    //     return response()->json([
+    //         'message' => 'Lịch chiếu đã được public thành công',
+    //         'data' => $calendarShow->load('showTimes')
+    //     ], 200);
+    // }
+
+
+    public function publish(Request $request, string $id)
+{
+    // Tìm lịch chiếu theo ID
+    $calendarShow = CalendarShow::find($id);
+
+    if (!$calendarShow) {
+        return response()->json(['message' => 'Không tìm thấy lịch chiếu'], 404);
     }
+
+    // Validate dữ liệu đầu vào
+    $validator = Validator::make($request->all(), [
+        'is_public' => 'required|boolean', // Yêu cầu is_public là true hoặc false
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
+
+    // Lấy giá trị is_public từ request
+    $isPublic = filter_var($request->input('is_public'), FILTER_VALIDATE_BOOLEAN);
+
+    // Cập nhật trạng thái is_public
+    $calendarShow->update(['is_public' => $isPublic]);
+
+    // Kiểm tra và cập nhật trạng thái phim nếu cần
+    $movie = Movies::find($calendarShow->movie_id);
+    if ($movie && $movie->movie_status === 'coming_soon' && $isPublic && Carbon::parse($calendarShow->show_date)->lte(Carbon::today())) {
+        $movie->update(['movie_status' => 'now_showing']);
+    }
+
+    // Tải lại dữ liệu liên quan
+    $calendarShow->load('showTimes');
+
+    return response()->json([
+        'message' => $calendarShow->is_public ? 'Lịch chiếu đã được áp dụng' : 'Lịch chiếu đã được gỡ',
+        'data' => $calendarShow
+    ], 200);
+}
 
 
     /**

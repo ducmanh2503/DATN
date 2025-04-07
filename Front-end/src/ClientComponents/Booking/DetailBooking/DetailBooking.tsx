@@ -10,7 +10,10 @@ import { useFilmContext } from "../../UseContext/FIlmContext";
 import { useFinalPriceContext } from "../../UseContext/FinalPriceContext";
 import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useComboContext } from "../../UseContext/CombosContext";
-import { PAYMENT_WITH_VNPAY } from "../../../config/ApiConfig";
+import {
+    PAYMENT_WITH_PAYPAL,
+    PAYMENT_WITH_VNPAY,
+} from "../../../config/ApiConfig";
 import { useAuthContext } from "../../UseContext/TokenContext";
 import { usePromotionContext } from "../../UseContext/PromotionContext";
 
@@ -42,11 +45,15 @@ const DetailBooking = ({
     const currentYear = dayjs().year();
 
     const onOk = async () => {
-        vnpay.mutate(undefined, {
+        const selectedPaymentUrl =
+            paymentType === "vnpay" ? PAYMENT_WITH_VNPAY : PAYMENT_WITH_PAYPAL;
+
+        paymentMutation.mutate(selectedPaymentUrl, {
             onSuccess: (data: any) => {
                 window.location.href = data;
             },
         });
+
         setOpen(false);
     };
 
@@ -59,34 +66,35 @@ const DetailBooking = ({
         setIsSelected(!isSelected);
     };
 
-    const vnpay = useMutation({
-        mutationFn: async () => {
-            console.log("discount_code:", promoCode);
-            const { data } = await axios.post(
-                PAYMENT_WITH_VNPAY,
-                {
-                    totalPrice: totalPrice,
-                    total_combo_price: totalComboPrice,
-                    total_ticket_price: totalSeatPrice,
-                    total_price_point: totalPricePoint,
-                    total_price_voucher: totalPriceVoucher,
-                    movie_id: filmId,
-                    showtime_id: showtimeIdFromBooking,
-                    calendar_show_id: calendarShowtimeID,
-                    seat_ids: selectedSeatIds,
-                    combo_ids: holdComboID,
-                    usedPoints: usedPoints,
-
-                    discount_code: promoCode ?? "", // Đảm bảo không gửi undefined
+    const paymentRequest = async (url: string) => {
+        console.log("discount_code:", promoCode);
+        const { data } = await axios.post(
+            url,
+            {
+                totalPrice,
+                total_combo_price: totalComboPrice,
+                total_ticket_price: totalSeatPrice,
+                total_price_point: totalPricePoint,
+                total_price_voucher: totalPriceVoucher,
+                movie_id: filmId,
+                showtime_id: showtimeIdFromBooking,
+                calendar_show_id: calendarShowtimeID,
+                seat_ids: selectedSeatIds,
+                combo_ids: holdComboID,
+                usedPoints: usedPoints,
+                discount_code: promoCode ?? "",
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${tokenUserId}`,
                 },
-                {
-                    headers: {
-                        Authorization: `Bearer ${tokenUserId}`,
-                    },
-                }
-            );
-            return data.data;
-        },
+            }
+        );
+        return data.data;
+    };
+
+    const paymentMutation = useMutation({
+        mutationFn: (paymentUrl: string) => paymentRequest(paymentUrl),
     });
 
     return (

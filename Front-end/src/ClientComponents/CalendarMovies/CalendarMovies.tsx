@@ -44,6 +44,8 @@ const CalendarMovies = ({ id }: any) => {
                 return data.show_dates;
             },
             staleTime: 1000 * 60 * 10,
+            retry: false,
+            refetchOnWindowFocus: false,
         }
     );
 
@@ -136,6 +138,10 @@ const CalendarMovies = ({ id }: any) => {
         <div>
             {isLoadingCalendarMovie ? (
                 <Skeleton loading={isLoadingCalendarMovie} active></Skeleton>
+            ) : calendarMovie === undefined || calendarMovie?.length === 0 ? (
+                <div className={clsx(styles.noShowtimes)}>
+                    Hiện tại phim chưa có lịch chiếu
+                </div>
             ) : (
                 <>
                     <div className={clsx(styles.calendarDays)}>

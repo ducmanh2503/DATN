@@ -152,7 +152,7 @@ const BookingMain = () => {
         }
     }, [currentStep, navigate]);
 
-    // giải phóng ghế khi ra ngoài booking
+    // giải phóng ghế khi ra ngoài booking bằng route
     useEffect(() => {
         return () => {
             console.log("out-booking");
@@ -163,6 +163,8 @@ const BookingMain = () => {
             releaseSeats(selectedSeatIds);
         };
     }, []);
+
+    // giải phóng ghế khi ra ngoài booking bằng reload
 
     const renderStepContent = () => {
         switch (currentStep) {

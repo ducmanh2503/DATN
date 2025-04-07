@@ -145,9 +145,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         // Showtimes
-        Route::apiResource('showTime', ShowTimeController::class);
-        Route::post('show-times/in-range', [ShowTimeController::class, 'getShowTimesInDateRange']); //danh sách ngày
-        Route::post('show-times/by-date', [ShowTimeController::class, 'getShowTimesByDate']); //lọc theo ngày cụ thể
+        Route::apiResource('/showTime', ShowTimeController::class);
+        Route::post('/show-times/in-range', [ShowTimeController::class, 'getShowTimesInDateRange']); //danh sách ngày
+        Route::post('/show-times/by-date', [ShowTimeController::class, 'getShowTimesByDate']); //lọc theo ngày cụ thể
+        Route::get('/showtimes/movie/{movie_id}', [ShowTimeController::class, 'getShowTimesByMovie']); //danh sách lịch chiếu theo phim
 
 
         // lọc theo khoảng ngày

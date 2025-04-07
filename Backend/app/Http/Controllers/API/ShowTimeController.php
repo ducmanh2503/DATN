@@ -17,10 +17,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 
-
-
-
-
 class ShowTimeController extends Controller
 {
     /**
@@ -29,40 +25,26 @@ class ShowTimeController extends Controller
     public function index()
     {
 
-
-
-
         $showTime = ShowTime::query()->latest('id')->with(['calendarShow.movie', 'calendarShow', 'room.roomType'])->get();
-
 
         return response()->json($showTime, 200);
     }
 
 
 
-
-    //---------------------------------test--------------------------------//
-
-
     public function getDateRangeByCalendarShow(Request $request)
     {
-
-
-
 
         $validator = Validator::make($request->all(), [
             'calendar_show_id' => 'required|exists:calendar_show,id',
         ]);
 
-
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-
         $calendarShow = CalendarShow::find($request->calendar_show_id);
         $dates = $this->generateDateRange($calendarShow->show_date, $calendarShow->end_date);
-
 
         return response()->json([
             'calendar_show' => $calendarShow,
@@ -70,8 +52,6 @@ class ShowTimeController extends Controller
         ], 200);
     }
 
-
-    //---------------------------------end-test--------------------------------//
 
 
     /**
@@ -93,6 +73,11 @@ class ShowTimeController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
+        $calendarShow = CalendarShow::find($request->calendar_show_id);
+        if ($calendarShow->is_public) {
+            return response()->json(['error' => 'Không thể thêm suất chiếu cho lịch chiếu đã public'], 403);
+        }
+
         // Kiểm tra phòng chiếu
         $room = Room::find($request->room_id);
         if (!$room || !$room->roomType) {
@@ -100,7 +85,6 @@ class ShowTimeController extends Controller
         }
 
         // Kiểm tra ngày được chọn
-        $calendarShow = CalendarShow::find($request->calendar_show_id);
         $selectedDate = Carbon::parse($request->selected_date);
         $showDate = Carbon::parse($calendarShow->show_date);
         $endDate = Carbon::parse($calendarShow->end_date);
@@ -197,16 +181,11 @@ class ShowTimeController extends Controller
     public function show(string $id)
     {
 
-
-
-
         $showTime = ShowTime::with(['calendarShow.movie', 'calendarShow', 'room.roomType'])->find($id);
-
 
         if (!$showTime) {
             return response()->json(['message' => 'Xuất chiếu không tồn tại'], 404);
         }
-
 
         return response()->json($showTime);
     }
@@ -241,6 +220,11 @@ class ShowTimeController extends Controller
             return response()->json(['message' => 'Không tìm thấy xuất chiếu'], 404);
         }
 
+        $calendarShow = CalendarShow::find($validated['calendar_show_id']);
+        if ($calendarShow->is_public) {
+            return response()->json(['message' => 'Không thể cập nhật suất chiếu của lịch chiếu đã public'], 403);
+        }
+
         // Bước 3: Kiểm tra nếu status là 'referenced' hoặc 'now_showing'
         if (in_array($showTime->status, ['referenced', 'now_showing'])) {
             return response()->json([
@@ -256,7 +240,6 @@ class ShowTimeController extends Controller
         }
 
         // Bước 5: Kiểm tra xem ngày chiếu có nằm trong khoảng show_date và end_date không
-        $calendarShow = CalendarShow::find($validated['calendar_show_id']);
         $showDate = Carbon::parse($calendarShow->show_date);
         $endDate = Carbon::parse($calendarShow->end_date);
         $selectedDate = Carbon::parse($request->input('selected_date'));
@@ -314,8 +297,6 @@ class ShowTimeController extends Controller
     }
 
 
-
-
     /**
      * Remove the specified resource from storage.
      */
@@ -325,6 +306,11 @@ class ShowTimeController extends Controller
 
         if (!$showTime) {
             return response()->json(['message' => 'Không tìm thấy xuất chiếu'], 404);
+        }
+
+        $calendarShow = CalendarShow::find($showTime->calendar_show_id);
+        if ($calendarShow->is_public) {
+            return response()->json(['message' => 'Không thể xóa suất chiếu của lịch chiếu đã public'], 403);
         }
 
         // Kiểm tra nếu status là 'referenced' hoặc 'now_showing'
@@ -353,21 +339,20 @@ class ShowTimeController extends Controller
     public function destroyByDate(string $id, string $selected_date)
     {
 
-
-
-
         // Tìm suất chiếu theo ID
         $showTime = ShowTime::find($id);
-
 
         if (!$showTime) {
             return response()->json(['message' => 'Không tìm thấy xuất chiếu'], 404);
         }
 
+        $calendarShow = CalendarShow::find($showTime->calendar_show_id);
+        if ($calendarShow->is_public) {
+            return response()->json(['message' => 'Không thể xóa suất chiếu của lịch chiếu đã public'], 403);
+        }
 
         // Tìm bản ghi ShowTimeDate theo ngày chiếu đã chọn
         $showTimeDate = $showTime->showTimeDate()->where('show_date', $selected_date)->first();
-
 
         if (!$showTimeDate) {
             return response()->json(['message' => 'Không tìm thấy xuất chiếu vào ngày này'], 404);
@@ -387,10 +372,8 @@ class ShowTimeController extends Controller
             ], 403);
         }
 
-
         // Xóa bản ghi ShowTimeDate cho ngày đã chọn
         $showTimeDate->delete();
-
 
         return response()->json([
             'message' => 'Xuất chiếu vào ngày ' . $selected_date . ' đã được gỡ'
@@ -418,7 +401,8 @@ class ShowTimeController extends Controller
         // Lấy tất cả suất chiếu của phim theo ngày
         $showTimeIds = ShowTimeDate::where('show_date', $date)
             ->whereHas('showTime.calendarShow', function ($query) use ($movie_id) {
-                $query->where('movie_id', $movie_id);
+                $query->where('movie_id', $movie_id)
+                    ->where('is_public', true); //lịch chiếu đã public
             })
             ->pluck('show_time_id');
 
@@ -427,17 +411,14 @@ class ShowTimeController extends Controller
             return response()->json(['message' => 'Không có suất chiếu nào cho ngày này'], 404);
         }
 
-
         // Query các ShowTime
         $query = ShowTime::whereIn('id', $showTimeIds)
             ->with(['calendarShow.movie', 'calendarShow', 'room.roomType']);
-
 
         // Lọc theo phòng nếu có
         if ($request->has('room_id')) {
             $query->where('room_id', $request->query('room_id'));
         }
-
 
         // Lọc theo room_type nếu có
         if ($request->has('room_type_id')) {
@@ -446,9 +427,7 @@ class ShowTimeController extends Controller
             });
         }
 
-
         $showTimes = $query->get();
-
 
         return response()->json([
             'movie_id' => $movie_id,
@@ -459,7 +438,6 @@ class ShowTimeController extends Controller
 
     public function getShowTimesByDate(Request $request)
     {
-
 
         // Validate dữ liệu đầu vào
         $validator = Validator::make($request->all(), [
@@ -497,11 +475,9 @@ class ShowTimeController extends Controller
     public function generateDateRange($startDate, $endDate)
     {
 
-
         // Tạo một mảng chứa tất cả các ngày trong khoảng từ show_date đến end_date
         $dates = [];
         $currentDate = Carbon::parse($startDate);
-
 
         // Duyệt qua tất cả các ngày trong khoảng
         while ($currentDate <= Carbon::parse($endDate)) {
@@ -509,24 +485,17 @@ class ShowTimeController extends Controller
             $currentDate->addDay(); // Tăng 1 ngày
         }
 
-
         return $dates;
     }
 
 
-
-
     //hàm lọc theo lịch chiếu
-
 
     /**                                
      * Hiển thị tất cả suất chiếu trong khoảng ngày từ bảng calendar_show
      */
     public function getShowTimesInDateRange(Request $request)
     {
-
-
-
 
         // Validate dữ liệu đầu vào
         $validator = Validator::make($request->all(), [
@@ -535,15 +504,12 @@ class ShowTimeController extends Controller
             'room_id' => 'nullable|exists:rooms,id'
         ]);
 
-
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-
         $showDate = $request->show_date;
         $endDate = $request->end_date;
-
 
         // Tìm tất cả calendar_show có ngày chiếu trong khoảng
         $calendarShows = CalendarShow::where(function ($query) use ($showDate, $endDate) {
@@ -558,25 +524,20 @@ class ShowTimeController extends Controller
             });
         })->get();
 
-
         if ($calendarShows->isEmpty()) {
             return response()->json(['message' => 'Không có lịch chiếu nào trong khoảng ngày này'], 404);
         }
 
-
         // Lấy tất cả suất chiếu thuộc các calendar_show tìm được
         $query = ShowTime::whereIn('calendar_show_id', $calendarShows->pluck('id'))
             ->with(['calendarShow.movie', 'calendarShow', 'room', 'showTimeDate']);
-
 
         // Thêm điều kiện lọc theo phòng nếu có
         if ($request->has('room_id')) {
             $query->where('room_id', $request->room_id);
         }
 
-
         $showTimes = $query->get();
-
 
         // Lọc chỉ những suất chiếu có showTimeDate trong khoảng ngày
         $filteredShowTimes = $showTimes->filter(function ($showTime) use ($showDate, $endDate) {
@@ -588,22 +549,18 @@ class ShowTimeController extends Controller
             return false;
         });
 
-
         if ($filteredShowTimes->isEmpty()) {
             return response()->json(['message' => 'Không có suất chiếu nào được đặt trong khoảng ngày này'], 404);
         }
-
 
         $filteredShowTimes->transform(function ($showTime) {
             $room = $showTime->room;
             $roomType = $room ? $room->roomType : null;
 
-
             // Thêm thông tin về loại phòng vào mỗi suất chiếu
             $showTime->room_type = $roomType ? $roomType->name : null;
             return $showTime;
         });
-
 
         return response()->json($filteredShowTimes->values(), 200);
     }
@@ -614,12 +571,10 @@ class ShowTimeController extends Controller
         // Lấy calendar_show_id từ request body
         $calendarShowId = $request->input('calendar_show_id');
 
-
         // Kiểm tra nếu không có calendar_show_id
         if (!$calendarShowId) {
             return response()->json(['error' => 'Thiếu calendar_show_id'], 400);
         }
-
 
         // Lấy danh sách suất chiếu theo calendar_show_id
         $showTimes = ShowTime::where('calendar_show_id', $calendarShowId)
@@ -630,7 +585,6 @@ class ShowTimeController extends Controller
         if ($showTimes->isEmpty()) {
             return response()->json(['message' => 'Không tìm thấy suất chiếu nào'], 404);
         }
-
 
         return response()->json($showTimes, 200);
     }

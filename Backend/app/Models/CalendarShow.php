@@ -15,9 +15,13 @@ class CalendarShow extends Model
         'movie_id',
         'show_date',
         'end_date',
+        'is_public'
     ];
 
     protected $dates = ['show_date', 'end_date'];
+    protected $casts = [
+        'is_public' => 'boolean',
+    ];
 
     public function movie()
     {

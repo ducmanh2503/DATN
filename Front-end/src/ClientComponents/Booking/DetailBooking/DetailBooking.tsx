@@ -44,7 +44,6 @@ const DetailBooking = ({
     const [isSelected, setIsSelected] = useState(false);
     const currentYear = dayjs().year();
 
-    // handle payment type selection
     const onOk = async () => {
         const selectedPaymentUrl =
             paymentType === "vnpay" ? PAYMENT_WITH_VNPAY : PAYMENT_WITH_PAYPAL;
@@ -67,8 +66,8 @@ const DetailBooking = ({
         setIsSelected(!isSelected);
     };
 
-    // handle payment request
     const paymentRequest = async (url: string) => {
+        console.log("discount_code:", promoCode);
         const { data } = await axios.post(
             url,
             {
@@ -94,7 +93,6 @@ const DetailBooking = ({
         return data.data;
     };
 
-    // handle payment mutation
     const paymentMutation = useMutation({
         mutationFn: (paymentUrl: string) => paymentRequest(paymentUrl),
     });

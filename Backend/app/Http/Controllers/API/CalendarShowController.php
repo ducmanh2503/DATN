@@ -43,7 +43,7 @@ class CalendarShowController extends Controller
             'movie_id' => 'required|exists:movies,id',
             'show_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:show_date',
-            'room_id' => 'required|exists:rooms,id',
+            // 'room_id' => 'required|exists:rooms,id',
             // 'show_times' => 'required|array', // Mảng các khoảng giờ
             // 'show_times.*.start_time' => 'required|date_format:H:i', 
             // 'show_times.*.end_time' => 'required|date_format:H:i|after:show_times.*.start_time',
@@ -82,58 +82,58 @@ class CalendarShowController extends Controller
     /**
      * Tạo suất chiếu cho toàn bộ khoảng ngày
      */
-//     private function createShowTimesForDateRange(CalendarShow $calendarShow, Request $request)
-// {
-//     $startDate = Carbon::parse($calendarShow->show_date);
-//     $endDate = Carbon::parse($calendarShow->end_date);
-//     $room = Room::find($request->room_id);
-//     $showTimesData = $request->show_times;
+    //     private function createShowTimesForDateRange(CalendarShow $calendarShow, Request $request)
+    // {
+    //     $startDate = Carbon::parse($calendarShow->show_date);
+    //     $endDate = Carbon::parse($calendarShow->end_date);
+    //     $room = Room::find($request->room_id);
+    //     $showTimesData = $request->show_times;
 
-//     while ($startDate <= $endDate) {
-//         foreach ($showTimesData as $timeSlot) {
-//             $startTime = $timeSlot['start_time'];
-//             $endTime = $timeSlot['end_time'];
+    //     while ($startDate <= $endDate) {
+    //         foreach ($showTimesData as $timeSlot) {
+    //             $startTime = $timeSlot['start_time'];
+    //             $endTime = $timeSlot['end_time'];
 
-//             $conflictingShowTimes = ShowTime::where('room_id', $request->room_id)
-//                 ->whereHas('showTimeDate', function ($query) use ($startDate) {
-//                     $query->whereDate('show_date', $startDate->toDateString());
-//                 })
-//                 ->where(function ($query) use ($startTime, $endTime) {
-//                     $query->where('start_time', '<', $endTime)
-//                           ->where('end_time', '>', $startTime);
-//                 })
-//                 ->exists();
+    //             $conflictingShowTimes = ShowTime::where('room_id', $request->room_id)
+    //                 ->whereHas('showTimeDate', function ($query) use ($startDate) {
+    //                     $query->whereDate('show_date', $startDate->toDateString());
+    //                 })
+    //                 ->where(function ($query) use ($startTime, $endTime) {
+    //                     $query->where('start_time', '<', $endTime)
+    //                           ->where('end_time', '>', $startTime);
+    //                 })
+    //                 ->exists();
 
-//             if ($conflictingShowTimes) {
-//                 continue; // Chỉ bỏ qua khoảng giờ này, không bỏ qua toàn bộ ngày
-//             }
+    //             if ($conflictingShowTimes) {
+    //                 continue; // Chỉ bỏ qua khoảng giờ này, không bỏ qua toàn bộ ngày
+    //             }
 
-//             $showTime = ShowTime::create([
-//                 'calendar_show_id' => $calendarShow->id,
-//                 'room_id' => $request->room_id,
-//                 'start_time' => $startTime,
-//                 'end_time' => $endTime,
-//                 'status' => 'coming_soon',
-//                 'room_type_id' => $room->roomType->id,
-//             ]);
+    //             $showTime = ShowTime::create([
+    //                 'calendar_show_id' => $calendarShow->id,
+    //                 'room_id' => $request->room_id,
+    //                 'start_time' => $startTime,
+    //                 'end_time' => $endTime,
+    //                 'status' => 'coming_soon',
+    //                 'room_type_id' => $room->roomType->id,
+    //             ]);
 
-//             ShowTimeDate::create([
-//                 'show_time_id' => $showTime->id,
-//                 'show_date' => $startDate->toDateString(),
-//             ]);
+    //             ShowTimeDate::create([
+    //                 'show_time_id' => $showTime->id,
+    //                 'show_date' => $startDate->toDateString(),
+    //             ]);
 
-//             $seats = Seat::where('room_id', $request->room_id)->get();
-//             foreach ($seats as $seat) {
-//                 ShowTimeSeat::create([
-//                     'seat_id' => $seat->id,
-//                     'show_time_id' => $showTime->id,
-//                     'seat_status' => 'available',
-//                 ]);
-//             }
-//         }
-//         $startDate->addDay();
-//     }
-// }
+    //             $seats = Seat::where('room_id', $request->room_id)->get();
+    //             foreach ($seats as $seat) {
+    //                 ShowTimeSeat::create([
+    //                     'seat_id' => $seat->id,
+    //                     'show_time_id' => $showTime->id,
+    //                     'seat_status' => 'available',
+    //                 ]);
+    //             }
+    //         }
+    //         $startDate->addDay();
+    //     }
+    // }
 
 
     /**
@@ -141,43 +141,43 @@ class CalendarShowController extends Controller
      */
 
     public function publish(Request $request, string $id)
-{
-    // Tìm lịch chiếu theo ID
-    $calendarShow = CalendarShow::find($id);
+    {
+        // Tìm lịch chiếu theo ID
+        $calendarShow = CalendarShow::find($id);
 
-    if (!$calendarShow) {
-        return response()->json(['message' => 'Không tìm thấy lịch chiếu'], 404);
+        if (!$calendarShow) {
+            return response()->json(['message' => 'Không tìm thấy lịch chiếu'], 404);
+        }
+
+        // Validate dữ liệu đầu vào
+        $validator = Validator::make($request->all(), [
+            'is_public' => 'required|boolean', // Yêu cầu is_public là true hoặc false
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Lấy giá trị is_public từ request
+        $isPublic = filter_var($request->input('is_public'), FILTER_VALIDATE_BOOLEAN);
+
+        // Cập nhật trạng thái is_public
+        $calendarShow->update(['is_public' => $isPublic]);
+
+        // Kiểm tra và cập nhật trạng thái phim nếu cần
+        $movie = Movies::find($calendarShow->movie_id);
+        if ($movie && $movie->movie_status === 'coming_soon' && $isPublic && Carbon::parse($calendarShow->show_date)->lte(Carbon::today())) {
+            $movie->update(['movie_status' => 'now_showing']);
+        }
+
+        // Tải lại dữ liệu liên quan
+        $calendarShow->load('showTimes');
+
+        return response()->json([
+            'message' => $calendarShow->is_public ? 'Lịch chiếu đã được áp dụng' : 'Lịch chiếu đã được gỡ',
+            'data' => $calendarShow
+        ], 200);
     }
-
-    // Validate dữ liệu đầu vào
-    $validator = Validator::make($request->all(), [
-        'is_public' => 'required|boolean', // Yêu cầu is_public là true hoặc false
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['error' => $validator->errors()], 422);
-    }
-
-    // Lấy giá trị is_public từ request
-    $isPublic = filter_var($request->input('is_public'), FILTER_VALIDATE_BOOLEAN);
-
-    // Cập nhật trạng thái is_public
-    $calendarShow->update(['is_public' => $isPublic]);
-
-    // Kiểm tra và cập nhật trạng thái phim nếu cần
-    $movie = Movies::find($calendarShow->movie_id);
-    if ($movie && $movie->movie_status === 'coming_soon' && $isPublic && Carbon::parse($calendarShow->show_date)->lte(Carbon::today())) {
-        $movie->update(['movie_status' => 'now_showing']);
-    }
-
-    // Tải lại dữ liệu liên quan
-    $calendarShow->load('showTimes');
-
-    return response()->json([
-        'message' => $calendarShow->is_public ? 'Lịch chiếu đã được áp dụng' : 'Lịch chiếu đã được gỡ',
-        'data' => $calendarShow
-    ], 200);
-}
 
 
     /**

@@ -1,29 +1,37 @@
+import React from "react";
+import { Image } from "antd";
 import { Link } from "react-router-dom";
-import clsx from "clsx";
-import styles from "./InfomationProduct.module.css";
-import { URL_IMAGE } from "../../../config/ApiConfig";
-const InfomationProduct = ({
-  className,
-  image,
-  category,
-  date,
-  title,
-}: any) => {
-  return (
-    <Link className={clsx(styles.infomationProduct, className)} to={"....."}>
-      <div className={clsx(styles.infoThumnail)}>
-        <img
-          className={clsx(styles.productImage)}
-          src={`${URL_IMAGE}${image}`}
-        ></img>
-      </div>
-      <div className={clsx(styles.type)}>
-        <h5 className={clsx(styles.category)}>{category}</h5>
-        <span className={clsx(styles.date)}>{date} </span>
-      </div>
-      <h4 className={clsx(styles.title, styles.cliptext)}>{title}</h4>
-    </Link>
-  );
+import "./InfomationProduct.css";
+
+interface InfomationProductProps {
+    className?: string;
+    id: number;
+    image: string;
+    category: string;
+    created_at: string;
+    title: string;
+}
+
+const InfomationProduct: React.FC<InfomationProductProps> = ({
+    className = "",
+    id,
+    image,
+    category,
+    created_at,
+    title,
+}) => {
+    return (
+        <Link className={`infomationProduct ${className}`} to={`/article/${id}`}>
+            <div className="info-thumnail">
+                <img className="product-image" src={image} alt={title} />
+            </div>
+            <div className="type">
+                <h5 className="category">{category}</h5>
+                <span className="date">{new Date(created_at).toLocaleDateString('vi-VN')}</span>
+            </div>
+            <h4 className="title cliptext">{title}</h4>
+        </Link>
+    );
 };
 
 export default InfomationProduct;

@@ -1,16 +1,15 @@
-import clsx from "clsx";
-import styles from "../TitleMenu/TitleMenu.module.css";
+import React from "react";
+
 const FIlmRanking = () => {
-  return (
-    <div className={clsx("main-base")}>
-      <div className={clsx(styles.ranking)}>
-        <div className={clsx(styles.title)}>
-          <h1 className={clsx(styles.subVn)}>Thông tin</h1>
-          <h1 className={clsx(styles.subEn)}>Information</h1>
+    return (
+        <div className="ranking">
+            <div className="title">
+                <h1 className="sub-vn">Thông tin</h1>
+                <h1 className="sub-en">Information</h1>
+            </div>
+            <div className="main"></div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default FIlmRanking;

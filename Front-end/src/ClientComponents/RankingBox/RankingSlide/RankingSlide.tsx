@@ -1,164 +1,114 @@
-import { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
-  faChevronLeft,
-  faChevronRight,
-  faTrophy,
+    faChevronLeft,
+    faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RankingProduct from "../RankingProduct/RankingProduct";
-import clsx from "clsx";
-import {
-  fetchMoviesRanking,
-  MovieRanking,
-} from "../../../services/FilmRanking.service";
+import "./RankingSlide.css";
 
-import styles from "./RankingSlide.module.css";
-import { URL_IMAGE } from "../../../config/ApiConfig";
+interface Movie {
+    id: number;
+    title: string;
+    poster_url: string;
+    ticket_count?: number;
+}
+
+interface Product {
+    id: number;
+    name: string;
+    img: string;
+}
 
 const RankingSlide = () => {
-  const [movies, setMovies] = useState<MovieRanking[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [index, setIndex] = useState(0);
+    const visibleItems = 3;
+    const listRef = useRef(null);
 
-  // Gọi API lấy dữ liệu xếp hạng phim khi component được mount
-  useEffect(() => {
-    const getMoviesRanking = async () => {
-      try {
-        setLoading(true);
-        const response = await fetchMoviesRanking();
-        if (response && response.data) {
-          // Thêm một placeholder cho movie_id nếu không có
-          const moviesWithFallbackId = response.data.map(
-            (movie: MovieRanking) => ({
-              ...movie,
-              // Nếu không có movie_id, sử dụng undefined
-              movie_id: movie.movie_id || undefined,
-            })
-          );
-          setMovies(moviesWithFallbackId);
+    useEffect(() => {
+        const fetchRankingMovies = async () => {
+            try {
+                // Thử lấy danh sách phim từ API movies-index trước
+                const response = await fetch('http://localhost:8000/api/movies-index');
+                const data = await response.json();
+                
+                // Kiểm tra xem có dữ liệu phim đang chiếu không
+                if (data && data.now_showing && Array.isArray(data.now_showing)) {
+                    // Chuyển đổi dữ liệu sang định dạng Product
+                    const mappedProducts = data.now_showing.map((movie: Movie) => ({
+                        id: movie.id,
+                        name: movie.title,
+                        img: movie.poster_url
+                    }));
+                    
+                    // Cập nhật state với danh sách phim
+                    setProducts(mappedProducts);
+                } else {
+                    console.error("Không có dữ liệu phim hợp lệ");
+                    setProducts([]); // Set mảng rỗng nếu không có dữ liệu
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu phim:", error);
+                setProducts([]); // Set mảng rỗng khi có lỗi
+            }
+        };
+
+        fetchRankingMovies();
+    }, []);
+
+    const handleNext = () => {
+        if (index + visibleItems < products.length) {
+            setIndex(index + visibleItems);
         }
-        setLoading(false);
-      } catch (err) {
-        console.error("Lỗi khi lấy dữ liệu xếp hạng phim:", err);
-        setError("Không thể tải dữ liệu xếp hạng phim");
-        setLoading(false);
-      }
     };
 
-    getMoviesRanking();
-  }, []);
+    const handlePrev = () => {
+        if (index + visibleItems >= 0) {
+            setIndex(index - visibleItems);
+        }
+    };
 
-  const [index, setIndex] = useState(0);
-  const visibleItems = 3;
-  const listRef = useRef(null);
-
-  const handleNext = () => {
-    if (index + visibleItems < movies.length) {
-      setIndex(index + visibleItems);
-    }
-  };
-
-  const handlePrev = () => {
-    if (index - visibleItems >= 0) {
-      setIndex(index - visibleItems);
-    } else {
-      setIndex(0);
-    }
-  };
-
-  // Hiển thị thông báo loading
-  if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loading}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Đang tải dữ liệu xếp hạng phim...</p>
+        <div>
+            <div className="carousel-container">
+                <button
+                    className="prev-btn"
+                    onClick={handlePrev}
+                    disabled={index === 0}
+                >
+                    <FontAwesomeIcon icon={faChevronLeft} />
+                </button>
+                <div className="carousel-wrapper">
+                    <div
+                        className="carousel-list"
+                        ref={listRef}
+                        style={{
+                            transform: `translateX(-${index * (310 + 75)}px)`,
+                        }}
+                    >
+                        {products.map((product, index) => (
+                            <RankingProduct
+                                key={product.id}
+                                className="carousel-item"
+                                number={index + 1}
+                                name={product.name}
+                                image={product.img}
+                                id={product.id}
+                            ></RankingProduct>
+                        ))}
+                    </div>
+                </div>
+                <button
+                    className="next-btn"
+                    onClick={handleNext}
+                    disabled={index + visibleItems >= products.length}
+                >
+                    <FontAwesomeIcon icon={faChevronRight} />
+                </button>
+            </div>
         </div>
-      </div>
     );
-  }
-
-  // Hiển thị thông báo lỗi
-  if (error) {
-    return (
-      <div className={styles.errorContainer}>
-        <div className={styles.error}>
-          <p>{error}</p>
-          <button
-            className={styles.retryButton}
-            onClick={() => window.location.reload()}
-          >
-            Thử lại
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Hiển thị thông báo khi không có dữ liệu
-  if (movies.length === 0) {
-    return (
-      <div className={styles.emptyContainer}>
-        <div className={styles.empty}>
-          <p>Chưa có dữ liệu xếp hạng phim</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Hiển thị danh sách xếp hạng phim
-  return (
-    <div>
-      <div className={clsx(styles.rankingHeader)}>
-        {/* <h2 className={styles.rankingTitle}>
-          <FontAwesomeIcon icon={faTrophy} className={styles.trophyIcon} />
-          Xếp hạng phim tháng {movies[0]?.month_year || ""}
-        </h2> */}
-      </div>
-      <div className={clsx(styles.carouselContainer)}>
-        <button
-          className={clsx(styles.prevBtn)}
-          onClick={handlePrev}
-          disabled={index === 0}
-        >
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </button>
-        <div className={clsx(styles.carouselWrapper)}>
-          <div
-            className={clsx(styles.carouselList)}
-            ref={listRef}
-            style={{
-              transform: `translateX(-${index * (310 + 75)}px)`,
-            }}
-          >
-            {movies.map((movie, idx) => (
-              <RankingProduct
-                key={idx}
-                className={clsx(
-                  styles.carouselItem,
-                  idx === 0 && styles.firstPlace,
-                  idx === 1 && styles.secondPlace,
-                  idx === 2 && styles.thirdPlace
-                )}
-                number={idx + 1}
-                name={movie.movie_title}
-                tickets={movie.total_tickets}
-                movieId={movie.movie_id}
-                image={`${URL_IMAGE}${movie.poster}`}
-              />
-            ))}
-          </div>
-        </div>
-        <button
-          className={clsx(styles.nextBtn)}
-          onClick={handleNext}
-          disabled={index + visibleItems >= movies.length}
-        >
-          <FontAwesomeIcon icon={faChevronRight} />
-        </button>
-      </div>
-    </div>
-  );
 };
 
 export default RankingSlide;

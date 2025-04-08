@@ -6,22 +6,23 @@
     margin-top: 40px;
 }
 
-.productInfo {
+.product-info {
     width: 100%;
 }
 
-:global(.productInfo:nth-child(4n + 1)) {
+.product-info:nth-child(4n + 1) {
     justify-self: start;
 }
 
-:global(.productInfo:nth-child(4n)) {
+.product-info:nth-child(4n) {
     justify-self: end;
 }
 
 .hidden {
     display: none !important;
 }
-.showBoreBtn {
+
+.infomationSlide .show-more-btn {
     grid-column: span 4;
     width: 120px;
     padding: 10px;

@@ -178,7 +178,6 @@ const FilterComingCinema = ({
           { value: "Mới nhất", label: "Mới nhất" },
           { value: "Phổ biến", label: "Phổ biến" },
         ]}
-        loading={isLoading}
       />
       <Select
         className={clsx(styles.selectOption)}
@@ -194,7 +193,6 @@ const FilterComingCinema = ({
           { value: "Hoạt hình", label: "Hoạt hình" },
           { value: "Bí ẩn", label: "Bí ẩn" },
         ]}
-        loading={isLoading}
       />
       <Select
         className={clsx(styles.selectOption)}
@@ -207,14 +205,12 @@ const FilterComingCinema = ({
             label: `Năm ${year}`,
           })),
         ]}
-        loading={isLoading}
       />
       <Select
         className={clsx(styles.selectOption)}
         defaultValue="Tất cả"
         onChange={(value) => handleChange(value, "language")}
         options={[{ value: "Tất cả", label: "Tất cả ngôn ngữ" }, ...languages]}
-        loading={isLoading}
       />
     </div>
   );

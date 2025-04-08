@@ -19,15 +19,15 @@ class AuthController extends Controller
     {
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'name' => 'required|string|min:2|max:50',
+            'email' => 'required|string|email|min:5|max:255|unique:users',
             'password' => [
                 'required',
                 'string',
                 'confirmed',
                 'min:6',
                 'max:12',
-                'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{6,12}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
+                'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{8,20}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
                 'different:email', // Không trùng với email
             ],
             'phone' => 'required|string|min:10|max:15|unique:users',

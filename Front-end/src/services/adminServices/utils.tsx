@@ -1,7 +1,7 @@
 import axios from "axios";
 import { message } from "antd";
 
-// tạo hàm lấy message lỗi gửi về của BE khi api lỗi
+// hàm lấy message lỗi gửi về của BE khi api lỗi
 export const handleApiError = (error: unknown) => {
     let errorMessage = "Có lỗi xảy ra!";
     if (axios.isAxiosError(error)) {

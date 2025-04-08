@@ -391,7 +391,9 @@ const AddFilm = () => {
                 </Form>
                 <AddSubValue
                     selectedFile={selectedFile}
+                    setSelectedFile={setSelectedFile}
                     preview={preview}
+                    setPrevie={setPreview}
                 ></AddSubValue>
             </div>
 

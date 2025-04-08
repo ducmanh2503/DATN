@@ -22,6 +22,7 @@ import RefreshBtn from "../RefreshBtn/RefreshBtn";
 import {
     useCalendarManage,
     useDeleteCalendar,
+    usePublishCalendarShowtime,
 } from "../../../services/adminServices/calendarManage.service";
 
 type DataIndex = keyof DataTypeGenresActorsDirectors;
@@ -36,6 +37,7 @@ const CalendarManage: React.FC = () => {
     const [activeFilterColumn, setActiveFilterColumn] = useState<
         DataIndex | string[] | null
     >(null);
+    const [refresh, setRefresh] = useState(false);
 
     const handleSearch = (
         selectedKeys: string[],
@@ -173,6 +175,16 @@ const CalendarManage: React.FC = () => {
 
     const { mutate: deleteCalendar } = useDeleteCalendar(messageApi); // xóa lịch chiếu
 
+    const { mutate: publishCalendar } = usePublishCalendarShowtime(messageApi);
+
+    const handleChangeStatus = (item: any) => {
+        publishCalendar({
+            id: item.id,
+            formData: { is_public: !item.is_public },
+        });
+        setRefresh((prev) => !prev);
+    };
+
     return (
         <div>
             <AddCalendar></AddCalendar>
@@ -245,22 +257,48 @@ const CalendarManage: React.FC = () => {
                         render={(
                             _: any,
                             record: DataTypeGenresActorsDirectors
-                        ) => (
-                            <Space size="middle">
-                                <Popconfirm
-                                    title="Xóa lịch chiếu phim này?"
-                                    description="Bạn có chắc chắn muốn xóa không?"
-                                    okText="Yes"
-                                    onConfirm={() => deleteCalendar(record.id)}
-                                    cancelText="No"
-                                >
-                                    <Button type="primary" danger>
-                                        <DeleteOutlined /> Xóa
+                        ) => {
+                            console.log(record);
+
+                            return (
+                                <Space size="middle">
+                                    <Popconfirm
+                                        title="Xóa lịch chiếu phim này?"
+                                        description="Bạn có chắc chắn muốn xóa không?"
+                                        okText="Yes"
+                                        onConfirm={() =>
+                                            deleteCalendar(record.id)
+                                        }
+                                        cancelText="No"
+                                    >
+                                        <Button type="primary" danger>
+                                            <DeleteOutlined /> Xóa
+                                        </Button>
+                                    </Popconfirm>
+                                    <EditCalendar id={record.id}></EditCalendar>
+                                    <Button
+                                        onClick={() =>
+                                            handleChangeStatus(record)
+                                        }
+                                        style={{
+                                            backgroundColor: record.is_public
+                                                ? "#722ED1"
+                                                : undefined,
+                                            color: record.is_public
+                                                ? "#fff"
+                                                : undefined,
+                                            borderColor: record.is_public
+                                                ? "#722ED1"
+                                                : undefined,
+                                        }}
+                                    >
+                                        {record.is_public
+                                            ? "Published"
+                                            : "Publish"}
                                     </Button>
-                                </Popconfirm>
-                                <EditCalendar id={record.id}></EditCalendar>
-                            </Space>
-                        )}
+                                </Space>
+                            );
+                        }}
                     />
                 </Table>
             </Skeleton>

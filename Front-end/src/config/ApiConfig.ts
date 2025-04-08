@@ -26,6 +26,8 @@ const CREATE_CALENDAR = `${BASE_URL}/calendarShow`;
 const DELETE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const UPDATE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const DETAIL_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
+const ON_PUBLISH_CALENDARSHOW = (canlendarId: number) =>
+    `${BASE_URL}/calendarShow/${canlendarId}/publish`; // thực hiện render ra ngoài client
 
 const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/by-date`; // tìm kiếm suất chiếu qua ngày và phòng chiếu
 const UPDATE_SHOWTIMES = `${BASE_URL}/showTime`;
@@ -34,6 +36,8 @@ const DELETE_ONE_SHOWTIMES = (id: number, selected_date: string) =>
 const GET_DETAIL_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // chi tiết suất chiếu
 const UPDATE_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // cập nhật suất chiếu
 const GET_DATES_BY_CALENDAR = `${BASE_URL}/show-times/get-date-range-by-calendar`; // lấy những ngày trong lịch chiếu
+const GET_SHOWTIMES_BY_FILM = (movie_id: number) =>
+    `${BASE_URL}/showtimes/movie/${movie_id}`; // lấy danh sách suất chiếu của 1 phim
 
 const GET_ROOMS = `${BASE_URL}/room`; // lấy danh sách phòng chiếu
 const GET_ONE_ROOM = (id: string | number) => `${BASE_URL}/room/${id}`; // lấy chi tiết 1 phòng chiếu
@@ -141,7 +145,7 @@ export {
     CREATE_CALENDAR,
     UPDATE_CALENDAR,
     DETAIL_CALENDAR,
-    // GET_ALL_SHOWTIMES,
+    ON_PUBLISH_CALENDARSHOW,
     UPDATE_SHOWTIMES,
     DELETE_ONE_SHOWTIMES,
     GET_DETAIL_ONE_SHOWTIMES,
@@ -177,4 +181,5 @@ export {
     UPDATE_SEAT_STATUS,
     HOLD_SEAT,
     TICKET_DETAIL,
+    GET_SHOWTIMES_BY_FILM,
 };

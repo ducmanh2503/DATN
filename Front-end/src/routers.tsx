@@ -1,8 +1,8 @@
 import {
-    createBrowserRouter,
-    Navigate,
-    Outlet,
-    useNavigate,
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  useNavigate,
 } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -46,246 +46,247 @@ import AdminStaffRoute from "./components/AdminStaffRoute";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CheckinManage from "./page/admin/CheckInOut/CheckinManage";
+import SliderPage from "./page/admin/Slider/SliderPage";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
 
 // Component hiển thị khi đang tải
 const LoadingComponent = () => (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100vh",
+      flexDirection: "column",
+    }}
+  >
+    <div style={{ fontSize: "20px", marginBottom: "10px" }}>Đang tải...</div>
     <div
-        style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-            flexDirection: "column",
-        }}
-    >
-        <div style={{ fontSize: "20px", marginBottom: "10px" }}>
-            Đang tải...
-        </div>
-        <div
-            style={{
-                width: "50px",
-                height: "50px",
-                border: "5px solid #f3f3f3",
-                borderTop: "5px solid #3498db",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-            }}
-        ></div>
-        <style>{`
+      style={{
+        width: "50px",
+        height: "50px",
+        border: "5px solid #f3f3f3",
+        borderTop: "5px solid #3498db",
+        borderRadius: "50%",
+        animation: "spin 1s linear infinite",
+      }}
+    ></div>
+    <style>{`
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
     `}</style>
-    </div>
+  </div>
 );
 
 // Route công khai cho các trang không yêu cầu đăng nhập
 const PublicRoute = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(
-        null
-    );
-    const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const authStatus = authService.isAuthenticated();
-                setIsAuthenticated(authStatus);
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const authStatus = authService.isAuthenticated();
+        setIsAuthenticated(authStatus);
 
-                if (authStatus) {
-                    const userRole = authService.getRole();
-                    const redirectUrl = userRole === "admin" ? "/admin" : "/";
-                    navigate(redirectUrl, { replace: true });
-                }
-            } catch (error) {
-                console.error("Lỗi kiểm tra auth:", error);
-                setIsAuthenticated(false);
-            } finally {
-                setLoading(false);
-            }
-        };
+        if (authStatus) {
+          const userRole = authService.getRole();
+          const redirectUrl = userRole === "admin" ? "/admin" : "/";
+          navigate(redirectUrl, { replace: true });
+        }
+      } catch (error) {
+        console.error("Lỗi kiểm tra auth:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        checkAuth();
-    }, [navigate]);
+    checkAuth();
+  }, [navigate]);
 
-    if (loading) {
-        return <LoadingComponent />;
-    }
+  if (loading) {
+    return <LoadingComponent />;
+  }
 
-    return !isAuthenticated ? <Outlet /> : null;
+  return !isAuthenticated ? <Outlet /> : null;
 };
 
 // Cấu hình router
 export const router = createBrowserRouter([
-    {
-        path: "/",
-        element: <Home />,
-    },
-    {
-        path: "/profile",
-        element: <UserProfile />,
-    },
-    {
-        path: "/playingFilm",
-        element: <PlayingFilm />,
-    },
-    {
-        path: "/comingFilm",
-        element: <ComingFilm />,
-    },
-    {
-        path: "/cinemaFilm",
-        element: <CinemaForest />,
-    },
-    {
-        path: "/filmDetail/:id",
-        element: <FilmDetail />,
-    },
-    {
-        path: "/booking/:id",
-        element: <Booking />,
+  {
+    path: "/",
+    element: <Home />,
+  },
+  {
+    path: "/profile",
+    element: <UserProfile />,
+  },
+  {
+    path: "/playingFilm",
+    element: <PlayingFilm />,
+  },
+  {
+    path: "/comingFilm",
+    element: <ComingFilm />,
+  },
+  {
+    path: "/cinemaFilm",
+    element: <CinemaForest />,
+  },
+  {
+    path: "/filmDetail/:id",
+    element: <FilmDetail />,
+  },
+  {
+    path: "/booking/:id",
+    element: <Booking />,
+    children: [
+      {
+        path: "payment-result",
+        element: <LayoutPaymentResult />,
+      },
+    ],
+  },
+  {
+    element: <PublicRoute />,
+    children: [
+      {
+        path: "/auth/login",
+        element: <Login />,
+      },
+      {
+        path: "/auth/register",
+        element: <Register />,
+      },
+      {
+        path: "/auth/forgot-password",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "/auth/google/callback",
+        element: <GoogleCallback />,
+      },
+    ],
+  },
+  {
+    element: <AdminStaffRoute />,
+    children: [
+      {
+        path: "/admin",
+        element: (
+          <>
+            <ToastContainer />
+            <AdminLayout />
+          </>
+        ),
         children: [
-            {
-                path: "payment-result",
-                element: <LayoutPaymentResult />,
-            },
+          {
+            index: true,
+            element: <Dashboard />,
+          },
+          { path: "dashboard", element: <Dashboard /> },
+          {
+            path: "dashboardFilm",
+            element: <DashBoardFilm />,
+          },
+          {
+            path: "film",
+            element: <FilmManage />,
+          },
+          {
+            path: "addFilm",
+            element: <AddFilm />,
+          },
+          {
+            path: "stoppedMovie",
+            element: <StoppedMovies />,
+          },
+          {
+            path: "calendarShow",
+            element: <CalendarManage />,
+          },
+          {
+            path: "showtimes",
+            element: <ShowtimesManage />,
+          },
+          {
+            path: "checkin",
+            element: <CheckinManage />,
+          },
+          {
+            path: "actors",
+            element: <ActorsManage />,
+          },
+          {
+            path: "directors",
+            element: <DirectorsManage />,
+          },
+          {
+            path: "genre",
+            element: <GenresManage />,
+          },
+          {
+            path: "rooms",
+            element: <RoomPage />,
+          },
+          {
+            path: "articlelist",
+            element: <ArticleList />,
+          },
+          {
+            path: "discount-code",
+            element: <DiscountManagement />,
+          },
+          {
+            path: "ticketsPrice",
+            element: <TicketsPrice></TicketsPrice>,
+          },
+          {
+            path: "orders",
+            element: <OrderList />,
+          },
+          {
+            path: "order/orderDetail",
+            element: <OrderDetail />,
+          },
+          {
+            path: "users",
+            element: <Userlist />,
+          },
+          {
+            path: "userpage/useradd",
+            element: <Useradd />,
+          },
+          {
+            path: "userpage/userdetail",
+            element: <UserDetail />,
+          },
+          {
+            path: "combo",
+            element: <Combo />,
+          },
+          {
+            path: "sliders",
+            element: <SliderPage />,
+          },
+          {
+            path: "profile",
+            element: <ProfilePage />,
+          },
         ],
-    },
-    {
-        element: <PublicRoute />,
-        children: [
-            {
-                path: "/auth/login",
-                element: <Login />,
-            },
-            {
-                path: "/auth/register",
-                element: <Register />,
-            },
-            {
-                path: "/auth/forgot-password",
-                element: <ForgotPassword />,
-            },
-            {
-                path: "/auth/google/callback",
-                element: <GoogleCallback />,
-            },
-        ],
-    },
-    {
-        element: <AdminStaffRoute />,
-        children: [
-            {
-                path: "/admin",
-                element: (
-                    <>
-                        <ToastContainer />
-                        <AdminLayout />
-                    </>
-                ),
-                children: [
-                    {
-                        index: true,
-                        element: <Dashboard />,
-                    },
-                    { path: "dashboard", element: <Dashboard /> },
-                    {
-                        path: "dashboardFilm",
-                        element: <DashBoardFilm />,
-                    },
-                    {
-                        path: "film",
-                        element: <FilmManage />,
-                    },
-                    {
-                        path: "addFilm",
-                        element: <AddFilm />,
-                    },
-                    {
-                        path: "stoppedMovie",
-                        element: <StoppedMovies />,
-                    },
-                    {
-                        path: "calendarShow",
-                        element: <CalendarManage />,
-                    },
-                    {
-                        path: "showtimes",
-                        element: <ShowtimesManage />,
-                    },
-                    {
-                        path: "checkin",
-                        element: <CheckinManage />,
-                    },
-                    {
-                        path: "actors",
-                        element: <ActorsManage />,
-                    },
-                    {
-                        path: "directors",
-                        element: <DirectorsManage />,
-                    },
-                    {
-                        path: "genre",
-                        element: <GenresManage />,
-                    },
-                    {
-                        path: "rooms",
-                        element: <RoomPage />,
-                    },
-                    {
-                        path: "articlelist",
-                        element: <ArticleList />,
-                    },
-                    {
-                        path: "discount-code",
-                        element: <DiscountManagement />,
-                    },
-                    {
-                        path: "ticketsPrice",
-                        element: <TicketsPrice></TicketsPrice>,
-                    },
-                    {
-                        path: "orders",
-                        element: <OrderList />,
-                    },
-                    {
-                        path: "order/orderDetail",
-                        element: <OrderDetail />,
-                    },
-                    {
-                        path: "users",
-                        element: <Userlist />,
-                    },
-                    {
-                        path: "userpage/useradd",
-                        element: <Useradd />,
-                    },
-                    {
-                        path: "userpage/userdetail",
-                        element: <UserDetail />,
-                    },
-                    {
-                        path: "combo",
-                        element: <Combo />,
-                    },
-                    {
-                        path: "profile",
-                        element: <ProfilePage />,
-                    },
-                ],
-            },
-        ],
-    },
-    {
-        path: "*",
-        element: <Navigate to="/" replace />,
-    },
+      },
+    ],
+  },
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
+  },
 ]);
 
 export default router;

@@ -34,7 +34,7 @@ class SliderController extends Controller
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('sliders', 'public');
-            $validated['image_path'] = $path;
+            $validated['image'] = $path;
         }
 
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
@@ -59,7 +59,7 @@ class SliderController extends Controller
         if ($request->hasFile('image')) {
             Storage::disk('public')->delete($slider->image_path);
             $path = $request->file('image')->store('sliders', 'public');
-            $validated['image_path'] = $path;
+            $validated['image'] = $path;
         }
 
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
@@ -76,31 +76,31 @@ class SliderController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy($id) // Thay Slider $slider bằng $id
-{
-    $slider = Slider::findOrFail($id); // Tìm slider theo ID
-    
-    Storage::disk('public')->delete($slider->image_path);
-    $slider->delete();
+    {
+        $slider = Slider::findOrFail($id); // Tìm slider theo ID
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Slider deleted successfully'
-    ], 204);
-}
+        Storage::disk('public')->delete($slider->image_path);
+        $slider->delete();
 
-public function getActiveSliders()
-{
-    $sliders = Slider::where('is_active', true)
-        ->get()
-        ->map(function ($slider) {
-            // Thêm full URL cho image_path
-            $slider->image_url = Storage::disk('public')->url($slider->image_path);
-            return $slider;
-        });
+        return response()->json([
+            'success' => true,
+            'message' => 'Slider deleted successfully'
+        ], 204);
+    }
 
-    return response()->json([
-        'success' => true,
-        'data' => $sliders
-    ]);
-}
+    public function getActiveSliders()
+    {
+        $sliders = Slider::where('is_active', true)
+            ->get()
+            ->map(function ($slider) {
+                // Thêm full URL cho image_path
+                $slider->image_url = Storage::disk('public')->url($slider->image_path);
+                return $slider;
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $sliders
+        ]);
+    }
 }

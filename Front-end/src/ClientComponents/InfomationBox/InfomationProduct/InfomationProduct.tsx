@@ -3,6 +3,9 @@ import { Image } from "antd";
 import { Link } from "react-router-dom";
 import "./InfomationProduct.css";
 
+// Định nghĩa URL_IMAGE
+const URL_IMAGE = 'http://localhost:8000';
+
 interface InfomationProductProps {
     className?: string;
     id: number;
@@ -23,7 +26,11 @@ const InfomationProduct: React.FC<InfomationProductProps> = ({
     return (
         <Link className={`infomationProduct ${className}`} to={`/article/${id}`}>
             <div className="info-thumnail">
-                <img className="product-image" src={image} alt={title} />
+                <img 
+                    className="product-image" 
+                    src={`${URL_IMAGE}${image}`} 
+                    alt={title} 
+                />
             </div>
             <div className="type">
                 <h5 className="category">{category}</h5>

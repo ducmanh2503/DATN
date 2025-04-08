@@ -46,6 +46,7 @@ import AdminStaffRoute from "./components/AdminStaffRoute";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CheckinManage from "./page/admin/CheckInOut/CheckinManage";
+import ArticleDetail from "./ClientComponents/ArticleDetail/ArticleDetail";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -145,6 +146,10 @@ export const router = createBrowserRouter([
     {
         path: "/filmDetail/:id",
         element: <FilmDetail />,
+    },
+    {
+        path: "/article/:id",
+        element: <ArticleDetail />,
     },
     {
         path: "/booking/:id",

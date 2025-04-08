@@ -11,16 +11,20 @@ import {
   message,
   Popconfirm,
   Image,
+  Tooltip,
+  Tag,
 } from "antd";
 import {
   UploadOutlined,
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
 } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import sliderService from "../../../services/slider.service";
-import { Slider, SliderFormData } from "../../../types/slider";
+import { Slider, SliderFormData } from "../../../types/slider.type";
 import styles from "../globalAdmin.module.css";
 
 const SliderPage: React.FC = () => {
@@ -30,6 +34,11 @@ const SliderPage: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
   // Lấy danh sách slider
   const fetchSliders = async () => {
@@ -37,6 +46,10 @@ const SliderPage: React.FC = () => {
     try {
       const data = await sliderService.getSliders();
       setSliders(data);
+      setPagination({
+        ...pagination,
+        total: data.length,
+      });
     } catch (error) {
       message.error("Không thể tải danh sách slider");
       console.error(error);
@@ -58,6 +71,18 @@ const SliderPage: React.FC = () => {
         title: slider.title,
         is_active: slider.is_active,
       });
+
+      // Hiển thị ảnh hiện tại khi sửa
+      if (slider.image_path) {
+        setFileList([
+          {
+            uid: "-1",
+            name: "Ảnh hiện tại",
+            status: "done",
+            url: `http://localhost:8000/storage/${slider.image_path}`,
+          } as UploadFile,
+        ]);
+      }
     } else {
       setEditingId(null);
       form.resetFields();
@@ -72,13 +97,90 @@ const SliderPage: React.FC = () => {
     setFileList([]);
   };
 
+  // Cấu hình upload hình ảnh
+  const uploadProps: UploadProps = {
+    onRemove: () => {
+      setFileList([]);
+    },
+    beforeUpload: (file) => {
+      // Kiểm tra kích thước file (giới hạn 2MB theo controller)
+      if (file.size > 2 * 1024 * 1024) {
+        message.error("Kích thước file không được vượt quá 2MB");
+        return Upload.LIST_IGNORE;
+      }
+      // Kiểm tra định dạng file
+      const isImage = file.type.startsWith("image/");
+      if (!isImage) {
+        message.error("Chỉ chấp nhận file hình ảnh");
+        return Upload.LIST_IGNORE;
+      }
+
+      // Tạo một file list mới với originFileObj được gán đúng
+      const newFile = new File([file], file.name, { type: file.type });
+      const uploadFile: UploadFile = {
+        uid: Math.random().toString(),
+        name: file.name,
+        status: "done",
+        originFileObj: file,
+        size: file.size,
+        type: file.type,
+      };
+
+      setFileList([uploadFile]);
+      return false;
+    },
+    customRequest: ({ file, onSuccess }) => {
+      // Custom upload implementation để giữ file trong state thay vì thực sự upload
+      setTimeout(() => {
+        onSuccess?.("ok");
+      }, 0);
+    },
+    fileList,
+  };
+
   // Xử lý lưu form
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+
+      // Kiểm tra xem có file hình ảnh không khi thêm mới
+      if (!editingId && fileList.length === 0) {
+        message.error("Vui lòng chọn hình ảnh cho slider");
+        return;
+      }
+
+      // Debug thông tin file
+      console.log("File list:", fileList);
+
+      let imageFile = null;
+      // Kiểm tra xem có phải là đang cập nhật slider không
+      if (editingId) {
+        // Kiểm tra xem người dùng có thay đổi ảnh không (kiểm tra originFileObj)
+        if (fileList.length > 0 && fileList[0].originFileObj) {
+          // Có thay đổi ảnh
+          imageFile = fileList[0].originFileObj;
+          console.log("Updating slider with new image:", imageFile);
+        } else {
+          // Không thay đổi ảnh, giữ nguyên ảnh cũ
+          console.log("Updating slider without changing image");
+          // Không cần gán imageFile, service sẽ giữ nguyên ảnh cũ
+        }
+      } else {
+        // Thêm mới slider, bắt buộc phải có ảnh
+        if (fileList.length > 0) {
+          if (fileList[0].originFileObj) {
+            imageFile = fileList[0].originFileObj;
+            console.log("Using originFileObj for new slider:", imageFile);
+          } else {
+            imageFile = fileList[0];
+            console.log("Using fileList item for new slider:", imageFile);
+          }
+        }
+      }
+
       const formData: SliderFormData = {
         title: values.title,
-        image: fileList.length > 0 ? (fileList[0].originFileObj as File) : null,
+        image: imageFile,
         is_active: values.is_active,
       };
 
@@ -88,19 +190,20 @@ const SliderPage: React.FC = () => {
         message.success("Cập nhật slider thành công");
       } else {
         // Thêm mới slider
-        if (!formData.image) {
-          message.error("Vui lòng chọn hình ảnh cho slider");
-          return;
-        }
         await sliderService.createSlider(formData);
         message.success("Thêm slider mới thành công");
       }
 
       handleCancel();
       fetchSliders();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Lỗi khi lưu slider:", error);
-      message.error("Lỗi khi lưu slider");
+      // Hiển thị thông báo lỗi cụ thể nếu có
+      if (error.message) {
+        message.error(error.message);
+      } else {
+        message.error("Lỗi khi lưu slider");
+      }
     }
   };
 
@@ -130,27 +233,11 @@ const SliderPage: React.FC = () => {
     }
   };
 
-  // Cấu hình upload hình ảnh
-  const uploadProps: UploadProps = {
-    onRemove: () => {
-      setFileList([]);
-    },
-    beforeUpload: (file) => {
-      // Kiểm tra kích thước file (giới hạn 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        message.error("Kích thước file không được vượt quá 5MB");
-        return Upload.LIST_IGNORE;
-      }
-      // Kiểm tra định dạng file
-      const isImage = file.type.startsWith("image/");
-      if (!isImage) {
-        message.error("Chỉ chấp nhận file hình ảnh");
-        return Upload.LIST_IGNORE;
-      }
-      setFileList([file as UploadFile]);
-      return false;
-    },
-    fileList,
+  // Xử lý thay đổi phân trang
+  const handleTableChange = (pagination: any) => {
+    setPagination({
+      ...pagination,
+    });
   };
 
   // Cấu hình bảng
@@ -172,11 +259,59 @@ const SliderPage: React.FC = () => {
       key: "image_path",
       render: (text: string) => (
         <Image
-          src={text}
+          src={`http://localhost:8000/storage/${text}`}
           width={200}
           height={80}
           style={{ objectFit: "cover" }}
+          alt="Slider"
         />
+      ),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "is_active",
+      key: "is_active",
+      render: (isActive: boolean) => (
+        <Tag color={isActive ? "green" : "red"}>
+          {isActive ? "Đang hiển thị" : "Bị ẩn"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Thao tác",
+      key: "action",
+      width: 200,
+      render: (_, record: Slider) => (
+        <Space size="middle">
+          <Tooltip title="Sửa">
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => showModal(record)}
+              size="small"
+            />
+          </Tooltip>
+          <Tooltip title={record.is_active ? "Ẩn" : "Hiển thị"}>
+            <Button
+              type={record.is_active ? "default" : "primary"}
+              icon={
+                record.is_active ? <EyeInvisibleOutlined /> : <EyeOutlined />
+              }
+              onClick={() => handleToggleActive(record.id, !record.is_active)}
+              size="small"
+            />
+          </Tooltip>
+          <Tooltip title="Xóa">
+            <Popconfirm
+              title="Bạn có chắc chắn muốn xóa slider này?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Xóa"
+              cancelText="Hủy"
+            >
+              <Button danger icon={<DeleteOutlined />} size="small" />
+            </Popconfirm>
+          </Tooltip>
+        </Space>
       ),
     },
   ];
@@ -199,6 +334,8 @@ const SliderPage: React.FC = () => {
         dataSource={sliders}
         rowKey="id"
         loading={loading}
+        pagination={pagination}
+        onChange={handleTableChange}
       />
 
       <Modal
@@ -227,9 +364,21 @@ const SliderPage: React.FC = () => {
                 message: "Vui lòng chọn hình ảnh!",
               },
             ]}
+            extra={
+              editingId
+                ? "Bạn có thể giữ nguyên ảnh hiện tại hoặc chọn ảnh mới"
+                : undefined
+            }
           >
-            <Upload {...uploadProps} maxCount={1} listType="picture">
-              <Button icon={<UploadOutlined />}>Chọn hình ảnh</Button>
+            <Upload
+              {...uploadProps}
+              maxCount={1}
+              listType="picture"
+              accept="image/*"
+            >
+              <Button icon={<UploadOutlined />}>
+                {editingId ? "Chọn ảnh mới (không bắt buộc)" : "Chọn hình ảnh"}
+              </Button>
             </Upload>
           </Form.Item>
 

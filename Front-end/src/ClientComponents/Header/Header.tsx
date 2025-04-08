@@ -181,9 +181,10 @@ const Header: React.FC = () => {
             </div>
           </div>
         </div>
-        <div
-          className={clsx(styles.logoSearch, styles.flex, styles.justifyEnd)}
-        >
+        <div className={clsx(styles.logoSearch, styles.flex)}>
+          <Link className={clsx(styles.logo)} to="/">
+            Logo
+          </Link>
           <div className={styles.searchContainer} ref={searchRef}>
             <Search
               className={clsx(styles.sreach)}
@@ -237,9 +238,6 @@ const Header: React.FC = () => {
               </div>
             )}
           </div>
-          <Link className={clsx(styles.logo)} to="/">
-            Logo
-          </Link>
         </div>
       </header>
     </div>

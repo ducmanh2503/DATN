@@ -34,7 +34,7 @@ class SliderController extends Controller
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('sliders', 'public');
-            $validated['image'] = $path;
+            $validated['image_path'] = $path;
         }
 
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
@@ -59,7 +59,7 @@ class SliderController extends Controller
         if ($request->hasFile('image')) {
             Storage::disk('public')->delete($slider->image_path);
             $path = $request->file('image')->store('sliders', 'public');
-            $validated['image'] = $path;
+            $validated['image_path'] = $path;
         }
 
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;

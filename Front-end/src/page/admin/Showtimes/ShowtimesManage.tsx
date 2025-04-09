@@ -17,6 +17,7 @@ import {
 import SearchByRoomAndDateForm from "./FormRoomAndDate";
 import SearchByFilmForm from "./FormFilmId";
 import ShowtimesByFilmId from "./ShowtimesByFilmId";
+import { handleApiError } from "../../../services/adminServices/utils";
 
 const contentStyle: React.CSSProperties = {
     paddingTop: 100,
@@ -29,6 +30,7 @@ const ShowtimesManage: React.FC = () => {
     const [formFilmId] = useForm();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingFilmId, setIsLoadingFilmId] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [selectedFilmId, setSelectedFilmId] = useState<number | null>(null);
@@ -99,7 +101,7 @@ const ShowtimesManage: React.FC = () => {
     });
 
     // lấy danh sách phòng
-    const { rooms, seatTypes } = useGetRooms();
+    const { rooms, isRoomsLoading, seatTypes } = useGetRooms();
 
     // lấy danh sách phim
     const { data: listFilms, isLoading: loadingFilms } = useFilmManage();
@@ -114,16 +116,24 @@ const ShowtimesManage: React.FC = () => {
 
     // xử lý  khi submit
     const onFinishFilmId = (formData: any) => {
+        setIsLoadingFilmId(true);
         setIsSearchedFilmId(true);
         setIsSearchedDateandRoom(false);
-        setSearchedFilmId(
-            listFilms.find((film: any) => film.id === selectedFilmId)?.title
-        );
+
+        const filmTitle = listFilms.find(
+            (film: any) => film.id === selectedFilmId
+        )?.title;
+        setSearchedFilmId(filmTitle || "");
+
         getShowtimesByFilmId(selectedFilmId as number, {
             onSuccess: (data) => {
                 console.log("check-data", data);
-
-                setDataByFilmId(data);
+                setDataByFilmId(data || []);
+                setIsLoadingFilmId(false);
+            },
+            onError: () => {
+                setDataByFilmId([]);
+                setIsLoadingFilmId(false);
             },
         });
         formRoomDate.resetFields();
@@ -137,11 +147,12 @@ const ShowtimesManage: React.FC = () => {
     };
 
     return (
-        <div style={{ minHeight: "100vh" }}>
+        <div style={{ minHeight: "1500px" }}>
             <div className={clsx(styles.flexbox)}>
                 <SearchByRoomAndDateForm
                     form={formRoomDate}
                     rooms={rooms}
+                    isRoomsLoading={isRoomsLoading}
                     onFinish={onFinishDateandRoom}
                     onRoomChange={handleRoomChange}
                     onDateChange={handleDateChange}
@@ -170,7 +181,7 @@ const ShowtimesManage: React.FC = () => {
                     fetchShowtimes={fetchShowtimes}
                 ></AddShowtimes>
             </div>
-            {isLoading ? (
+            {isLoading || isLoadingFilmId ? (
                 <Spin tip="Loading">{content}</Spin>
             ) : isSearchedFilmId ? (
                 dataByFilmId?.length ? (

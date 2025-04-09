@@ -34,16 +34,13 @@ const SearchByFilmForm: React.FC<Props> = ({
                     placeholder="Chọn phim"
                     style={{ width: "220px" }}
                     onChange={onFilmChange}
+                    loading={isLoading}
                 >
-                    {isLoading ? (
-                        <Spin tip="Loading" size="small" />
-                    ) : (
-                        films?.map((item: any) => (
-                            <Select.Option key={item.id} value={item.id}>
-                                {item.title}
-                            </Select.Option>
-                        ))
-                    )}
+                    {films?.map((item: any) => (
+                        <Select.Option key={item.id} value={item.id}>
+                            {item.title}
+                        </Select.Option>
+                    ))}
                 </Select>
             </Form.Item>
 

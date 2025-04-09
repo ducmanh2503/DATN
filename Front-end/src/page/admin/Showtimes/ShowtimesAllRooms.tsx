@@ -1,4 +1,4 @@
-import { Button, Space, Spin, Table, Tag } from "antd";
+import { Button, message, Space, Spin, Table, Tag } from "antd";
 import { RoomSHowtimesType } from "../../../types/interface";
 import DeleteShowtimes from "./DeleteShowtimes";
 import EditShowtimes from "./EditShowtimes";
@@ -15,6 +15,8 @@ const ShowtimesAllRooms = ({
 }: any) => {
     const [processedData, setProcessedData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [messageApi, contextHolder] = message.useMessage();
+
     useEffect(() => {
         if (showtimesData.length > 0) {
             setLoading(true);
@@ -151,6 +153,7 @@ const ShowtimesAllRooms = ({
                             id={record.id}
                             selectedDate={selectedDate}
                             setShowtimesData={setShowtimesData}
+                            messageApi={messageApi}
                         ></DeleteShowtimes>
                         <EditShowtimes
                             id={record.id}
@@ -164,6 +167,7 @@ const ShowtimesAllRooms = ({
     ];
     return (
         <div className={clsx(styles.roomBox)}>
+            {contextHolder}
             <h1 className={clsx(styles.roomName)}>
                 {processedData[0].room.name}
             </h1>

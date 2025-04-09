@@ -1,4 +1,4 @@
-import { Space, Table, Tag } from "antd";
+import { message, Space, Table, Tag } from "antd";
 import dayjs from "dayjs";
 import { RoomSHowtimesType } from "../../../types/interface";
 import DeleteShowtimes from "./DeleteShowtimes";
@@ -8,12 +8,17 @@ import { useEffect, useState } from "react";
 const ShowtimesByFilmId = ({ dataByFilmId, setDataByFilmId }: any) => {
     const [processedData, setProcessedData] = useState<any[]>([]);
 
+    const [messageApi, contextHolder] = message.useMessage();
+
     //Sắp xếp data theo ngày chiếu từ thấp đến cao
     useEffect(() => {
         if (dataByFilmId.length > 0) {
-            const sortedData = [...dataByFilmId].sort((a, b) =>
-                dayjs(a.show_date).isAfter(dayjs(b.show_date)) ? 1 : -1
-            );
+            const sortedData = [...dataByFilmId]
+                .filter((item: any) => item.show_date !== null)
+                .sort((a, b) =>
+                    dayjs(a.show_date).isAfter(dayjs(b.show_date)) ? 1 : -1
+                );
+
             setProcessedData(sortedData);
         }
     }, [dataByFilmId]);
@@ -96,6 +101,8 @@ const ShowtimesByFilmId = ({ dataByFilmId, setDataByFilmId }: any) => {
                         <DeleteShowtimes
                             id={record.id}
                             selectedDate={record.show_date}
+                            setDataByFilmId={setDataByFilmId}
+                            messageApi={messageApi}
                         ></DeleteShowtimes>
                         <EditShowtimes
                             id={record.id}
@@ -110,7 +117,12 @@ const ShowtimesByFilmId = ({ dataByFilmId, setDataByFilmId }: any) => {
 
     return (
         <div style={{ marginTop: "60px" }}>
-            <Table columns={columns} dataSource={processedData}></Table>
+            {contextHolder}
+            <Table
+                columns={columns}
+                dataSource={processedData}
+                rowKey="id"
+            ></Table>
         </div>
     );
 };

@@ -49,6 +49,7 @@ const EditShowtimes = ({
                 "YYYY-MM-DD"
             ),
         };
+        console.log("check-formatData", formattedData);
 
         mutate(formattedData, {
             onSuccess: async () => {

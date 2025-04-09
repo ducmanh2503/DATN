@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 interface Props {
     form: any;
     rooms: any[];
+    isRoomsLoading: boolean;
     onFinish: (formData: any) => void;
     onRoomChange: (value: string) => void;
     onDateChange: (date: dayjs.Dayjs | null) => void;
@@ -14,6 +15,7 @@ interface Props {
 const SearchByRoomAndDateForm: React.FC<Props> = ({
     form,
     rooms,
+    isRoomsLoading,
     onFinish,
     onRoomChange,
     onDateChange,
@@ -35,6 +37,7 @@ const SearchByRoomAndDateForm: React.FC<Props> = ({
                     placeholder="Phòng chiếu"
                     style={{ width: "120px" }}
                     onChange={onRoomChange}
+                    loading={isRoomsLoading}
                 >
                     {rooms?.map((item: any) => (
                         <Select.Option value={item.id} key={item.id}>

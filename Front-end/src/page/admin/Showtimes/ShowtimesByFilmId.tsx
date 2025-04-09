@@ -34,10 +34,10 @@ const ShowtimesByFilmId = ({ dataByFilmId, setDataByFilmId }: any) => {
         },
         {
             title: "Hình thức chiếu",
-            dataIndex: "room_type1",
-            key: "room_type1",
+            dataIndex: "room_type",
+            key: "room_type",
             render: (value: any, record: any) => {
-                return <span>{record?.room?.room_type}</span>;
+                return <span>{record?.room?.room_type?.name}</span>;
             },
         },
 

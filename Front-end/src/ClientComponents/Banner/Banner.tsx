@@ -2,13 +2,22 @@ import React, { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import "swiper/swiper-bundle.css";
+import axios from "axios";
 
 import "./banner.css";
 import { Image } from "antd";
 
+interface SliderItem {
+    id: number;
+    title: string;
+    image_path: string;
+    is_active: boolean;
+}
+
 const Banner = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [overlayWidth, setOverlayWidth] = useState(0);
+    const [sliders, setSliders] = useState<SliderItem[]>([]);
 
     const spaceBetween = 90; // Khớp với giá trị truyền vào Swiper
 
@@ -44,6 +53,40 @@ const Banner = () => {
         };
     }, []);
 
+    useEffect(() => {
+        // Lấy dữ liệu slider từ API
+        const fetchSliders = async () => {
+            try {
+                const response = await axios.get(
+                    "http://localhost:8000/api/active-sliders"
+                );
+                if (response.data && response.data.data) {
+                    setSliders(response.data.data);
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải slider:", error);
+            }
+        };
+
+        fetchSliders();
+    }, []);
+
+    // Render ảnh slide từ API hoặc fallback về text mặc định
+    const renderSlide = (index: number) => {
+        if (sliders.length > index) {
+            const slider = sliders[index];
+            return (
+                <img
+                    src={`http://localhost:8000/storage/${slider.image_path}`}
+                    alt={slider.title}
+                    width="100%"
+                    height="100%"
+                />
+            );
+        }
+        return `Slide ${index + 1}`;
+    };
+
     return (
         <div
             className="banner-box"
@@ -73,46 +116,25 @@ const Banner = () => {
                 modules={[Autoplay, Navigation, Pagination]}
             >
                 <SwiperSlide className="custom-slide">
-                    <img
-                        src="https://cdn.galaxycine.vn/media/2025/4/1/the-red-envelope-1_1743492961706.jpg"
-                        alt=""
-                    />
+                    {renderSlide(0)}
                 </SwiperSlide>
                 <SwiperSlide className="custom-slide">
-                    <img
-                        src="https://cdn.galaxycine.vn/media/2025/4/1/the-red-envelope-1_1743492961706.jpg"
-                        alt=""
-                    />
+                    {renderSlide(1)}
                 </SwiperSlide>
                 <SwiperSlide className="custom-slide">
-                    <img
-                        src="https://cdn.galaxycine.vn/media/2025/4/1/the-red-envelope-1_1743492961706.jpg"
-                        alt=""
-                    />
+                    {renderSlide(2)}
                 </SwiperSlide>
                 <SwiperSlide className="custom-slide">
-                    <img
-                        src="https://cdn.galaxycine.vn/media/2025/4/1/the-red-envelope-1_1743492961706.jpg"
-                        alt=""
-                    />
+                    {renderSlide(3)}
                 </SwiperSlide>
                 <SwiperSlide className="custom-slide">
-                    <img
-                        src="https://cdn.galaxycine.vn/media/2025/4/1/the-red-envelope-1_1743492961706.jpg"
-                        alt=""
-                    />
+                    {renderSlide(4)}
                 </SwiperSlide>
                 <SwiperSlide className="custom-slide">
-                    <img
-                        src="https://cdn.galaxycine.vn/media/2025/4/1/the-red-envelope-1_1743492961706.jpg"
-                        alt=""
-                    />
+                    {renderSlide(5)}
                 </SwiperSlide>
                 <SwiperSlide className="custom-slide">
-                    <img
-                        src="https://cdn.galaxycine.vn/media/2025/4/1/the-red-envelope-1_1743492961706.jpg"
-                        alt=""
-                    />
+                    {renderSlide(6)}
                 </SwiperSlide>
             </Swiper>
             <div className="promotion">

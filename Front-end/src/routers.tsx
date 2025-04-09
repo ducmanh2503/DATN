@@ -46,7 +46,7 @@ import AdminStaffRoute from "./components/AdminStaffRoute";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CheckinManage from "./page/admin/CheckInOut/CheckinManage";
-import Wheel from "./ClientComponents/Wheel/Wheel";
+import SliderPage from "./page/admin/Slider/SliderPage";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -157,11 +157,6 @@ export const router = createBrowserRouter([
             },
         ],
     },
-    {
-        path: "/check",
-        element: <Wheel />,
-    },
-
     {
         element: <PublicRoute />,
         children: [
@@ -279,6 +274,10 @@ export const router = createBrowserRouter([
                     {
                         path: "combo",
                         element: <Combo />,
+                    },
+                    {
+                        path: "sliders",
+                        element: <SliderPage />,
                     },
                     {
                         path: "profile",

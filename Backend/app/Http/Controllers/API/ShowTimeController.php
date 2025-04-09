@@ -416,7 +416,9 @@ class ShowTimeController extends Controller
                 'room' => [
                     'id' => $showTime->room->id ?? null,
                     'name' => $showTime->room->name ?? null,
-                    'room_type' => $showTime->room->roomType->name ?? null,
+                    'room_type' => [
+                        'name' => $showTime->room->roomType->name ?? null,
+                    ],
                 ],
                 'show_date' => $showTime->showTimeDate->first()->show_date ?? null,
             ];

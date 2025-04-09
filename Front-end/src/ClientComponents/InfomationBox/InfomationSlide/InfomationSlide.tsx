@@ -38,7 +38,7 @@ const InfomationSlide: React.FC<InfomationSlideProps> = ({ articles = [], loadin
                             index >= 8 && !showMore ? "hidden" : ""
                         }`}
                         id={article.id}
-                        image={article.image && article.image.startsWith('/storage') ? `${API_URL}${article.image}` : article.image}
+                        image={article.image && article.image.startsWith('/storage') ? `${article.image}` : article.image}
                         category={article.category}
                         created_at={article.created_at}
                         title={article.title}

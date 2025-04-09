@@ -101,9 +101,7 @@ const ArticleDetail: React.FC = () => {
                                 <span className="article-date">
                                     <i className="fas fa-calendar-alt"></i> {new Date(article.created_at).toLocaleDateString('vi-VN')}
                                 </span>
-                                <span className="article-views">
-                                    <i className="fas fa-eye"></i> {article.view} lượt xem
-                                </span>
+                               
                             </div>
                         </div>
 

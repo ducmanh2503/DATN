@@ -49,147 +49,152 @@ class BookingConfirmation extends Mailable
     }
 
     protected function buildEmailContent(): string
-{
-    $seats = implode(', ', array_map(function ($seat) {
-        return "{$seat['row']}{$seat['column']} ({$seat['seat_type']})";
-    }, $this->ticketDetails['seats']->toArray()));
+    {
+        $seats = implode(', ', array_map(function ($seat) {
+            return "{$seat['row']}{$seat['column']} ({$seat['seat_type']})";
+        }, $this->ticketDetails['seats']->toArray()));
 
-    $combos = '';
-    if (!empty($this->ticketDetails['combos'])) {
-        $combos = implode(', ', array_map(function ($combo) {
-            return "{$combo['display']} - " . number_format($combo['price'], 0, ',', '.') . " VNĐ";
-        }, $this->ticketDetails['combos']->toArray()));
+        $combos = '';
+        if (!empty($this->ticketDetails['combos'])) {
+            $combos = implode(', ', array_map(function ($combo) {
+                return "{$combo['display']} - " . number_format($combo['price'], 0, ',', '.') . " VNĐ";
+            }, $this->ticketDetails['combos']->toArray()));
+        }
+        $comboDisplay = $combos ? $combos : 'Không có';
+
+        $qrData = "Mã đặt vé: {$this->booking->id}\n" .
+            "Phim: {$this->ticketDetails['movie']['title']}\n" .
+            "Ngày chiếu: {$this->ticketDetails['show_date']}\n" .
+            "Giờ chiếu: {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}\n" .
+            "Phòng: {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})\n" .
+            "Ghế: {$seats}";
+
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);
+        $qrCode = base64_encode(file_get_contents($qrUrl));
+        Log::info('QR Code Base64 (Mail): ' . $qrCode);
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vé xem phim</title>
+</head>
+<body style="font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; text-align: center;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; background: #c0392b; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+        <tr>
+            <!-- Phần bên trái -->
+            <td style="background: #c0392b; color: #fff; padding: 20px; vertical-align: top; width: 70%;">
+                <table border="0" cellpadding="0" cellspacing="0" style="width: 100%;">
+                    <tr>
+                        <td style="text-align: left; font-size: 24px; font-weight: bold; color: #fff;">
+                            Movie<span style="color: #1e3a8a;">Forrest</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 60px; text-align: center; padding: 20px 0;">
+                            🎥
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 28px; text-align: center; text-transform: uppercase; letter-spacing: 2px; color: #fff;">
+                            Cinema Ticket
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 20px 0;">
+                            <table border="0" cellpadding="5" cellspacing="0" style="width: 100%;">
+                                <tr>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                        <span style="font-weight: bold;">Phim:</span>
+                                    </td>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                    {$this->ticketDetails['movie']['title']}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                        <span style="font-weight: bold;">Ngày chiếu:</span>
+                                    </td>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                        {$this->ticketDetails['show_date']}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                        <span style="font-weight: bold;">Giờ:</span>
+                                    </td>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                    {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table border="0" cellpadding="5" cellspacing="0" style="width: 100%;">
+                                <tr>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                        <span style="font-weight: bold;">Phòng:</span>
+                                    </td>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                    {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                        <span style="font-weight: bold;">Ghế:</span>
+                                    </td>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                        {$seats}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                        <span style="font-weight: bold;">Mã đặt vé:</span>
+                                    </td>
+                                    <td style="text-align: left; width: 50%; color: #fff; font-size: 14px;">
+                                        </span> {$this->booking->id}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <!-- Phần bên phải -->
+            <td style="background: #fceae9; padding: 20px; vertical-align: middle; width: 30%; border-left: 2px dashed #c0392b;">
+                <table border="0" cellpadding="5" cellspacing="0" style="width: 100%;">
+                    <tr>
+                        <td style="font-size: 14px; color: #000;">
+                            <span style="font-weight: bold;">Ngày:</span> {$this->ticketDetails['show_date']}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 14px; color: #000;">
+                            <span style="font-weight: bold;">Giờ:</span> {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 14px; color: #000;">
+                            <span style="font-weight: bold;">Phòng:</span> {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 14px; color: #000;">
+                            <span style="font-weight: bold;">Ghế:</span> {$seats}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+HTML;
     }
-    $comboDisplay = $combos ? $combos : 'Không có';
-
-    $qrData = "Mã đặt vé: {$this->booking->id}\n" .
-        "Phim: {$this->ticketDetails['movie']['title']}\n" .
-        "Ngày chiếu: {$this->ticketDetails['show_date']}\n" .
-        "Giờ chiếu: {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}\n" .
-        "Phòng: {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})\n" .
-        "Ghế: {$seats}";
-
-    $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrData);
-    $qrCode = base64_encode(file_get_contents($qrUrl));
-    Log::info('QR Code Base64 (Mail): ' . $qrCode);
-
-    return <<<HTML
-    <!DOCTYPE html>
-    <html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Xác nhận đặt vé</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                margin: 0;
-                padding: 0;
-                color: #333;
-            }
-            .container {
-                max-width: 600px;
-                margin: 20px auto;
-                background: #fff;
-                border-radius: 10px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                overflow: hidden;
-            }
-            .header {
-                background: #ff4d4d;
-                color: #fff;
-                padding: 20px;
-                text-align: center;
-            }
-            .header h1 {
-                margin: 0;
-                font-size: 24px;
-            }
-            .content {
-                padding: 20px;
-            }
-            .content h2 {
-                color: #ff4d4d;
-                font-size: 20px;
-                margin-top: 20px;
-            }
-            .content p {
-                margin: 10px 0;
-                line-height: 1.6;
-            }
-            .ticket-info {
-                background: #f9f9f9;
-                padding: 15px;
-                border-radius: 8px;
-                margin-bottom: 20px;
-            }
-            .ticket-info p {
-                margin: 5px 0;
-            }
-            .qr-section {
-                text-align: center;
-            }
-            .qr-section img {
-                margin: 10px 0;
-                border: 2px solid #ff4d4d;
-                border-radius: 5px;
-            }
-            .footer {
-                text-align: center;
-                padding: 15px;
-                background: #f4f4f4;
-                font-size: 12px;
-                color: #666;
-            }
-            .highlight {
-                font-weight: bold;
-                color: #ff4d4d;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>Xác nhận đặt vé thành công</h1>
-            </div>
-            <div class="content">
-                <p>Xin chào,</p>
-                <p>Cảm ơn bạn đã đặt vé tại hệ thống của chúng tôi! Dưới đây là thông tin chi tiết về vé của bạn:</p>
-
-                <div class="ticket-info">
-                    <h2>Thông tin vé</h2>
-                    <p><span class="highlight">Phim:</span> {$this->ticketDetails['movie']['title']}</p>
-                    <p><span class="highlight">Ngày chiếu:</span> {$this->ticketDetails['show_date']}</p>
-                    <p><span class="highlight">Giờ chiếu:</span> {$this->ticketDetails['show_time']['start_time']} - {$this->ticketDetails['show_time']['end_time']}</p>
-                    <p><span class="highlight">Phòng:</span> {$this->ticketDetails['show_time']['room']['name']} ({$this->ticketDetails['show_time']['room']['room_type']})</p>
-                    <p><span class="highlight">Ghế:</span> {$seats}</p>
-                    <p><span class="highlight">Combo:</span> {$comboDisplay}</p>
-                    <p><span class="highlight">Tổng giá vé:</span> {$this->ticketDetails['pricing']['total_ticket_price']} VNĐ</p>
-                    <p><span class="highlight">Tổng giá combo:</span> {$this->ticketDetails['pricing']['total_combo_price']} VNĐ</p>
-                    <p><span class="highlight">Ưu đãi từ voucher:</span> - {$this->ticketDetails['pricing']['total_price_voucher']} VNĐ</p>
-                    <p><span class="highlight">Ưu đãi từ đổi stars:</span> - {$this->ticketDetails['pricing']['total_price_point']} VNĐ</p>
-                    <p><span class="highlight">Tổng cộng:</span> {$this->ticketDetails['pricing']['total_price']} VNĐ</p>
-                    <p><span class="highlight">Phương thức thanh toán:</span> {$this->ticketDetails['payment_method']}</p>
-                    <p><span class="highlight">Mã đặt vé:</span> {$this->booking->id}</p>
-                </div>
-
-                <div class="qr-section">
-                    <h2>QR Code vé của bạn</h2>
-                    <img src="data:image/png;base64,{$qrCode}" alt="QR Code" width="200" height="200">
-                    <p>File QR code cũng được đính kèm dưới dạng PNG để bạn tải về nếu cần.</p>
-                </div>
-
-                <p>Vui lòng giữ mã đặt vé hoặc QR code để kiểm tra tại rạp. Chúc bạn có một buổi xem phim vui vẻ!</p>
-            </div>
-            <div class="footer">
-                <p>© 2025 Hệ thống đặt vé xem phim. Mọi quyền được bảo lưu.</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    HTML;
-}
 
     /**
      * Get the attachments for the message.

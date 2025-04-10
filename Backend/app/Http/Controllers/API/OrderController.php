@@ -234,7 +234,6 @@ class OrderController extends Controller
         $seats = [];
         $room_name = null;
         $room_type = null;
-        $combos = [];
         $movie = null;
         $show_date = 'N/A'; // Khai báo giá trị mặc định cho $show_date
 
@@ -310,7 +309,7 @@ class OrderController extends Controller
                 }
 
                 if ($detail->combo) {
-                    $combos[] = [
+                    $comboDetails[] = [
                         'booking_detail_id' => $detail->id,
                         'combo_name' => $detail->combo->name,
                         'quantity' => (int) $detail->quantity,
@@ -1075,45 +1074,45 @@ class OrderController extends Controller
 
     //---------------------------------------------test--------------------------------------------//
     public function exportTicketsToPdf($bookingId)
-{
-    // Gọi phương thức show để lấy dữ liệu
-    $response = $this->show($bookingId);
-    $data = json_decode($response->getContent(), true);
+    {
+        // Gọi phương thức show để lấy dữ liệu
+        $response = $this->show($bookingId);
+        $data = json_decode($response->getContent(), true);
 
-    // Kiểm tra nếu không tìm thấy đơn hàng
-    if ($response->getStatusCode() === 404) {
-        return $response; // Trả về JSON lỗi 404 từ show
-    }
-
-    $bookingData = $data['data'];
-    $tickets = $bookingData['tickets'];
-    $combos = $bookingData['combos'];
-
-    // Tạo HTML ngắn gọn cho PDF
-    $html = '<h1 style="text-align: center;">Vé Xem Phim</h1>';
-    foreach ($tickets as $index => $ticket) {
-        $html .= '<div style="border: 2px dashed #000; padding: 15px; margin-bottom: 20px;">';
-        $html .= '<h2>Vé ' . ($index + 1) . ' - Mã vé: ' . $ticket['ticket_id'] . '</h2>';
-        $html .= '<p><strong>Khách hàng:</strong> ' . $ticket['customer_name'] . '</p>';
-        $html .= '<p><strong>Phim:</strong> ' . $ticket['movie_title'] . '</p>';
-        $html .= '<p><strong>Suất chiếu:</strong> ' . $ticket['showtime'] . ' - ' . $ticket['show_date'] . '</p>';
-        $html .= '<p><strong>Phòng:</strong> ' . $ticket['room_name'] . ' (' . $ticket['room_type'] . ')</p>';
-        $html .= '<p><strong>Ghế:</strong> ' . $ticket['seat_name'] . ' (' . $ticket['seat_type'] . ')</p>';
-        $html .= '<p><strong>Giá:</strong> ' . number_format($ticket['price'], 0, ',', '.') . ' VND</p>';
-        $html .= '</div>';
-    }
-
-    // Thêm combo nếu có
-    if (!empty($combos)) {
-        $html .= '<h2 style="text-align: center;">Combo</h2>';
-        foreach ($combos as $combo) {
-            $html .= '<p><strong>' . $combo['combo_name'] . ' x' . $combo['quantity'] . ':</strong> ' . number_format($combo['price'], 0, ',', '.') . ' VND</p>';
+        // Kiểm tra nếu không tìm thấy đơn hàng
+        if ($response->getStatusCode() === 404) {
+            return $response; // Trả về JSON lỗi 404 từ show
         }
-    }
 
-    // Tạo và trả về PDF
-    $pdf = Pdf::loadHTML($html)->setPaper('A4', 'portrait');
-    return $pdf->download('tickets_booking_' . $bookingId . '.pdf');
-}
+        $bookingData = $data['data'];
+        $tickets = $bookingData['tickets'];
+        $combos = $bookingData['combos'];
+
+        // Tạo HTML ngắn gọn cho PDF
+        $html = '<h1 style="text-align: center;">Vé Xem Phim</h1>';
+        foreach ($tickets as $index => $ticket) {
+            $html .= '<div style="border: 2px dashed #000; padding: 15px; margin-bottom: 20px;">';
+            $html .= '<h2>Vé ' . ($index + 1) . ' - Mã vé: ' . $ticket['ticket_id'] . '</h2>';
+            $html .= '<p><strong>Khách hàng:</strong> ' . $ticket['customer_name'] . '</p>';
+            $html .= '<p><strong>Phim:</strong> ' . $ticket['movie_title'] . '</p>';
+            $html .= '<p><strong>Suất chiếu:</strong> ' . $ticket['showtime'] . ' - ' . $ticket['show_date'] . '</p>';
+            $html .= '<p><strong>Phòng:</strong> ' . $ticket['room_name'] . ' (' . $ticket['room_type'] . ')</p>';
+            $html .= '<p><strong>Ghế:</strong> ' . $ticket['seat_name'] . ' (' . $ticket['seat_type'] . ')</p>';
+            $html .= '<p><strong>Giá:</strong> ' . number_format($ticket['price'], 0, ',', '.') . ' VND</p>';
+            $html .= '</div>';
+        }
+
+        // Thêm combo nếu có
+        if (!empty($combos)) {
+            $html .= '<h2 style="text-align: center;">Combo</h2>';
+            foreach ($combos as $combo) {
+                $html .= '<p><strong>' . $combo['combo_name'] . ' x' . $combo['quantity'] . ':</strong> ' . number_format($combo['price'], 0, ',', '.') . ' VND</p>';
+            }
+        }
+
+        // Tạo và trả về PDF
+        $pdf = Pdf::loadHTML($html)->setPaper('A4', 'portrait');
+        return $pdf->download('tickets_booking_' . $bookingId . '.pdf');
+    }
     //---------------------------------------------end-test--------------------------------------------//
 }

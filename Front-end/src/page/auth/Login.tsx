@@ -198,19 +198,7 @@ const Login = () => {
           </div>
         </Button>
 
-        <Button
-          className="social-button facebook-button"
-          type="primary"
-          size="large"
-          onClick={handleFacebookLogin}
-          loading={facebookAuthLoading}
-          disabled={googleAuthLoading || facebookAuthLoading}
-        >
-          <div className="button-content">
-            {!facebookAuthLoading && <Facebook size={24} />}
-            <span>Đăng nhập với Facebook</span>
-          </div>
-        </Button>
+       
       </div>
 
       <p className="register-link-container">

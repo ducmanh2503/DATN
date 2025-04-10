@@ -153,16 +153,7 @@ const Register = () => {
             <span>Đăng ký với Google</span>
           </div>
         </Button>
-        <Button
-          className="social-button facebook-button"
-          type="primary"
-          size="large"
-        >
-          <div className="button-content">
-            <Facebook size={24} />
-            <span>Đăng ký với Facebook</span>
-          </div>
-        </Button>
+    
       </div>
 
       <Divider className="auth-divider" plain>

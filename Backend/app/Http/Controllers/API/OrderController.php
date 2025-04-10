@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -389,8 +390,16 @@ class OrderController extends Controller
 
     public function updateStatusClient(Request $request, string $id)
     {
-        //Tìm đơn theo id
+        // Tìm đơn theo id
         $booking = Booking::find($id);
+        Log::info('Booking ID: ' . $booking);
+
+        // Kiểm tra xem booking có tồn tại không
+        if (!$booking) {
+            return response()->json([
+                'message' => 'Không tìm thấy đơn hàng với ID này',
+            ], 404); // Trả về mã lỗi 404 nếu không tìm thấy
+        }
 
         // Validate dữ liệu đầu vào
         $validated = $request->validate([

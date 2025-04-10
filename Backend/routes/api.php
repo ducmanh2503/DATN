@@ -207,7 +207,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/order/{bookingId}/order-details', [OrderController::class, 'show']);
         Route::post('/order/{bookingId}/update-status', [OrderController::class, 'updateStatusClient']);
 
-        //xuất pdf
+        //Xuất vé
         Route::get('/order/{bookingId}/export-tickets-pdf', [OrderController::class, 'exportTicketsToPdf']);
     });
     // Đăng xuất

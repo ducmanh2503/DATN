@@ -11,7 +11,8 @@ const Wheel = () => {
     const [currentPrize, setCurrentPrize] = useState<string | null>(null);
     const [isSpinning, setIsSpinning] = useState(false);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false); //mở modal
+    const [isFree, setIsFree] = useState(false);
 
     const prizes = [
         "Giảm 10K",
@@ -24,6 +25,27 @@ const Wheel = () => {
         "Chúc bạn may mắn lần sau",
     ];
 
+    // index tương ứng với prizes: [0,1,2,3,4,5,6,7]
+    const prizeWeightMap: { [index: number]: number } = {
+        0: 35, // Giảm 10K (chia 50% cho 3 vị trí: 17% mỗi cái)
+        1: 16, // Giảm 20K
+        2: 1, // Giảm 50K
+        3: 28, // Giảm 10K
+        4: 1, // Gấu bông
+        5: 15, // Chúc bạn may mắn lần sau (chia 35% cho 2 vị trí: 18% và 17%)
+        6: 25, // Giảm 10K
+        7: 14, // Chúc bạn may mắn lần sau
+    };
+
+    const weightedIndexes: number[] = [];
+
+    Object.entries(prizeWeightMap).forEach(([indexStr, weight]) => {
+        const index = parseInt(indexStr);
+        for (let i = 0; i < weight; i++) {
+            weightedIndexes.push(index);
+        }
+    });
+
     const handleWheel = () => {
         if (isSpinning) return;
 
@@ -31,8 +53,11 @@ const Wheel = () => {
         setCurrentPrize(null);
 
         const extraRotation = 360 * 5;
-        const randomOffset = Math.floor(Math.random() * 360);
-        const newRotation = rotation + extraRotation + randomOffset;
+        const anglePerSlice = 360 / prizes.length;
+        const randomIndex =
+            weightedIndexes[Math.floor(Math.random() * weightedIndexes.length)];
+        const newRotation =
+            rotation + extraRotation + randomIndex * anglePerSlice;
 
         if (wheel.current) {
             wheel.current.style.transition = "transform 4s ease-out";
@@ -53,7 +78,7 @@ const Wheel = () => {
             setRotation(newRotation);
             setIsSpinning(false);
             setIsModalOpen(true);
-        }, 4000);
+        }, 4500);
     };
 
     return (
@@ -61,11 +86,15 @@ const Wheel = () => {
             <div className={clsx(styles.wheelContainer)}>
                 <button
                     className={clsx(styles.spin)}
-                    onClick={handleWheel}
+                    onClick={() => {
+                        setIsFree(false);
+                        handleWheel();
+                    }}
                     disabled={isSpinning}
                 >
                     Quay
                 </button>
+
                 <span className={clsx(styles.arrow)}></span>
 
                 <div className={clsx(styles.wheel)} ref={wheel}>
@@ -106,6 +135,7 @@ const Wheel = () => {
                         currentPrize={currentPrize}
                         isModalOpen={isModalOpen}
                         setIsModalOpen={setIsModalOpen}
+                        isFree={isFree}
                     />
                 )}
             </div>
@@ -115,7 +145,13 @@ const Wheel = () => {
                     <div className={clsx(styles.playingCount)}>
                         Bạn có 1 lượt chơi
                     </div>
-                    <div className={clsx(styles.playingCount, styles.free)}>
+                    <div
+                        className={clsx(styles.playingCount, styles.free)}
+                        onClick={() => {
+                            handleWheel();
+                            setIsFree(true);
+                        }}
+                    >
                         CHƠI THỬ MIỄN PHÍ
                     </div>
                 </div>

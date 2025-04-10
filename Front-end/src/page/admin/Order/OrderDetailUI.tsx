@@ -1,11 +1,12 @@
 import clsx from "clsx";
 import styles from "./Order.module.css";
-import { Button, message, Select, Skeleton, Table, Tag } from "antd";
+import { message, Select, Tag } from "antd";
 import {
     useChangeStatusCheckin,
     useDetailOrder,
 } from "../../../services/adminServices/orderManage.service";
 import { useEffect, useState } from "react";
+import OrderDetailTable from "./OrderDetailTable";
 
 const OrderDetailUI = ({
     id,
@@ -39,68 +40,10 @@ const OrderDetailUI = ({
     const { mutate: changeStatusCheckin } = useChangeStatusCheckin(messageApi);
     const onChangeStatus = () => {
         changeStatusCheckin({
-            bookingId: detailOrder?.id,
+            bookingId: detailOrder?.booking_id,
             check_in: selectedCheckIn,
         });
     };
-
-    const columnsSeats = [
-        {
-            title: "Thông tin ghế",
-            dataIndex: "seat_name",
-            key: "seat_name",
-        },
-        {
-            title: "Loại ghế",
-            dataIndex: "seat_type",
-            key: "seat_type",
-            render: (value: any, record: any) => (
-                <span>Ghế {record.seat_type}</span>
-            ),
-        },
-        {
-            title: "Giá ghế",
-            dataIndex: "price",
-            key: "price",
-            render: (value: any, record: any) => (
-                <span>
-                    {parseInt(record.price).toLocaleString("vi-VN")} VNĐ
-                </span>
-            ),
-        },
-        {
-            title: "Xuất vé",
-            render: (value: any, record: any) => {
-                return <Button>Xuất</Button>;
-            },
-        },
-    ];
-
-    const columnsCombos = [
-        {
-            title: "Tên dịch vụ",
-            dataIndex: "combo_name",
-            key: "combo_name",
-        },
-        {
-            title: "Số lượng",
-            dataIndex: "quantity",
-            key: "quantity",
-        },
-        {
-            title: "Thành tiền",
-            dataIndex: "price",
-            key: "price",
-            render: (value: any, record: any) => (
-                <span>
-                    {(parseInt(record.price) * record.quantity).toLocaleString(
-                        "vi-VN"
-                    )}{" "}
-                    VNĐ
-                </span>
-            ),
-        },
-    ];
 
     return (
         <div className={clsx(styles.container)}>
@@ -289,56 +232,10 @@ const OrderDetailUI = ({
             </div>
             <div className={clsx(styles.serviceSection)}>
                 <h3 className={clsx(styles.title)}>Ghế & Combo</h3>
-                <Skeleton
-                    className={clsx(styles.skeletonSeats)}
-                    loading={isLoading}
-                    active
-                >
-                    {" "}
-                    <Table
-                        className={clsx(styles.tableSeats)}
-                        columns={columnsSeats}
-                        dataSource={detailOrder?.tickets?.map((item: any) => ({
-                            ...item,
-                            key: item.booking_detail_id,
-                        }))}
-                        pagination={false}
-                    />
-                    <hr />
-                    <div className={clsx(styles.totalSub)}>
-                        Tổng cộng:{" "}
-                        <Tag color="blue">
-                            {" "}
-                            {detailOrder?.total_ticket_price.toLocaleString(
-                                "vi-VN"
-                            )}{" "}
-                            VNĐ
-                        </Tag>
-                    </div>
-                </Skeleton>
-                <Skeleton loading={isLoading} active>
-                    {" "}
-                    <Table
-                        columns={columnsCombos}
-                        dataSource={detailOrder?.combos?.map(
-                            (item: any, index: number) => ({
-                                ...item,
-                                key: item.id || index,
-                            })
-                        )}
-                        pagination={false}
-                    />
-                    <hr />
-                    <div className={clsx(styles.totalSub)}>
-                        Tổng cộng:{" "}
-                        <Tag color="blue">
-                            {detailOrder?.total_combo_price.toLocaleString(
-                                "vi-VN"
-                            )}{" "}
-                            VNĐ
-                        </Tag>
-                    </div>
-                </Skeleton>
+                <OrderDetailTable
+                    detailOrder={detailOrder}
+                    isLoading={isLoading}
+                ></OrderDetailTable>
             </div>
         </div>
     );

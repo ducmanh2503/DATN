@@ -1,0 +1,21 @@
+.title,
+.sub {
+    margin-top: 5px;
+}
+
+.collapseWheel {
+    font-size: 16px;
+    margin-top: 10px;
+    width: 550px;
+}
+
+.boxGet {
+    font-size: 15px;
+    padding: 8px 28px;
+    border: 5px solid #fff085;
+    border-radius: 16px;
+}
+
+.priceGet {
+    font-weight: 600;
+}

@@ -1,71 +1,126 @@
 import clsx from "clsx";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import styles from "./Wheel.module.css";
+import ResultWheel from "./ResultWheel/ResultWheel";
+import HowGiveCount from "./HowGiveCount/HowGiveCount";
+import Introduce from "./Introduce/Introduce";
 
 const Wheel = () => {
-    let wheel = React.useRef<HTMLDivElement>(null);
-    const [rotation, setRotation] = useState(0); // Lưu góc quay hiện tại
-    const [currentNumber, setCurrentNumber] = useState<number | null>(null); // Lưu số hiện tại khi quay
+    const wheel = useRef<HTMLDivElement>(null);
+    const [rotation, setRotation] = useState(0);
+    const [currentPrize, setCurrentPrize] = useState<string | null>(null);
+    const [isSpinning, setIsSpinning] = useState(false);
 
-    // Mảng xác suất cho mỗi số (1 - 8)
-    // Tổng xác suất phải là 100 (hoặc 1.0 khi tính theo phần trăm)
-    const probabilities = [0.01, 0.05, 0.1, 0.168, 0.168, 0.168, 0.168, 0.168];
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const prizes = [
+        "Giảm 10K",
+        "Giảm 20K",
+        "Giảm 50K",
+        "Giảm 10K",
+        "Gấu bông Forest",
+        "Chúc bạn may mắn lần sau",
+        "Giảm 10K",
+        "Chúc bạn may mắn lần sau",
+    ];
 
     const handleWheel = () => {
-        // Tính góc quay ngẫu nhiên
-        const randomRotation = Math.ceil(Math.random() * 1000);
-        const newRotation = rotation + randomRotation; // Cộng góc quay mới vào góc quay hiện tại
+        if (isSpinning) return;
 
-        // Tính toán số sẽ xuất hiện khi quay xong
-        const slices = 8; // Số phần trên bánh xe
-        const anglePerSlice = 360 / slices; // Mỗi phần có góc quay là 45 độ
-        const normalizedRotation = newRotation % 360; // Giới hạn góc quay trong khoảng 0 - 360 độ
-        const numberIndex = Math.floor(normalizedRotation / anglePerSlice); // Xác định số dựa trên góc quay
+        setIsSpinning(true);
+        setCurrentPrize(null);
 
-        // Cập nhật góc quay và số tương ứng
-        setRotation(newRotation);
-
-        // Chọn số dựa trên xác suất
-        const rand = Math.random(); // Lấy giá trị ngẫu nhiên từ 0 đến 1
-        let cumulativeProbability = 0;
-
-        for (let i = 0; i < probabilities.length; i++) {
-            cumulativeProbability += probabilities[i];
-            if (rand < cumulativeProbability) {
-                setCurrentNumber(i + 1); // Số tương ứng với phần của bánh xe (1 đến 8)
-                break;
-            }
-        }
+        const extraRotation = 360 * 5;
+        const randomOffset = Math.floor(Math.random() * 360);
+        const newRotation = rotation + extraRotation + randomOffset;
 
         if (wheel.current) {
-            wheel.current.style.transition = "transform 4s ease-out"; // Thiết lập hiệu ứng quay mượt mà
-            wheel.current.style.transform = `rotate(${newRotation}deg)`; // Áp dụng góc quay mới
+            wheel.current.style.transition = "transform 4s ease-out";
+            wheel.current.style.transform = `rotate(${newRotation}deg)`;
         }
+
+        setTimeout(() => {
+            const normalizedRotation = newRotation % 360;
+            const anglePerSlice = 360 / 8;
+
+            // Đảo chiều vì CSS quay theo chiều kim đồng hồ,
+            // còn mũi tên chỉ lên trên (ngược lại)
+            const adjustedRotation =
+                (360 - normalizedRotation + anglePerSlice / 2) % 360;
+            const numberIndex = Math.floor(adjustedRotation / anglePerSlice);
+
+            setCurrentPrize(prizes[numberIndex]);
+            setRotation(newRotation);
+            setIsSpinning(false);
+            setIsModalOpen(true);
+        }, 4000);
     };
 
     return (
-        <div className={clsx(styles.wheelContainer)}>
-            <button className={clsx(styles.spin)} onClick={handleWheel}>
-                Quay
-            </button>
-            <span className={clsx(styles.arrow)}></span>
+        <div className={clsx(styles.main, "main-base")}>
+            <div className={clsx(styles.wheelContainer)}>
+                <button
+                    className={clsx(styles.spin)}
+                    onClick={handleWheel}
+                    disabled={isSpinning}
+                >
+                    Quay
+                </button>
+                <span className={clsx(styles.arrow)}></span>
 
-            <div className={clsx(styles.wheel)} ref={wheel}>
-                <div className={clsx(styles.slice, styles.slice1)}>1</div>
-                <div className={clsx(styles.slice, styles.slice2)}>2</div>
-                <div className={clsx(styles.slice, styles.slice3)}>3</div>
-                <div className={clsx(styles.slice, styles.slice4)}>4</div>
-                <div className={clsx(styles.slice, styles.slice5)}>5</div>
-                <div className={clsx(styles.slice, styles.slice6)}>6</div>
-                <div className={clsx(styles.slice, styles.slice7)}>7</div>
-                <div className={clsx(styles.slice, styles.slice8)}>8</div>
-            </div>
-
-            {currentNumber !== null && (
-                <div className={clsx(styles.result)}>
-                    Số quay được: {currentNumber}
+                <div className={clsx(styles.wheel)} ref={wheel}>
+                    <div className={clsx(styles.slice, styles.slice1)}>
+                        <div className={styles.sliceContent}>Giảm 10K</div>
+                    </div>
+                    <div className={clsx(styles.slice, styles.slice2)}>
+                        <div className={styles.sliceContent}>Giảm 20K</div>
+                    </div>
+                    <div className={clsx(styles.slice, styles.slice3)}>
+                        <div className={styles.sliceContent}>Giảm 50K</div>
+                    </div>
+                    <div className={clsx(styles.slice, styles.slice4)}>
+                        <div className={styles.sliceContent}>Giảm 10K</div>
+                    </div>
+                    <div className={clsx(styles.slice, styles.slice5)}>
+                        <div className={styles.sliceContent}>
+                            {" "}
+                            Gấu bông Forest
+                        </div>
+                    </div>
+                    <div className={clsx(styles.slice, styles.slice6)}>
+                        <div className={styles.sliceContent}>
+                            Chúc bạn may mắn lần sau
+                        </div>
+                    </div>
+                    <div className={clsx(styles.slice, styles.slice7)}>
+                        <div className={styles.sliceContent}>Giảm 10K</div>
+                    </div>
+                    <div className={clsx(styles.slice, styles.slice8)}>
+                        <div className={styles.sliceContent}>
+                            Chúc bạn may mắn lần sau
+                        </div>
+                    </div>
                 </div>
-            )}
+                {currentPrize !== null && (
+                    <ResultWheel
+                        currentPrize={currentPrize}
+                        isModalOpen={isModalOpen}
+                        setIsModalOpen={setIsModalOpen}
+                    />
+                )}
+            </div>
+            <div className={clsx(styles.rightMain)}>
+                <Introduce></Introduce>
+                <div className={clsx(styles.btnPlay)}>
+                    <div className={clsx(styles.playingCount)}>
+                        Bạn có 1 lượt chơi
+                    </div>
+                    <div className={clsx(styles.playingCount, styles.free)}>
+                        CHƠI THỬ MIỄN PHÍ
+                    </div>
+                </div>
+                <HowGiveCount></HowGiveCount>
+            </div>
         </div>
     );
 };

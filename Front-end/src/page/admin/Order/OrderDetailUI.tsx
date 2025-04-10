@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import styles from "./Order.module.css";
-import { message, Select, Skeleton, Table, Tag } from "antd";
+import { Button, message, Select, Skeleton, Table, Tag } from "antd";
 import {
     useChangeStatusCheckin,
     useDetailOrder,
@@ -67,6 +67,12 @@ const OrderDetailUI = ({
                     {parseInt(record.price).toLocaleString("vi-VN")} VNĐ
                 </span>
             ),
+        },
+        {
+            title: "Xuất vé",
+            render: (value: any, record: any) => {
+                return <Button>Xuất</Button>;
+            },
         },
     ];
 
@@ -292,12 +298,10 @@ const OrderDetailUI = ({
                     <Table
                         className={clsx(styles.tableSeats)}
                         columns={columnsSeats}
-                        dataSource={detailOrder?.seats?.map(
-                            (item: any, index: number) => ({
-                                ...item,
-                                key: item.id || index,
-                            })
-                        )}
+                        dataSource={detailOrder?.tickets?.map((item: any) => ({
+                            ...item,
+                            key: item.booking_detail_id,
+                        }))}
                         pagination={false}
                     />
                     <hr />

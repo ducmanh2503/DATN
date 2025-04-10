@@ -47,6 +47,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CheckinManage from "./page/admin/CheckInOut/CheckinManage";
 import SliderPage from "./page/admin/Slider/SliderPage";
+import Wheel from "./ClientComponents/Wheel/Wheel";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -156,6 +157,10 @@ export const router = createBrowserRouter([
                 element: <LayoutPaymentResult />,
             },
         ],
+    },
+    {
+        path: "/check",
+        element: <Wheel></Wheel>,
     },
     {
         element: <PublicRoute />,

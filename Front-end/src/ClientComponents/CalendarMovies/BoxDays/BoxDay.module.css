@@ -1,7 +1,8 @@
 .boxDays {
     display: inline-block;
     width: 100px;
-    background: var(--backgroud-product);
+    /* background: var(--backgroud-product); */
+    border: 1px solid var(--backgroud-product);
     text-align: center;
     cursor: pointer;
     margin-left: 6px;
@@ -10,8 +11,16 @@
     height: 50px;
 }
 
+.boxDays:hover {
+    background: var(--border-color);
+    transition: background, color 0.5s ease-in-out;
+    color: white;
+}
+
 .activeBtn {
-    background-color: #1f5692;
+    /* background-color: #1f5692; */
+    background-color: var(--border-color);
+    color: white;
 }
 
 .titleDays {

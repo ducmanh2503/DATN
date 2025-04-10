@@ -22,7 +22,7 @@ const PlayingFilm = () => {
     };
 
     return (
-        <div className="playing-film-container">
+        <div style={{ minHeight: "1600px" }}>
             <ClientLayout>
                 <FilterPlayingCinema
                     onFilterChange={handleFilterChange}

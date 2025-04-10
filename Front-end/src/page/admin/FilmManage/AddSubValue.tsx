@@ -1,4 +1,4 @@
-import { Col, Collapse, Form, Image, Row, Space } from "antd";
+import { Button, Col, Collapse, Form, Image, message, Row, Space } from "antd";
 import React, { useState } from "react";
 import AddActor from "../Actors/AddActors";
 import AddDirector from "../Directors/AddDirector";
@@ -6,11 +6,31 @@ import AddGenre from "../Genres/AddGenre";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
 import { VerticalAlignTopOutlined } from "@ant-design/icons";
+import { useCreateFilm } from "../../../services/adminServices/filmManage.service";
 
-const AddSubValue = ({ selectedFile, preview }: any) => {
+const AddSubValue = ({
+    selectedFile,
+    setSelectedFile,
+    preview,
+    setPreview,
+}: any) => {
     const [formExcel] = Form.useForm();
+    const [messageApi, contextHolder] = message.useMessage();
+
     const [activeKey, setActiveKey] = useState<string | string[]>("");
     const [activeKey2, setActiveKey2] = useState<string | string[]>("");
+
+    const onFinish = (formData: FormData) => {
+        createFilm(formData);
+        formExcel.resetFields();
+    };
+
+    const { mutate: createFilm } = useCreateFilm({
+        form: formExcel,
+        messageApi,
+        setSelectedFile,
+        setPreview,
+    });
 
     const items = [
         {
@@ -41,7 +61,7 @@ const AddSubValue = ({ selectedFile, preview }: any) => {
                         name="add-film-form"
                         labelCol={{ span: 8 }}
                         wrapperCol={{ span: 16 }}
-                        // onFinish={onFinish}
+                        onFinish={onFinish}
                     >
                         <Row gutter={16}>
                             <Col span={12}>
@@ -91,8 +111,13 @@ const AddSubValue = ({ selectedFile, preview }: any) => {
                                             message: "Vui lòng chọn file Excel",
                                         },
                                     ]}
-                                ></Form.Item>
+                                >
+                                    <input type="file" accept=".xlsx, .xls" />
+                                </Form.Item>
                             </Col>
+                            <Button htmlType="submit" type="primary">
+                                Thêm
+                            </Button>
                         </Row>
                     </Form>
                 </>
@@ -106,6 +131,7 @@ const AddSubValue = ({ selectedFile, preview }: any) => {
 
     return (
         <div>
+            {contextHolder}
             <Collapse
                 className={clsx(styles.collapse)}
                 activeKey={activeKey}

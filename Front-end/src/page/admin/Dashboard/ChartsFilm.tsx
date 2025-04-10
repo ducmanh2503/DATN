@@ -37,28 +37,15 @@ const ChartsFilm = ({ dashboardData, isLoading }: any) => {
     const dataCircle = dashboardData?.additional_stats?.peak_showtimes?.map(
         (item: any) => ({
             type: item.showtime,
-            value: item.total_seats_booked,
+            total: item.total_seats_booked,
         })
     );
     const configCircle = {
         data: dataCircle,
-        angleField: "value", // Giá trị để tính góc
-        colorField: "type", // Giá trị để phân loại màu
+        xField: "type",
+        yField: "total",
         height: 280,
-        width: 570,
-        radius: 0.9, // Bán kính (0-1)
-        label: {
-            type: "outer", // Hiển thị label bên ngoài
-            // content: "{name} ({percentage})", // Nội dung hiển thị
-            content: (item: any) => {
-                console.log("check-item", item);
-
-                return `suất ${item.type}`;
-            },
-        },
-        legend: {
-            position: "right", // Vị trí legend
-        },
+        width: 650,
     };
 
     // biểu đồ films
@@ -98,7 +85,7 @@ const ChartsFilm = ({ dashboardData, isLoading }: any) => {
         xField: "film",
         yField: "total",
         height: 280,
-        width: 350,
+        width: 650,
         color: (item: any) => (item.total > 3000000 ? "#73d13d" : "#ff4d4f"),
     };
     return (
@@ -115,7 +102,7 @@ const ChartsFilm = ({ dashboardData, isLoading }: any) => {
                         <h3 className={clsx(styles.tileChart)}>
                             Top các khung giờ có lượt đạt ghế nhiều nhất
                         </h3>
-                        <Pie {...configCircle} />
+                        <Column {...configCircle} />
                     </div>
                 </div>
                 <div className={clsx(styles.columnChart)}>

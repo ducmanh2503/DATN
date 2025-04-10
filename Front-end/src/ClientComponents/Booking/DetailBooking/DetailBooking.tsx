@@ -46,7 +46,7 @@ const DetailBooking = ({
 
     const onOk = async () => {
         const selectedPaymentUrl =
-            paymentType === "vnpay" ? PAYMENT_WITH_VNPAY : PAYMENT_WITH_PAYPAL;
+            paymentType === "VNpay" ? PAYMENT_WITH_VNPAY : PAYMENT_WITH_PAYPAL;
 
         paymentMutation.mutate(selectedPaymentUrl, {
             onSuccess: (data: any) => {

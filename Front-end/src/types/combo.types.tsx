@@ -10,22 +10,6 @@ export interface Combo {
   updated_at?: string;
 }
 
-export interface ComboCreateRequest {
-  name: string;
-  description: string;
-  quantity: number;
-  price: number;
-  image: string;
-}
-
-export interface ComboUpdateRequest {
-  name?: string;
-  description?: string;
-  quantity?: number;
-  price?: number;
-  image?: string;
-}
-
 export interface ComboCreateResponse {
   message: string;
   combo: Combo;

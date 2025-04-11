@@ -1,4 +1,5 @@
-Reset default styles * {
+/* Reset default styles */
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -76,6 +77,25 @@ Reset default styles * {
     word-break: break-word;
 }
 
+/* Actor and Director links */
+.actor-link,
+.director-link {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #007bff;
+    transition: all 0.3s ease;
+}
+
+.actor-link:hover,
+.director-link:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
 /* Action buttons */
 .action-buttons {
     margin-top: 25px;
@@ -94,12 +114,12 @@ Reset default styles * {
 }
 
 .book-ticket-btn {
-    background-color: #e71a0f;
+    background-color: #007bff; /* Đổi thành màu xanh blue */
     color: white;
 }
 
 .book-ticket-btn:hover {
-    background-color: #c5150b;
+    background-color: #0056b3; /* Xanh đậm hơn khi hover */
     transform: translateY(-2px);
 }
 
@@ -138,13 +158,18 @@ Reset default styles * {
 }
 
 /* Trailer */
+.film-trailer {
+    margin-bottom: 40px;
+}
+
 .trailer-container {
     position: relative;
-    padding-bottom: 20.25%;
+    padding-bottom: 56.25%; /* Tỷ lệ 16:9 */
     height: 0;
     overflow: hidden;
     background: #fff;
     border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .trailer-container iframe {
@@ -275,6 +300,12 @@ Reset default styles * {
 
     .action-btn {
         padding: 10px 18px;
+        font-size: 0.9rem;
+    }
+
+    .actor-link,
+    .director-link {
+        padding: 3px 6px;
         font-size: 0.9rem;
     }
 }

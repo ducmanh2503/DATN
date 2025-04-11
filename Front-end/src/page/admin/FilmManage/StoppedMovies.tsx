@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Divider, message, Skeleton, Table } from "antd";
+import { Button, Divider, message, Popconfirm, Skeleton, Table } from "antd";
 import type { TableColumnsType } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -40,14 +40,15 @@ const StoppedMovies: React.FC = () => {
             title: "Hành động",
             render: (_, items: any) => {
                 return (
-                    <Button
-                        type="primary"
-                        onClick={() => {
-                            restore(items.id);
-                        }}
+                    <Popconfirm
+                        title="Khôi phục phim này?"
+                        description="khôi phục nhé"
+                        okText="Yes"
+                        cancelText="No"
+                        onConfirm={() => restore(items.id)}
                     >
-                        Khôi phục
-                    </Button>
+                        <Button type="primary">Khôi phục</Button>
+                    </Popconfirm>
                 );
             },
         },
@@ -76,6 +77,9 @@ const StoppedMovies: React.FC = () => {
             messageApi.success("Khôi phục phim thành công");
             queryClient.invalidateQueries({
                 queryKey: ["StoppedMovies"],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["filmList"],
             });
         },
     });

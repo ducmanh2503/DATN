@@ -9,6 +9,7 @@ const DELETE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const RESTORE_FILM = (id: number) => `${BASE_URL}/movies/restore/${id}`;
 const DETAIL_DELETE_FILM = (id: number) =>
     `${BASE_URL}/movies/show-movie-destroy/${id}`;
+const CREATE_FILM_WITH_EXCEL = `${BASE_URL}/movies/import`; // thêm mới film mới file excel
 
 const GET_DIRECTORS_LIST = `${BASE_URL}/directors`;
 const UPDATE_DIRECTORS = (id: number) => `${BASE_URL}/directors/${id}`;
@@ -103,6 +104,9 @@ const CHANGE_PASSWORD = `${BASE_URL}/change-password`; // đổi mật khẩu
 
 const TICKET_DETAIL = `${BASE_URL}/ticket-details`; // chi tiết ticket để lấy QR
 
+const EXPORT_PDF_ORDER = (bookingId: number) =>
+    `${BASE_URL}/order/${bookingId}/export-tickets-pdf`; // xuất vé với file PDF
+
 const Orders_Details_Client = (bookingId: number) =>
     `${BASE_URL}/orders-details-client/${bookingId}`;
 
@@ -130,6 +134,7 @@ export {
     DELETE_FILM,
     RESTORE_FILM,
     DETAIL_DELETE_FILM,
+    CREATE_FILM_WITH_EXCEL,
     GET_DIRECTORS_LIST,
     UPDATE_DIRECTORS,
     DELETE_DIRECTORS,
@@ -182,4 +187,5 @@ export {
     HOLD_SEAT,
     TICKET_DETAIL,
     GET_SHOWTIMES_BY_FILM,
+    EXPORT_PDF_ORDER,
 };

@@ -10,17 +10,20 @@ import {
     Tag,
 } from "antd";
 import { FilterDropdownProps } from "antd/es/table/interface";
-import { SearchOutlined } from "@ant-design/icons";
+import { CopyOutlined, SearchOutlined } from "@ant-design/icons";
 import { OrdersType } from "../../../types/interface";
 import OrderDetail from "../Order/Orderdetail";
+import { useExportPDFOrder } from "../../../services/adminServices/orderManage.service";
 
 type DataIndex = keyof OrdersType;
 
-const CheckinTable = ({ orderListManage }: any) => {
-    const [searchText, setSearchText] = useState("");
+const CheckinTable = ({ orderListManage, selectedStatus }: any) => {
     const [searchedColumn, setSearchedColumn] = useState("");
-    const [showDataUser, setShowDataUser] = useState(false);
     const searchInput = useRef<InputRef>(null);
+    const [exportedOrderIds, setExportedOrderIds] = useState<number[]>(() => {
+        const stored = localStorage.getItem("exportedOrderIds");
+        return stored ? JSON.parse(stored) : [];
+    });
 
     const handleSearch = (
         selectedKeys: string[],
@@ -28,7 +31,6 @@ const CheckinTable = ({ orderListManage }: any) => {
         dataIndex: DataIndex
     ) => {
         confirm();
-        setSearchText(selectedKeys[0]);
         setSearchedColumn(dataIndex);
     };
 
@@ -89,7 +91,6 @@ const CheckinTable = ({ orderListManage }: any) => {
                         size="small"
                         onClick={() => {
                             confirm({ closeDropdown: false });
-                            setSearchText((selectedKeys as string[])[0]);
                             setSearchedColumn(dataIndex);
                         }}
                     >
@@ -129,7 +130,6 @@ const CheckinTable = ({ orderListManage }: any) => {
 
     const handleReset = (clearFilters: () => void) => {
         clearFilters();
-        setSearchText("");
     };
 
     // Tạo cache lưu trữ màu cho từng giá trị room_name
@@ -159,6 +159,23 @@ const CheckinTable = ({ orderListManage }: any) => {
         ),
         []
     );
+    const { mutate } = useExportPDFOrder();
+
+    //api xuất pdf
+    const handleExportPDF = (bookingId: number) => {
+        mutate(bookingId, {
+            onSuccess: () => {
+                setExportedOrderIds((prev) => {
+                    const updated = [...prev, bookingId];
+                    localStorage.setItem(
+                        "exportedOrderIds",
+                        JSON.stringify(updated)
+                    );
+                    return updated;
+                });
+            },
+        });
+    };
 
     const columns: TableColumnsType<OrdersType> = [
         {
@@ -201,7 +218,6 @@ const CheckinTable = ({ orderListManage }: any) => {
                 return <Tag color={roomColorMap[value]}>{value}</Tag>;
             },
         },
-
         {
             title: "Trạng thái sử dụng",
             dataIndex: "check_in",
@@ -226,6 +242,38 @@ const CheckinTable = ({ orderListManage }: any) => {
                 );
             },
         },
+        ...(selectedStatus === "checked_in"
+            ? [
+                  {
+                      title: "Xuất vé",
+                      dataIndex: "exportTicket",
+                      key: "exportTicket",
+                      render: (value: any, record: any) => {
+                          const isExported = exportedOrderIds.includes(
+                              record.id
+                          );
+
+                          return (
+                              <Button
+                                  onClick={() => handleExportPDF(record.id)}
+                                  style={{
+                                      backgroundColor: isExported
+                                          ? "#13C2C2"
+                                          : undefined,
+                                      color: isExported ? "#fff" : undefined,
+                                      borderColor: isExported
+                                          ? "#13C2C2"
+                                          : undefined,
+                                  }}
+                              >
+                                  <CopyOutlined />
+                                  {isExported ? "Đã xuất vé" : "Xuất vé"}
+                              </Button>
+                          );
+                      },
+                  },
+              ]
+            : []),
     ];
 
     return <Table<OrdersType> columns={columns} dataSource={orderListManage} />;

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     CREATE_FILM,
+    CREATE_FILM_WITH_EXCEL,
     DELETE_FILM,
     GET_FILM_DETAIL,
     GET_FILM_LIST,
@@ -112,6 +113,9 @@ export const useDeleteFilm = (messageApi: any) => {
             messageApi.success("Xóa phim thành công");
             queryClient.invalidateQueries({
                 queryKey: ["filmList"],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["StoppedMovies"],
             });
         },
         onError: (error: any) => {
@@ -279,6 +283,28 @@ export const useCreateFilm = ({
     });
 };
 
+export const useCreateFilmWithExcel = (messageApi: any) => {
+    const queryClient = useQueryClient();
+    const { mutate } = useMutation({
+        mutationFn: async (formData: any) => {
+            await axios.post(CREATE_FILM_WITH_EXCEL, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["showtimesFilm"],
+            });
+            messageApi.success("Thêm mới thành công");
+        },
+        onError: handleApiError,
+    });
+    return { mutate };
+};
+
+// lấy các suất chiếu với Film ID
 export const useGetShowtimesByFilmId = () => {
     return useMutation({
         mutationFn: async (filmId: number) => {

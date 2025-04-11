@@ -6,7 +6,10 @@ import AddGenre from "../Genres/AddGenre";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
 import { VerticalAlignTopOutlined } from "@ant-design/icons";
-import { useCreateFilm } from "../../../services/adminServices/filmManage.service";
+import {
+    useCreateFilm,
+    useCreateFilmWithExcel,
+} from "../../../services/adminServices/filmManage.service";
 
 const AddSubValue = ({
     selectedFile,
@@ -25,7 +28,7 @@ const AddSubValue = ({
         formExcel.resetFields();
     };
 
-    const { mutate: createFilm } = useCreateFilm({
+    const { mutate: createFilm } = useCreateFilmWithExcel({
         form: formExcel,
         messageApi,
         setSelectedFile,
@@ -102,9 +105,12 @@ const AddSubValue = ({
                             </Col>
                             <Col span={12}>
                                 <Form.Item
-                                    className={clsx(styles.inputLabel)}
                                     label="File Excel"
                                     name="excel_file"
+                                    valuePropName="file"
+                                    getValueFromEvent={(e) => {
+                                        return e?.target?.files?.[0];
+                                    }}
                                     rules={[
                                         {
                                             required: true,
@@ -112,7 +118,7 @@ const AddSubValue = ({
                                         },
                                     ]}
                                 >
-                                    <input type="file" accept=".xlsx, .xls" />
+                                    <input type="file" accept=".xlsx,.xls" />
                                 </Form.Item>
                             </Col>
                             <Button htmlType="submit" type="primary">

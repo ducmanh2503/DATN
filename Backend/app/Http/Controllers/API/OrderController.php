@@ -1084,6 +1084,152 @@ class OrderController extends Controller
     //---------------------------------------------test--------------------------------------------//
     public function exportTicketsToPdf($bookingId)
     {
+        // Hàm chuyển đổi chuỗi có dấu sang không dấu
+        function removeAccents($str)
+        {
+            $str = mb_strtolower($str, 'UTF-8'); // Chuyển chuỗi về chữ thường
+            $accents = [
+                'à' => 'a',
+                'á' => 'a',
+                'ả' => 'a',
+                'ã' => 'a',
+                'ạ' => 'a',
+                'ă' => 'a',
+                'ằ' => 'a',
+                'ắ' => 'a',
+                'ẳ' => 'a',
+                'ẵ' => 'a',
+                'ặ' => 'a',
+                'â' => 'a',
+                'ầ' => 'a',
+                'ấ' => 'a',
+                'ẩ' => 'a',
+                'ẫ' => 'a',
+                'ậ' => 'a',
+                'è' => 'e',
+                'é' => 'e',
+                'ẻ' => 'e',
+                'ẽ' => 'e',
+                'ẹ' => 'e',
+                'ê' => 'e',
+                'ề' => 'e',
+                'ế' => 'e',
+                'ể' => 'e',
+                'ễ' => 'e',
+                'ệ' => 'e',
+                'ì' => 'i',
+                'í' => 'i',
+                'ỉ' => 'i',
+                'ĩ' => 'i',
+                'ị' => 'i',
+                'ò' => 'o',
+                'ó' => 'o',
+                'ỏ' => 'o',
+                'õ' => 'o',
+                'ọ' => 'o',
+                'ô' => 'o',
+                'ồ' => 'o',
+                'ố' => 'o',
+                'ổ' => 'o',
+                'ỗ' => 'o',
+                'ộ' => 'o',
+                'ơ' => 'o',
+                'ờ' => 'o',
+                'ớ' => 'o',
+                'ở' => 'o',
+                'ỡ' => 'o',
+                'ợ' => 'o',
+                'ù' => 'u',
+                'ú' => 'u',
+                'ủ' => 'u',
+                'ũ' => 'u',
+                'ụ' => 'u',
+                'ư' => 'u',
+                'ừ' => 'u',
+                'ứ' => 'u',
+                'ử' => 'u',
+                'ữ' => 'u',
+                'ự' => 'u',
+                'ỳ' => 'y',
+                'ý' => 'y',
+                'ỷ' => 'y',
+                'ỹ' => 'y',
+                'ỵ' => 'y',
+                'đ' => 'd',
+                'À' => 'A',
+                'Á' => 'A',
+                'Ả' => 'A',
+                'Ã' => 'A',
+                'Ạ' => 'A',
+                'Ă' => 'A',
+                'Ằ' => 'A',
+                'Ắ' => 'A',
+                'Ẳ' => 'A',
+                'Ẵ' => 'A',
+                'Ặ' => 'A',
+                'Â' => 'A',
+                'Ầ' => 'A',
+                'Ấ' => 'A',
+                'Ẩ' => 'A',
+                'Ẫ' => 'A',
+                'Ậ' => 'A',
+                'È' => 'E',
+                'É' => 'E',
+                'Ẻ' => 'E',
+                'Ẽ' => 'E',
+                'Ẹ' => 'E',
+                'Ê' => 'E',
+                'Ề' => 'E',
+                'Ế' => 'E',
+                'Ể' => 'E',
+                'Ễ' => 'E',
+                'Ệ' => 'E',
+                'Ì' => 'I',
+                'Í' => 'I',
+                'Ỉ' => 'I',
+                'Ĩ' => 'I',
+                'Ị' => 'I',
+                'Ò' => 'O',
+                'Ó' => 'O',
+                'Ỏ' => 'O',
+                'Õ' => 'O',
+                'Ọ' => 'O',
+                'Ô' => 'O',
+                'Ồ' => 'O',
+                'Ố' => 'O',
+                'Ổ' => 'O',
+                'Ỗ' => 'O',
+                'Ộ' => 'O',
+                'Ơ' => 'O',
+                'Ờ' => 'O',
+                'Ớ' => 'O',
+                'Ở' => 'O',
+                'Ỡ' => 'O',
+                'Ợ' => 'O',
+                'Ù' => 'U',
+                'Ú' => 'U',
+                'Ủ' => 'U',
+                'Ũ' => 'U',
+                'Ụ' => 'U',
+                'Ư' => 'U',
+                'Ừ' => 'U',
+                'Ứ' => 'U',
+                'Ử' => 'U',
+                'Ữ' => 'U',
+                'Ự' => 'U',
+                'Ỳ' => 'Y',
+                'Ý' => 'Y',
+                'Ỷ' => 'Y',
+                'Ỹ' => 'Y',
+                'Ỵ' => 'Y',
+                'Đ' => 'D'
+            ];
+            $str = strtr($str, $accents); // Thay thế các ký tự có dấu
+            $str = preg_replace('/[^a-zA-Z0-9\s]/', '', $str); // Loại bỏ ký tự đặc biệt, chỉ giữ chữ cái, số và khoảng trắng
+            $str = preg_replace('/\s+/', ' ', $str); // Thay thế nhiều khoảng trắng bằng 1 khoảng trắng
+            return trim($str);
+        }
+
         // Gọi phương thức show để lấy dữ liệu
         $response = $this->show($bookingId);
         $data = json_decode($response->getContent(), true);
@@ -1097,26 +1243,224 @@ class OrderController extends Controller
         $tickets = $bookingData['tickets'];
         $combos = $bookingData['combos'];
 
-        // Tạo HTML ngắn gọn cho PDF
-        $html = '<h1 style="text-align: center;">Vé Xem Phim</h1>';
+        // Tạo HTML cho PDF với giao diện mới
+        $html = '
+    <style>
+        * {
+            font-family: "DejaVu Sans", sans-serif; /* Phông chữ hỗ trợ tiếng Việt */
+            box-sizing: border-box;
+        }
+        .wrapperBackend {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #f0bf9f; /* Màu nền đã được thay đổi trước đó */
+            padding: 20px;
+            border: 3px solid transparent;
+            border-image: repeating-linear-gradient(
+                to right,
+                #333 0px,
+                #333 10px,
+                transparent 10px,
+                transparent 22px
+            ) 30;
+            position: relative;
+            page-break-inside: avoid; /* Đảm bảo mỗi vé không bị cắt giữa các trang */
+        }
+        .info {
+            text-align: center;
+            font-weight: 500;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .movieInfo, .bookingContent, .allInfo {
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            position: relative;
+        }
+        .movieInfo {
+            margin-top: 20px;
+        }
+        .bookingContent {
+            margin-top: 10px;
+        }
+        .allInfo {
+            margin-top: 45px;
+            margin-bottom: 8px;
+        }
+        .sectionTitle {
+            width: 70px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .subBox, .ticketDetails {
+            border: 1px solid #333;
+            padding: 10px;
+            width: 100%;
+        }
+        .movieTitle {
+            font-weight: 700;
+            font-size: 16px;
+            margin: 0 0 5px 0;
+        }
+        .movieDetails {
+            font-size: 12px;
+            color: #555;
+        }
+        .movieDetails span {
+            margin-right: 10px;
+        }
+        .rated {
+            display: inline-block;
+            font-weight: 600;
+        }
+        .cinemaRoom, .showtime, .seatInfo, .comboInfo {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .seatLabel, .comboLabel {
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .seatName {
+            font-weight: 700;
+        }
+        .comboName {
+            font-weight: 600;
+        }
+        .all {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 30px;
+        }
+        .totalPrice {
+            width: 100%; /* Đảm bảo chiều rộng khớp với các phần khác */
+            padding: 10px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            background-color: #333;
+            text-align: center;
+        }
+        .movieInfo::before, .movieInfo::after,
+        .bookingContent::before, .bookingContent::after,
+        .allInfo::before, .allInfo::after {
+            content: "";
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: #fff;
+            position: absolute;
+            z-index: 1;
+        }
+        .movieInfo::before {
+            top: -32px;
+            left: -32px;
+        }
+        .movieInfo::after {
+            top: -32px;
+            right: -32px;
+        }
+        .bookingContent::before {
+            bottom: -32px;
+            left: -32px;
+        }
+        .bookingContent::after {
+            bottom: -32px;
+            right: -32px;
+        }
+        .allInfo::before {
+            bottom: -32px;
+            left: -32px;
+        }
+        .allInfo::after {
+            bottom: -32px;
+            right: -32px;
+        }
+        .all::after {
+            content: "";
+            width: calc(100% + 30px);
+            height: 3px;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-image: repeating-linear-gradient(
+                to right,
+                #333 0px,
+                #333 10px,
+                transparent 10px,
+                transparent 22px
+            );
+        }
+    </style>';
+
+        // Tạo vé riêng cho từng ghế
         foreach ($tickets as $index => $ticket) {
-            $html .= '<div style="border: 2px dashed #000; padding: 15px; margin-bottom: 20px;">';
-            $html .= '<h2>Vé ' . ($index + 1) . ' - Mã vé: ' . $ticket['ticket_id'] . '</h2>';
-            $html .= '<p><strong>Khách hàng:</strong> ' . $ticket['customer_name'] . '</p>';
-            $html .= '<p><strong>Phim:</strong> ' . $ticket['movie_title'] . '</p>';
-            $html .= '<p><strong>Suất chiếu:</strong> ' . $ticket['showtime'] . ' - ' . $ticket['show_date'] . '</p>';
-            $html .= '<p><strong>Phòng:</strong> ' . $ticket['room_name'] . ' (' . $ticket['room_type'] . ')</p>';
-            $html .= '<p><strong>Ghế:</strong> ' . $ticket['seat_name'] . ' (' . $ticket['seat_type'] . ')</p>';
-            $html .= '<p><strong>Giá:</strong> ' . number_format($ticket['price'], 0, ',', '.') . ' VND</p>';
-            $html .= '</div>';
+            $html .= '
+        <div class="wrapperBackend infoBox">
+            <h1 class="info">THONG TIN DAT VE</h1>
+            <div class="movieInfo">
+                <h2 class="sectionTitle">Phim</h2>
+                <div class="subBox">
+                    <h3 class="movieTitle">' . htmlspecialchars(removeAccents($ticket['movie_title'])) . '</h3>
+                    <div class="movieDetails">
+                        <span class="format">' . htmlspecialchars($ticket['room_type']) . '</span>
+                        <span class="rated">' . htmlspecialchars($ticket['rated'] ?? 'T16') . '</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bookingContent">
+                <h2 class="sectionTitle">Noi dung</h2>
+                <div class="ticketDetails">
+                    <div class="cinemaRoom">' . htmlspecialchars($ticket['room_name']) . '</div>
+                    <div class="showtime">' . htmlspecialchars($ticket['showtime']) . ' - ' . htmlspecialchars($ticket['show_date']) . '</div>
+                    <div class="seatInfo">
+                        <div>
+                            <span class="seatLabel">Ghe</span>
+                            <span class="seatName">' . htmlspecialchars($ticket['seat_name']) . '</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="allInfo">
+                <h2 class="all">Tong</h2>
+                <div class="totalPrice">' . number_format($ticket['price'], 0, ',', '.') . ' VND</div>
+            </div>
+        </div>';
         }
 
-        // Thêm combo nếu có
+        // Tạo vé riêng cho combo (nếu có)
         if (!empty($combos)) {
-            $html .= '<h2 style="text-align: center;">Combo</h2>';
+            $totalComboPrice = array_sum(array_map(function ($combo) {
+                return $combo['price'] * $combo['quantity'];
+            }, $combos));
+
+            $html .= '
+        <div class="wrapperBackend infoBox">
+            <h1 class="info">THONG TIN DICH VU</h1>
+            <div class="bookingContent">
+                <h2 class="sectionTitle">Noi dung</h2>
+                <div class="ticketDetails">
+                    <div class="comboInfo">';
             foreach ($combos as $combo) {
-                $html .= '<p><strong>' . $combo['combo_name'] . ' x' . $combo['quantity'] . ':</strong> ' . number_format($combo['price'], 0, ',', '.') . ' VND</p>';
+                $html .= '
+                        <div>
+                            <span class="comboLabel">' . htmlspecialchars($combo['quantity']) . '</span>
+                            <span>x</span>
+                            <span class="comboName">' . htmlspecialchars(removeAccents($combo['combo_name'])) . '</span>
+                        </div>';
             }
+            $html .= '
+                    </div>
+                </div>
+            </div>
+            <div class="allInfo">
+                <h2 class="all">Tong</h2>
+                <div class="totalPrice">' . number_format($totalComboPrice, 0, ',', '.') . ' VND</div>
+            </div>
+        </div>';
         }
 
         // Tạo và trả về PDF

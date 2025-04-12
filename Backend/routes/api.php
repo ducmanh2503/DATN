@@ -163,7 +163,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         // Combo
-        Route::apiResource('combo', ComboController::class);
+        Route::apiResource('/combo', ComboController::class);
         Route::delete('/combo', [ComboController::class, 'destroyMultiple']);
         Route::delete('/combos/force-delete-multiple', [ComboController::class, 'forceDeleteMultiple']);
         Route::delete('/combo/force/{combo}', [ComboController::class, 'forceDeleteSingle']);
@@ -216,7 +216,9 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/VNPay/return', [PaymentController::class, 'VNPayReturn']);
 Route::get('/paypal/return', [PaymentController::class, 'paypalReturn'])->name('paypal.return');
 Route::get('/paypal/cancel', [PaymentController::class, 'paypalCancel'])->name('paypal.cancel');
-// Route::put('/show-time-seats/update-status/{roomId}', [SeatController::class, 'updateSeatStatusForRoom']);
+
+//combo
+Route::get('/combos', [ComboController::class, 'showCombosForClient']);
 
 
 ///////////////////////////////////////////////customer///////////////////////////////////////////////
@@ -239,12 +241,6 @@ Route::get('/movie-details-booking/{movie}', [MoviesController::class, 'show']);
 //bài viết
 Route::get('/articles-client', [ArticleController::class, 'index']);
 Route::get('/articles/{article}/client', [ArticleController::class, 'show']);
-
-
-
-
-//combo
-Route::get('/combos', [ComboController::class, 'showCombosForClient']);
 
 
 // Authentication routes

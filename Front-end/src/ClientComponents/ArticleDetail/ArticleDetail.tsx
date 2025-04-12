@@ -6,8 +6,7 @@ import Header from "../Header/Header";
 import AppFooter from "../Footer/footer";
 import InfomationProduct from "../InfomationBox/InfomationProduct/InfomationProduct";
 import "./ArticleDetail.css";
-
-const URL_IMAGE = "http://localhost:8000";
+import { URL_IMAGE } from "../../config/ApiConfig";
 
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -138,7 +137,7 @@ const ArticleDetail: React.FC = () => {
                   <InfomationProduct
                     key={relatedArticle.id}
                     id={relatedArticle.id}
-                    image={relatedArticle.image}
+                    image={`${URL_IMAGE}${relatedArticle.image}`}
                     category={relatedArticle.category}
                     created_at={relatedArticle.created_at}
                     title={relatedArticle.title}

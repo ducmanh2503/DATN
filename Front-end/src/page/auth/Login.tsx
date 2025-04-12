@@ -31,14 +31,15 @@ const Login = () => {
       message.error("Đăng nhập với Google thất bại. Vui lòng thử lại.");
     }
 
-    if (location.state && location.state.message) {
+    if (location.state && location.state.message && !isSubmitting) {
       message.info(location.state.message);
       navigate(location.pathname, { replace: true });
     }
-  }, [location, navigate]);
+  }, [location, navigate, isSubmitting]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      console.log("Bắt đầu gửi yêu cầu đăng nhập:", data);
       const response = await authService.login(data);
       console.log("Phản hồi từ authService.login:", response);
 
@@ -59,8 +60,12 @@ const Login = () => {
       console.log("Chuyển hướng đến:", redirectUrl);
       navigate(redirectUrl);
     } catch (error) {
-      console.error("Lỗi đăng nhập:", error);
-      message.error(error.message || "Đăng nhập thất bại. Vui lòng thử lại!");
+      console.error("Lỗi đầy đủ:", error);
+      console.error("error.message:", error.message);
+      const errorMessage =
+        error.message || "Đăng nhập thất bại. Vui lòng thử lại!";
+      console.log("Hiển thị thông báo lỗi:", errorMessage);
+      message.error(errorMessage, 5);
     }
   };
 

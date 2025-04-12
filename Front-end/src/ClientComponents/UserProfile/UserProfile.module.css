@@ -3,100 +3,199 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f9f9f9; /* Màu nền nhẹ nhàng hơn */
+  background: linear-gradient(
+    135deg,
+    #f9f9fb 0%,
+    #ebedf0 100%
+  ); /* Softer gradient for a calming effect */
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  color: #1f2937; /* Darker text for better contrast */
 }
 
 .profileContainer {
   flex: 1;
-  padding: 15px; /* Giảm padding */
-  background-color: #f9f9f9;
+  padding: 60px; /* Spacious padding */
+  background-color: transparent;
 }
 
 .profileWrapper {
   display: flex;
-  gap: 15px; /* Giảm khoảng cách giữa sidebar và nội dung */
-  max-width: 1100px; /* Giảm chiều rộng tối đa */
+  gap: 60px; /* Increased gap for better separation */
+  max-width: 1600px; /* Wider for larger screens */
   margin: 0 auto;
 }
 
 /* Sidebar */
 .profileSidebar {
   flex: 1;
-  max-width: 260px; /* Giảm chiều rộng */
+  max-width: 420px; /* Slightly wider for better proportion */
   text-align: center;
-  padding: 20px 15px; /* Giảm padding */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Giảm bóng */
-  background-color: #fff;
-  border-radius: 6px; /* Bo góc nhẹ hơn */
+  padding: 50px 30px; /* Adjusted padding for a more compact feel */
+  background: rgba(255, 255, 255, 0.95); /* Glassmorphism effect */
+  backdrop-filter: blur(20px); /* Stronger blur for a premium look */
+  border-radius: 40px; /* Softer corners */
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.04); /* Softer shadow */
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+  animation: fadeInUp 1.2s ease-out forwards; /* Smoother load animation */
+}
+
+.profileSidebar:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12), 0 10px 25px rgba(0, 0, 0, 0.06);
 }
 
 /* Avatar */
 .profileAvatar {
-  margin-bottom: 12px;
-  width: 80px !important; /* Giảm kích thước avatar */
-  height: 80px !important;
+  margin-bottom: 30px;
+  width: 120px !important; /* Slightly smaller for better balance */
+  height: 120px !important;
+  border: 5px solid transparent;
+  border-radius: 50%;
+  background: #e5e7eb; /* Subtle background for placeholder */
+  background-clip: padding-box;
+  position: relative;
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+  animation: fadeIn 1s ease-out forwards; /* Fade-in on load */
+}
+
+.profileAvatar::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 50%;
+  background: linear-gradient(
+    45deg,
+    #a78bfa,
+    #f9a8d4
+  ); /* Softer gradient border */
+  z-index: -1;
+  transition: background 0.5s ease;
+}
+
+.profileAvatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 25px rgba(167, 139, 250, 0.4); /* Softer glow */
+  animation: pulse 1.5s infinite ease-in-out; /* Pulse effect on hover */
+}
+
+.profileAvatar:hover::after {
+  background: linear-gradient(
+    45deg,
+    #f9a8d4,
+    #a78bfa
+  ); /* Reverse gradient on hover */
 }
 
 /* Profile Name */
 .profileName {
-  font-size: 18px; /* Giảm kích thước font */
-  font-weight: 600;
-  margin-bottom: 5px;
-  color: #333;
+  font-size: 32px; /* Slightly smaller for better balance */
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: #1f2937;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+  background: linear-gradient(
+    90deg,
+    #a78bfa,
+    #f9a8d4
+  ); /* Softer gradient text */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0;
+  animation: fadeIn 1.2s ease-out 0.2s forwards; /* Fade-in with delay */
 }
 
 /* Profile Rank */
 .profileRank {
-  font-size: 13px; /* Giảm kích thước font */
-  color: #777; /* Màu nhạt hơn */
-  margin-bottom: 5px;
+  font-size: 16px; /* Smaller for better hierarchy */
+  color: #6b7280;
+  margin-bottom: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; /* Adjusted spacing for single icon */
+  opacity: 0;
+  animation: fadeIn 1.2s ease-out 0.4s forwards; /* Fade-in with delay */
+}
+
+.profileRank::before {
+  content: "💎"; /* Single diamond icon */
+  font-size: 18px;
 }
 
 /* Profile Points */
 .profilePoints {
-  font-size: 13px; /* Giảm kích thước font */
-  color: #fadb14;
-  margin-bottom: 20px; /* Tăng khoảng cách để thoáng */
+  font-size: 16px;
+  color: #fbbf24;
+  margin-bottom: 40px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0;
+  animation: fadeIn 1.2s ease-out 0.6s forwards; /* Fade-in with delay */
+}
+
+.profilePoints::before {
+  content: "⭐"; /* Single star icon */
+  font-size: 18px;
 }
 
 /* Expense Section */
 .expenseSection {
-  margin: 15px 0; /* Giảm khoảng cách */
-  padding: 0;
+  margin: 40px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  animation: fadeIn 1.2s ease-out 0.8s forwards; /* Fade-in with delay */
 }
 
 /* Expense Header */
 .expenseHeader {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 25px;
 }
 
 .profileExpenseTitle {
-  font-size: 11px; /* Giảm kích thước font */
-  color: #999; /* Màu nhạt hơn */
+  font-size: 16px;
+  color: #9ca3af;
+  font-weight: 500;
+  margin-bottom: 10px;
 }
 
 .profileExpenseText {
-  font-size: 13px; /* Giảm kích thước font */
+  font-size: 22px;
   font-weight: 600;
-  color: #333;
+  color: #1f2937;
+  line-height: 1.4;
 }
 
 /* Progress Wrapper */
 .progressWrapper {
   position: relative;
-  margin: 12px auto; /* Tăng nhẹ khoảng cách để thoáng hơn */
+  margin: 30px auto;
   width: 100%;
-  max-width: 240px; /* Tăng nhẹ chiều rộng để cân đối */
+  max-width: 280px; /* Reduced width for a smaller progress bar */
+  opacity: 0;
+  animation: fadeIn 1.2s ease-out 1s forwards; /* Fade-in with delay */
 }
 
 /* Progress Line */
 .progressLine {
-  height: 2px; /* Thanh mỏng hơn, giống trong hình */
-  background-color: #e0e0e0; /* Màu xám nhạt */
-  border-radius: 1px; /* Bo góc nhẹ hơn */
+  height: 8px; /* Thinner progress line */
+  background: #e5e7eb;
+  border-radius: 4px;
   position: relative;
   overflow: visible;
 }
@@ -104,9 +203,10 @@
 /* Progress Fill */
 .progressFill {
   height: 100%;
-  background-color: #1890ff; /* Màu xanh dương đậm hơn một chút */
-  border-radius: 1px;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #a78bfa, #f9a8d4); /* Softer gradient */
+  border-radius: 4px;
+  transition: width 1.2s ease-in-out; /* Smoother width transition */
+  box-shadow: 0 0 15px rgba(167, 139, 250, 0.5); /* Softer glow */
 }
 
 /* Milestone Item */
@@ -115,321 +215,201 @@
   top: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
+  cursor: pointer; /* Indicate that the element is interactive */
 }
 
 /* Milestone Circle */
 .milestoneCircle {
-  width: 28px; /* Tăng nhẹ kích thước hình tròn */
-  height: 28px;
-  background-color: #f5f5f5; /* Màu nền xám nhạt, giống trong hình */
-  border: 1px solid #e0e0e0; /* Viền xám nhạt */
+  width: 24px; /* Reduced size (from 36px) */
+  height: 24px; /* Reduced size (from 36px) */
+  background: #ffffff;
+  border: 3px solid #e5e7eb;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   z-index: 3;
-  transition: transform 0.3s ease, border-color 0.3s ease,
-    background-color 0.3s ease;
+  transition: transform 0.5s ease, border-color 0.5s ease,
+    background-color 0.5s ease;
 }
 
 /* Milestone Circle Active */
 .milestoneCircleActive {
-  transform: scale(1.1);
-  border-color: #1890ff; /* Viền xanh khi đạt mốc */
-  background-color: #e6f7ff; /* Màu nền xanh nhạt khi đạt mốc */
+  transform: scale(1.2); /* Slightly smaller scale for a smoother effect */
+  border-color: #a78bfa;
+  background: #f5f3ff;
 }
 
 /* Milestone Circle Hover */
 .milestoneCircle:hover {
-  transform: scale(1.15); /* Phóng to nhẹ khi hover */
-  border-color: #40c4ff; /* Viền xanh nhạt khi hover */
+  transform: scale(1.3);
+  border-color: #f9a8d4;
+  background: #fdf2f8;
 }
 
 /* Milestone Icon */
 .milestoneIcon {
-  font-size: 14px; /* Tăng nhẹ kích thước icon */
+  font-size: 14px; /* Reduced size (from 18px) to match smaller circle */
   line-height: 1;
-  color: #666; /* Màu icon xám đậm hơn một chút */
-  transition: color 0.3s ease;
+  color: #6b7280;
+  transition: color 0.5s ease;
 }
 
 .milestoneCircleActive .milestoneIcon {
-  color: #1890ff; /* Màu icon xanh khi đạt mốc */
-}
-
-/* Milestone Labels */
-.milestoneLabels {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px; /* Tăng nhẹ khoảng cách */
-}
-
-/* Milestone Label Wrapper */
-.milestoneLabelWrapper {
-  position: absolute;
-  transform: translateX(-50%);
-  text-align: center;
-}
-
-/* Milestone Label */
-.milestoneLabel {
-  font-size: 10px; /* Tăng nhẹ kích thước font */
-  color: #888;
-  white-space: nowrap;
+  color: #a78bfa;
 }
 
 /* Contact Info */
 .contactInfo {
-  margin-top: 20px;
-  font-size: 11px; /* Giảm kích thước font */
-  color: #888;
+  margin-top: 60px;
+  font-size: 16px;
+  color: #6b7280;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  animation: fadeIn 1.2s ease-out 1.2s forwards; /* Fade-in with delay */
 }
 
 .contactInfo p {
-  margin: 5px 0; /* Giảm khoảng cách giữa các dòng */
-  line-height: 1.3;
+  margin: 12px 0;
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Space for icons */
+  transition: color 0.5s ease;
+}
+
+.contactInfo p:hover {
+  color: #4b5563; /* Subtle color change on hover */
+}
+
+.contactInfo p.phone::before {
+  content: "📞"; /* Phone icon */
+  font-size: 20px;
+}
+
+.contactInfo p.email::before {
+  content: "✉️"; /* Email icon */
+  font-size: 20px;
+}
+
+.contactInfo p.support {
+  margin-top: 25px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.contactInfo p.support::before {
+  content: "ℹ️"; /* Info icon */
+  font-size: 20px;
 }
 
 .contactInfo a {
-  color: #40c4ff; /* Màu xanh nhạt hơn */
+  color: #a78bfa;
   text-decoration: none;
+  transition: color 0.5s ease;
 }
 
 .contactInfo a:hover {
+  color: #f9a8d4;
   text-decoration: underline;
 }
 
 /* Content Area */
 .profileContent {
   flex: 3;
-  padding: 15px; /* Giảm padding */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Giảm bóng */
-  background-color: #fff;
-  border-radius: 6px;
+  padding: 60px;
+  background: rgba(255, 255, 255, 0.95); /* Glassmorphism effect */
+  backdrop-filter: blur(20px);
+  border-radius: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+  animation: fadeInUp 1.2s ease-out forwards;
 }
 
-.customTabs {
-  /* Đảm bảo các tab được căn chỉnh đồng đều */
+.profileContent:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12), 0 10px 25px rgba(0, 0, 0, 0.06);
 }
 
-/* Search Section */
-.searchSection {
-  margin-bottom: 15px; /* Giảm khoảng cách */
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.searchInput {
-  width: 250px; /* Giảm chiều rộng */
-  margin-right: 8px; /* Giảm khoảng cách */
-  font-size: 13px; /* Giảm kích thước font */
-}
-
-/* Button Group */
-.buttonGroup {
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: flex-start;
-  gap: 8px; /* Giảm khoảng cách giữa các nút */
-}
-
-.customButton {
-  font-size: 13px; /* Giảm kích thước font */
-  padding: 4px 12px; /* Giảm padding để nút nhỏ hơn */
-}
-
-/* Transaction Table */
-.ordersTable {
-  overflow-x: auto;
-}
-
-.transactionTable {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #fff;
-  box-shadow: none; /* Bỏ bóng để nhẹ nhàng hơn */
-}
-
-.transactionTable th,
-.transactionTable td {
-  padding: 8px 12px; /* Giảm padding */
-  text-align: left;
-  border-bottom: 1px solid #f0f0f0; /* Màu viền nhạt hơn */
-  font-size: 13px; /* Giảm kích thước font */
-}
-
-/* Định nghĩa chiều rộng cột */
-.transactionTable th:nth-child(1),
-.transactionTable td:nth-child(1) {
-  width: 8%;
-}
-
-.transactionTable th:nth-child(2),
-.transactionTable td:nth-child(2) {
-  width: 12%;
-}
-
-.transactionTable th:nth-child(3),
-.transactionTable td:nth-child(3) {
-  width: 12%;
-}
-
-.transactionTable th:nth-child(4),
-.transactionTable td:nth-child(4) {
-  width: 20%;
-}
-
-.transactionTable th:nth-child(5),
-.transactionTable td:nth-child(5) {
-  width: 10%;
-}
-
-.transactionTable th:nth-child(6),
-.transactionTable td:nth-child(6) {
-  width: 10%;
-}
-
-.transactionTable th:nth-child(7),
-.transactionTable td:nth-child(7) {
-  width: 10%;
-}
-
-.transactionTable th:nth-child(8),
-.transactionTable td:nth-child(8) {
-  width: 12%;
-}
-
-.transactionTable th:nth-child(9),
-.transactionTable td:nth-child(9) {
-  width: 10%;
-}
-
-.transactionTable th {
-  background-color: #f5f5f5; /* Màu nền nhạt hơn */
+/* Tabs styling */
+.customTabs .ant-tabs-tab {
+  font-size: 24px; /* Larger for better readability */
   font-weight: 600;
-  color: #555; /* Màu chữ nhạt hơn */
+  padding: 20px 40px;
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  margin-right: 15px;
+  transition: color 0.5s ease, background 0.5s ease, transform 0.5s ease;
+  opacity: 0;
+  animation: fadeInUp 1s ease-out 0.2s forwards;
 }
 
-.transactionRow:hover {
-  background-color: #fafafa; /* Màu hover nhạt hơn */
+.customTabs .ant-tabs-tab:hover {
+  color: #a78bfa;
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-3px);
 }
 
-.movieCell {
-  display: flex;
-  align-items: center;
-  gap: 8px; /* Giảm khoảng cách */
+.customTabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #a78bfa !important;
+  background: #f5f3ff;
 }
 
-.moviePoster {
-  width: 32px; /* Giảm kích thước ảnh */
-  height: 48px;
-  object-fit: cover;
-  border-radius: 3px;
+.customTabs .ant-tabs-ink-bar {
+  background: linear-gradient(90deg, #a78bfa, #f9a8d4); /* Softer gradient */
+  height: 5px;
+  border-radius: 2.5px;
 }
 
-.noPoster {
-  width: 32px;
-  height: 48px;
-  background-color: #e8e8e8; /* Màu nhạt hơn */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px; /* Giảm kích thước font */
-  color: #999;
-  border-radius: 3px;
+/* Animations */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(167, 139, 250, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(167, 139, 250, 0);
+  }
 }
 
-.statusBadge {
-  padding: 3px 6px; /* Giảm padding */
-  border-radius: 10px;
-  font-size: 11px; /* Giảm kích thước font */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.confirmed {
-  background-color: #e6f7ff;
-  color: #40c4ff; /* Màu nhạt hơn */
-}
-
-.pending {
-  background-color: #fffbe6;
-  color: #faad14;
-}
-
-.cancelled {
-  background-color: #fff1f0;
-  color: #f5222d;
-}
-
-.failed {
-  background-color: #f5f5f5;
-  color: #999;
-}
-
-/* Empty Content */
-.emptyContent {
-  text-align: center;
-  padding: 30px 0; /* Giảm padding */
-  color: #888;
-}
-
-.emptyContent p {
-  margin-bottom: 12px; /* Giảm khoảng cách */
-  font-size: 13px; /* Giảm kích thước font */
-}
-
-/* Profile Form */
-.profileForm {
-  max-width: 400px; /* Giảm chiều rộng form */
-  margin: 0 auto;
-}
-
-.customInput {
-  font-size: 13px; /* Giảm kích thước font */
-}
-
-.profileButtons {
-  text-align: center;
-  margin-top: 15px; /* Giảm khoảng cách */
-}
-
-/* Loading */
-.loading {
-  text-align: center;
-  padding: 30px 0;
-  color: #888;
-  font-size: 13px; /* Giảm kích thước font */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .profileWrapper {
     flex-direction: column;
+    gap: 40px;
   }
 
   .profileSidebar {
     max-width: 100%;
-  }
-
-  .searchSection {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .searchInput {
-    width: 100%;
-    margin-bottom: 8px;
-    margin-right: 0;
-  }
-
-  .buttonGroup {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .buttonGroup .customButton {
-    width: 100%;
   }
 }

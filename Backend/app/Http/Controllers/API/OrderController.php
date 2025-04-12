@@ -513,6 +513,7 @@ class OrderController extends Controller
                 $room_type = null;
                 $combos = [];
                 $movie = null;
+                $show_date = 'N/A'; // Khai báo giá trị mặc định
 
                 // Lấy thông tin phim từ showtime -> calendarShow -> movie
                 if ($booking->showtime && $booking->showtime->calendarShow && $booking->showtime->calendarShow->movie) {
@@ -667,6 +668,7 @@ class OrderController extends Controller
                 $room_type = null;
                 $combos = [];
                 $movie = null;
+                $show_date = 'N/A'; // Khai báo giá trị mặc định
 
                 // Lấy thông tin phim từ showtime -> calendarShow -> movie
                 if ($booking->showtime && $booking->showtime->calendarShow && $booking->showtime->calendarShow->movie) {
@@ -677,22 +679,22 @@ class OrderController extends Controller
                     ];
                 }
 
-                // // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
-                // if ($booking->showtime && $booking->showtime->showTimeDate) {
-                //     $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
-                //         ? $booking->showtime->showTimeDate->first()
-                //         : $booking->showtime->showTimeDate;
+                // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
+                if ($booking->showtime && $booking->showtime->showTimeDate) {
+                    $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+                        ? $booking->showtime->showTimeDate->first()
+                        : $booking->showtime->showTimeDate;
 
-                //     if ($showTimeDate && $showTimeDate->show_date) {
-                //         // Chuyển show_date thành đối tượng Carbon và định dạng
-                //         try {
-                //             $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
-                //         } catch (\Exception $e) {
-                //             // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
-                //             $show_date = $showTimeDate->show_date ?: 'N/A';
-                //         }
-                //     }
-                // }   
+                    if ($showTimeDate && $showTimeDate->show_date) {
+                        // Chuyển show_date thành đối tượng Carbon và định dạng
+                        try {
+                            $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
+                        } catch (\Exception $e) {
+                            // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
+                            $show_date = $showTimeDate->show_date ?: 'N/A';
+                        }
+                    }
+                }
 
                 if ($booking->bookingDetails) {
                     foreach ($booking->bookingDetails as $detail) {
@@ -729,7 +731,7 @@ class OrderController extends Controller
                     'showtime' => $booking->showtime
                         ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
                         : 'N/A',
-                    // 'show_date' => $show_date,
+                    'show_date' => $show_date, // Sử dụng biến đã khai báo
                     'movie_title' => $movie ? $movie['title'] : 'N/A',
                     'movie_poster' => $movie ? $movie['poster'] : null,
                     'room_name' => $room_name ?? 'N/A',
@@ -821,6 +823,7 @@ class OrderController extends Controller
                 $room_type = null;
                 $combos = [];
                 $movie = null;
+                $show_date = 'N/A'; // Khai báo giá trị mặc định
 
                 // Lấy thông tin phim từ showtime -> calendarShow -> movie
                 if ($booking->showtime && $booking->showtime->calendarShow && $booking->showtime->calendarShow->movie) {

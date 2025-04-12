@@ -34,39 +34,29 @@ const PaymentGate = ({ className }: any) => {
                         {
                             value: "VNpay",
                             label: (
-                                <>
+                                <div className={clsx(styles.boxPaymentLogo)}>
                                     <img
-                                        src={`${URL_IMAGE}/storage/image/VNpay.png`}
-                                        alt=""
-                                        style={{
-                                            width: "40px",
-                                            height: "40px",
-                                        }}
+                                        className={clsx(styles.imgLogo)}
+                                        src="../../../../public/imageFE/VNpay.png"
+                                        alt="VNpay.png"
                                     />
-                                    {console.log(
-                                        `${URL_IMAGE}/storage/image/PayPal.jpg`
-                                    )}
+
                                     <span>VN Pay</span>
-                                </>
+                                </div>
                             ),
                         },
                         {
                             value: "PayPal",
                             label: (
-                                <>
+                                <div className={clsx(styles.boxPaymentLogo)}>
                                     <img
-                                        src={`${URL_IMAGE}/storage/image/PayPal.jpg`}
-                                        alt=""
-                                        style={{
-                                            width: "40px",
-                                            height: "40px",
-                                        }}
+                                        className={clsx(styles.imgLogo)}
+                                        src="../../../../public/imageFE/PayPal.jpg"
+                                        alt="PayPal.jpg"
                                     />
-                                    {console.log(
-                                        `${URL_IMAGE}/storage/image/PayPal.jpg`
-                                    )}
+
                                     <span>PayPal</span>
-                                </>
+                                </div>
                             ),
                         },
                     ]}

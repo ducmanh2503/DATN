@@ -1,4 +1,3 @@
-// src/ClientComponents/FilmDetail/FilmDetail.tsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ClientLayout from "../../page/client/Layout";
@@ -18,7 +17,9 @@ interface MovieDetail {
   language: string;
   rated: string;
   trailer: string | null;
-  directors: { id: number; name_director: string }[];
+  directors:
+    | { id: number; name_director: string }
+    | { id: number; name_director: string }[];
   actors: { id: number; name_actor: string }[];
 }
 
@@ -47,7 +48,6 @@ const FilmDetail = () => {
       }
       try {
         setLoading(true);
-        // Sử dụng endpoint movies-details thay vì movies
         const response = await axios.get(
           `http://localhost:8000/api/movies-details/${id}`
         );
@@ -65,7 +65,6 @@ const FilmDetail = () => {
       if (!id) return;
 
       try {
-        // Sử dụng đúng endpoint API cho phim cùng thể loại
         const response = await axios.get(
           `http://localhost:8000/api/movies/${id}/related`
         );
@@ -75,7 +74,6 @@ const FilmDetail = () => {
         }
       } catch (err) {
         console.error("Error fetching related movies:", err);
-        // Không hiển thị lỗi này cho người dùng, chỉ log ra console
       }
     };
 
@@ -88,12 +86,76 @@ const FilmDetail = () => {
   if (!movie) return <div className="not-found">Không tìm thấy phim</div>;
 
   const handleViewShowtimesAndBook = () => {
-    // Mở modal lịch chiếu thay vì chuyển hướng
     setIsModalOpen(true);
   };
 
   const handleCancelModal = () => {
     setIsModalOpen(false);
+  };
+
+  // Hàm hiển thị đạo diễn
+  const renderDirectors = () => {
+    if (!movie.directors) return <span>Không có thông tin</span>;
+
+    if (!Array.isArray(movie.directors)) {
+      return (
+        <span>
+          <a
+            href={`/director/${movie.directors.id}`}
+            className="director-link"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/director/${movie.directors.id}`);
+            }}
+          >
+            {movie.directors.name_director}
+          </a>
+        </span>
+      );
+    }
+
+    if (movie.directors.length > 0) {
+      return movie.directors.map((d, index) => (
+        <span key={d.id}>
+          <a
+            href={`/director/${d.id}`}
+            className="director-link"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/director/${d.id}`);
+            }}
+          >
+            {d.name_director}
+          </a>
+          {index < movie.directors.length - 1 && ", "}
+        </span>
+      ));
+    }
+
+    return <span>Không có thông tin</span>;
+  };
+
+  // Hàm hiển thị diễn viên
+  const renderActors = () => {
+    if (!movie.actors || movie.actors.length === 0) {
+      return <span>Không có thông tin</span>;
+    }
+
+    return movie.actors.map((a, index) => (
+      <span key={a.id}>
+        <a
+          href={`/actor/${a.id}`}
+          className="actor-link"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate(`/actor/${a.id}`);
+          }}
+        >
+          {a.name_actor}
+        </a>
+        {index < movie.actors.length - 1 && ", "}
+      </span>
+    ));
   };
 
   return (
@@ -150,19 +212,11 @@ const FilmDetail = () => {
               </div>
               <div className="info-item">
                 <span className="info-label">Đạo diễn:</span>
-                <span className="info-value">
-                  {movie.directors && movie.directors.length > 0
-                    ? movie.directors[0]?.name_director
-                    : "Không có thông tin"}
-                </span>
+                <span className="info-value">{renderDirectors()}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Diễn viên:</span>
-                <span className="info-value">
-                  {movie.actors && movie.actors.length > 0
-                    ? movie.actors.map((a) => a.name_actor).join(", ")
-                    : "Không có thông tin"}
-                </span>
+                <span className="info-value">{renderActors()}</span>
               </div>
             </div>
             <div className="action-buttons">
@@ -185,7 +239,7 @@ const FilmDetail = () => {
             <div className="trailer-container">
               <iframe
                 width="100%"
-                height="400"
+                height="100%"
                 src={movie.trailer}
                 title={`${movie.title} trailer`}
                 frameBorder="0"

@@ -64,7 +64,7 @@ class ComboController extends Controller
             ]);
 
             if (isset($validated['image']) && $validated['image'] instanceof \Illuminate\Http\UploadedFile) {
-                $imagePath = $validated['image']->store('images', 'public');
+                $imagePath = $validated['image']->store('image', 'public');
                 $validated['image'] = Storage::url($imagePath);
             } else {
                 throw new \Exception('No valid image file received');
@@ -122,7 +122,7 @@ class ComboController extends Controller
                 if ($combo->image && Storage::disk('public')->exists(str_replace('/storage/', '', $combo->image))) {
                     Storage::disk('public')->delete(str_replace('/storage/', '', $combo->image));
                 }
-                $imagePath = $validated['image']->store('images', 'public');
+                $imagePath = $validated['image']->store('image', 'public');
                 $validated['image'] = Storage::url($imagePath);
             }
 

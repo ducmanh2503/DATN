@@ -66,6 +66,35 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("auth_token");
+    const userRole = localStorage.getItem("user_role");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log("[Auth Service API] Đã thêm token:", token);
+    }
+
+    // Thêm role vào header để backend có thể xác định quyền
+    if (userRole) {
+      config.headers["X-User-Role"] = userRole;
+      console.log("[Auth Service API] Đã thêm X-User-Role:", userRole);
+    }
+
+    // Đảm bảo Content-Type luôn được đặt đúng
+    if (
+      !config.headers["Content-Type"] &&
+      !config.headers.get("Content-Type")
+    ) {
+      config.headers["Content-Type"] = "application/json";
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -73,7 +102,6 @@ api.interceptors.response.use(
       console.error(
         "[Auth Service] Unauthorized (401) - Token có thể đã hết hạn."
       );
-      // Chỉ chuyển hướng nếu không phải là yêu cầu đăng nhập
       if (error.config.url !== "/login") {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user_role");

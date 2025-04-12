@@ -5,34 +5,51 @@ import AddDirector from "../Directors/AddDirector";
 import AddGenre from "../Genres/AddGenre";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
-import { VerticalAlignTopOutlined } from "@ant-design/icons";
-import {
-    useCreateFilm,
-    useCreateFilmWithExcel,
-} from "../../../services/adminServices/filmManage.service";
+import { FileTextOutlined, VerticalAlignTopOutlined } from "@ant-design/icons";
+import { useCreateFilmWithExcel } from "../../../services/adminServices/filmManage.service";
 
-const AddSubValue = ({
-    selectedFile,
-    setSelectedFile,
-    preview,
-    setPreview,
-}: any) => {
+const AddSubValue = () => {
     const [formExcel] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+
+    const [selectedFilesExcel, setSelectedFilesExcel] = useState<File[]>([]);
+    const [previewExcel, setPreviewExcel] = useState<string[]>([]);
+    const [excelFileName, setExcelFileName] = useState<string>("");
 
     const [activeKey, setActiveKey] = useState<string | string[]>("");
     const [activeKey2, setActiveKey2] = useState<string | string[]>("");
 
+    const handleChangeImageExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const fileArray = Array.from(files);
+            const previewUrls = fileArray.map((file) =>
+                URL.createObjectURL(file)
+            );
+
+            // console.log("Selected files:", fileArray);
+            // console.log("Preview URLs:", previewUrls);
+
+            setSelectedFilesExcel((prev) => [...prev, ...fileArray]);
+            setPreviewExcel((prev) => [...prev, ...previewUrls]);
+        }
+    };
+
     const onFinish = (formData: FormData) => {
-        createFilm(formData);
+        const newForm = {
+            poster: selectedFilesExcel,
+            excel_file: formData.excel_file,
+        };
+        createFilm(newForm);
         formExcel.resetFields();
+        setSelectedFilesExcel([]);
+        setPreviewExcel([]);
+        setExcelFileName("");
     };
 
     const { mutate: createFilm } = useCreateFilmWithExcel({
         form: formExcel,
         messageApi,
-        setSelectedFile,
-        setPreview,
     });
 
     const items = [
@@ -49,91 +66,114 @@ const AddSubValue = ({
         },
     ];
 
-    const onChangeActiveCollapse = (key: string | string[]) => {
-        setActiveKey(key);
-    };
-
     const items2 = [
         {
             key: "1",
             label: "THÊM MỚI PHIM VỚI EXCEL",
             children: (
-                <>
-                    <Form
-                        form={formExcel}
-                        name="add-film-form"
-                        labelCol={{ span: 8 }}
-                        wrapperCol={{ span: 16 }}
-                        onFinish={onFinish}
-                    >
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    className={clsx(styles.inputLabel)}
-                                    label="Poster"
-                                    name="poster"
-                                >
-                                    <Space.Compact>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            id="uploadFile"
-                                            // onChange={handleChangeImage}
-                                            style={{ display: "none" }}
-                                        />
-                                        <label
-                                            htmlFor="uploadFile"
-                                            className={clsx(styles.addImage)}
-                                        >
-                                            <VerticalAlignTopOutlined /> Thêm
-                                            ảnh
-                                        </label>
-                                        {selectedFile && (
+                <Form
+                    form={formExcel}
+                    name="add-film-form-excel"
+                    labelCol={{ span: 8 }}
+                    wrapperCol={{ span: 16 }}
+                    onFinish={onFinish}
+                >
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                className={clsx(styles.inputLabel)}
+                                label="Poster"
+                                name="excel_poster"
+                            >
+                                <div className={clsx(styles.spaceExcel)}>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        id="uploadFileExcel"
+                                        multiple
+                                        onChange={handleChangeImageExcel}
+                                        style={{ display: "none" }}
+                                    />
+                                    <label
+                                        htmlFor="uploadFileExcel"
+                                        className={clsx(styles.addImage)}
+                                    >
+                                        <VerticalAlignTopOutlined /> Thêm ảnh
+                                    </label>
+
+                                    <div className={clsx(styles.boxImages)}>
+                                        {previewExcel.map((src, idx) => (
                                             <Image
-                                                src={preview}
-                                                alt="poster"
-                                                style={{
-                                                    marginTop: "8px",
-                                                    objectFit: "cover",
-                                                }}
-                                                width={180}
-                                                height={220}
+                                                key={idx}
+                                                src={src}
+                                                alt={`poster-${idx}`}
+                                                width={150}
+                                                height={210}
+                                                style={{ objectFit: "cover" }}
                                             />
-                                        )}
-                                    </Space.Compact>
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item
-                                    label="File Excel"
-                                    name="excel_file"
-                                    valuePropName="file"
-                                    getValueFromEvent={(e) => {
-                                        return e?.target?.files?.[0];
-                                    }}
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Vui lòng chọn file Excel",
-                                        },
-                                    ]}
-                                >
-                                    <input type="file" accept=".xlsx,.xls" />
-                                </Form.Item>
-                            </Col>
+                                        ))}
+                                    </div>
+                                </div>
+                            </Form.Item>
+                        </Col>
+
+                        <Col span={12}>
+                            <Form.Item
+                                label="File Excel"
+                                name="excel_file"
+                                valuePropName="file"
+                                getValueFromEvent={(e) => {
+                                    return e?.target?.files?.[0];
+                                }}
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Vui lòng chọn file Excel",
+                                    },
+                                ]}
+                            >
+                                <div className={clsx(styles.spaceExcel)}>
+                                    <input
+                                        id="fileExcel"
+                                        type="file"
+                                        accept=".xlsx,.xls"
+                                        style={{ display: "none" }}
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setExcelFileName(file.name);
+                                            }
+                                            formExcel.setFieldValue(
+                                                "excel_file",
+                                                file
+                                            );
+                                        }}
+                                    />
+
+                                    <label
+                                        htmlFor="fileExcel"
+                                        className={clsx(styles.fileExcel)}
+                                    >
+                                        <FileTextOutlined
+                                            className={clsx(styles.iconExcel)}
+                                        />
+                                        Thêm file Excel
+                                    </label>
+                                    <span>{excelFileName}</span>
+                                </div>
+                            </Form.Item>
+                        </Col>
+
+                        <Col span={24}>
                             <Button htmlType="submit" type="primary">
                                 Thêm
                             </Button>
-                        </Row>
-                    </Form>
-                </>
+                        </Col>
+                    </Row>
+                </Form>
             ),
         },
     ];
-
-    const onChangeActiveCollapse2 = (key: string | string[]) => {
-        setActiveKey2(key);
-    };
 
     return (
         <div>
@@ -141,7 +181,7 @@ const AddSubValue = ({
             <Collapse
                 className={clsx(styles.collapse)}
                 activeKey={activeKey}
-                onChange={onChangeActiveCollapse}
+                onChange={setActiveKey}
                 ghost
                 items={items}
             />
@@ -149,10 +189,10 @@ const AddSubValue = ({
             <Collapse
                 className={clsx(styles.collapse2)}
                 activeKey={activeKey2}
-                onChange={onChangeActiveCollapse2}
+                onChange={setActiveKey2}
                 ghost
                 items={items2}
-            ></Collapse>
+            />
         </div>
     );
 };

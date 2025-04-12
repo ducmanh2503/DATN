@@ -4,6 +4,7 @@ import styles from "./Wheel.module.css";
 import ResultWheel from "./ResultWheel/ResultWheel";
 import HowGiveCount from "./HowGiveCount/HowGiveCount";
 import Introduce from "./Introduce/Introduce";
+import GetTotalusedMoney from "./GetTotalusedMoney/GetTotalusedMoney";
 
 const Wheel = () => {
     const wheel = useRef<HTMLDivElement>(null);
@@ -141,19 +142,22 @@ const Wheel = () => {
             </div>
             <div className={clsx(styles.rightMain)}>
                 <Introduce></Introduce>
-                <div className={clsx(styles.btnPlay)}>
-                    <div className={clsx(styles.playingCount)}>
-                        Bạn có 1 lượt chơi
+                <div className={clsx(styles.boxFlex)}>
+                    <div className={clsx(styles.btnPlay)}>
+                        <div className={clsx(styles.playingCount)}>
+                            Bạn có 1 lượt chơi
+                        </div>
+                        <div
+                            className={clsx(styles.playingCount, styles.free)}
+                            onClick={() => {
+                                handleWheel();
+                                setIsFree(true);
+                            }}
+                        >
+                            CHƠI THỬ MIỄN PHÍ
+                        </div>
                     </div>
-                    <div
-                        className={clsx(styles.playingCount, styles.free)}
-                        onClick={() => {
-                            handleWheel();
-                            setIsFree(true);
-                        }}
-                    >
-                        CHƠI THỬ MIỄN PHÍ
-                    </div>
+                    <GetTotalusedMoney></GetTotalusedMoney>
                 </div>
                 <HowGiveCount></HowGiveCount>
             </div>

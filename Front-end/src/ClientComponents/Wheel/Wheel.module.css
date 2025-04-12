@@ -119,8 +119,13 @@
     cursor: pointer;
 }
 
-.btnPlay {
+.boxFlex {
     margin-top: 90px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.btnPlay {
     display: flex;
     flex-direction: column;
     gap: 20px;

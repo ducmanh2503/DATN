@@ -16,6 +16,7 @@ export interface FormData {
     directors: string; //filmManage type
     genre: string; //filmManage type
     id: number; // editFilmManage type
+    excel_file: any;
 }
 
 export interface DataTypeGenresActorsDirectors {

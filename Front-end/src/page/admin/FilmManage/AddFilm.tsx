@@ -389,12 +389,7 @@ const AddFilm = () => {
                         Thêm
                     </Button>
                 </Form>
-                <AddSubValue
-                    selectedFile={selectedFile}
-                    setSelectedFile={setSelectedFile}
-                    preview={preview}
-                    setPrevie={setPreview}
-                ></AddSubValue>
+                <AddSubValue></AddSubValue>
             </div>
 
             <div className={clsx(styles.listAddFilm)}>

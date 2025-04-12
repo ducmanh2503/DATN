@@ -30,17 +30,53 @@
     width: 30%;
 }
 
-.addImage {
+.addImage,
+.addImageExcel {
     background-color: #5cb338;
     padding: 6px 6px;
     border-radius: 6px;
     color: white;
-    height: 38px;
+    cursor: pointer;
+    height: 36px;
+}
+
+.addImage {
     margin-right: 10px;
+}
+
+.spaceExcel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
 }
 
 .addImage:hover {
     background-color: #8ee06b;
+}
+
+.boxImages {
+    width: 308px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.fileExcel {
+    background-color: #3f7d58;
+    padding: 6px 6px;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+}
+
+.fileExcel:hover {
+    background-color: #7cb190;
+}
+
+.iconExcel {
+    font-size: 18px;
+    margin-right: 4px;
 }
 
 .customRow {

@@ -1,164 +1,160 @@
+// import { Button, Col, Collapse, Form, Image, message, Row, Space } from "antd";
+// import React, { useState } from "react";
+// import AddActor from "../Actors/AddActors";
+// import AddDirector from "../Directors/AddDirector";
+// import AddGenre from "../Genres/AddGenre";
 // import clsx from "clsx";
-// import React, { useState, useRef } from "react";
-// import styles from "./Wheel.module.css";
-// import ResultWheel from "./ResultWheel/ResultWheel";
-// import HowGiveCount from "./HowGiveCount/HowGiveCount";
-// import Introduce from "./Introduce/Introduce";
+// import styles from "../globalAdmin.module.css";
+// import { VerticalAlignTopOutlined } from "@ant-design/icons";
+// import {
+//     useCreateFilm,
+//     useCreateFilmWithExcel,
+// } from "../../../services/adminServices/filmManage.service";
 
-// const Wheel = () => {
-//     const wheel = useRef<HTMLDivElement>(null);
-//     const [rotation, setRotation] = useState(0);
-//     const [currentPrize, setCurrentPrize] = useState<string | null>(null);
-//     const [isSpinning, setIsSpinning] = useState(false);
+// const AddSubValue = ({
+//     selectedFile,
+//     setSelectedFile,
+//     preview,
+//     setPreview,
+// }: any) => {
+//     const [formExcel] = Form.useForm();
+//     const [messageApi, contextHolder] = message.useMessage();
 
-//     const [isModalOpen, setIsModalOpen] = useState(false); //mở modal
-//     const [isFree, setIsFree] = useState(false);
+//     const [activeKey, setActiveKey] = useState<string | string[]>("");
+//     const [activeKey2, setActiveKey2] = useState<string | string[]>("");
 
-//     const prizes = [
-//         "Giảm 10K",
-//         "Giảm 20K",
-//         "Giảm 50K",
-//         "Giảm 10K",
-//         "Gấu bông Forest",
-//         "Chúc bạn may mắn lần sau",
-//         "Giảm 10K",
-//         "Chúc bạn may mắn lần sau",
-//     ];
-
-//     // index tương ứng với prizes: [0,1,2,3,4,5,6,7]
-//     const prizeWeightMap: { [index: number]: number } = {
-//         0: 35, // Giảm 10K (chia 50% cho 3 vị trí: 17% mỗi cái)
-//         1: 16, // Giảm 20K
-//         2: 1, // Giảm 50K
-//         3: 28, // Giảm 10K
-//         4: 1, // Gấu bông
-//         5: 15, // Chúc bạn may mắn lần sau (chia 35% cho 2 vị trí: 18% và 17%)
-//         6: 25, // Giảm 10K
-//         7: 14, // Chúc bạn may mắn lần sau
+//     const onFinish = (formData: FormData) => {
+//         createFilm(formData);
+//         formExcel.resetFields();
 //     };
 
-//     const weightedIndexes: number[] = [];
-
-//     Object.entries(prizeWeightMap).forEach(([indexStr, weight]) => {
-//         const index = parseInt(indexStr);
-//         for (let i = 0; i < weight; i++) {
-//             weightedIndexes.push(index);
-//         }
+//     const { mutate: createFilm } = useCreateFilmWithExcel({
+//         form: formExcel,
+//         messageApi,
+//         setSelectedFile,
+//         setPreview,
 //     });
 
-//     const handleWheel = () => {
-//         if (isSpinning) return;
+//     const items = [
+//         {
+//             key: "1",
+//             label: "Thêm mới Diễn viên, Đạo diễn, Thể loại",
+//             children: (
+//                 <div className={clsx(styles.addSubValue)}>
+//                     <AddActor />
+//                     <AddDirector />
+//                     <AddGenre />
+//                 </div>
+//             ),
+//         },
+//     ];
 
-//         setIsSpinning(true);
-//         setCurrentPrize(null);
+//     const onChangeActiveCollapse = (key: string | string[]) => {
+//         setActiveKey(key);
+//     };
 
-//         const extraRotation = 360 * 5;
-//         const anglePerSlice = 360 / prizes.length;
-//         const randomIndex =
-//             weightedIndexes[Math.floor(Math.random() * weightedIndexes.length)];
-//         const newRotation =
-//             rotation + extraRotation + randomIndex * anglePerSlice;
+//     const items2 = [
+//         {
+//             key: "1",
+//             label: "THÊM MỚI PHIM VỚI EXCEL",
+//             children: (
+//                 <>
+//                     <Form
+//                         form={formExcel}
+//                         name="add-film-form"
+//                         labelCol={{ span: 8 }}
+//                         wrapperCol={{ span: 16 }}
+//                         onFinish={onFinish}
+//                     >
+//                         <Row gutter={16}>
+//                             <Col span={12}>
+//                                 <Form.Item
+//                                     className={clsx(styles.inputLabel)}
+//                                     label="Poster"
+//                                     name="poster"
+//                                 >
+//                                     <Space.Compact>
+//                                         <input
+//                                             type="file"
+//                                             accept="image/*"
+//                                             id="uploadFile"
+//                                             // onChange={handleChangeImage}
+//                                             style={{ display: "none" }}
+//                                         />
+//                                         <label
+//                                             htmlFor="uploadFile"
+//                                             className={clsx(styles.addImage)}
+//                                         >
+//                                             <VerticalAlignTopOutlined /> Thêm
+//                                             ảnh
+//                                         </label>
+//                                         {selectedFile && (
+//                                             <Image
+//                                                 src={preview}
+//                                                 alt="poster"
+//                                                 style={{
+//                                                     marginTop: "8px",
+//                                                     objectFit: "cover",
+//                                                 }}
+//                                                 width={180}
+//                                                 height={220}
+//                                             />
+//                                         )}
+//                                     </Space.Compact>
+//                                 </Form.Item>
+//                             </Col>
+//                             <Col span={12}>
+//                                 <Form.Item
+//                                     label="File Excel"
+//                                     name="excel_file"
+//                                     valuePropName="file"
+//                                     getValueFromEvent={(e) => {
+//                                         return e?.target?.files?.[0];
+//                                     }}
+//                                     rules={[
+//                                         {
+//                                             required: true,
+//                                             message: "Vui lòng chọn file Excel",
+//                                         },
+//                                     ]}
+//                                 >
+//                                     <input type="file" accept=".xlsx,.xls" />
+//                                 </Form.Item>
+//                             </Col>
+//                             <Button htmlType="submit" type="primary">
+//                                 Thêm
+//                             </Button>
+//                         </Row>
+//                     </Form>
+//                 </>
+//             ),
+//         },
+//     ];
 
-//         if (wheel.current) {
-//             wheel.current.style.transition = "transform 4s ease-out";
-//             wheel.current.style.transform = `rotate(${newRotation}deg)`;
-//         }
-
-//         setTimeout(() => {
-//             const normalizedRotation = newRotation % 360;
-//             const anglePerSlice = 360 / 8;
-
-//             // Đảo chiều vì CSS quay theo chiều kim đồng hồ,
-//             // còn mũi tên chỉ lên trên (ngược lại)
-//             const adjustedRotation =
-//                 (360 - normalizedRotation + anglePerSlice / 2) % 360;
-//             const numberIndex = Math.floor(adjustedRotation / anglePerSlice);
-
-//             setCurrentPrize(prizes[numberIndex]);
-//             setRotation(newRotation);
-//             setIsSpinning(false);
-//             setIsModalOpen(true);
-//         }, 4500);
+//     const onChangeActiveCollapse2 = (key: string | string[]) => {
+//         setActiveKey2(key);
 //     };
 
 //     return (
-//         <div className={clsx(styles.main, "main-base")}>
-//             <div className={clsx(styles.wheelContainer)}>
-//                 <button
-//                     className={clsx(styles.spin)}
-//                     onClick={() => {
-//                         setIsFree(false);
-//                         handleWheel();
-//                     }}
-//                     disabled={isSpinning}
-//                 >
-//                     Quay
-//                 </button>
-
-//                 <span className={clsx(styles.arrow)}></span>
-
-//                 <div className={clsx(styles.wheel)} ref={wheel}>
-//                     <div className={clsx(styles.slice, styles.slice1)}>
-//                         <div className={styles.sliceContent}>Giảm 10K</div>
-//                     </div>
-//                     <div className={clsx(styles.slice, styles.slice2)}>
-//                         <div className={styles.sliceContent}>Giảm 20K</div>
-//                     </div>
-//                     <div className={clsx(styles.slice, styles.slice3)}>
-//                         <div className={styles.sliceContent}>Giảm 50K</div>
-//                     </div>
-//                     <div className={clsx(styles.slice, styles.slice4)}>
-//                         <div className={styles.sliceContent}>Giảm 10K</div>
-//                     </div>
-//                     <div className={clsx(styles.slice, styles.slice5)}>
-//                         <div className={styles.sliceContent}>
-//                             {" "}
-//                             Gấu bông Forest
-//                         </div>
-//                     </div>
-//                     <div className={clsx(styles.slice, styles.slice6)}>
-//                         <div className={styles.sliceContent}>
-//                             Chúc bạn may mắn lần sau
-//                         </div>
-//                     </div>
-//                     <div className={clsx(styles.slice, styles.slice7)}>
-//                         <div className={styles.sliceContent}>Giảm 10K</div>
-//                     </div>
-//                     <div className={clsx(styles.slice, styles.slice8)}>
-//                         <div className={styles.sliceContent}>
-//                             Chúc bạn may mắn lần sau
-//                         </div>
-//                     </div>
-//                 </div>
-//                 {currentPrize !== null && (
-//                     <ResultWheel
-//                         currentPrize={currentPrize}
-//                         isModalOpen={isModalOpen}
-//                         setIsModalOpen={setIsModalOpen}
-//                         isFree={isFree}
-//                     />
-//                 )}
-//             </div>
-//             <div className={clsx(styles.rightMain)}>
-//                 <Introduce></Introduce>
-//                 <div className={clsx(styles.btnPlay)}>
-//                     <div className={clsx(styles.playingCount)}>
-//                         Bạn có 1 lượt chơi
-//                     </div>
-//                     <div
-//                         className={clsx(styles.playingCount, styles.free)}
-//                         onClick={() => {
-//                             handleWheel();
-//                             setIsFree(true);
-//                         }}
-//                     >
-//                         CHƠI THỬ MIỄN PHÍ
-//                     </div>
-//                 </div>
-//                 <HowGiveCount></HowGiveCount>
-//             </div>
+//         <div>
+//             {contextHolder}
+//             <Collapse
+//                 className={clsx(styles.collapse)}
+//                 activeKey={activeKey}
+//                 onChange={onChangeActiveCollapse}
+//                 ghost
+//                 items={items}
+//             />
+//             <hr />
+//             <Collapse
+//                 className={clsx(styles.collapse2)}
+//                 activeKey={activeKey2}
+//                 onChange={onChangeActiveCollapse2}
+//                 ghost
+//                 items={items2}
+//             ></Collapse>
 //         </div>
 //     );
 // };
 
-// export default Wheel;
+// export default AddSubValue;

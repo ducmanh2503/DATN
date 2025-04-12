@@ -1,415 +1,221 @@
-/* Overall Layout */
-.pageWrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: linear-gradient(
-    135deg,
-    #f9f9fb 0%,
-    #ebedf0 100%
-  ); /* Softer gradient for a calming effect */
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    sans-serif;
-  color: #1f2937; /* Darker text for better contrast */
-}
-
 .profileContainer {
-  flex: 1;
-  padding: 60px; /* Spacious padding */
-  background-color: transparent;
+    margin: 60px auto 0;
+    display: flex;
+    gap: 20px; /* Increased gap for better separation */
 }
 
-.profileWrapper {
-  display: flex;
-  gap: 60px; /* Increased gap for better separation */
-  max-width: 1600px; /* Wider for larger screens */
-  margin: 0 auto;
-}
-
-/* Sidebar */
-.profileSidebar {
-  flex: 1;
-  max-width: 420px; /* Slightly wider for better proportion */
-  text-align: center;
-  padding: 50px 30px; /* Adjusted padding for a more compact feel */
-  background: rgba(255, 255, 255, 0.95); /* Glassmorphism effect */
-  backdrop-filter: blur(20px); /* Stronger blur for a premium look */
-  border-radius: 40px; /* Softer corners */
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.04); /* Softer shadow */
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
-  animation: fadeInUp 1.2s ease-out forwards; /* Smoother load animation */
-}
-
-.profileSidebar:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12), 0 10px 25px rgba(0, 0, 0, 0.06);
+.boxAvatar {
+    display: flex;
+    justify-content: center;
 }
 
 /* Avatar */
 .profileAvatar {
-  margin-bottom: 30px;
-  width: 120px !important; /* Slightly smaller for better balance */
-  height: 120px !important;
-  border: 5px solid transparent;
-  border-radius: 50%;
-  background: #e5e7eb; /* Subtle background for placeholder */
-  background-clip: padding-box;
-  position: relative;
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
-  animation: fadeIn 1s ease-out forwards; /* Fade-in on load */
-}
-
-.profileAvatar::after {
-  content: "";
-  position: absolute;
-  top: -5px;
-  left: -5px;
-  right: -5px;
-  bottom: -5px;
-  border-radius: 50%;
-  background: linear-gradient(
-    45deg,
-    #a78bfa,
-    #f9a8d4
-  ); /* Softer gradient border */
-  z-index: -1;
-  transition: background 0.5s ease;
-}
-
-.profileAvatar:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 25px rgba(167, 139, 250, 0.4); /* Softer glow */
-  animation: pulse 1.5s infinite ease-in-out; /* Pulse effect on hover */
-}
-
-.profileAvatar:hover::after {
-  background: linear-gradient(
-    45deg,
-    #f9a8d4,
-    #a78bfa
-  ); /* Reverse gradient on hover */
+    margin-bottom: 30px;
+    width: 120px !important; /* Slightly smaller for better balance */
+    height: 120px !important;
+    border-radius: 50%;
+    background: #e5e7eb; /* Subtle background for placeholder */
+    background-clip: padding-box;
+    position: relative;
 }
 
 /* Profile Name */
 .profileName {
-  font-size: 32px; /* Slightly smaller for better balance */
-  font-weight: 800;
-  margin-bottom: 12px;
-  color: #1f2937;
-  letter-spacing: 0.3px;
-  line-height: 1.2;
-  background: linear-gradient(
-    90deg,
-    #a78bfa,
-    #f9a8d4
-  ); /* Softer gradient text */
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  opacity: 0;
-  animation: fadeIn 1.2s ease-out 0.2s forwards; /* Fade-in with delay */
+    font-size: 32px; /* Slightly smaller for better balance */
+    font-weight: 800;
+    margin-bottom: 12px;
+    letter-spacing: 0.3px;
+    background-color: #0093e9;
+    background-image: linear-gradient(180deg, #0093e9 0%, #80d0c7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* Profile Rank */
 .profileRank {
-  font-size: 16px; /* Smaller for better hierarchy */
-  color: #6b7280;
-  margin-bottom: 12px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px; /* Adjusted spacing for single icon */
-  opacity: 0;
-  animation: fadeIn 1.2s ease-out 0.4s forwards; /* Fade-in with delay */
-}
-
-.profileRank::before {
-  content: "💎"; /* Single diamond icon */
-  font-size: 18px;
+    color: #6b7280;
+    margin-bottom: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Profile Points */
 .profilePoints {
-  font-size: 16px;
-  color: #fbbf24;
-  margin-bottom: 40px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  opacity: 0;
-  animation: fadeIn 1.2s ease-out 0.6s forwards; /* Fade-in with delay */
-}
-
-.profilePoints::before {
-  content: "⭐"; /* Single star icon */
-  font-size: 18px;
+    margin-bottom: 40px;
+    font-weight: 600;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Expense Section */
 .expenseSection {
-  margin: 40px 0;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 20px;
-  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.05);
-  opacity: 0;
-  animation: fadeIn 1.2s ease-out 0.8s forwards; /* Fade-in with delay */
+    margin: 40px 0;
 }
 
 /* Expense Header */
 .expenseHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
 }
 
 .profileExpenseTitle {
-  font-size: 16px;
-  color: #9ca3af;
-  font-weight: 500;
-  margin-bottom: 10px;
+    font-size: 16px;
+    color: #9ca3af;
+    font-weight: 500;
+    margin-bottom: 10px;
 }
 
 .profileExpenseText {
-  font-size: 22px;
-  font-weight: 600;
-  color: #1f2937;
-  line-height: 1.4;
-}
-
-/* Progress Wrapper */
-.progressWrapper {
-  position: relative;
-  margin: 30px auto;
-  width: 100%;
-  max-width: 280px; /* Reduced width for a smaller progress bar */
-  opacity: 0;
-  animation: fadeIn 1.2s ease-out 1s forwards; /* Fade-in with delay */
+    font-size: 22px;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.4;
 }
 
 /* Progress Line */
 .progressLine {
-  height: 8px; /* Thinner progress line */
-  background: #e5e7eb;
-  border-radius: 4px;
-  position: relative;
-  overflow: visible;
+    height: 8px; /* Thinner progress line */
+    background: #e5e7eb;
+    border-radius: 4px;
+    position: relative;
+    overflow: visible;
 }
 
 /* Progress Fill */
 .progressFill {
-  height: 100%;
-  background: linear-gradient(90deg, #a78bfa, #f9a8d4); /* Softer gradient */
-  border-radius: 4px;
-  transition: width 1.2s ease-in-out; /* Smoother width transition */
-  box-shadow: 0 0 15px rgba(167, 139, 250, 0.5); /* Softer glow */
+    height: 100%;
+    background-color: #0093e9;
+    background-image: linear-gradient(160deg, #0093e9 0%, #80d0c7 100%);
 }
 
 /* Milestone Item */
 .milestoneItem {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  cursor: pointer; /* Indicate that the element is interactive */
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    cursor: pointer; /* Indicate that the element is interactive */
 }
 
 /* Milestone Circle */
 .milestoneCircle {
-  width: 24px; /* Reduced size (from 36px) */
-  height: 24px; /* Reduced size (from 36px) */
-  background: #ffffff;
-  border: 3px solid #e5e7eb;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 3;
-  transition: transform 0.5s ease, border-color 0.5s ease,
-    background-color 0.5s ease;
+    width: 24px; /* Reduced size (from 36px) */
+    height: 24px; /* Reduced size (from 36px) */
+    background: #ffffff;
+    border: 3px solid #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 3;
 }
 
 /* Milestone Circle Active */
 .milestoneCircleActive {
-  transform: scale(1.2); /* Slightly smaller scale for a smoother effect */
-  border-color: #a78bfa;
-  background: #f5f3ff;
-}
-
-/* Milestone Circle Hover */
-.milestoneCircle:hover {
-  transform: scale(1.3);
-  border-color: #f9a8d4;
-  background: #fdf2f8;
+    transform: scale(1.2); /* Slightly smaller scale for a smoother effect */
+    border-color: #0093e9;
+    background: #f5f3ff;
 }
 
 /* Milestone Icon */
 .milestoneIcon {
-  font-size: 14px; /* Reduced size (from 18px) to match smaller circle */
-  line-height: 1;
-  color: #6b7280;
-  transition: color 0.5s ease;
-}
-
-.milestoneCircleActive .milestoneIcon {
-  color: #a78bfa;
+    font-size: 14px; /* Reduced size (from 18px) to match smaller circle */
+    line-height: 1;
+    color: #6b7280;
+    transition: color 0.5s ease;
 }
 
 /* Contact Info */
 .contactInfo {
-  margin-top: 60px;
-  font-size: 16px;
-  color: #6b7280;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  opacity: 0;
-  animation: fadeIn 1.2s ease-out 1.2s forwards; /* Fade-in with delay */
+    margin-top: 60px;
+    color: #323741;
+    text-align: start;
 }
 
 .contactInfo p {
-  margin: 12px 0;
-  line-height: 1.6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px; /* Space for icons */
-  transition: color 0.5s ease;
-}
-
-.contactInfo p:hover {
-  color: #4b5563; /* Subtle color change on hover */
-}
-
-.contactInfo p.phone::before {
-  content: "📞"; /* Phone icon */
-  font-size: 20px;
-}
-
-.contactInfo p.email::before {
-  content: "✉️"; /* Email icon */
-  font-size: 20px;
-}
-
-.contactInfo p.support {
-  margin-top: 25px;
-  font-size: 15px;
-  font-weight: 500;
-  color: #4b5563;
-}
-
-.contactInfo p.support::before {
-  content: "ℹ️"; /* Info icon */
-  font-size: 20px;
+    padding-top: 15px;
+    line-height: 1.6;
+    border-bottom: 1px solid black;
 }
 
 .contactInfo a {
-  color: #a78bfa;
-  text-decoration: none;
-  transition: color 0.5s ease;
-}
-
-.contactInfo a:hover {
-  color: #f9a8d4;
-  text-decoration: underline;
+    color: var(--border-color);
+    text-decoration: none;
 }
 
 /* Content Area */
 .profileContent {
-  flex: 3;
-  padding: 60px;
-  background: rgba(255, 255, 255, 0.95); /* Glassmorphism effect */
-  backdrop-filter: blur(20px);
-  border-radius: 40px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
-  animation: fadeInUp 1.2s ease-out forwards;
-}
-
-.profileContent:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12), 0 10px 25px rgba(0, 0, 0, 0.06);
+    flex: 3;
 }
 
 /* Tabs styling */
 .customTabs .ant-tabs-tab {
-  font-size: 24px; /* Larger for better readability */
-  font-weight: 600;
-  padding: 20px 40px;
-  color: #6b7280;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 16px;
-  margin-right: 15px;
-  transition: color 0.5s ease, background 0.5s ease, transform 0.5s ease;
-  opacity: 0;
-  animation: fadeInUp 1s ease-out 0.2s forwards;
+    font-size: 24px; /* Larger for better readability */
+    font-weight: 600;
+    padding: 20px 40px;
+    color: #6b7280;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    margin-right: 15px;
+    transition: color 0.5s ease, background 0.5s ease, transform 0.5s ease;
+    opacity: 0;
+    animation: fadeInUp 1s ease-out 0.2s forwards;
 }
 
 .customTabs .ant-tabs-tab:hover {
-  color: #a78bfa;
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-3px);
+    color: #a78bfa;
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-3px);
 }
 
 .customTabs .ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: #a78bfa !important;
-  background: #f5f3ff;
+    color: #a78bfa !important;
+    background: #f5f3ff;
 }
 
 .customTabs .ant-tabs-ink-bar {
-  background: linear-gradient(90deg, #a78bfa, #f9a8d4); /* Softer gradient */
-  height: 5px;
-  border-radius: 2.5px;
+    background: linear-gradient(90deg, #a78bfa, #f9a8d4); /* Softer gradient */
+    height: 5px;
+    border-radius: 2.5px;
 }
 
 /* Animations */
 @keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 15px rgba(167, 139, 250, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(167, 139, 250, 0);
-  }
+    0% {
+        box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 15px rgba(167, 139, 250, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(167, 139, 250, 0);
+    }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .profileWrapper {
-    flex-direction: column;
-    gap: 40px;
-  }
-
-  .profileSidebar {
-    max-width: 100%;
-  }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

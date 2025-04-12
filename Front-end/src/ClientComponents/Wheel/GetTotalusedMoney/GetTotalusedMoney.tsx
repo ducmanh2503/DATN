@@ -1,11 +1,15 @@
 import clsx from "clsx";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 
 import { useGetTotalUsedMoneyUser } from "../../../services/Wheel.service";
 import styles from "../Wheel.module.css";
 
 dayjs.extend(isoWeek);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 const GetTotalusedMoney = () => {
     const { data, isLoading, isError } = useGetTotalUsedMoneyUser();

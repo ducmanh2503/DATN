@@ -49,7 +49,8 @@ const getRankFromSpent = (
     return { rank: "Thành viên", color: "#4a4a4a", icon: "👤" };
   } else if (spent <= 2000000) {
     return { rank: "Bạc", color: "#90a4ae", icon: "🐰" };
-  } else if (spent <= 5000000) {
+  } else if (spent <= 3000000) {
+    2;
     return { rank: "Vàng", color: "#ffca28", icon: "🏆" };
   } else {
     return { rank: "Kim cương", color: "#b388ff", icon: "💎" };
@@ -223,7 +224,7 @@ const UserProfile: React.FC = () => {
         </div>
         <div className={styles.contactInfo}>
           <p>
-            <a href="tel:0989721167">0989721167</a> (08:00 - 22:30)
+            <a href="tel:0989721167">0989721167</a> (800 - 22:30)
           </p>
 
           <p>

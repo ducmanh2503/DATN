@@ -87,3 +87,9 @@
     border: 3px solid var(--backgroud-product);
     color: var(--backgroud-product);
 }
+
+.noSeats {
+    display: flex;
+    justify-content: center;
+    color: red;
+}

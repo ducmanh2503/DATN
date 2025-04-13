@@ -30,7 +30,7 @@ class AuthController extends Controller
                 'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{8,20}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
                 'different:email', // Không trùng với email
             ],
-            'phone' => 'required|string|min:10|max:15|unique:users',
+            'phone' => 'required|numeric|digits_between:10,15|unique:users,phone',
         ]);
 
         if ($validator->fails()) {

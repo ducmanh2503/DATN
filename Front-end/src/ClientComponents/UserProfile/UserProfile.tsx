@@ -62,7 +62,7 @@ interface User {
   name: string;
   email: string;
   phone: string | null;
-  birthdate: string | null;
+  date_of_birth: Date | null;
   totalSpent: number;
   role: string;
   points: number;
@@ -106,7 +106,9 @@ const UserProfile: React.FC = () => {
         name: response.data.name,
         email: response.data.email,
         phone: response.data.phone || null,
-        birthdate: response.data.birthdate || null,
+        date_of_birth: response.data.date_of_birth
+          ? new Date(response.data.date_of_birth)
+          : null,
         totalSpent: parseFloat(response.data.total_spent) || 0,
         role: response.data.role,
         points: parseInt(response.data.points) || 0,
@@ -224,7 +226,7 @@ const UserProfile: React.FC = () => {
         </div>
         <div className={styles.contactInfo}>
           <p>
-            <a href="tel:0989721167">0989721167</a> (800 - 22:30)
+            <a href="tel:0989721167">0989 721 167</a> (8:00 - 22:30)
           </p>
 
           <p>

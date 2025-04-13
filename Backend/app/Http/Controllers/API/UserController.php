@@ -92,7 +92,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|max:255',
-            'phone' => 'required|string|max:15',
+            'phone' => 'required|numeric|digits_between:10,15|unique:users,phone',
         ]);
 
         if ($validator->fails()) {
@@ -157,7 +157,13 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'nullable|string|max:255',
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone' => 'nullable|string|max:15',
+            'phone' => [
+                'required',
+                'numeric',
+                'digits_between:10,15',
+                Rule::unique('users', 'phone')->ignore($user->id),
+            ],
+            'date_of_birth' => 'nullable|date_format:Y-m-d|before:today',
         ]);
 
         if ($validator->fails()) {
@@ -165,7 +171,7 @@ class UserController extends Controller
         }
 
         // Lấy dữ liệu cần cập nhật
-        $data = $request->only(['name', 'email', 'phone']);
+        $data = $request->only(['name', 'email', 'phone', 'date_of_birth']);
 
         // Cập nhật thông tin người dùng
         $user->update($data);

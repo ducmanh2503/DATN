@@ -339,7 +339,6 @@ class SeatController extends Controller
         // Lấy tất cả ghế trong phòng
         $seats = Seat::where('room_id', $room_id)
             ->with(['seatType'])
-            ->withTrashed()
             ->get();
 
         if ($seats->isEmpty()) {
@@ -367,15 +366,12 @@ class SeatController extends Controller
             // Chuẩn hóa trạng thái ghế (chuyển về chữ thường)
             $seatStatus = strtolower(trim($seatStatus));
 
-            $isDeleted = $seat->trashed();
-
             $seatingMatrix[$seat->row][$seat->column] = [
                 'id' => $seat->id,
                 'seatCode' => $seatCode,
                 'type' => $seat->seatType->name,
                 'status' => $seatStatus,
                 'price' => $price,
-                'isDeleted' => $isDeleted,
             ];
         }
 
@@ -556,40 +552,12 @@ class SeatController extends Controller
         return response()->json(['message' => 'Không có ghế nào được thêm'], 400);
     }
 
-    // public function destroy($seatId)
-    // {
-    //     $seat = Seat::findOrFail($seatId);
-    //     $showTimeIds = Showtime::where('room_id', $seat->room_id)->pluck('id');
-
-    //     // Kiểm tra nếu ghế này bị giữ trong bất kỳ suất chiếu nào
-    //     foreach ($showTimeIds as $showTimeId) {
-    //         $cacheKey = "seat_{$showTimeId}_{$seat->id}";
-    //         if (Cache::has($cacheKey)) {
-    //             return response()->json(['message' => 'Ghế đang được giữ, không thể xóa!'], 409);
-    //         }
-    //     }
-
-    //     $roomId = $seat->room_id;
-    //     $seat->delete();
-
-    //     // Cập nhật capacity của phòng
-    //     $room = Room::find($roomId);
-    //     if ($room) {
-    //         $seatCount = Seat::where('room_id', $room->id)->count();
-    //         $room->capacity = $seatCount;
-    //         $room->save();
-    //     }
-    //     return response()->json(['message' => 'Ghế đã được xóa thành công'], 200);
-    // }
-
-
-
-    //---------------------------------test---------------------------------------------------------------//
     public function destroy($seatId)
     {
-        $seat = Seat::withTrashed()->findOrFail($seatId);
+        $seat = Seat::findOrFail($seatId);
         $showTimeIds = Showtime::where('room_id', $seat->room_id)->pluck('id');
 
+        // Kiểm tra nếu ghế này bị giữ trong bất kỳ suất chiếu nào
         foreach ($showTimeIds as $showTimeId) {
             $cacheKey = "seat_{$showTimeId}_{$seat->id}";
             if (Cache::has($cacheKey)) {
@@ -597,58 +565,20 @@ class SeatController extends Controller
             }
         }
 
-        // Kiểm tra nếu ghế đã bị xóa mềm trước đó
-        if ($seat->trashed()) {
-            return response()->json(['message' => 'Ghế đã được xóa trước đó!'], 410);
-        }
-
         $roomId = $seat->room_id;
         $seat->delete();
 
-
+        // Cập nhật capacity của phòng
         $room = Room::find($roomId);
         if ($room) {
             $seatCount = Seat::where('room_id', $room->id)->count();
             $room->capacity = $seatCount;
             $room->save();
         }
-
-        return response()->json(['message' => 'Ghế đã được xóa mềm thành công'], 200);
+        return response()->json(['message' => 'Ghế đã được xóa thành công'], 200);
     }
-    //---------------------------------end-test--------------------------------------------------------------------//
 
 
-
-    // public function deleteAll($roomId)
-    // {
-    //     $seats = Seat::where('room_id', $roomId)->get();
-    //     $showTimeIds = Showtime::where('room_id', $roomId)->pluck('id');
-
-    //     // Kiểm tra nếu có ghế nào đang bị giữ
-    //     foreach ($seats as $seat) {
-    //         foreach ($showTimeIds as $showTimeId) {
-    //             $cacheKey = "seat_{$showTimeId}_{$seat->id}";
-    //             if (Cache::has($cacheKey)) {
-    //                 return response()->json(['message' => "Ghế ID {$seat->id} đang được giữ, không thể xóa!"], 409);
-    //             }
-    //         }
-    //     }
-
-    //     foreach ($seats as $seat) {
-    //         $seat->delete();
-    //     }
-
-    //     // Cập nhật capacity của phòng
-    //     $room = Room::find($roomId);
-    //     if ($room) {
-    //         $seatCount = Seat::where('room_id', $roomId)->count();
-    //         $room->capacity = $seatCount;
-    //         $room->save();
-    //     }
-    //     return response()->json(['message' => 'Đã xóa tất cả ghế trong phòng thành công'], 200);
-    // }
-
-    //---------------------------------test---------------------------------------------------------------//
 
     public function deleteAll($roomId)
     {
@@ -665,63 +595,8 @@ class SeatController extends Controller
             }
         }
 
-        // Xóa mềm tất cả ghế
-        $deletedCount = 0;
         foreach ($seats as $seat) {
-            if (!$seat->trashed()) { // Chỉ xóa mềm nếu ghế chưa bị xóa
-                $seat->delete();
-                $deletedCount++;
-            }
-        }
-
-        // Cập nhật capacity của phòng
-        $room = Room::find($roomId);
-        if ($room) {
-            $seatCount = Seat::where('room_id', $roomId)->count(); // Chỉ đếm các ghế chưa bị xóa mềm
-            $room->capacity = $seatCount;
-            $room->save();
-        }
-
-        return response()->json([
-            'message' => "Đã xóa mềm $deletedCount ghế trong phòng thành công",
-            'remaining_capacity' => $seatCount
-        ], 200);
-    }
-    //---------------------------------end-test--------------------------------------------------------------------//
-
-    //---------------------------------test---------------------------------------------------------------//
-    public function restore($seatId)
-    {
-        $seat = Seat::withTrashed()->findOrFail($seatId);
-
-        if (!$seat->trashed()) {
-            return response()->json(['message' => 'Ghế chưa bị xóa không thể khôi phục']);
-        }
-
-        $seat->restore();
-
-        $room = Room::find($seat->room_id);
-        if ($room) {
-            $seatCount = Seat::where('room_id', $room->id)->count();
-            $room->capacity = $seatCount;
-            $room->save();
-        }
-        return response()->json(['message' => 'Khôi phục thành công', 'data' => $seat]);
-    }
-
-    public function restoreAll($roomId)
-    {
-        $seats = Seat::onlyTrashed()->where('room_id', $roomId)->get();
-
-        if ($seats->isEmpty()) {
-            return response()->json(['message' => 'Không có ghế nào cần khôi phục trong phòng này'], 404);
-        }
-
-        $restoredCount = 0;
-
-        foreach ($seats as $seat) {
-            $seat->restore();
-            $restoredCount++;
+            $seat->delete();
         }
 
         // Cập nhật capacity của phòng
@@ -731,37 +606,9 @@ class SeatController extends Controller
             $room->capacity = $seatCount;
             $room->save();
         }
-
-        return response()->json([
-            'message' => "Đã khôi phục $restoredCount ghế trong phòng thành công",
-            'remaining_capacity' => $seatCount
-        ], 200);
+        return response()->json(['message' => 'Đã xóa tất cả ghế trong phòng thành công'], 200);
     }
 
-
-    /**
-     * Lấy danh sách các ghế đã bị xóa mềm
-     */
-    public function getTrashedSeats()
-    {
-        // Lấy tất cả ghế đã bị xóa mềm
-        $trashedSeats = Seat::onlyTrashed()
-            ->with(['room', 'seatType']) // Tải quan hệ với phòng và loại ghế
-            ->get();
-
-        if ($trashedSeats->isEmpty()) {
-            return response()->json([
-                'message' => 'Không có ghế nào đã bị xóa mềm',
-                'data' => []
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'Danh sách ghế đã bị xóa mềm',
-            'data' => $trashedSeats
-        ], 200);
-    }
-    //---------------------------------end-test--------------------------------------------------------------------//
 
 
 

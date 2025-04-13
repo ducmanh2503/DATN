@@ -92,7 +92,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|max:255',
-            'phone' => 'required|string|max:15',
+            'phone' => 'required|numeric|digits_between:10,15|unique:users,phone',
         ]);
 
         if ($validator->fails()) {
@@ -157,7 +157,13 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'nullable|string|max:255',
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone' => 'nullable|string|max:15',
+            'phone' => [
+                'nullable',
+                'numeric',
+                'digits_between:10,15',
+                Rule::unique('users', 'phone')->ignore($user->id),
+            ],
+            'date_of_birth' => 'nullable|date_format:Y-m-d|before:today',
         ]);
 
         if ($validator->fails()) {
@@ -165,7 +171,7 @@ class UserController extends Controller
         }
 
         // Lấy dữ liệu cần cập nhật
-        $data = $request->only(['name', 'email', 'phone']);
+        $data = $request->only(['name', 'email', 'phone', 'date_of_birth']);
 
         // Cập nhật thông tin người dùng
         $user->update($data);
@@ -188,6 +194,17 @@ class UserController extends Controller
             return response()->json(['error' => 'Bạn chưa đăng nhập!'], 401);
         }
 
+        // Xóa dấu cách trong mật khẩu trước khi validate
+        $passwordWithoutSpaces = preg_replace('/\s+/', '', $request->input('password'));
+        $oldPasswordWithoutSpaces = preg_replace('/\s+/', '', $request->input('oldPassword'));
+
+        // Thay thế giá trị trong request để validate
+        $request->merge([
+            'password' => $passwordWithoutSpaces,
+            'oldPassword' => $oldPasswordWithoutSpaces,
+            'password_confirmation' => preg_replace('/\s+/', '', $request->input('password_confirmation')),
+        ]);
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'oldPassword' => 'required|string',
@@ -199,10 +216,7 @@ class UserController extends Controller
                 'max:12',
                 'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{6,12}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
                 'different:email', // Không trùng với email
-                function ($attribute, $value, $fail) {
-                    // Lấy người dùng hiện tại
-                    $user = auth()->user();
-
+                function ($attribute, $value, $fail) use ($user) {
                     // Kiểm tra xem password có trùng với mật khẩu cũ không
                     if (Hash::check($value, $user->password)) {
                         $fail('Mật khẩu mới không được trùng với mật khẩu cũ.');
@@ -220,7 +234,7 @@ class UserController extends Controller
             return response()->json(['error' => 'Mật khẩu hiện tại không đúng'], 401);
         }
 
-        // Cập nhật mật khẩu mới
+        // Cập nhật mật khẩu mới (đã xóa dấu cách)
         $user->update([
             'password' => Hash::make($request->password)
         ]);

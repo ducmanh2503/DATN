@@ -3,6 +3,7 @@ import axios from "axios";
 import { Button, Input, Space, Modal, message } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { motion } from "framer-motion";
 import styles from "./OrderHistory.module.css";
 import {
   Orders_Recent,
@@ -10,8 +11,10 @@ import {
   Orders_Search,
 } from "../../config/ApiConfig";
 
+// Utility to get auth token from localStorage
 const getAuthToken = (): string | null => localStorage.getItem("auth_token");
 
+// Decode JWT token to check expiration
 const decodeToken = (token: string): { exp?: number } | null => {
   if (!token || typeof token !== "string") {
     console.error("Invalid token: Token is null or not a string");
@@ -38,7 +41,7 @@ const decodeToken = (token: string): { exp?: number } | null => {
   }
 };
 
-// Hàm xử lý trạng thái
+// Get status label and style for orders
 const getStatusLabelAndStyle = (
   status: string
 ): { label: string; style: string } => {
@@ -56,23 +59,37 @@ const getStatusLabelAndStyle = (
   }
 };
 
-// Hàm để định dạng ngày an toàn
+// Format date safely with explicit format
 const formatDate = (dateString: string | undefined): string => {
   if (!dateString) return "N/A";
-  const date = dayjs(dateString);
-  return date.isValid() ? date.format("DD/MM/YYYY HH:mm") : "N/A";
+  const date = dayjs(dateString, "YYYY-MM-DD");
+  return date.isValid() ? date.format("DD-MM-YYYY") : "N/A";
 };
 
-const URL_IMAGE = "http://localhost:8000";
-const fallbackPoster = "/path/to/fallback-poster.jpg"; // Replace with actual fallback image path
+// Format time safely
+const formatTime = (timeString: string | undefined): string => {
+  if (!timeString) return "N/A";
+  const time = dayjs(timeString, "HH:mm:ss");
+  return time.isValid() ? time.format("HH:mm") : "N/A";
+};
 
+// Format price in VND
+const formatPrice = (price: number | undefined): string => {
+  if (price === undefined || price === null) return "0 VND";
+  return `${price.toLocaleString("vi-VN")} VND`;
+};
+
+// Interfaces for type safety
 interface Seat {
   booking_detail_id: number;
+  seat_id: number;
   seat_name: string;
   price: number;
 }
 
 interface Combo {
+  booking_detail_id: number;
+  combo_id: number;
   combo_name: string;
   quantity: number;
   price: number;
@@ -80,25 +97,26 @@ interface Combo {
 
 interface Order {
   id: number;
+  user_id: number;
+  showtime_id: number;
+  total_ticket_price: number;
+  total_combo_price: number;
   total_price: number;
+  discount: number;
+  code_id: number | null;
   status: string;
+  payment_method: string;
+  check_in: boolean;
   created_at: string;
+  updated_at: string;
   show_date: string;
   showtime: string;
   movie_title: string;
   movie_poster: string;
   room_name: string;
-  cinema_name?: string; // Added to Order interface
+  cinema_name: string;
   seats: Seat[];
-  combos?: Combo[]; // Added to Order interface
-  payment_method: string;
-  total_ticket_price?: number;
-  total_combo_price?: number;
-  discount?: number;
-}
-
-interface OrderDetail extends Order {
-  // No additional fields needed since Order now includes everything
+  combos: Combo[];
 }
 
 const OrderHistory: React.FC = () => {
@@ -108,6 +126,10 @@ const OrderHistory: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const URL_IMAGE = "http://localhost:8000";
+  const fallbackPoster = "https://via.placeholder.com/80x80?text=Ảnh";
+
+  // Fetch recent orders on component mount
   useEffect(() => {
     fetchRecentOrders();
   }, []);
@@ -117,7 +139,6 @@ const OrderHistory: React.FC = () => {
       setOrdersLoading(true);
       const token = getAuthToken();
       if (!token) {
-        console.warn("No token found in localStorage");
         message.error("Bạn cần đăng nhập để xem lịch sử giao dịch!");
         window.location.href = "/login";
         return;
@@ -127,7 +148,6 @@ const OrderHistory: React.FC = () => {
       if (decoded && decoded.exp) {
         const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp < currentTime) {
-          console.warn("Token has expired");
           message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
           localStorage.removeItem("auth_token");
           window.location.href = "/login";
@@ -139,21 +159,13 @@ const OrderHistory: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("check-dataaaa", response);
-
       const orders = Array.isArray(response.data.data)
         ? response.data.data
         : [];
       setRecentOrders(orders);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách giao dịch:", error);
-      if (error.response && error.response.status === 401) {
-        message.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
-        localStorage.removeItem("auth_token");
-        window.location.href = "/login";
-      } else {
-        message.error("Không thể tải lịch sử giao dịch!");
-      }
+      handleError(error);
     } finally {
       setOrdersLoading(false);
     }
@@ -164,7 +176,6 @@ const OrderHistory: React.FC = () => {
       setOrdersLoading(true);
       const token = getAuthToken();
       if (!token) {
-        console.warn("No token found in localStorage");
         message.error("Bạn cần đăng nhập để xem lịch sử giao dịch!");
         window.location.href = "/login";
         return;
@@ -174,7 +185,6 @@ const OrderHistory: React.FC = () => {
       if (decoded && decoded.exp) {
         const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp < currentTime) {
-          console.warn("Token has expired");
           message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
           localStorage.removeItem("auth_token");
           window.location.href = "/login";
@@ -192,13 +202,7 @@ const OrderHistory: React.FC = () => {
       setRecentOrders(orders);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách giao dịch đã xác nhận:", error);
-      if (error.response && error.response.status === 401) {
-        message.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
-        localStorage.removeItem("auth_token");
-        window.location.href = "/login";
-      } else {
-        message.error("Không thể tải lịch sử giao dịch đã xác nhận!");
-      }
+      handleError(error);
     } finally {
       setOrdersLoading(false);
     }
@@ -209,7 +213,6 @@ const OrderHistory: React.FC = () => {
       setOrdersLoading(true);
       const token = getAuthToken();
       if (!token) {
-        console.warn("No token found in localStorage");
         message.error("Bạn cần đăng nhập để tìm kiếm lịch sử giao dịch!");
         window.location.href = "/login";
         return;
@@ -219,7 +222,6 @@ const OrderHistory: React.FC = () => {
       if (decoded && decoded.exp) {
         const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp < currentTime) {
-          console.warn("Token has expired");
           message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
           localStorage.removeItem("auth_token");
           window.location.href = "/login";
@@ -238,32 +240,36 @@ const OrderHistory: React.FC = () => {
       setRecentOrders(orders);
     } catch (error) {
       console.error("Lỗi khi tìm kiếm lịch sử giao dịch:", error);
-      if (error.response && error.response.status === 401) {
-        message.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
-        localStorage.removeItem("auth_token");
-        window.location.href = "/login";
-      } else {
-        message.error("Không thể tìm kiếm lịch sử giao dịch!");
-      }
+      handleError(error);
     } finally {
       setOrdersLoading(false);
     }
   };
 
-  const handleShowDetails = (orderId: number) => {
-    // Find the order from recentOrders
-    const order = recentOrders.find((o) => o.id === orderId);
-    if (order) {
-      setSelectedOrder(order);
-      setIsModalVisible(true);
+  // Handle errors consistently
+  const handleError = (error: any) => {
+    if (error.response && error.response.status === 401) {
+      message.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+      localStorage.removeItem("auth_token");
+      window.location.href = "/login";
     } else {
-      message.error(`Không tìm thấy giao dịch với mã ${orderId}!`);
+      message.error("Có lỗi xảy ra. Vui lòng thử lại!");
     }
+  };
+
+  const handleShowDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsModalVisible(true);
   };
 
   const handleModalClose = () => {
     setIsModalVisible(false);
     setSelectedOrder(null);
+  };
+
+  const handleBuyAgain = (order: Order) => {
+    console.log(`Mua lại vé cho giao dịch #${order.id}`);
+    message.info("Tính năng mua lại đang được phát triển!");
   };
 
   return (
@@ -309,51 +315,57 @@ const OrderHistory: React.FC = () => {
       {ordersLoading ? (
         <div className={styles.loading}>Đang tải lịch sử giao dịch...</div>
       ) : recentOrders.length > 0 ? (
-        <table className={styles.transactionTable}>
-          <thead className={styles.thead}>
-            <tr>
-              <th>Ngày đặt</th>
-              <th>Phim</th>
-              <th>Ngày chiếu</th>
-              <th>Tổng tiền</th>
-              <th>Chi tiết</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentOrders.map((order) => (
-              <tr key={order.id} className={styles.transactionRow}>
-                <td>{order.created_at}</td>
-                <td className={styles.movieCell}>
-                  {order.movie_poster ? (
-                    <img
-                      src={`${URL_IMAGE}${order.movie_poster}`}
-                      alt={order.movie_title || "Movie Poster"}
-                      className={styles.moviePoster}
-                      onError={(e) => {
-                        e.currentTarget.src = fallbackPoster;
-                      }}
-                    />
-                  ) : (
-                    <div className={styles.noPoster}>No Poster</div>
-                  )}
-                  <span>{order.movie_title || "N/A"}</span>
-                </td>
-                <td>{order.show_date}</td>
-
-                <td>{order.total_price?.toLocaleString() || "0"}đ</td>
-
-                <td>
-                  <button
-                    onClick={() => handleShowDetails(order.id)}
-                    className={styles.viewDetails}
-                  >
-                    Xem chi tiết
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className={styles.orderList}
+        >
+          {recentOrders.map((order) => {
+            console.log(`Order ID: ${order.id}, show_date: ${order.show_date}`);
+            return (
+              <div
+                key={order.id}
+                className={styles.orderCard}
+                onClick={() => handleShowDetails(order)}
+              >
+                <img
+                  src={
+                    order.movie_poster
+                      ? `${URL_IMAGE}${order.movie_poster}`
+                      : fallbackPoster
+                  }
+                  alt={order.movie_title || "Movie Poster"}
+                  className={styles.moviePoster}
+                  onError={(e) => {
+                    e.currentTarget.src = fallbackPoster;
+                  }}
+                />
+                <div className={styles.orderContent}>
+                  <h2 className={styles.movieTitle}>
+                    {order.movie_title || "N/A"}
+                  </h2>
+                  <p className={styles.info}>
+                    Phòng: <span>{order.room_name || "N/A"}</span> | Ghế:{" "}
+                    <span>
+                      {order.seats?.length > 0
+                        ? order.seats.map((seat) => seat.seat_name).join(", ")
+                        : "N/A"}
+                    </span>
+                  </p>
+                  <p className={styles.info}>
+                    Ngày chiếu: <span>{order.show_date}</span> | Suất:{" "}
+                    <span>{formatTime(order.showtime)}</span>
+                  </p>
+                  <div className={styles.footer}>
+                    <span className={styles.price}>
+                      {formatPrice(order.total_price)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </motion.div>
       ) : (
         <div className={styles.emptyContent}>
           <p>Chưa có dữ liệu giao dịch nào.</p>
@@ -368,7 +380,7 @@ const OrderHistory: React.FC = () => {
       )}
       <Modal
         title={`Chi tiết giao dịch #${selectedOrder?.id || ""}`}
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={handleModalClose}
         footer={[
           <Button key="close" onClick={handleModalClose}>
@@ -380,80 +392,88 @@ const OrderHistory: React.FC = () => {
       >
         {selectedOrder ? (
           <div className={styles.orderDetails}>
-            <p>
-              <strong>Mã giao dịch:</strong> {selectedOrder.id}
-            </p>
-            <p>
-              <strong>Ngày đặt:</strong> {selectedOrder.created_at}
-            </p>
-            <p>
-              <strong>Ngày chiếu:</strong> {selectedOrder.show_date}
-            </p>
-            <p>
-              <strong>Phòng chiếu:</strong> {selectedOrder.room_name || "N/A"}
-            </p>
-            <p>
-              <strong>Phim:</strong> {selectedOrder.movie_title || "N/A"}
-            </p>
-            {selectedOrder.movie_poster && (
-              <p>
-                <strong>Poster:</strong>
+            <div className={styles.orderHeader}>
+              <span>THÔNG TIN GIAO DỊCH</span>
+            </div>
+            <div className={styles.orderContent}>
+              <div className={styles.movieInfo}>
                 <img
-                  src={`${URL_IMAGE}${selectedOrder.movie_poster}`}
-                  alt="Movie Poster"
+                  src={
+                    selectedOrder.movie_poster
+                      ? `${URL_IMAGE}${selectedOrder.movie_poster}`
+                      : fallbackPoster
+                  }
+                  alt={selectedOrder.movie_title || "Movie Poster"}
                   className={styles.moviePoster}
                   onError={(e) => {
                     e.currentTarget.src = fallbackPoster;
                   }}
+                  style={{ width: "50px", height: "50px", marginRight: "10px" }}
                 />
-              </p>
-            )}
-            <p>
-              <strong>Ghế:</strong>{" "}
-              {selectedOrder.seats?.length > 0
-                ? selectedOrder.seats.map((seat) => seat.seat_name).join(", ")
-                : "N/A"}
-            </p>
-            {selectedOrder.combos && selectedOrder.combos.length > 0 && (
-              <div>
-                <strong>Combo:</strong>
-                <ul>
-                  {selectedOrder.combos.map((combo, index) => (
-                    <li key={index}>
-                      {combo.combo_name} x {combo.quantity} -{" "}
-                      {(combo.price * combo.quantity).toLocaleString()}đ
-                    </li>
-                  ))}
-                </ul>
+                <span>{selectedOrder.movie_title || "N/A"}</span>
               </div>
-            )}
-            <p>
-              <strong>Tổng tiền vé:</strong>{" "}
-              {selectedOrder.total_ticket_price?.toLocaleString() || "0"}đ
-            </p>
-            <p>
-              <strong>Tổng tiền combo:</strong>{" "}
-              {selectedOrder.total_combo_price?.toLocaleString() || "0"}đ
-            </p>
-            <p>
-              <strong>Giảm giá:</strong>
-              {" -"}
-              {selectedOrder.discount?.toLocaleString() || "0"}đ
-            </p>
-            <p>
-              <strong>Tổng tiền:</strong>{" "}
-              {selectedOrder.total_price?.toLocaleString() || "0"}đ
-            </p>
-            <p>
-              <strong>Trạng thái:</strong>{" "}
-              <span
-                className={`${styles.statusBadge} ${
-                  getStatusLabelAndStyle(selectedOrder.status).style
-                }`}
-              >
-                {getStatusLabelAndStyle(selectedOrder.status).label}
-              </span>
-            </p>
+              <p className={styles.roomSeats}>
+                <span>
+                  {selectedOrder.room_name || "N/A"} Số ghế:{" "}
+                  {selectedOrder.seats?.length > 0
+                    ? selectedOrder.seats
+                        .map((seat) => seat.seat_name)
+                        .join(", ")
+                    : "N/A"}
+                </span>
+              </p>
+              <p className={styles.showInfo}>
+                <span>
+                  Ngày chiếu: {selectedOrder.show_date} Suất chiếu:{" "}
+                  {formatTime(selectedOrder.showtime)}
+                </span>
+              </p>
+              {selectedOrder.combos && selectedOrder.combos.length > 0 && (
+                <p className={styles.combos}>
+                  <span>
+                    {selectedOrder.combos
+                      .map(
+                        (combo) => `${combo.combo_name} ${combo.quantity} phần`
+                      )
+                      .join(", ")}
+                  </span>
+                </p>
+              )}
+              <p className={styles.price}>
+                <span>{formatPrice(selectedOrder.total_price)}</span>
+              </p>
+              <p className={styles.status}>
+                <strong>Trạng thái:</strong>{" "}
+                <span
+                  className={`${styles.statusBadge} ${
+                    getStatusLabelAndStyle(selectedOrder.status).style
+                  }`}
+                >
+                  {getStatusLabelAndStyle(selectedOrder.status).label}
+                </span>
+              </p>
+              <p className={styles.priceDetail}>
+                <strong>Tổng tiền vé:</strong>{" "}
+                <span>{formatPrice(selectedOrder.total_ticket_price)}</span>
+              </p>
+              <p className={styles.priceDetail}>
+                <strong>Tổng tiền combo:</strong>{" "}
+                <span>{formatPrice(selectedOrder.total_combo_price)}</span>
+              </p>
+              {/* New Discount Line */}
+              <p className={styles.discount}>
+                <strong>Giảm giá:</strong>{" "}
+                <span>{formatPrice(selectedOrder.discount)}</span>
+              </p>
+              <p className={styles.priceDetail}>
+                <strong>Tổng tiền:</strong>{" "}
+                <span>{formatPrice(selectedOrder.total_price)}</span>
+              </p>
+              <p className={styles.createdAt}>
+                <strong>Ngày đặt:</strong>{" "}
+                <span>{selectedOrder.created_at}</span>
+              </p>
+            </div>
           </div>
         ) : (
           <p>Không có dữ liệu chi tiết.</p>

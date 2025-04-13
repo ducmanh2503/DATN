@@ -392,7 +392,7 @@ class OrderController extends Controller
     {
         // Tìm đơn theo id
         $booking = Booking::find($id);
-        Log::info('Booking ID: ' . $booking);
+        // Log::info('Booking ID: ' . $booking);
 
         // Kiểm tra xem booking có tồn tại không
         if (!$booking) {
@@ -430,13 +430,31 @@ class OrderController extends Controller
             ], 401);
         }
 
-        // Lấy các tham số tìm kiếm từ request
-        $movieTitle = $request->input('title'); // Tên phim
-        $status = $request->input('status'); // Trạng thái (pending, completed, cancelled)
-        $date = $request->input('date'); // Ngày giao dịch (dạng Y-m-d, ví dụ: 2025-03-25)
+        // Ghi log query string để debug
+        // Log::info('Query string: ', $request->query->all());
+
+        // Lấy tham số title hoặc query
+        $movieTitle = $request->query('title') ?? $request->query('query');
+        // Log::info('Raw movie title input: ' . $movieTitle);
+
+        // Chuẩn hóa input
+        $movieTitle = trim($movieTitle ?? '');
+        // Log::info('Processed movie title: ' . $movieTitle);
+
+        // Kiểm tra movieTitle
+        if (empty($movieTitle)) {
+            return response()->json([
+                'message' => 'Vui lòng cung cấp tên phim để tìm kiếm',
+                'data' => [],
+            ], 400);
+        }
+
+        // Lấy các tham số khác
+        $status = $request->query('status');
+        $date = $request->query('date');
 
         $query = Booking::query()
-            ->where('user_id', $userId) // Chỉ lấy giao dịch của khách hàng hiện tại
+            ->where('user_id', $userId)
             ->with([
                 'showtime' => function ($query) {
                     $query->select('id', 'calendar_show_id', 'start_time', 'end_time')
@@ -487,11 +505,9 @@ class OrderController extends Controller
             );
 
         // Tìm kiếm theo tên phim
-        if ($movieTitle) {
-            $query->whereHas('showtime.calendarShow.movie', function ($q) use ($movieTitle) {
-                $q->where('title', 'like', '%' . $movieTitle . '%');
-            });
-        }
+        $query->whereHas('showtime.calendarShow.movie', function ($q) use ($movieTitle) {
+            $q->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($movieTitle) . '%']);
+        });
 
         // Tìm kiếm theo trạng thái
         if ($status) {
@@ -500,105 +516,101 @@ class OrderController extends Controller
 
         // Tìm kiếm theo ngày giao dịch
         if ($date) {
-            $startOfDay = Carbon::parse($date)->startOfDay();
-            $endOfDay = Carbon::parse($date)->endOfDay();
-            $query->whereBetween('created_at', [$startOfDay, $endOfDay]);
+            try {
+                $startOfDay = Carbon::parse($date)->startOfDay();
+                $endOfDay = Carbon::parse($date)->endOfDay();
+                $query->whereBetween('created_at', [$startOfDay, $endOfDay]);
+            } catch (\Exception $e) {
+                // Log::error('Invalid date format: ' . $date);
+            }
         }
 
-        $bookings = $query->latest('id')
-            ->get()
-            ->map(function ($booking) {
-                // Khởi tạo danh sách ghế, phòng, loại phòng, combo và thông tin phim
-                $seats = [];
-                $room_name = null;
-                $room_type = null;
-                $combos = [];
-                $movie = null;
-                $show_date = 'N/A'; // Khai báo giá trị mặc định
+        // Ghi log truy vấn SQL
+        DB::enableQueryLog();
+        $bookings = $query->latest('id')->get();
+        // Log::info('Query Log: ', DB::getQueryLog());
 
-                // Lấy thông tin phim từ showtime -> calendarShow -> movie
-                if ($booking->showtime && $booking->showtime->calendarShow && $booking->showtime->calendarShow->movie) {
-                    $movie = [
-                        'id' => $booking->showtime->calendarShow->movie->id,
-                        'title' => $booking->showtime->calendarShow->movie->title,
-                        'poster' => $booking->showtime->calendarShow->movie->poster,
-                    ];
-                }
+        $bookings = $bookings->map(function ($booking) {
+            $seats = [];
+            $room_name = null;
+            $room_type = null;
+            $combos = [];
+            $movie = ['id' => null, 'title' => 'N/A', 'poster' => null];
+            $show_date = 'N/A';
 
-                // Lấy show_date từ showTimeDate (xử lý trường hợp collection hoặc null)
-                if ($booking->showtime && $booking->showtime->showTimeDate) {
-                    $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
-                        ? $booking->showtime->showTimeDate->first()
-                        : $booking->showtime->showTimeDate;
-
-                    if ($showTimeDate && $showTimeDate->show_date) {
-                        // Chuyển show_date thành đối tượng Carbon và định dạng
-                        try {
-                            $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
-                        } catch (\Exception $e) {
-                            // Nếu parse thất bại, giữ nguyên giá trị hoặc trả về 'N/A'
-                            $show_date = $showTimeDate->show_date ?: 'N/A';
-                        }
-                    }
-                }
-
-                if ($booking->bookingDetails) {
-                    foreach ($booking->bookingDetails as $detail) {
-                        // Thêm ghế nếu có
-                        if ($detail->seat) {
-                            $seatName = "{$detail->seat->row}{$detail->seat->column}";
-                            $seats[] = [
-                                'booking_detail_id' => $detail->id,
-                                'seat_name' => $seatName,
-                                'price' => $detail->price,
-                            ];
-
-                            // Lấy tên phòng và loại phòng
-                            if ($detail->seat->room) {
-                                $room_name = $detail->seat->room->name;
-                                $room_type = $detail->seat->room->roomType ? $detail->seat->room->roomType->name : null;
-                            }
-                        }
-
-                        // Thêm combo nếu có
-                        if ($detail->combo) {
-                            $combos[] = [
-                                'booking_detail_id' => $detail->id,
-                                'combo_name' => $detail->combo->name,
-                                'quantity' => $detail->quantity,
-                                'price' => $detail->price,
-                            ];
-                        }
-                    }
-                }
-
-                // Tính tổng tiền và giảm giá
-                $totalPrice = (int) $booking->total_price;
-                if ($totalPrice === 0) {
-                    $totalPrice = (int) ($booking->total_ticket_price + $booking->total_combo_price);
-                }
-                $discount = (int) (($booking->total_ticket_price + $booking->total_combo_price) - $totalPrice);
-
-                return [
-                    'id' => $booking->id,
-                    'showtime' => $booking->showtime
-                        ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
-                        : 'N/A',
-                    'show_date' => $show_date,
-                    'movie_title' => $movie ? $movie['title'] : 'N/A',
-                    'movie_poster' => $movie ? $movie['poster'] : null,
-                    'room_name' => $room_name ?? 'N/A',
-                    'room_type' => $room_type ?? 'N/A',
-                    'seats' => $seats,
-                    'combos' => $combos,
-                    'total_ticket_price' => (int) $booking->total_ticket_price,
-                    'total_combo_price' => (int) $booking->total_combo_price,
-                    'total_price' => $booking->total_price,
-                    'discount' => $discount,
-                    'status' => $booking->status,
-                    'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y H:i:s') : 'N/A',
+            if ($booking->showtime && $booking->showtime->calendarShow && $booking->showtime->calendarShow->movie) {
+                $movie = [
+                    'id' => $booking->showtime->calendarShow->movie->id,
+                    'title' => $booking->showtime->calendarShow->movie->title,
+                    'poster' => $booking->showtime->calendarShow->movie->poster,
                 ];
-            });
+            }
+
+            if ($booking->showtime && $booking->showtime->showTimeDate) {
+                $showTimeDate = $booking->showtime->showTimeDate instanceof Collection
+                    ? $booking->showtime->showTimeDate->first()
+                    : $booking->showtime->showTimeDate;
+
+                if ($showTimeDate && $showTimeDate->show_date) {
+                    try {
+                        $show_date = Carbon::parse($showTimeDate->show_date)->format('d-m-Y');
+                    } catch (\Exception $e) {
+                        $show_date = $showTimeDate->show_date ?: 'N/A';
+                    }
+                }
+            }
+
+            if ($booking->bookingDetails) {
+                foreach ($booking->bookingDetails as $detail) {
+                    if ($detail->seat) {
+                        $seatName = "{$detail->seat->row}{$detail->seat->column}";
+                        $seats[] = [
+                            'booking_detail_id' => $detail->id,
+                            'seat_name' => $seatName,
+                            'price' => $detail->price,
+                        ];
+                        if ($detail->seat->room) {
+                            $room_name = $detail->seat->room->name;
+                            $room_type = $detail->seat->room->roomType ? $detail->seat->room->roomType->name : null;
+                        }
+                    }
+                    if ($detail->combo) {
+                        $combos[] = [
+                            'booking_detail_id' => $detail->id,
+                            'combo_name' => $detail->combo->name,
+                            'quantity' => $detail->quantity,
+                            'price' => $detail->price,
+                        ];
+                    }
+                }
+            }
+
+            $totalPrice = (int) $booking->total_price;
+            if ($totalPrice === 0) {
+                $totalPrice = (int) ($booking->total_ticket_price + $booking->total_combo_price);
+            }
+            $discount = (int) (($booking->total_ticket_price + $booking->total_combo_price) - $totalPrice);
+
+            return [
+                'id' => $booking->id,
+                'showtime' => $booking->showtime
+                    ? Carbon::parse($booking->showtime->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->showtime->end_time)->format('H:i')
+                    : 'N/A',
+                'show_date' => $show_date,
+                'movie_title' => $movie['title'],
+                'movie_poster' => $movie['poster'],
+                'room_name' => $room_name ?? 'N/A',
+                'room_type' => $room_type ?? 'N/A',
+                'seats' => $seats,
+                'combos' => $combos,
+                'total_ticket_price' => (int) $booking->total_ticket_price,
+                'total_combo_price' => (int) $booking->total_combo_price,
+                'total_price' => number_format($totalPrice, 0, ',', '.'),
+                'discount' => $discount,
+                'status' => $booking->status,
+                'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y H:i:s') : 'N/A',
+            ];
+        });
 
         return response()->json([
             'message' => 'Kết quả tìm kiếm giao dịch',

@@ -17,6 +17,15 @@ class AuthController extends Controller
     // API Đăng ký tài khoản (Gửi OTP qua email)
     public function register(Request $request)
     {
+        // Xóa dấu cách trong mật khẩu trước khi validate
+        $passwordWithoutSpaces = preg_replace('/\s+/', '', $request->input('password'));
+
+        // Thay thế giá trị trong request để validate
+        $request->merge([
+            'password' => $passwordWithoutSpaces,
+            'password_confirmation' => preg_replace('/\s+/', '', $request->input('password_confirmation')),
+        ]);
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:50',
@@ -26,11 +35,11 @@ class AuthController extends Controller
                 'string',
                 'confirmed',
                 'min:6',
-                'max:12',
+                'max:20',
                 'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{8,20}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
                 'different:email', // Không trùng với email
             ],
-            'phone' => 'required|string|min:10|max:15|unique:users',
+            'phone' => 'required|numeric|digits_between:10,15|unique:users,phone',
         ]);
 
         if ($validator->fails()) {
@@ -136,6 +145,15 @@ class AuthController extends Controller
     // API Xác nhận OTP và đặt lại mật khẩu mới
     public function resetPassword(Request $request)
     {
+        // Xóa dấu cách trong mật khẩu trước khi validate
+        $passwordWithoutSpaces = preg_replace('/\s+/', '', $request->input('new_password'));
+
+        // Thay thế giá trị trong request để validate
+        $request->merge([
+            'new_password' => $passwordWithoutSpaces,
+            'new_password_confirmation' => preg_replace('/\s+/', '', $request->input('new_password_confirmation')),
+        ]);
+
         // Validate
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
@@ -145,7 +163,7 @@ class AuthController extends Controller
                 'string',
                 'confirmed',
                 'min:6',
-                'max:12',
+                'max:20',
                 'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{6,12}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
                 'different:email', // Không trùng với email
             ],

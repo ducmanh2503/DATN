@@ -139,10 +139,16 @@ const Banner = () => {
             </Swiper>
             <div className="promotion">
                 <div className="promotion-1">
-                    <Image className="promotion-image"></Image>
+                    <img
+                        className="promotion-image"
+                        src="../../../public/imageFE/banner11.png"
+                    />
                 </div>
                 <div className="promotion-2">
-                    <Image className="promotion-image"></Image>
+                    <img
+                        className="promotion-image"
+                        src="../../../public/imageFE/banner22.png"
+                    />
                 </div>
             </div>
         </div>

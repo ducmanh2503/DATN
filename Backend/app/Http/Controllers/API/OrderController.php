@@ -605,7 +605,7 @@ class OrderController extends Controller
                 'combos' => $combos,
                 'total_ticket_price' => (int) $booking->total_ticket_price,
                 'total_combo_price' => (int) $booking->total_combo_price,
-                'total_price' => $booking->total_price,
+                'total_price' => number_format($totalPrice, 0, ',', '.'),
                 'discount' => $discount,
                 'status' => $booking->status,
                 'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y H:i:s') : 'N/A',

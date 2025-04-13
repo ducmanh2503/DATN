@@ -17,6 +17,15 @@ class AuthController extends Controller
     // API Đăng ký tài khoản (Gửi OTP qua email)
     public function register(Request $request)
     {
+        // Xóa dấu cách trong mật khẩu trước khi validate
+        $passwordWithoutSpaces = preg_replace('/\s+/', '', $request->input('password'));
+
+        // Thay thế giá trị trong request để validate
+        $request->merge([
+            'password' => $passwordWithoutSpaces,
+            'password_confirmation' => preg_replace('/\s+/', '', $request->input('password_confirmation')),
+        ]);
+
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:50',

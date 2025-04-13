@@ -2,7 +2,6 @@
     margin-top: 40px;
     display: flex;
     gap: 40px;
-    min-height: 1500px;
 }
 
 .wheelContainer {
@@ -132,7 +131,7 @@
 }
 
 .playingCount {
-    width: 170px;
+    width: 230px;
     text-align: center;
     padding: 12px 30px;
     border-radius: 8px;

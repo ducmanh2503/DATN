@@ -58,7 +58,7 @@ class MoviesController extends Controller
     }
 
     // Lấy danh sách phim cùng thể loại (trừ phim hiện tại)
-    public function relatedMovies(Request $request, $movieId)
+    public function relatedMovies($movieId)
     {
         // Tìm phim hiện tại dựa trên ID
         $currentMovie = Movies::with('genres')->find($movieId);
@@ -105,7 +105,7 @@ class MoviesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
 
         //Hiển thị tất cả phim
@@ -131,8 +131,6 @@ class MoviesController extends Controller
 
     /**
      * Lấy danh sách phim cho client
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function getMoviesForClient(Request $request)
     {

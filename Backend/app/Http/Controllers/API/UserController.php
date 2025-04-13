@@ -158,7 +158,7 @@ class UserController extends Controller
             'name' => 'nullable|string|max:255',
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'phone' => [
-                'required',
+                'nullable',
                 'numeric',
                 'digits_between:10,15',
                 Rule::unique('users', 'phone')->ignore($user->id),

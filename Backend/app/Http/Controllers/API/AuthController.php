@@ -26,7 +26,7 @@ class AuthController extends Controller
                 'string',
                 'confirmed',
                 'min:6',
-                'max:12',
+                'max:20',
                 'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{8,20}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
                 'different:email', // Không trùng với email
             ],
@@ -145,7 +145,7 @@ class AuthController extends Controller
                 'string',
                 'confirmed',
                 'min:6',
-                'max:12',
+                'max:20',
                 'regex:/^(?=.*[A-Z])(?=.*[a-zA-Z])(?=.*\d).{6,12}$/', // Ít nhất 1 chữ in hoa, có cả chữ và số
                 'different:email', // Không trùng với email
             ],

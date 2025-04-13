@@ -21,7 +21,7 @@ interface Article {
   body?: string | null;
   status?: string | null;
   views: number;
-  createdAt?: string | null;
+  created_at?: string | null;
   image?: string | null;
 }
 
@@ -69,6 +69,21 @@ const ArticleList = () => {
     {}
   );
 
+  // Hàm format ngày tháng
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return "N/A"; // Xử lý trường hợp null hoặc undefined
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "N/A"; // Xử lý ngày không hợp lệ
+    return date.toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  };
+
   // Simple text escape to mitigate XSS and handle undefined/null
   const escapeText = (text: string | null | undefined): string => {
     if (text == null) return "";
@@ -88,7 +103,7 @@ const ArticleList = () => {
         body: article.body ?? "",
         status: article.status ?? "InActive",
         views: article.views ?? 0,
-        createdAt: article.createdAt ?? "",
+        created_at: article.created_at ?? "",
         image: article.image ?? "",
       }));
       setArticles(sanitizedArticles);
@@ -275,10 +290,10 @@ const ArticleList = () => {
         <h2 className="title">Danh sách bài viết</h2>
         <div className="button-group">
           <Button onClick={fetchArticles} disabled={loading}>
-            🔄 Refresh
+            Refresh
           </Button>
           <Button type="primary" onClick={handleCreateClick}>
-            ➕ Tạo bài viết
+            Tạo bài viết
           </Button>
         </div>
       </div>
@@ -291,9 +306,7 @@ const ArticleList = () => {
             <thead>
               <tr>
                 <th>Tiêu đề</th>
-                <th>Tác giả</th>
                 <th>Danh mục</th>
-                <th>Lượt xem</th>
                 <th>Trạng thái</th>
                 <th>Ngày tạo</th>
                 <th>Hành động</th>
@@ -303,9 +316,7 @@ const ArticleList = () => {
               {articles.map((article) => (
                 <tr key={article.id}>
                   <td>{escapeText(article.title)}</td>
-                  <td>{escapeText(article.author)}</td>
                   <td>{escapeText(article.category)}</td>
-                  <td>{article.views ?? 0}</td>
                   <td>
                     <span
                       className={
@@ -319,13 +330,14 @@ const ArticleList = () => {
                         : "Ngưng hoạt động"}
                     </span>
                   </td>
-                  <td>{escapeText(article.createdAt)}</td>
+                  <td>{formatDate(article.created_at)}</td>{" "}
+                  {/* Format ngày tháng */}
                   <td>
                     <Button onClick={() => handleEditClick(article)}>
-                      ✏️ Sửa
+                      Sửa
                     </Button>
                     <Button danger onClick={() => handleDelete(article.id)}>
-                      ❌ Xóa
+                      Xóa
                     </Button>
                   </td>
                 </tr>

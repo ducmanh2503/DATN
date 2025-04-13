@@ -14,6 +14,8 @@ import Sider from "antd/es/layout/Sider";
 import { Link } from "react-router-dom";
 import { useAdminContext } from "./UseContextAdmin/adminContext";
 import authService from "../services/auth.service";
+import styles from "../ClientComponents/Header/header.module.css";
+import clsx from "clsx";
 
 type MenuItem = Required<MenuProps>["items"][number];
 function getItem(
@@ -110,27 +112,13 @@ const SiderAdmin = () => {
         collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
       >
-        <div
-          style={{
-            height: "64px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "white",
-            margin: "16px",
-            marginBottom: "50px",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "24px",
-              margin: 0,
-              padding: 0,
-            }}
-          >
-            Logo
-          </h1>
-        </div>
+        <Link to="/admin">
+          <img
+            className={clsx(styles.logo)}
+            src="../../public/imageFE/logoAdmin.png"
+            alt=""
+          />
+        </Link>
 
         <Menu
           theme="dark"

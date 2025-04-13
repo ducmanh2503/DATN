@@ -25,7 +25,7 @@ const AppFooter: React.FC = () => {
       <Row justify="space-between" gutter={[32, 32]}>
         <Col xs={24} sm={12} md={8} lg={6}>
           <Image
-            src="/logo.png" // Replace with your logo path
+            src="../../../public/imageFE/logo2.png" // Replace with your logo path
             preview={false}
             width={150}
             alt="Logo Cinema"

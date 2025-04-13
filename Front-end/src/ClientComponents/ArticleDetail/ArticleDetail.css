@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f7f9fc 0%, #e9eef5 50%, #d9e2ec 100%);
+  background: #f5f5f5;
   font-family: "Roboto", sans-serif;
   overflow-x: hidden;
 }
@@ -11,231 +11,335 @@
 /* Nội dung chính */
 .main-content {
   flex: 1;
-  padding: 40px 0;
-  max-width: 1600px;
+  padding: 20px 0;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 /* Container bài viết */
 .article-detail-container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 30px;
+  padding: 20px;
+}
+
+/* Bố cục 2 cột */
+.content-wrapper {
+  display: flex;
+  gap: 30px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.left-column {
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.right-column {
+  flex: 1 1 50%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* Thẻ bài viết chi tiết */
 .article-detail {
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  padding: 50px;
-  margin-bottom: 50px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.02);
-}
-
-.article-detail:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 30px;
 }
 
 /* Tiêu đề bài viết */
 .article-header {
-  margin-bottom: 40px;
-  border-bottom: 2px solid #e6f7ff;
-  padding-bottom: 25px;
-}
-
-.article-category-tag {
-  display: inline-block;
-  background: linear-gradient(90deg, #e6f7ff, #bae7ff);
-  color: #096dd9;
-  padding: 8px 20px;
-  border-radius: 25px;
-  font-size: 15px;
-  font-weight: 600;
   margin-bottom: 20px;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.article-category-tag:hover {
-  background: linear-gradient(90deg, #bae7ff, #91d5ff);
-  transform: scale(1.05);
 }
 
 .article-title {
-  font-size: 40px;
+  font-size: 32px;
   color: #1a1a1a;
-  margin-bottom: 25px;
+  margin-bottom: 15px;
   line-height: 1.3;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+  font-weight: 700;
 }
 
 .article-meta {
   display: flex;
-  gap: 30px;
+  gap: 20px;
   color: #737373;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .article-meta span {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  transition: color 0.3s ease;
-}
-
-.article-meta span:hover {
-  color: #096dd9;
+  gap: 8px;
+  line-height: 1;
 }
 
 .article-meta i {
-  font-size: 18px;
-  color: #1890ff;
+  font-size: 14px;
+  color: #737373;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* Hình ảnh bài viết */
 .article-image {
-  margin: 40px 0;
-  border-radius: 16px;
+  margin: 20px 0;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  max-width: 100%; /* Đảm bảo container không vượt quá khung */
-  max-height: 500px; /* Giới hạn chiều cao tối đa của khung */
+  max-width: 100%;
+  max-height: 400px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .article-image img {
-  max-width: 100%; /* Ảnh không vượt quá container */
-  max-height: 100%; /* Ảnh không vượt quá chiều cao container */
-  width: auto; /* Giữ tỷ lệ ảnh */
-  height: auto; /* Giữ tỷ lệ ảnh */
-  object-fit: contain; /* Ảnh tự điều chỉnh để vừa khung, không bị cắt */
-  transition: transform 0.6s ease;
-}
-
-.article-image img:hover {
-  transform: scale(1.05);
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: cover;
 }
 
 /* Nội dung bài viết */
 .article-content {
-  font-size: 17px;
-  line-height: 1.9;
+  font-size: 16px;
+  line-height: 1.8;
   color: #333;
-  letter-spacing: 0.2px;
 }
 
-/* Phần bài viết liên quan */
+/* Phần tin tức khác */
+/* ArticleDetail.css */
+
+/* Đảm bảo related-articles-grid hiển thị dưới dạng lưới */
+.related-articles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 10px 0;
+}
+
+/* Kiểu dáng cho mỗi card bài viết liên quan */
+.related-article-card {
+  cursor: pointer;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.related-article-card:hover {
+  transform: translateY(-5px);
+}
+
+.related-article-image img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.related-article-content {
+  padding: 10px;
+}
+
+.related-article-content h3 {
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.4;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Đảm bảo các class khác không bị ảnh hưởng */
 .related-articles {
-  margin-top: 80px;
-  padding-top: 50px;
-  border-top: 2px solid #e6f7ff;
+  margin-top: 30px;
 }
 
 .related-title {
-  font-size: 32px;
-  color: #1a1a1a;
-  margin-bottom: 40px;
-  font-weight: 700;
-  position: relative;
-  padding-bottom: 20px;
-  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  color: #222;
 }
 
-.related-title:after {
-  content: "";
+/* Phần phim đang hot */
+.hot-movies {
+  background: #ffffff;
+  padding: 20px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.hot-movies-title {
+  font-size: 24px;
+  color: #fff;
+  background: #a1e3f9;
+  margin: -20px -20px 20px; /* Đưa tiêu đề ra ngoài padding của container */
+  padding: 10px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Danh sách phim - Dạng lưới */
+.hot-movies-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 cột trên desktop */
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Mục phim */
+.hot-movie-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border-radius: 0; /* Không bo góc */
+}
+
+/* Ảnh phim */
+.hot-movie-image {
+  position: relative;
+  width: 100%;
+}
+
+.hot-movie-image img {
+  width: 100%;
+  height: 250px; /* Chiều cao cố định để ảnh đứng */
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 5px;
+}
+
+/* Nhãn T16, T18 */
+.movie-rated {
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(90deg, #1890ff, #40a9ff);
+  top: 10px;
+  left: 10px;
+  background: #a1e3fe; /* Màu đỏ */
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 6px;
   border-radius: 4px;
 }
 
-.related-articles-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  padding: 30px;
+/* Nội dung phim */
+.hot-movie-content {
+  padding: 10px 0;
+  text-align: center;
 }
 
-.related-articles-grid > div {
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.related-articles-grid > div:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.related-articles-grid img {
-  width: 100%;
-  max-height: 150px; /* Giới hạn chiều cao tối đa */
-  height: auto; /* Giữ tỷ lệ ảnh */
-  object-fit: contain; /* Ảnh tự điều chỉnh để vừa khung, không bị cắt */
-  transition: transform 0.4s ease;
-}
-
-.related-articles-grid img:hover {
-  transform: scale(1.03);
-}
-
-.related-articles-grid h3 {
-  padding: 20px;
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a1a;
-  line-height: 1.5;
-}
-
-.related-articles-grid .article-meta {
-  padding: 0 20px 20px;
-  margin: 0;
+.hot-movie-content h3 {
   font-size: 14px;
-  color: #737373;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 5px;
+  text-transform: uppercase;
+}
+
+.hot-movie-content .article-meta {
+  font-size: 12px;
+  color: #000;
+}
+
+.hot-movie-content .article-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 /* Responsive */
+@media (max-width: 1100px) {
+  .hot-movies-list {
+    gap: 15px;
+  }
+
+  .hot-movie-image img {
+    height: 230px;
+  }
+}
+
 @media (max-width: 992px) {
-  .related-articles-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .content-wrapper {
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    flex: 1 1 100%;
+  }
+
+  .hot-movies {
+    padding: 15px;
+  }
+
+  .hot-movies-list {
+    grid-template-columns: repeat(2, 1fr); /* Vẫn 2 cột trên tablet */
+  }
+
+  .hot-movie-image img {
+    height: 200px;
   }
 }
 
 @media (max-width: 768px) {
-  .related-articles-grid {
-    grid-template-columns: 1fr;
-    max-width: 600px;
-    margin: 0 auto;
-  }
   .article-detail {
-    padding: 30px;
+    padding: 20px;
   }
+
   .article-title {
-    font-size: 32px;
-  }
-  .related-title {
     font-size: 28px;
   }
-  .article-image {
-    max-height: 300px; /* Giảm chiều cao khung trên mobile */
+
+  .related-title,
+  .hot-movies-title {
+    font-size: 20px;
   }
-  .related-articles-grid img {
-    max-height: 120px; /* Giảm chiều cao ảnh trên mobile */
+
+  .article-image {
+    max-height: 250px;
+  }
+
+  .related-article-image {
+    flex: 0 0 60px;
+  }
+
+  .related-article-image img {
+    height: 60px;
+  }
+
+  .hot-movies-list {
+    grid-template-columns: 1fr; /* 1 cột trên mobile */
+  }
+
+  .hot-movie-image img {
+    height: 280px; /* Tăng chiều cao trên mobile để ảnh rõ hơn */
+  }
+
+  .hot-movie-content h3 {
+    font-size: 14px;
+  }
+
+  .hot-movie-content .article-meta {
+    font-size: 11px;
   }
 }
 
@@ -246,27 +350,27 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px;
+  min-height: 300px;
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  margin: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin: 20px;
 }
 
 .loading {
-  color: #1890ff;
-  font-size: 20px;
-  font-weight: 500;
+  color: #333;
+  font-size: 18px;
+  font-weight: 400;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .loading:before {
   content: "";
-  width: 24px;
-  height: 24px;
-  border: 3px solid #1890ff;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333;
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -280,11 +384,11 @@
 
 .error {
   color: #ff4d4f;
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 400;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .error:before {
@@ -293,11 +397,11 @@
 
 .not-found {
   color: #737373;
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 400;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .not-found:before {

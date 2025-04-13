@@ -2,6 +2,7 @@ import {
     Button,
     Form,
     Input,
+    InputNumber,
     message,
     Modal,
     Popconfirm,
@@ -29,25 +30,35 @@ const SeatsForm = ({
 }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
+
+    const { data: OptionSeats } = useOptionSeats(); // danh sách các loại ghế
+
+    const seatStatus = Form.useWatch("seat_status", form); // fl seat_status
+    const initialStatus = seatData?.status; // giá trị ban đầu
+    const seatType = Form.useWatch("seat_type_id", form); // fl seat_status
+    const initialTypeId = OptionSeats?.find(
+        (option: any) => option.name === seatData?.type
+    )?.id; // giá trị ban đầu
+
     const rowSeats = Array.from({ length: 26 }, (_, i) =>
         String.fromCharCode(65 + i)
     ); // Tạo các hàng từ A tới Z
 
-    const { data: OptionSeats } = useOptionSeats(); // danh sách các loại ghế
-
     // gán chi tiết ghế vào form
     useEffect(() => {
-        console.log(seatData);
+        if (seatData && OptionSeats) {
+            const matchedType = OptionSeats.find(
+                (option: any) => option.name === seatData.type
+            );
 
-        if (seatData) {
             form.setFieldsValue({
                 row: seatData.row,
                 column: seatData.col,
-                seat_type_id: seatData.type,
+                seat_type_id: matchedType?.id,
                 seat_status: seatData.status,
             });
         }
-    }, [seatData, form]);
+    }, [seatData, form, OptionSeats]);
 
     // Hook xóa ghế
     const { mutate: deleteOneSeat } = useDeleteOneSeat(messageApi);
@@ -145,9 +156,16 @@ const SeatsForm = ({
                         label="Cột"
                         rules={[
                             { required: true, message: "Vui lòng nhập cột!" },
+                            {
+                                type: "number",
+                                min: 0,
+                                max: 13,
+                                message: "phải là số từ 0 tới 13",
+                            },
                         ]}
                     >
-                        <Input
+                        <InputNumber
+                            style={{ width: "100%" }}
                             disabled={isEditing}
                             placeholder="Nhập số cột (1, 2, ...)"
                         />
@@ -210,8 +228,11 @@ const SeatsForm = ({
                                 type="primary"
                                 htmlType="submit"
                                 className={clsx(styles.updatePrice)}
+                                disabled={
+                                    !seatType || seatType === initialTypeId
+                                }
                             >
-                                {isEditing ? "Cập Nhật Giá Ghế" : "Thêm Ghế"}
+                                {isEditing ? "Cập Nhật Loại Ghế" : "Thêm Ghế"}
                             </Button>
                             {isEditing && onDelete && (
                                 <>
@@ -229,6 +250,10 @@ const SeatsForm = ({
                                     <Button
                                         className={clsx(styles.updateStatus)}
                                         onClick={handleHideSeat}
+                                        disabled={
+                                            !seatStatus ||
+                                            seatStatus === initialStatus
+                                        }
                                     >
                                         Cập nhật Trạng Thái
                                     </Button>

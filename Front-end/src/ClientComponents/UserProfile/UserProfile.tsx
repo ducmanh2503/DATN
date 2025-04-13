@@ -224,7 +224,7 @@ const UserProfile: React.FC = () => {
         </div>
         <div className={styles.contactInfo}>
           <p>
-            <a href="tel:0989721167">0989721167</a> (800 - 22:30)
+            <a href="tel:0989721167">0989 721 167</a> (8:00 - 22:30)
           </p>
 
           <p>

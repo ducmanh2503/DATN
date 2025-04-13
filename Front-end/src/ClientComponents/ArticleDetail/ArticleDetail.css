@@ -215,6 +215,7 @@
 
 /* Ảnh phim */
 .hot-movie-image {
+  cursor: pointer;
   position: relative;
   width: 100%;
 }

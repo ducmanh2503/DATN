@@ -465,6 +465,10 @@ const OrderHistory: React.FC = () => {
                 <strong>Giảm giá:</strong>{" "}
                 <span>{formatPrice(selectedOrder.discount)}</span>
               </p>
+              <p className={styles.priceDetail}>
+                <strong>Tổng tiền:</strong>{" "}
+                <span>{formatPrice(selectedOrder.total_price)}</span>
+              </p>
               <p className={styles.createdAt}>
                 <strong>Ngày đặt:</strong>{" "}
                 <span>{selectedOrder.created_at}</span>

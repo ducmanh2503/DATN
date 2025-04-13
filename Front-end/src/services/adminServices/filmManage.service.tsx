@@ -196,23 +196,14 @@ export const useUpdateFilm = ({
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (formData: FormData) => {
-            try {
-                const { data } = await axiosInstance.post(
-                    UPDATE_FILM(id),
-                    formData,
-                    {
-                        ...getAuthConfig(),
-                        headers: {
-                            ...getAuthConfig().headers,
-                            "Content-Type": "multipart/form-data",
-                        },
-                    }
-                );
-                return data;
-            } catch (error: any) {
-                console.error(`Lỗi khi cập nhật phim ID ${id}:`, error);
-                throw error;
-            }
+            const { data } = await axios.post(UPDATE_FILM(id), formData, {
+                ...getAuthConfig(),
+                headers: {
+                    ...getAuthConfig().headers,
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            return data;
         },
         onSuccess: () => {
             messageApi.success("Cập nhật phim thành công");
@@ -226,13 +217,7 @@ export const useUpdateFilm = ({
                 queryKey: ["filmDetail", id],
             });
         },
-        onError: (error: any) => {
-            messageApi.error(
-                error.response?.data?.message ||
-                    error.message ||
-                    "Có lỗi xảy ra khi cập nhật phim!"
-            );
-        },
+        onError: handleApiError,
     });
 };
 

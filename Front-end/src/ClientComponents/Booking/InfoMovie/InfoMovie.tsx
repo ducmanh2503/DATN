@@ -56,7 +56,7 @@ const InfoMovie = () => {
         <div className={clsx(styles.infoMovie)}>
             <div className={clsx(styles.bookingFilm)}>
                 <div className={clsx(styles.filmImage)}>
-                    <Image
+                    <img
                         className={clsx(styles.filmThumbnail)}
                         src={`${URL_IMAGE}${detailFilm?.poster}`}
                     />

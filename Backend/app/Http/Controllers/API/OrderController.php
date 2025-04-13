@@ -481,6 +481,7 @@ class OrderController extends Controller
                 'showtime_id',
                 'total_ticket_price',
                 'total_combo_price',
+                'total_price',
                 'status',
                 'created_at'
             );
@@ -571,6 +572,13 @@ class OrderController extends Controller
                     }
                 }
 
+                // Tính tổng tiền và giảm giá
+                $totalPrice = (int) $booking->total_price;
+                if ($totalPrice === 0) {
+                    $totalPrice = (int) ($booking->total_ticket_price + $booking->total_combo_price);
+                }
+                $discount = (int) (($booking->total_ticket_price + $booking->total_combo_price) - $totalPrice);
+
                 return [
                     'id' => $booking->id,
                     'showtime' => $booking->showtime
@@ -585,7 +593,8 @@ class OrderController extends Controller
                     'combos' => $combos,
                     'total_ticket_price' => (int) $booking->total_ticket_price,
                     'total_combo_price' => (int) $booking->total_combo_price,
-                    'total_price' => (int) ($booking->total_ticket_price + $booking->total_combo_price),
+                    'total_price' => $booking->total_price,
+                    'discount' => $discount,
                     'status' => $booking->status,
                     'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y H:i:s') : 'N/A',
                 ];
@@ -657,6 +666,7 @@ class OrderController extends Controller
                 'showtime_id',
                 'total_ticket_price',
                 'total_combo_price',
+                'total_price',
                 'status',
                 'created_at'
             )
@@ -726,6 +736,13 @@ class OrderController extends Controller
                     }
                 }
 
+                // Tính tổng tiền và giảm giá
+                $totalPrice = (int) $booking->total_price;
+                if ($totalPrice === 0) {
+                    $totalPrice = (int) ($booking->total_ticket_price + $booking->total_combo_price);
+                }
+                $discount = (int) (($booking->total_ticket_price + $booking->total_combo_price) - $totalPrice);
+
                 return [
                     'id' => $booking->id,
                     'showtime' => $booking->showtime
@@ -740,7 +757,8 @@ class OrderController extends Controller
                     'combos' => $combos,
                     'total_ticket_price' => (int) $booking->total_ticket_price,
                     'total_combo_price' => (int) $booking->total_combo_price,
-                    'total_price' => (int) ($booking->total_ticket_price + $booking->total_combo_price),
+                    'total_price' => $totalPrice,
+                    'discount' => $discount,
                     'status' => $booking->status,
                     'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y H:i:s') : 'N/A',
                 ];
@@ -812,6 +830,7 @@ class OrderController extends Controller
                 'showtime_id',
                 'total_ticket_price',
                 'total_combo_price',
+                'total_price',
                 'status',
                 'created_at'
             )
@@ -881,6 +900,13 @@ class OrderController extends Controller
                     }
                 }
 
+                // Tính tổng tiền và giảm giá
+                $totalPrice = (int) $booking->total_price;
+                if ($totalPrice === 0) {
+                    $totalPrice = (int) ($booking->total_ticket_price + $booking->total_combo_price);
+                }
+                $discount = (int) (($booking->total_ticket_price + $booking->total_combo_price) - $totalPrice);
+
                 return [
                     'id' => $booking->id,
                     'showtime' => $booking->showtime
@@ -895,7 +921,8 @@ class OrderController extends Controller
                     'combos' => $combos,
                     'total_ticket_price' => (int) $booking->total_ticket_price,
                     'total_combo_price' => (int) $booking->total_combo_price,
-                    'total_price' => (int) ($booking->total_ticket_price + $booking->total_combo_price),
+                    'total_price' => $totalPrice,
+                    'discount' => $discount,
                     'status' => $booking->status,
                     'created_at' => $booking->created_at ? $booking->created_at->format('d-m-Y H:i:s') : 'N/A',
                 ];
@@ -959,7 +986,7 @@ class OrderController extends Controller
                 'total_combo_price',
                 'total_price',
                 'status',
-                'check_in', // Đã thêm từ yêu cầu trước
+                'check_in',
                 'created_at'
             )
             ->find($bookingId);

@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'date_of_birth',
         'is_verified',
         'role',
         'total_spent',
@@ -48,8 +49,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'total_spent' => 'decimal:2', 
-        'points' => 'integer', 
+        'total_spent' => 'decimal:2',
+        'points' => 'integer',
     ];
 
     protected $dates = ['deleted_at'];

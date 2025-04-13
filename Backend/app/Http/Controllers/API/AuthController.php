@@ -145,6 +145,15 @@ class AuthController extends Controller
     // API Xác nhận OTP và đặt lại mật khẩu mới
     public function resetPassword(Request $request)
     {
+        // Xóa dấu cách trong mật khẩu trước khi validate
+        $passwordWithoutSpaces = preg_replace('/\s+/', '', $request->input('new_password'));
+
+        // Thay thế giá trị trong request để validate
+        $request->merge([
+            'new_password' => $passwordWithoutSpaces,
+            'new_password_confirmation' => preg_replace('/\s+/', '', $request->input('new_password_confirmation')),
+        ]);
+
         // Validate
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',

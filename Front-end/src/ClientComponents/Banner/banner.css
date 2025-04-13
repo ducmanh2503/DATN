@@ -97,14 +97,15 @@
     margin: 170px auto 0;
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
-    max-width: 1800px;
+    justify-content: space-between;
+    width: calc(100% - 400px);
+    max-width: 1250px;
 }
 
 .promotion-1,
 .promotion-2 {
-    width: 490px;
-    height: 80px;
+    width: 510px;
+    height: 100px;
     background-color: white;
 }
 

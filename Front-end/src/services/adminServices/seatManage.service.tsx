@@ -144,7 +144,7 @@ export const useHideSeat = (messageApi: any) => {
             await axios.put(UPDATE_SEAT_STATUS(roomId), data);
         },
         onSuccess: () => {
-            messageApi.success("Ẩn ghế thành công");
+            messageApi.success("Cập nhật trạng thái thành công");
             queryClient.invalidateQueries({
                 queryKey: ["SeatsByRoom"],
             });

@@ -94,7 +94,15 @@ class DiscountCodeController extends Controller
             'quantity' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',
             'maxPrice' => 'required|numeric|min:0',
-            'start_date' => 'required|date_format:Y-m-d',
+            'start_date' => [
+                'required',
+                'date_format:Y-m-d',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (strtotime($value) >= strtotime($request->input('end_date'))) {
+                        $fail('Ngày bắt đầu phải nhỏ hơn ngày kết thúc.');
+                    }
+                },
+            ],
             'end_date' => 'required|date_format:Y-m-d',
         ]);
 
@@ -102,10 +110,10 @@ class DiscountCodeController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        //lấy dữ liệu mã khuyến mãi
+        // Lấy dữ liệu mã khuyến mãi
         $data = $request->all();
 
-        //Thêm mã khuyến mãi mới
+        // Thêm mã khuyến mãi mới
         $DiscountCode = DiscountCode::query()->create($data);
 
         return response()->json([
@@ -134,11 +142,11 @@ class DiscountCodeController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //Tìm mã khuyến mãi theo id
+        // Tìm mã khuyến mãi theo id
         $DiscountCode = DiscountCode::find($id);
 
         if (!$DiscountCode) {
-            return response()->json(['message' => 'không tìm thấy mã khuyến mãi'], 404);
+            return response()->json(['message' => 'Không tìm thấy mã khuyến mãi'], 404);
         }
 
         // Kiểm tra xem có ghế nào đang được giữ trong cache không
@@ -155,7 +163,15 @@ class DiscountCodeController extends Controller
             'quantity' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',
             'maxPrice' => 'required|numeric|min:0',
-            'start_date' => 'required|date_format:Y-m-d',
+            'start_date' => [
+                'required',
+                'date_format:Y-m-d',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (strtotime($value) >= strtotime($request->input('end_date'))) {
+                        $fail('Ngày bắt đầu phải nhỏ hơn ngày kết thúc.');
+                    }
+                },
+            ],
             'end_date' => 'required|date_format:Y-m-d',
         ]);
 
@@ -163,10 +179,10 @@ class DiscountCodeController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        //lấy dữ liệu mã khuyến mãi
+        // Lấy dữ liệu mã khuyến mãi
         $data = $request->all();
 
-        //Cập nhật mã khuyến mãi mới
+        // Cập nhật mã khuyến mãi
         $DiscountCode->update($data);
 
         return response()->json([

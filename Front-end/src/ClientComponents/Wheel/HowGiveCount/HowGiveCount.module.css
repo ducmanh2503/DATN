@@ -10,9 +10,10 @@
 }
 
 .boxGet {
+    margin-top: 10px;
     font-size: 15px;
     padding: 8px 28px;
-    border: 5px solid #fff085;
+    border: 6px solid #ffb200;
     border-radius: 16px;
 }
 

@@ -16,15 +16,16 @@ const HowGiveCount = () => {
                     <h2 className={clsx(styles.title)}>
                         Chỉ cần chi tiêu từ{" "}
                         <span className={clsx(styles.priceGet)}>555.555</span>đ
-                        trong một tuần (tính tổng các hóa đơn), bạn sẽ nhận ngay
-                        1 lượt quay may mắn!
+                        trong tuần (tính trên tổng các hóa đơn), bạn sẽ nhận
+                        ngay <span className={clsx(styles.priceGet)}>1 </span>
+                        lượt quay may mắn!
                     </h2>
                     <p className={clsx(styles.sub)}>
-                        - Mỗi tuần, hệ thống sẽ tự động làm mới và tính lại số
-                        tiền đã chi tiêu.
+                        - Mỗi tuần sau 23:59:59 chủ nhật, hệ thống sẽ tự động
+                        làm mới và tính lại số tiền đã chi tiêu.
                     </p>
                     <p className={clsx(styles.sub)}>
-                        - <Link to={"/playingFilm"}>Mua vé</Link> ngay hôm nay
+                        - <Link to={"/playingFilm"}>Đặt vé ngay</Link> hôm nay
                         để tích lũy và nhận lượt quay hấp dẫn!
                     </p>
                 </div>

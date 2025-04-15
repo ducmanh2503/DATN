@@ -13,6 +13,10 @@ const ResultWheel = ({
     setIsModalOpen: (open: boolean) => void;
     isFree: boolean;
 }) => {
+    const isDiscountPrize = ["Giảm 10K", "Giảm 20K", "Giảm 50K"].includes(
+        currentPrize
+    ); // ss kết quả để css
+
     const handleOk = () => {
         setIsModalOpen(false);
     };
@@ -23,18 +27,50 @@ const ResultWheel = ({
 
     return (
         <Modal
-            title="Chúc mừng bạn"
+            title=""
             open={isModalOpen}
             onOk={handleOk}
             onCancel={handleCancel}
             footer={null}
         >
             {isFree && (
-                <span>
+                <span className={clsx(styles.freePlay)}>
                     Phần thưởng không được thêm vào vì đang CHƠI MIỄN PHÍ
                 </span>
             )}
-            <div>Bạn nhận được: {currentPrize}</div>
+            <div className={clsx(styles.main)}>
+                <h3 className={clsx(styles.title)}>Xin chúc mừng</h3>
+                {isDiscountPrize && (
+                    <span className={clsx(styles.subTitle)}>
+                        Bạn nhận được:
+                    </span>
+                )}
+                <div
+                    className={clsx(
+                        isDiscountPrize
+                            ? styles.prizeWrapper
+                            : styles.defaultPrize
+                    )}
+                >
+                    <span
+                        className={clsx(
+                            isDiscountPrize
+                                ? styles.prizeValue
+                                : styles.defaultPrize
+                        )}
+                    >
+                        {currentPrize}
+                    </span>
+                    <span
+                        className={clsx(isDiscountPrize ? styles.line : "")}
+                    ></span>
+                </div>
+                <img
+                    className={clsx(styles.layoutResultGame)}
+                    src="../../../public/imageFE/layoutResultGame.png"
+                    alt="layoutResultGame"
+                />
+            </div>
         </Modal>
     );
 };

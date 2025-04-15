@@ -26,6 +26,13 @@ const HistoryPlayWheel = ({ dataPlayed, setDataPlayed }: any) => {
         }
     }, []);
 
+    // sort dữ liệu
+    const sortedData = [...dataPlayed].sort((a, b) => {
+        const dateA = new Date(a.date.split("/").reverse().join("/"));
+        const dateB = new Date(b.date.split("/").reverse().join("/"));
+        return dateB.getTime() - dateA.getTime();
+    });
+
     return (
         <div className={clsx(styles.main)}>
             <h1 className={clsx(styles.title)}>Lịch sử Vòng quay của bạn</h1>
@@ -33,14 +40,17 @@ const HistoryPlayWheel = ({ dataPlayed, setDataPlayed }: any) => {
                 <Table
                     className={clsx(styles.tableHistory)}
                     columns={columns}
-                    dataSource={dataPlayed}
+                    dataSource={sortedData}
                     pagination={{ pageSize: 5 }}
+                    rowKey="id"
                 />
             ) : (
                 <table className={clsx(styles.fakeTable)}>
                     <thead>
-                        <th>NGÀY CHƠI</th>
-                        <th>GIẢI THƯỞNG</th>
+                        <tr>
+                            <th>NGÀY CHƠI</th>
+                            <th>GIẢI THƯỞNG</th>
+                        </tr>
                     </thead>
                 </table>
             )}

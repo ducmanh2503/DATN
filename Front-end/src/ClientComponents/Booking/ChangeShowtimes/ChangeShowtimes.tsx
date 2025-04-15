@@ -24,6 +24,10 @@ const ChangeShowtimes = () => {
     const { setSeatRoomPrice } = useSeatsContext();
     const { setCalendarShowtimeID } = useStepsContext();
     const { tokenUserId } = useAuthContext();
+    const { showtimesDate } = useFilmContext();
+
+    const fullDate = dayjs(showtimesDate, "DD/MM").format("YYYY-MM-DD");
+
     const { resetDataShowtimes } = useShowtimeData();
 
     const {
@@ -83,6 +87,12 @@ const ChangeShowtimes = () => {
             {/* Hiển thị Spin khi đang load */}
             <div className={clsx(styles.listShowtimes)}>
                 {listShowtimes
+                    .filter((item: any) =>
+                        dayjs(`${fullDate} ${item.start_time}`).isAfter(
+                            dayjs(),
+                            "minute"
+                        )
+                    )
                     .sort((a: any, b: any) =>
                         dayjs(a.start_time, "HH:mm:ss").isBefore(
                             dayjs(b.start_time, "HH:mm:ss")
@@ -90,6 +100,7 @@ const ChangeShowtimes = () => {
                             ? -1
                             : 1
                     )
+
                     .map((item: any) => (
                         <div key={item.id}>
                             <Link

@@ -132,6 +132,15 @@ class StatisticsController extends Controller
 
             $showDate = Carbon::parse($calendarShow->show_date)->startOfDay();
             $endDate = $calendarShow->end_date ? Carbon::parse($calendarShow->end_date)->startOfDay() : null;
+            if ($showDate->greaterThan($endOfDay)) {
+                continue;
+            }
+
+            // Thêm đoạn code để đếm tổng số suất chiếu của phim
+            $totalShowtimes = Showtime::join('calendar_show', 'show_times.calendar_show_id', '=', 'calendar_show.id')
+                ->where('calendar_show.movie_id', $movie->id)
+                ->whereBetween('show_times.start_time', [$showDate, $endOfDay])
+                ->count();
 
             $bookings = Booking::whereBetween('bookings.created_at', [$showDate, $endOfDay])
                 ->select('movies.title')
@@ -160,6 +169,7 @@ class StatisticsController extends Controller
                     'show_date' => $showDate->format('d-m-Y'),
                     'end_date' => $endDate ? $endDate->format('d-m-Y') : 'N/A',
                     'movie_status' => $movie->movie_status,
+                    'total_showtimes' => (int) $totalShowtimes,
                 ]);
             }
         }
@@ -384,6 +394,12 @@ class StatisticsController extends Controller
                 continue;
             }
 
+            // Thêm đoạn code để đếm tổng số suất chiếu của phim
+            $totalShowtimes = Showtime::join('calendar_show', 'show_times.calendar_show_id', '=', 'calendar_show.id')
+                ->where('calendar_show.movie_id', $movie->id)
+                ->whereBetween('show_times.start_time', [$showDate, $endOfDay])
+                ->count();
+
             $bookings = Booking::whereBetween('bookings.created_at', [$showDate, $endOfDay])
                 ->select('movies.title')
                 ->selectRaw('SUM(bookings.total_price) as total_revenue')
@@ -411,6 +427,7 @@ class StatisticsController extends Controller
                     'show_date' => $showDate->format('d-m-Y'),
                     'end_date' => $endDate ? $endDate->format('d-m-Y') : 'N/A',
                     'movie_status' => $movie->movie_status,
+                    'total_showtimes' => (int) $totalShowtimes,
                 ]);
             }
         }

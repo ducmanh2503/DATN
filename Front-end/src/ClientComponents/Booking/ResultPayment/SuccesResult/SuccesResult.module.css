@@ -146,7 +146,7 @@
 }
 
 .saveQR {
-    width: 80px;
+    width: 100px;
     margin: 10px auto 0;
     padding: 8px 10px;
     border-radius: 6px;
@@ -155,4 +155,8 @@
     background-color: white;
     color: var(--border-color);
     cursor: pointer;
+}
+
+.summaryItem {
+    margin-top: 8px;
 }

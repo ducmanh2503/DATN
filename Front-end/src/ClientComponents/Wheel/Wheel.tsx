@@ -1,12 +1,14 @@
 import clsx from "clsx";
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
+import dayjs from "dayjs";
+
 import styles from "./Wheel.module.css";
 import ResultWheel from "./ResultWheel/ResultWheel";
 import HowGiveCount from "./HowGiveCount/HowGiveCount";
 import Introduce from "./Introduce/Introduce";
 import GetTotalusedMoney from "./GetTotalusedMoney/GetTotalusedMoney";
-import HistoryPlayWheel from "./historyPlayWheel/historyPlayWheel";
-import dayjs from "dayjs";
+import HistoryPlayWheel from "./HistoryPlayWheel/HistoryPlayWheel";
+import { useInfomationContext } from "../UseContext/InfomationContext";
 
 const Wheel = () => {
     const wheel = useRef<HTMLDivElement>(null);
@@ -17,18 +19,64 @@ const Wheel = () => {
     const [isModalOpen, setIsModalOpen] = useState(false); //mở modal
     const [isFree, setIsFree] = useState(false); // dạng free cho chơi thử
 
-    const today = dayjs().format("DD/MM/YYYY");
+    const { setCountInfomation, setTextInfomation } = useInfomationContext(); // thông báo cho người dùng
+
+    const today = dayjs().format("DD/MM/YYYY"); // lấy ngày hôm nay
     const [dataPlayed, setDataPlayed] = useState<
-        { date: string; prize: string }[]
-    >([]);
-    // data lưu trữ lịch sử quay
-    const [totalUsedMoneyOfUser, setTotalUsedMoneyOfUser] = useState<number>(0);
+        { id: number; date: string; prize: string }[]
+    >([]); // data lưu trữ lịch sử quay
+
+    const [totalUsedMoneyOfUser, setTotalUsedMoneyOfUser] = useState<number>(0); // tổng  tiền đã dùng của user
     const [countPlayGame, setCountPlayGame] = useState<number>(0); // số lượng chơi của User
+    const [countPlayedGame, setCountPlayedGame] = useState<number>(0); // số lượt đã chơi của Users
+
+    // lấy tuần hiện tại
+    const getPlaysThisWeek = (history: { date: string; prize: string }[]) => {
+        const startOfWeek = dayjs().startOf("isoWeek");
+        const endOfWeek = dayjs().endOf("isoWeek");
+
+        return history.filter((item) => {
+            const itemDate = dayjs(item.date, "DD/MM/YYYY");
+            return (
+                itemDate.isSameOrAfter(startOfWeek) &&
+                itemDate.isSameOrBefore(endOfWeek)
+            );
+        });
+    };
 
     useEffect(() => {
-        const numberOfPlays = Math.floor(totalUsedMoneyOfUser / 550000); // tính số lượt chơi
+        const storedHistory = localStorage.getItem("wheel_history");
+        let allHistory: { id: number; date: string; prize: string }[] = [];
+
+        if (storedHistory) {
+            allHistory = JSON.parse(storedHistory);
+        }
+
+        setDataPlayed(allHistory);
+
+        const thisWeekHistory = getPlaysThisWeek(allHistory);
+        setCountPlayedGame(thisWeekHistory.length);
+    }, []);
+
+    //  lưu lên localSto để ko mất data khi f5
+    useEffect(() => {
+        if (dataPlayed) {
+            localStorage.setItem("wheel_history", JSON.stringify(dataPlayed));
+        }
+        if (countPlayedGame) {
+            localStorage.setItem(
+                "count_played_game",
+                JSON.stringify(countPlayedGame)
+            );
+        }
+    }, [dataPlayed, countPlayedGame]);
+
+    useEffect(() => {
+        const numberOfPlays =
+            Math.floor(totalUsedMoneyOfUser / 555000) - countPlayedGame; // tính số lượt chơi
+
         setCountPlayGame(numberOfPlays);
-    }, [totalUsedMoneyOfUser]);
+    }, [totalUsedMoneyOfUser, countPlayedGame]);
 
     const prizes = [
         "Giảm 10K",
@@ -99,19 +147,23 @@ const Wheel = () => {
                 setDataPlayed((prev) => [
                     ...prev,
                     {
+                        id: prev.length + 1,
                         date: today,
                         prize: prizes[numberIndex],
                     },
-                ]);
+                ]); // set dữ liệu vào lịch sử chơi
+            setCountInfomation((prev: number) => prev + 1); // thông báo cho người dùng ở avatar
+            setTextInfomation((prev: []) => [
+                ...prev,
+                {
+                    id: prev.length + 1,
+                    title: `Vòng quay may mắn `,
+                    content: `Chúc mừng bạn đã quay được: ${prizes[numberIndex]}, kiểm tra tại "Khuyến Mãi Chưa Sử Dụng" để xem chi tiết ưu đãi`,
+                    date: today,
+                },
+            ]); // thêm text ở thông báo
         }, 4500);
     };
-
-    //  lưu lên localSto để ko mất data khi f5
-    useEffect(() => {
-        if (dataPlayed) {
-            localStorage.setItem("wheel_history", JSON.stringify(dataPlayed));
-        }
-    }, [dataPlayed]);
 
     return (
         <div className={clsx(styles.main, "main-base")}>
@@ -124,6 +176,7 @@ const Wheel = () => {
                             setIsFree(false);
                             handleWheel();
                             setCountPlayGame((prev) => prev - 1);
+                            setCountPlayedGame((prev) => prev + 1);
                         }}
                         disabled={isSpinning || countPlayGame === 0}
                     >
@@ -183,7 +236,8 @@ const Wheel = () => {
                 <div className={clsx(styles.boxFlex)}>
                     <div className={clsx(styles.btnPlay)}>
                         <div className={clsx(styles.playingCount)}>
-                            Bạn có {countPlayGame} lượt chơi
+                            Bạn có {countPlayGame < 0 ? "..." : countPlayGame}{" "}
+                            lượt chơi
                         </div>
                         <div
                             className={clsx(styles.playingCount, styles.free)}

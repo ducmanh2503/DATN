@@ -1,6 +1,7 @@
 import { Modal } from "antd";
 import clsx from "clsx";
 import styles from "./ResultWheel.module.css";
+import { useInfomationContext } from "../../UseContext/InfomationContext";
 
 const ResultWheel = ({
     currentPrize,

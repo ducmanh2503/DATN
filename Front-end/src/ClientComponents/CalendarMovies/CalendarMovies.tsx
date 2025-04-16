@@ -13,7 +13,6 @@ import { useFilmContext } from "../UseContext/FIlmContext";
 import { useStepsContext } from "../UseContext/StepsContext";
 import { Showtime } from "../../types/interface";
 import { useSeatsContext } from "../UseContext/SeatsContext";
-import Item from "antd/es/list/Item";
 
 const CalendarMovies = ({ id }: any) => {
     const [searchDateRaw, setSearchDateRaw] = useState<string | null>(null);
@@ -145,25 +144,28 @@ const CalendarMovies = ({ id }: any) => {
             ) : (
                 <>
                     <div className={clsx(styles.calendarDays)}>
-                        {calendarMovie?.map((item: any, index: any) => {
-                            const dayIndex = new Date(item).getDay();
-                            const formatted = dayjs(item).format("DD/MM");
-                            const rawFormat = dayjs(item).format("YYYY-MM-DD");
+                        {calendarMovie
+                            ?.slice(0, 9)
+                            ?.map((item: any, index: any) => {
+                                const dayIndex = new Date(item).getDay();
+                                const formatted = dayjs(item).format("DD/MM");
+                                const rawFormat =
+                                    dayjs(item).format("YYYY-MM-DD");
 
-                            return (
-                                <BoxDay
-                                    key={index}
-                                    searchDate={searchDateFormatted}
-                                    date={formatted}
-                                    number={daysOfWeek[dayIndex]}
-                                    onClick={() => {
-                                        setSearchDateRaw(rawFormat);
-                                        setSearchDateFormatted(formatted);
-                                        setShowtimesDate(formatted);
-                                    }}
-                                />
-                            );
-                        })}
+                                return (
+                                    <BoxDay
+                                        key={index}
+                                        searchDate={searchDateFormatted}
+                                        date={formatted}
+                                        number={daysOfWeek[dayIndex]}
+                                        onClick={() => {
+                                            setSearchDateRaw(rawFormat);
+                                            setSearchDateFormatted(formatted);
+                                            setShowtimesDate(formatted);
+                                        }}
+                                    />
+                                );
+                            })}
                     </div>
                     {isLoadingFilmAndDate ? (
                         <div className={clsx(styles.loadingTime)}>

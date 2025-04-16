@@ -7,7 +7,6 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { useGetTotalUsedMoneyUser } from "../../../services/Wheel.service";
 import styles from "./GetTotalusedMoney.module.css";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
 
 dayjs.extend(isoWeek);
 dayjs.extend(isSameOrAfter);

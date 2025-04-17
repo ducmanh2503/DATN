@@ -22,6 +22,7 @@ import { useComboContext } from "../UseContext/CombosContext";
 import LayoutPaymentResult from "./ResultPayment/LayoutPaymentResult";
 import SuccesResult from "./ResultPayment/SuccesResult/SuccesResult";
 import ErrorResult from "./ResultPayment/ErrorResult/ErrorResult";
+import dayjs from "dayjs";
 
 const BookingMain = () => {
     const { quantitySeats, selectedSeatIds, setShouldRefetch, totalSeatPrice } =
@@ -29,8 +30,12 @@ const BookingMain = () => {
     const { totalComboPrice } = useComboContext();
     const { currentStep, setCurrentStep, userIdFromShowtimes } =
         useStepsContext();
-    const { roomIdFromShowtimes, showtimeIdFromBooking, filmId } =
-        useFilmContext();
+    const {
+        roomIdFromShowtimes,
+        showtimeIdFromBooking,
+        showtimesTime,
+        showtimesDate,
+    } = useFilmContext();
     const { tokenUserId } = useAuthContext();
     const { setUsedPoints, setTotalPricePoint, setQuantityPromotion } =
         usePromotionContext();
@@ -41,7 +46,10 @@ const BookingMain = () => {
     const queryClient = useQueryClient();
     const [searchParams] = useSearchParams();
     const status = searchParams.get("status");
-    const location = useLocation();
+
+    const showtimesDateFullYear = dayjs(showtimesDate, "DD/MM").format(
+        "YYYY-MM-DD"
+    );
 
     // Thông báo phải đặt ghế để tiếp tục
     const { openNotification, contextHolder } = CustomNotification();
@@ -110,7 +118,20 @@ const BookingMain = () => {
             });
             return;
         }
-
+        // debugger;
+        if (
+            dayjs(`${showtimesDateFullYear} ${showtimesTime.trim()}`).isBefore(
+                dayjs(),
+                "minute"
+            )
+        ) {
+            openNotification({
+                description:
+                    "Suất chiếu đã bắt đầu, đến quầy trực tiếp để đặt ghế",
+            });
+            return;
+        }
+        // debugger;
         if (currentStep === 1 && quantitySeats !== 0) {
             holdSeatMutation.mutate(selectedSeatIds);
         }

@@ -161,7 +161,7 @@ const EditShowtimes = ({
     const { rooms, seatTypes } = useGetRooms();
 
     const handleRoomChange = (value: number) => {
-        debugger;
+        // debugger;
         setSelectedRoomId(value);
         const selectedRoom = rooms?.find((room: any) => room.id === value);
         const roomTypeName = seatTypes?.find(
@@ -177,7 +177,7 @@ const EditShowtimes = ({
             },
             room_id: value,
         });
-        debugger;
+        // debugger;
     };
 
     return (

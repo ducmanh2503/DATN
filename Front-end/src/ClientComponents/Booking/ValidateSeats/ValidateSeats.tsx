@@ -10,11 +10,11 @@ const parseSeatCode = (seatCode: string) => {
 const useIsolatedSeatChecker = () => {
     const checkIsolatedSeat = useCallback(
         (selectedSeats: string[], allSeats: any) => {
-            // debugger;
+            debugger;
             if (selectedSeats.length === 0) return false;
 
             const minCol = 1;
-            const maxCol = 13;
+            const maxCol = 14;
             const maxRow = Object.keys(allSeats).length + 1;
 
             // Kiểm tra ghế có bị chiếm hay không (tránh truy cập ngoài mảng)
@@ -27,6 +27,7 @@ const useIsolatedSeatChecker = () => {
                     !allSeats?.[r] ||
                     !allSeats[r].hasOwnProperty(c)
                 ) {
+                    // console.log("row", r, "allSeats[r]", allSeats[r]);
                     return false;
                 }
                 return (
@@ -63,15 +64,6 @@ const useIsolatedSeatChecker = () => {
 
                 if (!left1 && left2) return true; // A1 booked, A2 trống, A3 chọn
 
-                // Bỏ qua kiểm tra góc trái nếu bắt đầu từ minCol
-                if (col === minCol) {
-                    // Kiểm tra trường hợp ghế lẻ ở góc trái
-                    if (!right1 && isOccupied(row, col + 2)) {
-                        return true; // Ghế lẻ ở minCol
-                    }
-                    return false;
-                }
-
                 // Kiểm tra đặc biệt cho ghế cạnh góc (trừ khi ở minCol/maxCol)
                 if (col === minCol + 1 && !left1) return true; // Bỏ trống A1
 
@@ -99,12 +91,13 @@ const useIsolatedSeatChecker = () => {
                     return true; // Ghế lẻ
                 }
 
-                // Kiểm tra ghế lẻ trong khoảng trống giữa các ghế được chọn
+                // Kiểm tra ghế lẻ trong khoảng trống giữa các ghế được chọn và khác dòng
                 if (i < parsedSeats.length - 1) {
                     const nextCol = parsedSeats[i + 1].col;
+                    const nextRow = parsedSeats[i + 1].row;
 
                     // Nếu có khoảng trống (ít nhất 1 ghế chưa chọn)
-                    if (nextCol - col > 1) {
+                    if (nextCol - col === 1 && nextRow === row) {
                         for (let j = col + 1; j < nextCol; j++) {
                             const isPrevOccupied = isOccupied(row, j - 1);
                             const isNextOccupied = isOccupied(row, j + 1);
@@ -122,7 +115,7 @@ const useIsolatedSeatChecker = () => {
             }
 
             return false; // Không có ghế lẻ
-            // debugger;
+            debugger;
         },
         []
     );

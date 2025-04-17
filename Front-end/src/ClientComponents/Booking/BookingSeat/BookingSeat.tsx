@@ -153,111 +153,115 @@ const BookingSeat = ({ className }: { className?: string }) => {
         setTypeSeats((prevSeats: any[]) => {
             if (!Array.isArray(prevSeats)) prevSeats = [];
 
-            //validate ghế
-            // Kiểm tra tổng số lượng ghế đã chọn
+            // Xác định seatArray gồm các mã ghế liên quan
+            const currentCode = seat.seatCode;
+            let seatArray = [currentCode];
+            let adjacentCode = "";
+
+            if (seat.type === "Sweetbox") {
+                const row = currentCode.slice(0, 1);
+                const col = parseInt(currentCode.slice(1));
+
+                adjacentCode =
+                    col % 2 === 1 ? `${row}${col + 1}` : `${row}${col - 1}`;
+                seatArray = [currentCode, adjacentCode];
+            }
+
+            // Tổng số ghế đã chọn
             const totalSeats = prevSeats.reduce(
                 (sum, s) => sum + s.quantitySeats,
                 0
             );
+            const allSelectedCodes = prevSeats.flatMap((s) =>
+                s.seatCode.split(", ")
+            );
+            const isSelected = seatArray.every((code) =>
+                allSelectedCodes.includes(code)
+            );
 
-            // Nếu đạt giới hạn thì không cập nhật
-            if (
-                totalSeats >= MAX_SEATS &&
-                !prevSeats.some((s) => s.seatCode.includes(seat.seatCode))
-            ) {
+            if (totalSeats >= MAX_SEATS && !isSelected) {
                 openNotification({
                     description: `Bạn chỉ được đặt tối đa ${MAX_SEATS} ghế!`,
                 });
-
                 return prevSeats;
-            } else {
-                // không bị validate sẽ thực hiện gán các giá trị dưới đây
-                setNameSeats((prevSeats: any) => {
-                    const updatedSeats = prevSeats.includes(seat.seatCode)
-                        ? prevSeats.filter(
-                              (code: any) => code !== seat.seatCode
-                          )
-                        : [...prevSeats, seat.seatCode];
-
-                    // Cập nhật selectedSeatIds
-                    setSelectedSeatIds((prev: any) => {
-                        return updatedSeats
-                            .map((code: any) => {
-                                // Tìm seatId tương ứng với seatCode
-                                for (const row in matrixSeats) {
-                                    for (const col in matrixSeats[row]) {
-                                        if (
-                                            matrixSeats[row][col].seatCode ===
-                                            code
-                                        ) {
-                                            return matrixSeats[row][col].id;
-                                        }
-                                    }
-                                }
-                                return null;
-                            })
-                            .filter((id: number) => id !== null);
-                    });
-
-                    return updatedSeats;
-                });
             }
 
-            // Kiểm tra ghế đã tồn tại trong danh sách chưa
-            const existingSeatIndex = prevSeats.findIndex(
+            // Update nameSeats + selectedSeatIds
+            setNameSeats((prev: any[]) => {
+                const updated = isSelected
+                    ? prev.filter((code) => !seatArray.includes(code))
+                    : [...prev, ...seatArray];
+                setSelectedSeatIds(() => {
+                    const ids = updated.map((code) => {
+                        for (const row in matrixSeats) {
+                            for (const col in matrixSeats[row]) {
+                                if (matrixSeats[row][col].seatCode === code) {
+                                    return matrixSeats[row][col].id;
+                                }
+                            }
+                        }
+                        return null;
+                    });
+                    return ids.filter((id) => id !== null);
+                });
+                return updated;
+            });
+
+            // Cập nhật typeSeats
+            const existingIndex = prevSeats.findIndex(
                 (s) => s.type === seat.type
             );
             let updatedSeats;
 
-            if (existingSeatIndex !== -1) {
-                // Nếu ghế cùng loại đã có
-                updatedSeats = prevSeats.map((s, index) => {
-                    if (index === existingSeatIndex) {
-                        const seatExists = s.seatCode
-                            .split(", ")
-                            .includes(seat.seatCode);
-                        if (seatExists) {
-                            // Nếu đã tồn tại, bỏ chọn (giảm số lượng và trừ giá)
-                            const updatedSeatCodes = s.seatCode
-                                .split(", ")
-                                .filter((code: any) => code !== seat.seatCode)
-                                .join(", ");
+            const totalPrice = parseInt(seat.price) * seatArray.length;
+            const joinedCodes = seatArray.join(", ");
 
-                            return {
-                                ...s,
-                                quantitySeats: s.quantitySeats - 1,
-                                price: s.price - parseInt(seat.price),
-                                seatCode: updatedSeatCodes,
-                            };
-                        } else {
-                            // Nếu chưa tồn tại, thêm mới
-                            return {
-                                ...s,
-                                quantitySeats: s.quantitySeats + 1,
-                                price: s.price + parseInt(seat.price),
-                                seatCode: `${s.seatCode}, ${seat.seatCode}`,
-                            };
+            if (existingIndex !== -1) {
+                updatedSeats = prevSeats
+                    .map((s, idx) => {
+                        if (idx === existingIndex) {
+                            const currentCodes = s.seatCode.split(", ");
+                            const seatExists = seatArray.every((code) =>
+                                currentCodes.includes(code)
+                            );
+
+                            if (seatExists) {
+                                const newCodes = currentCodes.filter(
+                                    (code: any) => !seatArray.includes(code)
+                                );
+                                return {
+                                    ...s,
+                                    quantitySeats:
+                                        s.quantitySeats - seatArray.length,
+                                    price: s.price - totalPrice,
+                                    seatCode: newCodes.join(", "),
+                                };
+                            } else {
+                                return {
+                                    ...s,
+                                    quantitySeats:
+                                        s.quantitySeats + seatArray.length,
+                                    price: s.price + totalPrice,
+                                    seatCode: `${s.seatCode}, ${joinedCodes}`,
+                                };
+                            }
                         }
-                    }
-                    return s;
-                });
-
-                // Xoá ghế nếu số lượng bằng 0
-                updatedSeats = updatedSeats.filter((s) => s.quantitySeats > 0);
+                        return s;
+                    })
+                    .filter((s) => s.quantitySeats > 0);
             } else {
-                // Nếu ghế loại này chưa có, thêm mới
                 updatedSeats = [
                     ...prevSeats,
                     {
-                        quantitySeats: 1,
+                        quantitySeats: seatArray.length,
                         type: seat.type,
-                        seatCode: seat.seatCode,
-                        price: parseInt(seat.price),
+                        seatCode: joinedCodes,
+                        price: totalPrice,
                     },
                 ];
             }
 
-            return updatedSeats; // Trả về giá trị mới của typeSeats
+            return updatedSeats;
         });
     };
 

@@ -159,7 +159,7 @@ const SeatsForm = ({
                             {
                                 type: "number",
                                 min: 0,
-                                max: 13,
+                                max: 14,
                                 message: "phải là số từ 0 tới 13",
                             },
                         ]}
@@ -186,7 +186,9 @@ const SeatsForm = ({
                                     key={option.id}
                                     value={option.id}
                                 >
-                                    {option.name}
+                                    {option.name === "Sweetbox"
+                                        ? `${option.name} (Thay đổi cả ghế bên cạnh để Sweetbox hoạt động đúng)`
+                                        : option.name}
                                 </Select.Option>
                             ))}
                         </Select>

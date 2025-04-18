@@ -17,7 +17,6 @@ import {
 import SearchByRoomAndDateForm from "./FormRoomAndDate";
 import SearchByFilmForm from "./FormFilmId";
 import ShowtimesByFilmId from "./ShowtimesByFilmId";
-import { handleApiError } from "../../../services/adminServices/utils";
 
 const contentStyle: React.CSSProperties = {
     paddingTop: 100,
@@ -139,13 +138,6 @@ const ShowtimesManage: React.FC = () => {
         formRoomDate.resetFields();
     };
 
-    // gọi lại api suất chiếu theo id film
-    const fetchShowtimes = async (filmId: number) => {
-        const data = await getShowtimesByFilmId(filmId);
-        setDataByFilmId(data);
-        // console.log(dataByFilmId);
-    };
-
     return (
         <div style={{ minHeight: "1500px" }}>
             <div className={clsx(styles.flexbox)}>
@@ -175,11 +167,7 @@ const ShowtimesManage: React.FC = () => {
             </Divider>
 
             <div className={clsx(styles.addShowtimes)}>
-                <AddShowtimes
-                    setDataByFilmId={setDataByFilmId}
-                    selectedFilmId={selectedFilmId}
-                    fetchShowtimes={fetchShowtimes}
-                ></AddShowtimes>
+                <AddShowtimes setDataByFilmId={setDataByFilmId}></AddShowtimes>
             </div>
             {isLoading || isLoadingFilmId ? (
                 <Spin tip="Loading">{content}</Spin>

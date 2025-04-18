@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
     Button,
-    DatePicker,
     Form,
     TimePicker,
     message,
@@ -24,18 +23,17 @@ import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
 import { useGetRooms } from "../../../services/adminServices/roomManage.service";
 import { handleApiError } from "../../../services/adminServices/utils";
+import { useGetShowtimesByFilmId } from "../../../services/adminServices/filmManage.service";
 
-const AddShowtimes = ({
-    setDataByFilmId,
-    selectedFilmId,
-    fetchShowtimes,
-}: any) => {
+const AddShowtimes = ({ setDataByFilmId }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
     const [open, setOpen] = useState(false);
     const [selectedCalendarShowId, setSelectedCalendarShowId] = useState<
         number | null
     >(null);
+
+    const { mutate: getShowtimesByFilmId } = useGetShowtimesByFilmId();
 
     const onFinish = (formData: any) => {
         const formattedData = {
@@ -51,10 +49,14 @@ const AddShowtimes = ({
 
         mutate(formattedData, {
             onSuccess: () => {
-                messageApi.success(`Thêm thành công suất chiếu `);
-                if (selectedFilmId) {
-                    fetchShowtimes(selectedFilmId);
-                }
+                messageApi.success(`Thêm thành công suất chiếu`);
+
+                getShowtimesByFilmId(formattedData.title, {
+                    onSuccess: (data) => {
+                        setDataByFilmId(data);
+                    },
+                });
+
                 form.resetFields();
                 setOpen(false);
             },
@@ -132,6 +134,12 @@ const AddShowtimes = ({
         enabled: !!selectedCalendarShowId, // Chỉ gọi API nếu đã có calendar_show_id
         refetchOnWindowFocus: false,
     });
+
+    const today = dayjs().format("YYYY-MM-DD");
+
+    const filteredDates = datesByCalendar?.filter(
+        (item: string) => item >= today
+    );
 
     const handleChangeSelect = useCallback(
         (value: string[], fieldName: string) => {
@@ -258,7 +266,7 @@ const AddShowtimes = ({
                         ]}
                     >
                         <Select mode="multiple" placeholder="Chọn ngày chiếu">
-                            {datesByCalendar?.map((item: any) => (
+                            {filteredDates?.map((item: any) => (
                                 <Select.Option value={item} key={item}>
                                     {item}
                                 </Select.Option>

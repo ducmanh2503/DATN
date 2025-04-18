@@ -91,14 +91,14 @@ const Wheel = () => {
 
     // index tương ứng với prizes: [0,1,2,3,4,5,6,7]
     const prizeWeightMap: { [index: number]: number } = {
-        0: 35, // Giảm 10K (chia 50% cho 3 vị trí: 17% mỗi cái)
-        1: 16, // Chúc bạn may mắn lần sau (chia 35% cho 2 vị trí: 18% và 17%)
+        0: 40, // Giảm 10K (chia 50% cho 3 vị trí: 17% mỗi cái)
+        1: 10, // Chúc bạn may mắn lần sau (chia 35% cho 2 vị trí: 18% và 17%)
         2: 1, // Giảm 50K
-        3: 28, // Giảm 10K
+        3: 30, // Giảm 10K
         4: 1, // Gấu bông
-        5: 15, // Giảm 20K
-        6: 25, // Giảm 10K
-        7: 14, // Chúc bạn may mắn lần sau
+        5: 7, // Giảm 20K
+        6: 35, // Giảm 10K
+        7: 10, // Chúc bạn may mắn lần sau
     };
 
     const weightedIndexes: number[] = [];
@@ -110,9 +110,10 @@ const Wheel = () => {
         }
     });
 
-    const handleWheel = () => {
+    const handleWheel = (isFreeMode = false) => {
         if (isSpinning) return;
 
+        setIsFree(isFreeMode);
         setIsSpinning(true);
         setCurrentPrize(null);
 
@@ -143,7 +144,7 @@ const Wheel = () => {
             setIsSpinning(false);
             setIsModalOpen(true);
 
-            !isFree &&
+            if (!isFreeMode) {
                 setDataPlayed((prev) => [
                     ...prev,
                     {
@@ -152,17 +153,19 @@ const Wheel = () => {
                         prize: prizes[numberIndex],
                     },
                 ]); // set dữ liệu vào lịch sử chơi
-            setCountInfomation((prev: number) => prev + 1); // thông báo cho người dùng ở avatar
-            setTextInfomation((prev: []) => [
-                ...prev,
-                {
-                    id: prev.length + 1,
-                    title: `Vòng quay may mắn `,
-                    content: `Chúc mừng bạn đã quay được: ${prizes[numberIndex]}, kiểm tra tại "Khuyến Mãi Chưa Sử Dụng" để xem chi tiết ưu đãi`,
-                    date: today,
-                },
-            ]); // thêm text ở thông báo
-        }, 4500);
+                setCountInfomation((prev: number) => prev + 1); // thông báo cho người dùng ở avatar
+
+                setTextInfomation((prev: []) => [
+                    ...prev,
+                    {
+                        id: prev.length + 1,
+                        title: `Vòng quay may mắn `,
+                        content: `Chúc mừng bạn đã quay được: ${prizes[numberIndex]}, kiểm tra tại "Khuyến Mãi Chưa Sử Dụng" để xem chi tiết ưu đãi`,
+                        date: today,
+                    },
+                ]); // thêm text ở thông báo
+            }
+        }, 5000);
     };
 
     return (
@@ -173,8 +176,7 @@ const Wheel = () => {
                         className={clsx(styles.spin)}
                         onClick={() => {
                             if (countPlayGame <= 0 || isSpinning) return;
-                            setIsFree(false);
-                            handleWheel();
+                            handleWheel(false);
                             setCountPlayGame((prev) => prev - 1);
                             setCountPlayedGame((prev) => prev + 1);
                         }}
@@ -242,8 +244,7 @@ const Wheel = () => {
                         <div
                             className={clsx(styles.playingCount, styles.free)}
                             onClick={() => {
-                                handleWheel();
-                                setIsFree(true);
+                                handleWheel(true);
                             }}
                         >
                             CHƠI THỬ MIỄN PHÍ

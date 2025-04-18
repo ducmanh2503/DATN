@@ -22,14 +22,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
     overflow-x: auto;
     padding: 20px;
 }
 .rowSeats {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
 }
 
 .colSeats {

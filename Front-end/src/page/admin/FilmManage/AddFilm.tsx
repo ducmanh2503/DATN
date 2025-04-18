@@ -312,7 +312,19 @@ const AddFilm = () => {
                                     },
                                 ]}
                             >
-                                <Input placeholder="Giới hạn tuổi"></Input>
+                                <Select>
+                                    <Select.Option value="P">P</Select.Option>
+                                    <Select.Option value="K">K</Select.Option>
+                                    <Select.Option value="T13">
+                                        T13
+                                    </Select.Option>
+                                    <Select.Option value="T16">
+                                        T16
+                                    </Select.Option>
+                                    <Select.Option value="T18">
+                                        T18
+                                    </Select.Option>
+                                </Select>
                             </Form.Item>
                         </Col>
 

@@ -111,7 +111,7 @@ Route::middleware('auth:sanctum')->group(function () {
         //Import dữ liệu từ excel
         Route::post('/movies/import', [MoviesController::class, 'import']);
         //Template mẫu excel
-        // Route::get('/movies/download-template', [MoviesController::class, 'downloadTemplateExcel']);
+        Route::get('/template-excel', [MoviesController::class, 'downloadTemplateExcel']);
 
 
         // Room

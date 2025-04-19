@@ -10,7 +10,6 @@ import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
 import { ComboFoodType } from "../../../types/interface";
 import { URL_IMAGE } from "../../../config/ApiConfig";
-import { SpaceContext } from "antd/es/space";
 
 const ComboFood = ({ className }: any) => {
     const {
@@ -18,6 +17,7 @@ const ComboFood = ({ className }: any) => {
         quantityCombo,
         quantityMap,
         setQuantityMap,
+        nameCombo,
         setNameCombo,
         setHoldComboID,
     } = useComboContext();
@@ -35,13 +35,16 @@ const ComboFood = ({ className }: any) => {
             return;
         }
 
-        if (quantityCombo >= record.quantity) {
-            // Hiển thị thông báo khi vượt quá giới hạn kho
+        const foundCombo = nameCombo.find(
+            (combo: any) => combo.id === record.id
+        );
+        if (foundCombo && foundCombo.defaultQuantityCombo >= record.quantity) {
             openNotification({
-                description: `Chỉ còn ${record.quantity} sản phẩm, vui lòng chọn nhỏ hơn hoặc bằng`,
+                description: `Chỉ còn ${record.quantity} sản phẩm, vui lòng chọn nhỏ hơn hoặc bằng.`,
             });
             return;
         }
+
         //lấy ID của combo đã chọn
         setHoldComboID((prev: any) => [...prev, record.id]);
 
@@ -64,6 +67,7 @@ const ComboFood = ({ className }: any) => {
                     return prevNames.map((combo) =>
                         combo.name === record.name
                             ? {
+                                  id: record.id,
                                   name: record.name,
                                   price: parseInt(record.price),
                                   defaultQuantityCombo: newQuantity,
@@ -75,6 +79,7 @@ const ComboFood = ({ className }: any) => {
                     return [
                         ...prevNames,
                         {
+                            id: record.id,
                             name: record.name,
                             defaultQuantityCombo: 1,
                             price: parseInt(record.price),
@@ -104,6 +109,7 @@ const ComboFood = ({ className }: any) => {
                     .map((combo) =>
                         combo.name === record.name
                             ? {
+                                  id: record.id,
                                   name: record.name,
                                   price: parseInt(record.price),
                                   defaultQuantityCombo: newQuantity,

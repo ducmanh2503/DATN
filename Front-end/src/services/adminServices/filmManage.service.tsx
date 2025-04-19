@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     CREATE_FILM,
     CREATE_FILM_WITH_EXCEL,
+    DEFAULT_TERMINAL_EXCEL,
     DELETE_FILM,
     GET_FILM_DETAIL,
     GET_FILM_LIST,
@@ -287,6 +288,22 @@ export const useCreateFilmWithExcel = (messageApi: any) => {
         onError: handleApiError,
     });
     return { mutate };
+};
+
+// lấy file default excel thêm phim
+export const useGetDefaultExcel = () => {
+    const { data, isLoading, isError, refetch, isFetching } = useQuery({
+        queryKey: ["defaultExcel"],
+        queryFn: async () => {
+            const { data } = await axios.get(DEFAULT_TERMINAL_EXCEL, {
+                responseType: "blob",
+            });
+            return data;
+        },
+        enabled: false,
+        retry: 1,
+    });
+    return { data, isLoading, isError, refetch, isFetching };
 };
 
 // lấy các suất chiếu với Film ID

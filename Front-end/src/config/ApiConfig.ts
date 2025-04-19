@@ -10,6 +10,7 @@ const RESTORE_FILM = (id: number) => `${BASE_URL}/movies/restore/${id}`;
 const DETAIL_DELETE_FILM = (id: number) =>
     `${BASE_URL}/movies/show-movie-destroy/${id}`;
 const CREATE_FILM_WITH_EXCEL = `${BASE_URL}/movies/import`; // thêm mới film mới file excel
+const DEFAULT_TERMINAL_EXCEL = `${BASE_URL}/movies/download-template`; // tải file excel mẫu
 
 const GET_DIRECTORS_LIST = `${BASE_URL}/directors`;
 const UPDATE_DIRECTORS = (id: number) => `${BASE_URL}/directors/${id}`;
@@ -135,6 +136,7 @@ export {
     RESTORE_FILM,
     DETAIL_DELETE_FILM,
     CREATE_FILM_WITH_EXCEL,
+    DEFAULT_TERMINAL_EXCEL,
     GET_DIRECTORS_LIST,
     UPDATE_DIRECTORS,
     DELETE_DIRECTORS,

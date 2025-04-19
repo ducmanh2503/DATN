@@ -13,6 +13,7 @@ const Dashboard: React.FC = () => {
     const [monthlyRevenueValue, setMonthlyRevenueValue] = useState<number>(0); // tổng tiền của doanh thu theo tháng
     const [newCustomers, setNewCustomers] = useState<number>(0); // số lượng khách hàng mới
     const [totalTicketSold, setTotalTicketSold] = useState<number>(0); // số lượng vé sold
+    const [totalShowtimes, setTotalShowtimes] = useState<number>(0); // số lượng suất chiếu
 
     const { data: dashboardData, isLoading } = useDashboard();
     useEffect(() => {
@@ -38,9 +39,10 @@ const Dashboard: React.FC = () => {
         );
         setNewCustomers(dashboardData?.overview?.new_customers);
         setTotalTicketSold(dashboardData?.overview?.total_tickets_sold);
+        setTotalShowtimes(dashboardData?.additional_stats?.showtimes_today);
     }, [dashboardData]);
     return (
-        <>
+        <div style={{ minHeight: "100vh" }}>
             <Row gutter={[16, 16]}>
                 <CardsTitle
                     dailyRevenueDate={dailyRevenueDate}
@@ -49,10 +51,11 @@ const Dashboard: React.FC = () => {
                     monthlyRevenueValue={monthlyRevenueValue}
                     newCustomers={newCustomers}
                     totalTicketSold={totalTicketSold}
+                    totalShowtimes={totalShowtimes}
                 ></CardsTitle>
                 <Charts></Charts>
             </Row>
-        </>
+        </div>
     );
 };
 

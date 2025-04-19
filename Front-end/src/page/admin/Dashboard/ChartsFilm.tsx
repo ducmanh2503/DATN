@@ -29,7 +29,7 @@ const ChartsFilm = ({ dashboardData, isLoading }: any) => {
         xField: "date",
         yField: "totalPriceSold",
         height: 280,
-        width: 650,
+        width: 600,
     };
 
     //biểu đồ tròn
@@ -45,7 +45,7 @@ const ChartsFilm = ({ dashboardData, isLoading }: any) => {
         xField: "type",
         yField: "total",
         height: 280,
-        width: 650,
+        width: 600,
     };
 
     // biểu đồ films

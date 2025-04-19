@@ -70,9 +70,9 @@ const BookingSeat = ({ className }: { className?: string }) => {
     // Cập nhật userId khi getUserId có dữ liệu
     useEffect(() => {
         if (getUserId !== undefined) {
-            setUserIdFromShowtimes(getUserId.id ?? null);
-            setRankUser(getUserId.rank);
-            setUserPoints(getUserId.points);
+            setUserIdFromShowtimes(getUserId?.id ?? null);
+            setRankUser(getUserId?.rank);
+            setUserPoints(getUserId?.points);
         }
     }, [getUserId]);
 

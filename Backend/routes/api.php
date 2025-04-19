@@ -110,6 +110,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/movies/show-movie-destroy/{movie}', [MoviesController::class, 'showMovieDestroy']);
         //Import dữ liệu từ excel
         Route::post('/movies/import', [MoviesController::class, 'import']);
+        //Template mẫu excel
+        // Route::get('/movies/download-template', [MoviesController::class, 'downloadTemplateExcel']);
 
 
         // Room

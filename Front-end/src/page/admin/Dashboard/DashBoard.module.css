@@ -2,10 +2,6 @@
     height: 300px;
 }
 
-.statisticsInfo {
-    height: 50px;
-}
-
 .titleTable {
     margin: 40px 0 20px;
     font-size: 20px;
@@ -53,4 +49,35 @@
 .btnAction {
     display: flex;
     gap: 15px;
+}
+
+.cardsTitle {
+    width: 100%;
+    display: flex;
+    gap: 20px;
+}
+
+.statisticsInfo {
+    height: 120px;
+}
+
+.statisticsInfo1,
+.statisticsInfo5 {
+    flex-grow: 2;
+}
+
+.statisticsInfo2,
+.statisticsInfo3,
+.statisticsInfo4 {
+    flex-grow: 1;
+}
+
+.table {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.proportion {
+    color: red;
 }

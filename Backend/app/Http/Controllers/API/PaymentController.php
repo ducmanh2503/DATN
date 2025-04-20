@@ -45,7 +45,7 @@ class PaymentController extends Controller
         if (!auth()->check()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
-
+    
         // Validation: Nhận tất cả dữ liệu từ request
         $request->validate([
             'totalPrice' => 'required|numeric|min:0',
@@ -63,47 +63,44 @@ class PaymentController extends Controller
             'usedPoints' => 'nullable|integer|min:0',
             'discount_code' => 'nullable|string',
         ]);
-
+    
         $bookingData = $request->all();
         $bookingData['payment_method'] = 'VNpay';
         $bookingData['user_id'] = auth()->id();
-
+    
         Log::info('Booking Data request: ', $bookingData);
-
+    
         // Kiểm tra usedPoints
         $usedPoints = $request->input('usedPoints', 0);
         $userData = $this->userRankService->getRankAndPoints(auth()->id());
         if ($usedPoints > $userData['points']) {
             return response()->json(['message' => 'Số điểm sử dụng vượt quá điểm tích lũy'], 400);
         }
-
+    
         // Kiểm tra số lượng combo
         if (!empty($request->combo_ids)) {
             $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
             $combos = Combo::whereIn('id', $comboQuantities->keys())->get();
-
+    
             foreach ($combos as $combo) {
                 $quantity = $comboQuantities[$combo->id]->count();
-
                 if (!isset($combo->quantity)) {
                     Log::warning("Combo ID {$combo->id} does not have a quantity column.");
                     continue;
                 }
-
                 if ($combo->quantity < $quantity) {
                     return response()->json([
                         'success' => false,
                         'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
-                        'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
+                        'redirect' => 'http://localhost:5173/booking/payment-result?status=false&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
                     ], 400);
                 }
             }
         }
-
+    
         // Xử lý mã khuyến mại
         $discountCode = $request->input('discount_code');
         $discountCodeId = null;
-
         if ($discountCode) {
             $discount = DiscountCode::where('name_code', $discountCode)
                 ->where('status', 'active')
@@ -111,28 +108,27 @@ class PaymentController extends Controller
                 ->where('start_date', '<=', now())
                 ->where('end_date', '>=', now())
                 ->first();
-
+    
             if (!$discount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn',
-                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=false&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
                 ], 400);
             }
-
+    
             if ($discount->quantity < 1) {
                 return response()->json([
                     'success' => false,
                     'message' => "Mã khuyến mại {$discount->name_code} đã hết số lượng",
-                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=false&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
                 ], 400);
             }
-
+    
             $discountCodeId = $discount->id;
-            // Chưa trừ quantity ở đây, sẽ trừ sau khi thanh toán thành công
         }
-
-        // Lấy dữ liệu pricing từ request (không tính lại)
+    
+        // Lấy dữ liệu pricing từ request
         $pricing = [
             'total_ticket_price' => $request->total_ticket_price,
             'total_combo_price' => $request->total_combo_price,
@@ -145,28 +141,41 @@ class PaymentController extends Controller
             'total_price' => $request->totalPrice,
             'used_points' => $usedPoints,
         ];
-
-        // Ghi dữ liệu giá vào bookingData
+    
         $bookingData['pricing'] = $pricing;
         Log::info('Booking Data: ', $bookingData);
-
+    
+        // Kiểm tra getTicketDetails trước khi tạo thanh toán
+        $ticketController = new TicketController(app(UserRankService::class));
+        $response = $ticketController->getTicketDetails(new Request($bookingData));
+        $data = $response->getData(true);
+    
+        if ($data['success'] === false) {
+            Log::error('getTicketDetails failed', ['error' => $data['message']]);
+            return response()->json([
+                'success' => false,
+                'message' => $data['message'],
+                'redirect' => $data['redirect'] ?? 'http://localhost:5173/booking/payment-result?status=false&message=' . urlencode($data['message']),
+            ], 400);
+        }
+    
+        // Nếu getTicketDetails thành công, tiếp tục tạo thanh toán
         $vnp_TxnRef = time() . "";
-        $bookingData['unique_token'] = Str::random(32); // Thêm token duy nhất
+        $bookingData['unique_token'] = Str::random(32);
         Redis::setex("booking:$vnp_TxnRef", 3600, json_encode($bookingData));
-
-
+    
         $vnp_Url = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
         $vnp_Returnurl = env('VNP_RETURN_URL', 'http://localhost:8000/api/VNPay/return');
         $vnp_TmnCode = env('VNP_TMN_CODE', 'GXTS9J8E');
         $vnp_HashSecret = env('VNP_HASH_SECRET', 'Y7EVYR6BH7GXOWUSYIFLWW9JHZV5DK7E');
-
+    
         $vnp_OrderInfo = 'Thanh toán vé xem phim';
         $vnp_OrderType = '0';
         $vnp_Amount = $request->input('totalPrice') * 100;
         $vnp_Locale = 'vn';
         $vnp_BankCode = 'NCB';
         $vnp_IpAddr = $request->ip();
-
+    
         $inputData = array(
             "vnp_Version" => "2.1.0",
             "vnp_TmnCode" => $vnp_TmnCode,
@@ -181,13 +190,13 @@ class PaymentController extends Controller
             "vnp_ReturnUrl" => $vnp_Returnurl,
             "vnp_TxnRef" => $vnp_TxnRef,
         );
-
+    
         ksort($inputData);
         $query = http_build_query($inputData);
         $hashdata = $query;
         $vnp_SecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
         $vnp_Url .= "?" . $query . "&vnp_SecureHash=" . $vnp_SecureHash;
-
+    
         Log::info('Input Data: ', $inputData);
         return response()->json(['code' => '00', 'message' => 'thanh toán thành công', 'data' => $vnp_Url]);
     }
@@ -209,13 +218,13 @@ class PaymentController extends Controller
 
             if (!$bookingData) {
                 Log::error('Booking data not found for TxnRef: ' . $request->vnp_TxnRef);
-                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé'));
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Không tìm thấy dữ liệu đặt vé'));
             }
 
             // Kiểm tra xem token đã được xử lý chưa
             $processedKey = "processed_booking:{$bookingData['unique_token']}";
             if (Redis::exists($processedKey)) {
-                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Đơn hàng đã được xử lý trước đó'));
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Đơn hàng đã được xử lý trước đó'));
             }
 
             $bookingData['is_payment_completed'] = true;
@@ -225,10 +234,13 @@ class PaymentController extends Controller
             $response = $ticketController->getTicketDetails(new Request($bookingData));
 
             // Kiểm tra JSON response từ getTicketDetails()
-            $data = $response->getData(true); // Lấy dữ liệu dưới dạng mảng
+            $data = $response->getData(true); 
             if ($data['success'] === false) {
                 // Nếu có lỗi (ví dụ: combo hoặc discount code không đủ số lượng), redirect theo URL trong response
-                return redirect()->away($data['redirect']);
+                Log::error('getTicketDetails failed', ['error' => $data['message']]);
+            Redis::del("booking:$request->vnp_TxnRef");
+            return redirect()->away($data['redirect'] ?? 'http://localhost:5173/booking/payment-result?status=false&message=' . urlencode($data['message']));
+        
             }
 
             Redis::setex($processedKey, 3600, 'processed');
@@ -249,12 +261,12 @@ class PaymentController extends Controller
             $bookingId = $data['booking_id'] ?? null;
             if (!$bookingId) {
                 Log::error('Booking ID not found in response', ['response' => $data]);
-                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy booking ID'));
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Không tìm thấy booking ID'));
             }
 
             return redirect()->away("http://localhost:5173/booking/{$bookingId}/payment-result?status=success");
         } else {
-            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thanh toán thất bại'));
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Thanh toán thất bại'));
         }
     }
 
@@ -345,7 +357,7 @@ class PaymentController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
-                        'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
+                        'redirect' => 'http://localhost:5173/booking/payment-result?status=false' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
                     ], 400);
                 }
             }
@@ -367,7 +379,7 @@ class PaymentController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn',
-                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=false&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
                 ], 400);
             }
 
@@ -375,7 +387,7 @@ class PaymentController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => "Mã khuyến mại {$discount->name_code} đã hết số lượng",
-                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=false&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
                 ], 400);
             }
 
@@ -432,7 +444,7 @@ class PaymentController extends Controller
                 return response()->json([
                     'code' => '01',
                     'message' => 'Không thể tạo giao dịch PayPal',
-                    'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không thể tạo giao dịch PayPal')
+                    'redirect' => 'http://localhost:5173/booking/payment-result?status=false&message=' . urlencode('Không thể tạo giao dịch PayPal')
                 ], 400);
             }
         } catch (\Exception $e) {
@@ -454,7 +466,7 @@ class PaymentController extends Controller
         $txnRef = $request->txn_ref;
         if (!$txnRef) {
             Log::error('Missing transaction reference in PayPal return');
-            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thiếu thông tin giao dịch'));
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Thiếu thông tin giao dịch'));
         }
 
         // Kiểm tra và xử lý thanh toán PayPal
@@ -463,20 +475,20 @@ class PaymentController extends Controller
 
         if (!$paymentId || !$payerId) {
             Log::error('Missing payment ID or payer ID', ['paymentId' => $paymentId, 'payerId' => $payerId]);
-            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thiếu thông tin thanh toán PayPal'));
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Thiếu thông tin thanh toán PayPal'));
         }
 
         // Lấy dữ liệu booking từ Redis
         $bookingData = json_decode(Redis::get("booking:paypal:$txnRef"), true);
         if (!$bookingData) {
             Log::error('Booking data not found for TxnRef: ' . $txnRef);
-            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé'));
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Không tìm thấy dữ liệu đặt vé'));
         }
 
         // Kiểm tra xem token đã được xử lý chưa
         $processedKey = "processed_booking:{$bookingData['unique_token']}";
         if (Redis::exists($processedKey)) {
-            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Đơn hàng đã được xử lý trước đó'));
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Đơn hàng đã được xử lý trước đó'));
         }
 
         // Thực hiện thanh toán PayPal
@@ -485,14 +497,14 @@ class PaymentController extends Controller
 
             if ($result['status'] !== 'success') {
                 Log::error('Failed to execute PayPal payment', $result);
-                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thanh toán PayPal thất bại'));
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Thanh toán PayPal thất bại'));
             }
 
             // Đánh dấu thanh toán đã hoàn thành
             $bookingData['is_payment_completed'] = true;
             Log::info('Booking payment completed: ', $bookingData);
 
-            // Xử lý tạo vé giống như VNPay
+            // Xử lý tạo vé 
             $ticketController = new TicketController(app(UserRankService::class));
             $response = $ticketController->getTicketDetails(new Request($bookingData));
 
@@ -500,7 +512,7 @@ class PaymentController extends Controller
             $data = $response->getData(true);
             Log::info('Response from getTicketDetails:', $data);
             if (!isset($data['success']) || $data['success'] === false) {
-                return redirect()->away($data['redirect'] ?? 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Có lỗi xảy ra trong quá trình xử lý thanh toán'));
+                return redirect()->away($data['redirect'] ?? 'http://localhost:5173/booking/payment-result?status=false' . urlencode($data['message']));
             }
 
 
@@ -530,13 +542,13 @@ class PaymentController extends Controller
             $bookingId = $data['booking_id'] ?? null;
             if (!$bookingId) {
                 Log::error('Booking ID not found in response', ['response' => $data]);
-                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy booking ID'));
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Không tìm thấy booking ID'));
             }
 
             return redirect()->away("http://localhost:5173/booking/{$bookingId}/payment-result?status=success");
         } catch (\Exception $e) {
             Log::error('PayPal execute payment exception: ' . $e->getMessage());
-            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Lỗi xử lý thanh toán: ' . $e->getMessage()));
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=false' . urlencode('Lỗi xử lý thanh toán: ' . $e->getMessage()));
         }
     }
 

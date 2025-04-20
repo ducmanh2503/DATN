@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Support\Facades\Redis;
 
 class TicketController extends Controller
 {
@@ -601,7 +601,7 @@ class TicketController extends Controller
     public function getTicketDetails(Request $request)
     {
         Log::info('getTicketDetails Request Data: ' . json_encode($request->all()));
-
+    
         // Validation: Nhận tất cả dữ liệu từ request
         $request->validate([
             'totalPrice' => 'required|numeric|min:0',
@@ -622,21 +622,24 @@ class TicketController extends Controller
             'usedPoints' => 'nullable|integer|min:0',
             'discount_code' => 'nullable|string',
         ]);
-
+    
         if (empty($request->seat_ids) || !is_array($request->seat_ids)) {
             Log::error('seat_ids is empty or not an array: ' . json_encode($request->all()));
             return response()->json(['message' => 'seat_ids must be a non-empty array'], 400);
         }
-
+    
         try {
+            // Gán $isPaymentCompleted trước khi sử dụng
+            $isPaymentCompleted = $request->input('is_payment_completed', false);
+    
             $movie = Movies::where('id', $request->movie_id)
                 ->select('id', 'title', 'rated', 'language', 'poster')
                 ->first();
-
+    
             $calendarShow = CalendarShow::where('id', $request->calendar_show_id)
                 ->select('id', 'movie_id', 'show_date', 'end_date')
                 ->first();
-
+    
             $showTime = ShowTime::where('id', $request->showtime_id)
                 ->with(['room' => function ($query) {
                     $query->select('id', 'name', 'room_type_id')
@@ -646,22 +649,21 @@ class TicketController extends Controller
                 }])
                 ->select('id', 'calendar_show_id', 'room_id', 'start_time', 'end_time', 'status')
                 ->first();
-
+    
             $showDate = ShowTimeDate::where('show_time_id', $request->showtime_id)
                 ->value('show_date');
-
+    
             if (!$showDate) {
                 return response()->json(['message' => 'Không tìm thấy ngày suất chiếu'], 400);
             }
-
+    
             $seats = Seat::whereIn('id', $request->seat_ids)
                 ->with(['seatType' => function ($query) {
                     $query->select('id', 'name');
                 }])
                 ->select('id', 'room_id', 'row', 'column', 'seat_type_id')
                 ->get();
-
-            // Tạo seatDetails (không tính giá)
+    
             $seatDetails = $seats->map(function ($seat) {
                 return [
                     'row' => $seat->row,
@@ -669,14 +671,14 @@ class TicketController extends Controller
                     'seat_type' => $seat->seatType->name,
                 ];
             });
-
+    
             $combos = collect([]);
             if ($request->combo_ids) {
                 $combos = Combo::whereIn('id', $request->combo_ids)
                     ->select('id', 'name', 'description', 'price', 'image', 'quantity')
                     ->get();
             }
-
+    
             // Kiểm tra usedPoints
             $usedPoints = $request->input('usedPoints', 0);
             $userData = $this->userRankService->getRankAndPoints($request->user_id);
@@ -684,7 +686,7 @@ class TicketController extends Controller
             if ($usedPoints > $availablePoints) {
                 return response()->json(['message' => 'Số điểm sử dụng vượt quá số điểm hiện có'], 400);
             }
-
+    
             // Xử lý mã khuyến mại
             $discountCode = $request->input('discount_code');
             $discountCodeId = null;
@@ -695,7 +697,7 @@ class TicketController extends Controller
                     ->where('start_date', '<=', now())
                     ->where('end_date', '>=', now())
                     ->first();
-
+    
                 if (!$discount) {
                     return response()->json([
                         'success' => false,
@@ -703,8 +705,7 @@ class TicketController extends Controller
                         'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
                     ], 400);
                 }
-
-                // Kiểm tra số lượng discount code
+    
                 if ($discount->quantity < 1) {
                     return response()->json([
                         'success' => false,
@@ -712,31 +713,57 @@ class TicketController extends Controller
                         'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
                     ], 400);
                 }
-
+    
                 $discountCodeId = $discount->id;
             }
-
-            // Kiểm tra số lượng combo trước khi lưu booking
+    
+            // Kiểm tra số lượng combo với khóa Redis
             if (!empty($request->combo_ids)) {
                 $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
                 foreach ($combos as $combo) {
                     $quantity = $comboQuantities[$combo->id]->count();
-
-                    if (!isset($combo->quantity)) {
-                        Log::warning("Combo ID {$combo->id} does not have a quantity column.");
-                        continue;
-                    }
-
-                    if ($combo->quantity < $quantity) {
+                    $lockKey = "combo_lock_{$combo->id}";
+    
+                    // Thử lấy khóa Redis với thời gian hết hạn 10 giây
+                    $lock = Redis::set($lockKey, 'locked', 'NX', 'EX', 10);
+                    if (!$lock) {
                         return response()->json([
                             'success' => false,
-                            'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
-                            'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
+                            'message' => "Không thể xử lý combo ID {$combo->id} do đang được xử lý bởi người khác",
+                            'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Không thể xử lý combo ID {$combo->id} do đang được xử lý bởi người khác"),
                         ], 400);
+                    }
+    
+                    try {
+                        // Tải lại combo từ cơ sở dữ liệu để đảm bảo dữ liệu mới nhất
+                        $combo = Combo::find($combo->id);
+                        if (!isset($combo->quantity)) {
+                            Log::warning("Combo ID {$combo->id} does not have a quantity column.");
+                            continue;
+                        }
+    
+                        // Kiểm tra số lượng combo
+                        if ($combo->quantity < $quantity) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
+                                'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
+                            ], 400);
+                        }
+    
+                        // Nếu thanh toán đã hoàn tất, trừ số lượng combo
+                        if ($isPaymentCompleted) {
+                            $combo->quantity -= $quantity;
+                            $combo->save();
+                            Log::info("Đã trừ {$quantity} combo ID {$combo->id}. Số lượng còn lại: {$combo->quantity}");
+                        }
+                    } finally {
+                        // Giải phóng khóa Redis
+                        Redis::del($lockKey);
                     }
                 }
             }
-
+    
             // Lấy pricing từ request (không tính lại)
             $pricing = [
                 'total_ticket_price' => $request->total_ticket_price,
@@ -744,39 +771,37 @@ class TicketController extends Controller
                 'total_price_point' => $request->total_price_point,
                 'total_price_voucher' => $request->total_price_voucher,
                 'total_price_before_discount' => $request->total_ticket_price + $request->total_combo_price,
-                'point_discount' => $usedPoints * 1000, // Giả sử 1 điểm = 1000 VNĐ
+                'point_discount' => $usedPoints * 1000,
                 'discount_code_id' => $discountCodeId,
                 'discount_code' => $discountCode,
-                'total_price' => $request->totalPrice, // Sử dụng totalPrice từ FE
-                'usedPoints' => $usedPoints,
+                'total_price' => $request->totalPrice,
+                'used_points' => $usedPoints,
             ];
-
+    
             $paymentMethod = $request->payment_method;
-
+    
             $ticketDetails = $this->buildTicketDetails($movie, $calendarShow, $showDate, $showTime, $seatDetails, $combos, $pricing, $paymentMethod, $request);
-
-            $isPaymentCompleted = $request->input('is_payment_completed', false);
+    
             if ($isPaymentCompleted) {
                 $userId = $request->user_id;
                 foreach ($request->seat_ids as $seatId) {
                     $showTimeSeat = ShowTimeSeat::where('show_time_id', $request->showtime_id)
                         ->where('seat_id', $seatId)
                         ->first();
-
+    
                     if ($showTimeSeat && $showTimeSeat->seat_status === 'booked') {
                         return response()->json(['message' => 'Ghế đã được đặt bởi người khác'], 409);
                     }
-
+    
                     $cacheKey = "seat_{$request->showtime_id}_{$seatId}";
                     $heldSeat = Cache::get($cacheKey);
                     if ($heldSeat && isset($heldSeat['user_id']) && $heldSeat['user_id'] != $userId) {
                         return response()->json(['message' => 'Ghế đang được giữ bởi người khác'], 409);
                     }
                 }
-
-                // Lưu booking với pricing từ request
+    
                 $booking = $this->saveBooking($request->all(), 'confirmed', $pricing);
-
+    
                 // Trừ điểm nếu sử dụng
                 if ($usedPoints > 0) {
                     $success = $this->userRankService->deductPoints($request->user_id, $usedPoints);
@@ -784,7 +809,7 @@ class TicketController extends Controller
                         Log::warning("Không thể trừ $usedPoints điểm cho user_id = {$request->user_id}");
                     }
                 }
-
+    
                 // Trừ quantity của discount_code nếu có
                 if ($discountCodeId) {
                     $discount = DiscountCode::find($discountCodeId);
@@ -793,19 +818,18 @@ class TicketController extends Controller
                         $discount->save();
                     }
                 }
-
-                // Gọi QR code
+    
                 $ticketDetails['qr_code'] = $this->generateQrCode($booking, $ticketDetails);
-
+    
                 $user = User::find($request->user_id);
                 if ($user && $user->email) {
                     Mail::to($user->email)->send(new BookingConfirmation($booking, $ticketDetails));
                 } else {
                     Log::warning('User ID ' . $request->user_id . ' does not have an email.');
                 }
-
+    
                 $userData = $this->userRankService->getRankAndPoints($request->user_id);
-
+    
                 return response()->json([
                     'success' => true,
                     'data' => $ticketDetails,
@@ -813,7 +837,7 @@ class TicketController extends Controller
                     'userData' => $userData ?: null,
                 ], 200);
             }
-
+    
             return response()->json([
                 'success' => true,
                 'data' => $ticketDetails,

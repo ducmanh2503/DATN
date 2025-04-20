@@ -326,7 +326,7 @@ class MoviesController extends Controller
                         'rated',
                         'description',
                         'poster',
-                        'trailer (URL)',
+                        'trailer',
                         'movie_status',
                         'actors',
                         'genres',

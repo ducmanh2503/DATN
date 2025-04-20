@@ -432,7 +432,7 @@ class TicketController extends Controller
                     }
 
                     if ($combo->quantity < $quantity) {
-                        throw new \Exception("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}");
+                        throw new \Exception("Combo {$combo->name} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}");
                     }
 
                     // Giảm quantity của combo
@@ -697,7 +697,7 @@ class TicketController extends Controller
                     ->where('start_date', '<=', now())
                     ->where('end_date', '>=', now())
                     ->first();
-    
+
                 if (!$discount) {
                     return response()->json([
                         'success' => false,
@@ -705,7 +705,8 @@ class TicketController extends Controller
                         'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
                     ], 400);
                 }
-    
+
+                // Kiểm tra số lượng discount code
                 if ($discount->quantity < 1) {
                     return response()->json([
                         'success' => false,
@@ -713,57 +714,31 @@ class TicketController extends Controller
                         'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
                     ], 400);
                 }
-    
+
                 $discountCodeId = $discount->id;
             }
-    
-            // Kiểm tra số lượng combo với khóa Redis
+
+            // Kiểm tra số lượng combo trước khi lưu booking
             if (!empty($request->combo_ids)) {
                 $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
                 foreach ($combos as $combo) {
                     $quantity = $comboQuantities[$combo->id]->count();
-                    $lockKey = "combo_lock_{$combo->id}";
-    
-                    // Thử lấy khóa Redis với thời gian hết hạn 10 giây
-                    $lock = Redis::set($lockKey, 'locked', 'NX', 'EX', 10);
-                    if (!$lock) {
+
+                    if (!isset($combo->quantity)) {
+                        Log::warning("Combo ID {$combo->id} does not have a quantity column.");
+                        continue;
+                    }
+
+                    if ($combo->quantity < $quantity) {
                         return response()->json([
                             'success' => false,
-                            'message' => "Không thể xử lý combo ID {$combo->id} do đang được xử lý bởi người khác",
-                            'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Không thể xử lý combo ID {$combo->id} do đang được xử lý bởi người khác"),
+                            'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
+                            'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
                         ], 400);
-                    }
-    
-                    try {
-                        // Tải lại combo từ cơ sở dữ liệu để đảm bảo dữ liệu mới nhất
-                        $combo = Combo::find($combo->id);
-                        if (!isset($combo->quantity)) {
-                            Log::warning("Combo ID {$combo->id} does not have a quantity column.");
-                            continue;
-                        }
-    
-                        // Kiểm tra số lượng combo
-                        if ($combo->quantity < $quantity) {
-                            return response()->json([
-                                'success' => false,
-                                'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
-                                'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
-                            ], 400);
-                        }
-    
-                        // Nếu thanh toán đã hoàn tất, trừ số lượng combo
-                        if ($isPaymentCompleted) {
-                            $combo->quantity -= $quantity;
-                            $combo->save();
-                            Log::info("Đã trừ {$quantity} combo ID {$combo->id}. Số lượng còn lại: {$combo->quantity}");
-                        }
-                    } finally {
-                        // Giải phóng khóa Redis
-                        Redis::del($lockKey);
                     }
                 }
             }
-    
+
             // Lấy pricing từ request (không tính lại)
             $pricing = [
                 'total_ticket_price' => $request->total_ticket_price,

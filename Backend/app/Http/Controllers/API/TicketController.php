@@ -432,7 +432,7 @@ class TicketController extends Controller
                     }
 
                     if ($combo->quantity < $quantity) {
-                        throw new \Exception("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}");
+                        throw new \Exception("Combo {$combo->name} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}");
                     }
 
                     // Giảm quantity của combo
@@ -688,54 +688,54 @@ class TicketController extends Controller
             // Xử lý mã khuyến mại
             $discountCode = $request->input('discount_code');
             $discountCodeId = null;
-            if ($discountCode) {
-                $discount = DiscountCode::where('name_code', $discountCode)
-                    ->where('status', 'active')
-                    ->where('quantity', '>', 0)
-                    ->where('start_date', '<=', now())
-                    ->where('end_date', '>=', now())
-                    ->first();
+            // if ($discountCode) {
+            //     $discount = DiscountCode::where('name_code', $discountCode)
+            //         ->where('status', 'active')
+            //         ->where('quantity', '>', 0)
+            //         ->where('start_date', '<=', now())
+            //         ->where('end_date', '>=', now())
+            //         ->first();
 
-                if (!$discount) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn',
-                        'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
-                    ], 400);
-                }
+            //     if (!$discount) {
+            //         return response()->json([
+            //             'success' => false,
+            //             'message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn',
+            //             'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
+            //         ], 400);
+            //     }
 
-                // Kiểm tra số lượng discount code
-                if ($discount->quantity < 1) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "Mã khuyến mại {$discount->name_code} đã hết số lượng",
-                        'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
-                    ], 400);
-                }
+            //     // Kiểm tra số lượng discount code
+            //     if ($discount->quantity < 1) {
+            //         return response()->json([
+            //             'success' => false,
+            //             'message' => "Mã khuyến mại {$discount->name_code} đã hết số lượng",
+            //             'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Mã khuyến mại {$discount->name_code} đã hết số lượng"),
+            //         ], 400);
+            //     }
 
-                $discountCodeId = $discount->id;
-            }
+            //     $discountCodeId = $discount->id;
+            // }
 
             // Kiểm tra số lượng combo trước khi lưu booking
-            if (!empty($request->combo_ids)) {
-                $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
-                foreach ($combos as $combo) {
-                    $quantity = $comboQuantities[$combo->id]->count();
+            // if (!empty($request->combo_ids)) {
+            //     $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
+            //     foreach ($combos as $combo) {
+            //         $quantity = $comboQuantities[$combo->id]->count();
 
-                    if (!isset($combo->quantity)) {
-                        Log::warning("Combo ID {$combo->id} does not have a quantity column.");
-                        continue;
-                    }
+            //         if (!isset($combo->quantity)) {
+            //             Log::warning("Combo ID {$combo->id} does not have a quantity column.");
+            //             continue;
+            //         }
 
-                    if ($combo->quantity < $quantity) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
-                            'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
-                        ], 400);
-                    }
-                }
-            }
+            //         if ($combo->quantity < $quantity) {
+            //             return response()->json([
+            //                 'success' => false,
+            //                 'message' => "Combo {$combo->name} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
+            //                 'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo {$combo->name} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
+            //             ], 400);
+            //         }
+            //     }
+            // }
 
             // Lấy pricing từ request (không tính lại)
             $pricing = [

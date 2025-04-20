@@ -739,6 +739,7 @@ class TicketController extends Controller
 
             // Lấy pricing từ request (không tính lại)
             $pricing = [
+                'payment_method' => $request->payment_method,
                 'total_ticket_price' => $request->total_ticket_price,
                 'total_combo_price' => $request->total_combo_price,
                 'total_price_point' => $request->total_price_point,

@@ -149,16 +149,6 @@ export const router = createBrowserRouter([
     element: <ArticleDetail />,
   },
   {
-    path: "/booking",
-    element: <Booking />,
-    children: [
-      {
-        path: "payment-result",
-        element: <LayoutPaymentResult />,
-      },
-    ],
-  },
-  {
     path: "/booking/:id",
     element: <Booking />,
     children: [

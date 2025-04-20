@@ -209,18 +209,13 @@ class PaymentController extends Controller
 
             if (!$bookingData) {
                 Log::error('Booking data not found for TxnRef: ' . $request->vnp_TxnRef);
-                $redirectUrl = 'http://localhost:5173/booking/dummy/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé');
-                Log::info('Redirecting to: ' . $redirectUrl);
-                return redirect()->away($redirectUrl);
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy dữ liệu đặt vé'));
             }
 
             // Kiểm tra xem token đã được xử lý chưa
             $processedKey = "processed_booking:{$bookingData['unique_token']}";
             if (Redis::exists($processedKey)) {
-                $bookingId = $bookingData['id'] ?? 'dummy';
-                $redirectUrl = "http://localhost:5173/booking/{$bookingId}/payment-result?status=failure&message=" . urlencode('Đơn hàng đã được xử lý trước đó');
-                Log::info('Redirecting to: ' . $redirectUrl);
-                return redirect()->away($redirectUrl);
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Đơn hàng đã được xử lý trước đó'));
             }
 
             $bookingData['is_payment_completed'] = true;
@@ -232,11 +227,8 @@ class PaymentController extends Controller
             // Kiểm tra JSON response từ getTicketDetails()
             $data = $response->getData(true); // Lấy dữ liệu dưới dạng mảng
             if ($data['success'] === false) {
-                $message = urlencode($data['message'] ?? 'Thanh toán thất bại');
-                $bookingId = $bookingData['id'] ?? 'dummy'; // Sử dụng bookingId nếu có
-                $redirectUrl = "http://localhost:5173/booking/{$bookingId}/payment-result?status=failure&message={$message}";
-                Log::info('Redirecting to: ' . $redirectUrl);
-                return redirect()->away($redirectUrl);
+                // Nếu có lỗi (ví dụ: combo hoặc discount code không đủ số lượng), redirect theo URL trong response
+                return redirect()->away($data['redirect']);
             }
 
             Redis::setex($processedKey, 3600, 'processed');
@@ -257,19 +249,12 @@ class PaymentController extends Controller
             $bookingId = $data['booking_id'] ?? null;
             if (!$bookingId) {
                 Log::error('Booking ID not found in response', ['response' => $data]);
-                $bookingId = $bookingData['id'] ?? 'dummy'; // Sử dụng bookingId nếu có
-                $redirectUrl = "http://localhost:5173/booking/{$bookingId}/payment-result?status=failure&message=" . urlencode('Không tìm thấy booking ID');
-                Log::info('Redirecting to: ' . $redirectUrl);
-                return redirect()->away($redirectUrl);
+                return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Không tìm thấy booking ID'));
             }
 
-            $redirectUrl = "http://localhost:5173/booking/{$bookingId}/payment-result?status=success";
-            Log::info('Redirecting to: ' . $redirectUrl);
-            return redirect()->away($redirectUrl);
+            return redirect()->away("http://localhost:5173/booking/{$bookingId}/payment-result?status=success");
         } else {
-            $redirectUrl = 'http://localhost:5173/booking/dummy/payment-result?status=failure&message=' . urlencode('Thanh toán thất bại');
-            Log::info('Redirecting to: ' . $redirectUrl);
-            return redirect()->away($redirectUrl);
+            return redirect()->away('http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Thanh toán thất bại'));
         }
     }
 

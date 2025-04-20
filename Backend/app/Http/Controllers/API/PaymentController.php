@@ -60,6 +60,7 @@ class PaymentController extends Controller
             'seat_ids.*' => 'exists:seats,id',
             'combo_ids' => 'nullable|array',
             'combo_ids.*' => 'exists:combos,id',
+            'payment_method' => 'required|in:cash,VNpay,PayPal',
             'usedPoints' => 'nullable|integer|min:0',
             'discount_code' => 'nullable|string',
         ]);
@@ -134,6 +135,7 @@ class PaymentController extends Controller
 
         // Lấy dữ liệu pricing từ request (không tính lại)
         $pricing = [
+            'payment_method' => $request->payment_method,
             'total_ticket_price' => $request->total_ticket_price,
             'total_combo_price' => $request->total_combo_price,
             'total_price_before_discount' => $request->total_ticket_price + $request->total_combo_price,

@@ -149,6 +149,10 @@ export const router = createBrowserRouter([
     element: <ArticleDetail />,
   },
   {
+    path: "/booking/payment-result",
+    element: <LayoutPaymentResult />,
+  },
+  {
     path: "/booking/:id",
     element: <Booking />,
     children: [

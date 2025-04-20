@@ -18,7 +18,7 @@ import { URL_IMAGE } from "../../../../config/ApiConfig";
 import { useInfomationContext } from "../../../UseContext/InfomationContext";
 
 const SuccesResult = () => {
-    const [qrCode, setQrCode] = useState<string>(""); // State to hold the QR code image
+    const [qrCode, setQrCode] = useState<string>(""); // State QR code image
     const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
 
     const {

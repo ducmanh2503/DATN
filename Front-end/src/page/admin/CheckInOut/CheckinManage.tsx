@@ -223,6 +223,7 @@ const CheckinManage = () => {
                         <CheckinTable
                             className={clsx(styles.tableCheckIn)}
                             orderListManage={newOrderList}
+                            selectedStatus={selectedStatus}
                         />
                     )}
                 </div>

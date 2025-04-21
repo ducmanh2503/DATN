@@ -17,6 +17,8 @@
 
 .slogan {
   margin-left: 10px;
+  font-weight: 600;
+  font-style: italic;
 }
 
 .network {
@@ -54,12 +56,12 @@
 }
 
 .logo {
-  width: 130px;
-  height: 60px;
-  background-color: #ff4715;
+  width: 125px;
+  height: 75px;
 }
 
 .boxProfile {
+  cursor: pointer;
   gap: 8px;
   margin-right: 5px;
 }
@@ -160,4 +162,46 @@
 
 .viewAllResults:hover {
   background-color: #e6f7ff;
+}
+
+/* header.module.css */
+.noResults {
+  padding: 10px;
+  text-align: center;
+  color: #888;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background: #ff4d4f;
+  color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }

@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
     Button,
-    DatePicker,
     Form,
     TimePicker,
     message,
@@ -15,8 +14,6 @@ import {
     GET_CALENDAR,
     GET_DATES_BY_CALENDAR,
     GET_FILM_LIST,
-    GET_ONE_SHOWTIMES,
-    GET_ROOMS,
     UPDATE_SHOWTIMES,
 } from "../../../config/ApiConfig";
 import { useCallback, useState } from "react";
@@ -25,8 +22,10 @@ import dayjs from "dayjs";
 import clsx from "clsx";
 import styles from "../globalAdmin.module.css";
 import { useGetRooms } from "../../../services/adminServices/roomManage.service";
+import { handleApiError } from "../../../services/adminServices/utils";
+import { useGetShowtimesByFilmId } from "../../../services/adminServices/filmManage.service";
 
-const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
+const AddShowtimes = ({ setDataByFilmId }: any) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
     const [open, setOpen] = useState(false);
@@ -34,54 +33,37 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
         number | null
     >(null);
 
+    const { mutate: getShowtimesByFilmId } = useGetShowtimesByFilmId();
+
     const onFinish = (formData: any) => {
         const formattedData = {
             ...formData,
             start_time: dayjs(formData.start_time).format("HH:mm"),
             end_time: dayjs(formData.end_time).format("HH:mm"),
-            selected_date: dayjs(formData.selected_date).format("YYYY-MM-DD"),
+            selected_dates: formData.selected_dates.map((date: string) =>
+                dayjs(date).format("YYYY-MM-DD")
+            ),
             calendar_show_id: Number(formData.calendar_show_id),
         };
         console.log("check-data", formattedData);
 
         mutate(formattedData, {
             onSuccess: () => {
-                messageApi.success(
-                    `Thêm thành công vào phòng chiếu số ${formData.room_id}`
-                );
-                mutateGetOneShowtimes({
-                    room_id: formattedData.room_id,
-                    date: formattedData.selected_date
-                        ? dayjs(formattedData.selected_date).format(
-                              "YYYY/MM/DD"
-                          )
-                        : null,
+                messageApi.success(`Thêm thành công suất chiếu`);
+
+                getShowtimesByFilmId(formattedData.title, {
+                    onSuccess: (data) => {
+                        setDataByFilmId(data);
+                    },
                 });
+
                 form.resetFields();
                 setOpen(false);
             },
 
-            onError: (error: any) => {
-                messageApi.error(
-                    error?.response?.data?.message || "Thêm thất bại"
-                );
-            },
+            onError: handleApiError,
         });
     };
-
-    // hàm tìm suất chiếu theo ngày
-    const { mutate: mutateGetOneShowtimes } = useMutation({
-        mutationFn: async (formData: any) => {
-            const response = await axios.post(GET_ONE_SHOWTIMES, formData);
-            // console.log("new-data", response.data);
-
-            return response.data; // Trả về dữ liệu mới
-        },
-        onSuccess: (data) => {
-            // console.log("new-data", data);
-            setShowtimesData(data); // Cập nhật state để UI render lại
-        },
-    });
 
     const showModal = () => {
         setOpen(true);
@@ -152,6 +134,12 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
         enabled: !!selectedCalendarShowId, // Chỉ gọi API nếu đã có calendar_show_id
         refetchOnWindowFocus: false,
     });
+
+    const today = dayjs().format("YYYY-MM-DD");
+
+    const filteredDates = datesByCalendar?.filter(
+        (item: string) => item >= today
+    );
 
     const handleChangeSelect = useCallback(
         (value: string[], fieldName: string) => {
@@ -269,7 +257,7 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                     <Form.Item
                         className={clsx(styles.inputLabel)}
                         label="Ngày chiếu"
-                        name="selected_date"
+                        name="selected_dates"
                         rules={[
                             {
                                 required: true,
@@ -277,24 +265,13 @@ const AddShowtimes = ({ setShowtimesData, selectedRoom }: any) => {
                             },
                         ]}
                     >
-                        <DatePicker
-                            style={{ width: "100%" }}
-                            disabledDate={(current) => {
-                                if (
-                                    !datesByCalendar ||
-                                    !Array.isArray(datesByCalendar)
-                                )
-                                    return true;
-
-                                return !datesByCalendar.some((date: string) =>
-                                    dayjs(date, "YYYY-MM-DD").isSame(
-                                        current,
-                                        "day"
-                                    )
-                                );
-                            }}
-                            placeholder="Nhập phim chiếu trước"
-                        />
+                        <Select mode="multiple" placeholder="Chọn ngày chiếu">
+                            {filteredDates?.map((item: any) => (
+                                <Select.Option value={item} key={item}>
+                                    {item}
+                                </Select.Option>
+                            ))}
+                        </Select>
                     </Form.Item>
                     <Form.Item
                         className={clsx(styles.inputLabel)}

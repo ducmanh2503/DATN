@@ -27,7 +27,7 @@ class ArticleController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|unique:article|max:255',
-            'author' => 'required',
+            'author' => 'nullable',
             'category' => 'required',
             'body' => 'required',
             'status' => 'required|in:Active,InActive',
@@ -79,7 +79,7 @@ class ArticleController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|unique:article,title,' . $id,
-            'author' => 'required',
+            'author' => 'nullable',
             'category' => 'required',
             'body' => 'required',
             'status' => 'required|in:Active,InActive',

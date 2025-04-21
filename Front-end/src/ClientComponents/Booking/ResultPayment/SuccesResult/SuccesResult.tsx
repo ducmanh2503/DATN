@@ -15,9 +15,10 @@ import { VerticalAlignBottomOutlined } from "@ant-design/icons";
 import { useGetQRTicket } from "../../../../services/adminServices/getQR.service";
 import { useEffect, useState } from "react";
 import { URL_IMAGE } from "../../../../config/ApiConfig";
+import { useInfomationContext } from "../../../UseContext/InfomationContext";
 
 const SuccesResult = () => {
-    const [qrCode, setQrCode] = useState<string>(""); // State to hold the QR code image
+    const [qrCode, setQrCode] = useState<string>(""); // State QR code image
     const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
 
     const {
@@ -32,14 +33,23 @@ const SuccesResult = () => {
     const { totalPrice } = useFinalPriceContext();
     const { totalPricePoint, totalPriceVoucher, rankUser } =
         usePromotionContext();
+    const { setCountInfomation, setTextInfomation } = useInfomationContext();
+
     const { resetDataShowtimes } = useShowtimeData();
     const storedMovie = sessionStorage.getItem("dataDetailFilm");
     // Kiểm tra giá trị null trước khi parse
     const movieData = storedMovie ? JSON.parse(storedMovie) : null;
 
     const navigate = useNavigate();
-    //lấy năm hiện tại
-    const currentYear = dayjs().year();
+
+    const currentYear = dayjs().year(); //lấy năm hiện tại
+    const today = dayjs().format("DD/MM/YYYY"); // lấy ngày hôm nay
+    const showtimesDateFormat = dayjs(
+        `${showtimesDate}/${currentYear}`,
+        "DD/MM/YYYY"
+    ).format("YYYY/MM/DD"); // ngày chiếu film đã format
+
+    const startTimeFilm = dayjs(showtimesTime, "HH:mm:ss").format("HH:mm"); // lấy giờ bắt đầu chiếu phim
 
     // xử lý tải ảnh về máy
     const downloadBlobImage = async (imageUrl: string, fileName: string) => {
@@ -92,6 +102,19 @@ const SuccesResult = () => {
         setLoyaltyPoints(points);
     }, [totalPrice, totalPricePoint, totalPriceVoucher, rankUser]);
 
+    useEffect(() => {
+        setCountInfomation((prev: number) => prev + 1);
+        setTextInfomation((prev: any[]) => [
+            ...prev,
+            {
+                id: prev.length + 1,
+                title: `Đặt vé thành công!`,
+                content: `Bạn có hẹn với phim ${movieData?.title} vào ngày ${showtimesDateFormat} lúc ${startTimeFilm}`,
+                date: today,
+            },
+        ]);
+    }, []); // meesagwe ở avatar
+
     return (
         <div className={clsx(styles.container, "main-base")}>
             <div className={clsx(styles.header)}>
@@ -123,10 +146,7 @@ const SuccesResult = () => {
                                     thời gian
                                 </h5>
                                 <span className={clsx(styles.valueInfo)}>
-                                    {dayjs(showtimesTime, "HH:mm:ss").format(
-                                        "HH:mm"
-                                    )}{" "}
-                                    ~
+                                    {startTimeFilm} ~{" "}
                                     {dayjs(showtimesEndTime, "HH:mm:ss").format(
                                         "HH:mm"
                                     )}
@@ -142,10 +162,7 @@ const SuccesResult = () => {
                                     Ngày chiếu
                                 </h5>
                                 <span className={clsx(styles.valueInfo)}>
-                                    {dayjs(
-                                        `${showtimesDate}/${currentYear}`,
-                                        "DD/MM/YYYY"
-                                    ).format("YYYY/MM/DD")}
+                                    {showtimesDateFormat}
                                 </span>
                             </div>
                         </div>
@@ -180,7 +197,7 @@ const SuccesResult = () => {
                                     {nameSeats.join(",")}
                                 </span>
                                 <span className={clsx(styles.valueInfo)}>
-                                    {totalSeatPrice}đ
+                                    {totalSeatPrice.toLocaleString("vi-VN")}đ
                                 </span>
                             </div>
                         </div>
@@ -220,8 +237,10 @@ const SuccesResult = () => {
                                                     styles.valueInfo
                                                 )}
                                             >
-                                                {item?.price *
-                                                    item?.defaultQuantityCombo}
+                                                {(
+                                                    item?.price *
+                                                    item?.defaultQuantityCombo
+                                                ).toLocaleString("vi-VN")}
                                                 đ
                                             </span>
                                         </div>
@@ -244,7 +263,10 @@ const SuccesResult = () => {
                                 Tạm tính
                             </h5>
                             <span className={clsx(styles.valueInfo)}>
-                                {totalComboPrice + totalSeatPrice}đ
+                                {(
+                                    totalComboPrice + totalSeatPrice
+                                ).toLocaleString("vi-VN")}
+                                đ
                             </span>
                         </div>
                         <div
@@ -257,7 +279,10 @@ const SuccesResult = () => {
                                 Giảm giá
                             </h5>
                             <span className={clsx(styles.valueInfo)}>
-                                {totalPricePoint + totalPriceVoucher}đ
+                                {(
+                                    totalPricePoint + totalPriceVoucher
+                                ).toLocaleString("vi-VN")}
+                                đ
                             </span>
                         </div>
                         <hr />
@@ -272,9 +297,11 @@ const SuccesResult = () => {
                                 Thành tiền
                             </h5>
                             <span className={clsx(styles.valueInfo)}>
-                                {totalPrice -
+                                {(
+                                    totalPrice -
                                     totalPricePoint -
-                                    totalPriceVoucher}
+                                    totalPriceVoucher
+                                ).toLocaleString("vi-VN")}
                                 đ
                             </span>
                         </div>

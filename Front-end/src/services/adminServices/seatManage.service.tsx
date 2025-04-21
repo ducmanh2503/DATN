@@ -16,30 +16,34 @@ export const useGetSeatsByRoom = (id: number) => {
     const { data, isLoading } = useQuery({
         queryKey: ["SeatsByRoom", id],
         queryFn: async () => {
-            const { data } = await axios.get(GET_SEATS_BY_ROOM(id));
-            console.log("check-seats-by_room", data);
+            try {
+                const { data } = await axios.get(GET_SEATS_BY_ROOM(id));
+                console.log("check-seats-by_room", data);
 
-            // Chuyển object thành mảng
-            const seatArray = data
-                ? Object.entries(data).flatMap(([row, cols]: [string, any]) =>
-                      Object.entries(cols).map(
-                          ([col, seat]: [string, any]) => ({
-                              row,
-                              column: Number(col),
-                              ...seat,
-                          })
+                const seatArray = data
+                    ? Object.entries(data).flatMap(
+                          ([row, cols]: [string, any]) =>
+                              Object.entries(cols).map(
+                                  ([col, seat]: [string, any]) => ({
+                                      row,
+                                      column: Number(col),
+                                      ...seat,
+                                  })
+                              )
                       )
-                  )
-                : [];
+                    : [];
 
-            // Sắp xếp hàng A-Z, cột tăng dần
-            return seatArray.sort((a, b) => {
-                if (a.row === b.row) return a.column - b.column;
-                return a.row.localeCompare(b.row);
-            });
+                return seatArray.sort((a, b) => {
+                    if (a.row === b.row) return a.column - b.column;
+                    return a.row.localeCompare(b.row);
+                });
+            } catch (error) {
+                return [];
+            }
         },
         staleTime: 1000 * 60 * 10,
         refetchOnMount: false,
+        retry: 2,
     });
 
     return { data, isLoading };
@@ -140,7 +144,7 @@ export const useHideSeat = (messageApi: any) => {
             await axios.put(UPDATE_SEAT_STATUS(roomId), data);
         },
         onSuccess: () => {
-            messageApi.success("Ẩn ghế thành công");
+            messageApi.success("Cập nhật trạng thái thành công");
             queryClient.invalidateQueries({
                 queryKey: ["SeatsByRoom"],
             });

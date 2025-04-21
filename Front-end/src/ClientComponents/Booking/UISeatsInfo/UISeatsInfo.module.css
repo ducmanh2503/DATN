@@ -18,8 +18,8 @@
 }
 
 .bookingSeats {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 4px;
 }
 
@@ -58,9 +58,9 @@
     font-size: 12px;
     color: antiquewhite;
     position: absolute;
-    top: -40%;
+    top: -53%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%);
 }
 
 .seatsInfo {

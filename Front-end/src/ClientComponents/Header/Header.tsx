@@ -8,7 +8,7 @@ import {
     UserOutlined,
     SearchOutlined,
 } from "@ant-design/icons";
-import { Avatar, Dropdown, Input, message, List } from "antd";
+import { Avatar, Dropdown, Input, message, List, Badge } from "antd";
 import type { GetProps } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import clsx from "clsx";
@@ -17,6 +17,7 @@ import styles from "./header.module.css";
 import { searchMovies } from "../../services/search.service";
 import { SearchMovie, MovieGenre } from "../../types/search.types";
 import { URL_IMAGE } from "../../config/ApiConfig";
+import { useInfomationContext } from "../UseContext/InfomationContext";
 
 type SearchProps = GetProps<typeof Input.Search>;
 
@@ -36,8 +37,11 @@ const Header: React.FC = () => {
     const isAuthenticated = authService.isAuthenticated();
     const [suggestedMovies, setSuggestedMovies] = useState<SearchMovie[]>([]);
     const [keyword, setKeyword] = useState("");
+    const [showAlert, setShowAlert] = useState(false);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const searchRef = useRef<HTMLDivElement>(null);
+
+    const { countInfomation } = useInfomationContext(); // Lấy giá trị countInfomation từ context
 
     const userName = localStorage.getItem("user_name") || "User";
     const firstLetter = userName.charAt(0).toUpperCase();
@@ -105,12 +109,28 @@ const Header: React.FC = () => {
         }
     };
 
-    const onSearch: SearchProps["onSearch"] = (value) => {
-        if (!value.trim()) return;
+    const handleSearch = () => {
+        if (!keyword.trim()) {
+            setShowAlert(true);
+            // Tự động ẩn alert sau 3 giây
+            setTimeout(() => {
+                setShowAlert(false);
+            }, 3000);
+            return;
+        }
 
         // Navigate to search page with the search query
-        navigate(`/search?keyword=${encodeURIComponent(value)}`);
+        navigate(`/search?keyword=${encodeURIComponent(keyword)}`);
         setSuggestedMovies([]);
+    };
+
+    const onSearch: SearchProps["onSearch"] = (value) => {
+        setKeyword(value); // Cập nhật keyword từ giá trị input
+        handleSearch();
+    };
+
+    const onPressEnter: SearchProps["onPressEnter"] = () => {
+        handleSearch();
     };
 
     const handleMovieClick = (movieId: number) => {
@@ -164,11 +184,19 @@ const Header: React.FC = () => {
                                         <div
                                             className={clsx(styles.boxProfile)}
                                         >
-                                            <Avatar
-                                                className={clsx(styles.avatar)}
+                                            <Badge
+                                                size="default"
+                                                count={countInfomation}
+                                                offset={[-30, 6]}
                                             >
-                                                {firstLetter}
-                                            </Avatar>
+                                                <Avatar
+                                                    className={clsx(
+                                                        styles.avatar
+                                                    )}
+                                                >
+                                                    {firstLetter}
+                                                </Avatar>
+                                            </Badge>
                                         </div>
                                     </Dropdown>
                                 ) : (
@@ -191,23 +219,25 @@ const Header: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div
-                    className={clsx(
-                        styles.logoSearch,
-                        styles.flex,
-                        styles.justifyEnd
-                    )}
-                >
+                <div className={clsx(styles.logoSearch, styles.flex)}>
+                    <Link to="/">
+                        <img
+                            className={clsx(styles.logo)}
+                            src="../../../public/imageFE/logo.png"
+                            alt=""
+                        />
+                    </Link>
                     <div className={styles.searchContainer} ref={searchRef}>
                         <Search
                             className={clsx(styles.sreach)}
                             placeholder="Tìm kiếm phim, diễn viên, đạo diễn, thể loại..."
                             allowClear
                             onSearch={onSearch}
+                            onPressEnter={onPressEnter}
                             value={keyword}
                             onChange={handleInputChange}
                         />
-                        {suggestedMovies.length > 0 && (
+                        {suggestedMovies.length > 0 ? (
                             <div className={styles.suggestionsDropdown}>
                                 <List
                                     itemLayout="horizontal"
@@ -276,18 +306,25 @@ const Header: React.FC = () => {
                                 />
                                 <div
                                     className={styles.viewAllResults}
-                                    onClick={() => onSearch(keyword)}
-                                >
-                                    <SearchOutlined /> Xem tất cả kết quả
+                                    onClick={() => onSearch(keyword)} // Truyền keyword vào onSearch
+                                ></div>
+                            </div>
+                        ) : keyword.length >= 2 ? (
+                            <div className={styles.suggestionsDropdown}>
+                                <div className={styles.noResults}>
+                                    Không có kết quả đã tìm kiếm cho: "{keyword}
+                                    "
                                 </div>
                             </div>
-                        )}
+                        ) : null}
                     </div>
-                    <Link className={clsx(styles.logo)} to="/">
-                        Logo
-                    </Link>
                 </div>
             </header>
+            {showAlert && (
+                <div className={styles.alert}>
+                    Vui lòng nhập từ khóa để tìm kiếm!
+                </div>
+            )}
         </div>
     );
 };

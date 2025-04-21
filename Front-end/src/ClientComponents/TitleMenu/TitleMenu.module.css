@@ -1,6 +1,7 @@
 .ranking {
     position: relative;
     margin-top: 35px;
+    margin-left: 12px;
 }
 
 .ranking::before {

@@ -432,7 +432,7 @@ class TicketController extends Controller
                     }
 
                     if ($combo->quantity < $quantity) {
-                        throw new \Exception("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}");
+                        throw new \Exception("Combo {$combo->name} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}");
                     }
 
                     // Giảm quantity của combo
@@ -447,6 +447,18 @@ class TicketController extends Controller
                         'combo_id' => $combo->id,
                         'quantity' => $quantity,
                     ]);
+                }
+            }
+
+            // Trừ quantity của discount_code nếu có
+            if ($status == 'confirmed' && !empty($pricing['discount_code_id'])) {
+                $discount = DiscountCode::find($pricing['discount_code_id']);
+                if ($discount) {
+                    if ($discount->quantity < 1) {
+                        throw new \Exception("Mã khuyến mại {$discount->name_code} đã hết số lượng");
+                    }
+                    $discount->quantity -= 1;
+                    $discount->save();
                 }
             }
 
@@ -688,6 +700,7 @@ class TicketController extends Controller
             // Xử lý mã khuyến mại
             $discountCode = $request->input('discount_code');
             $discountCodeId = null;
+
             if ($discountCode) {
                 $discount = DiscountCode::where('name_code', $discountCode)
                     ->where('status', 'active')
@@ -717,25 +730,25 @@ class TicketController extends Controller
             }
 
             // Kiểm tra số lượng combo trước khi lưu booking
-            if (!empty($request->combo_ids)) {
-                $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
-                foreach ($combos as $combo) {
-                    $quantity = $comboQuantities[$combo->id]->count();
+            // if (!empty($request->combo_ids)) {
+            //     $comboQuantities = collect($request->combo_ids)->groupBy(fn($id) => $id);
+            //     foreach ($combos as $combo) {
+            //         $quantity = $comboQuantities[$combo->id]->count();
 
-                    if (!isset($combo->quantity)) {
-                        Log::warning("Combo ID {$combo->id} does not have a quantity column.");
-                        continue;
-                    }
+            //         if (!isset($combo->quantity)) {
+            //             Log::warning("Combo ID {$combo->id} does not have a quantity column.");
+            //             continue;
+            //         }
 
-                    if ($combo->quantity < $quantity) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => "Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
-                            'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo ID {$combo->id} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
-                        ], 400);
-                    }
-                }
-            }
+            //         if ($combo->quantity < $quantity) {
+            //             return response()->json([
+            //                 'success' => false,
+            //                 'message' => "Combo {$combo->name} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}",
+            //                 'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode("Combo {$combo->name} không đủ số lượng. Yêu cầu: $quantity, Còn lại: {$combo->quantity}"),
+            //             ], 400);
+            //         }
+            //     }
+            // }
 
             // Lấy pricing từ request (không tính lại)
             $pricing = [
@@ -786,13 +799,13 @@ class TicketController extends Controller
                 }
 
                 // Trừ quantity của discount_code nếu có
-                if ($discountCodeId) {
-                    $discount = DiscountCode::find($discountCodeId);
-                    if ($discount) {
-                        $discount->quantity -= 1;
-                        $discount->save();
-                    }
-                }
+                // if ($discountCodeId) {
+                //     $discount = DiscountCode::find($discountCodeId);
+                //     if ($discount) {
+                //         $discount->quantity -= 1;
+                //         $discount->save();
+                //     }
+                // }
 
                 // Gọi QR code
                 $ticketDetails['qr_code'] = $this->generateQrCode($booking, $ticketDetails);
@@ -827,9 +840,4 @@ class TicketController extends Controller
             ], 400);
         }
     }
-
-
-
-
-    //-------------------------end-test-------------------------------//
 }

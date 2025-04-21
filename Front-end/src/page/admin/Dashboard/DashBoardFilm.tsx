@@ -78,6 +78,29 @@ const DashBoardFilm = () => {
             key: "total_tickets",
         },
         {
+            title: "Tổng suất chiếu",
+            dataIndex: "total_showtimes",
+            key: "total_showtimes",
+        },
+        {
+            title: "Tỷ lệ vé / suất",
+            dataIndex: "rate",
+            key: "rate",
+            render: (value: any, record: any) => {
+                const totalSeatsOfShowtime = record.total_showtimes * 126;
+                return (
+                    <span>
+                        {(
+                            (record.total_tickets / totalSeatsOfShowtime) *
+                            100
+                        ).toFixed(2)}
+                        %
+                    </span>
+                );
+            },
+        },
+
+        {
             title: "Tổng doanh thu",
             dataIndex: "total_revenue",
             key: "total_revenue",
@@ -99,32 +122,20 @@ const DashBoardFilm = () => {
                 dashboardData={dashboardData}
                 isLoading={isLoading}
             ></ChartsFilm>
-            <h2 className={clsx(styles.titleTable)}>
-                Doanh thu phim đang chiếu
-            </h2>
-
+            <div className={clsx(styles.table)}>
+                <h2 className={clsx(styles.titleTable)}>
+                    Doanh thu phim đang chiếu
+                </h2>
+                <span className={clsx(styles.proportion)}>
+                    Tỷ lệ được tính với 1 suất = 126 ghế
+                </span>
+            </div>
             <Skeleton loading={isLoading} active>
                 <Table
                     columns={columns}
                     dataSource={dashboardData?.movie_stats
                         ?.filter(
                             (item: any) => item.movie_status === "now_showing"
-                        )
-                        ?.map((item: any, index: number) => ({
-                            ...item,
-                            key: item.movie_id || index,
-                        }))}
-                />
-            </Skeleton>
-            <h2 className={clsx(styles.titleTable)}>
-                Doanh thu phim sắp chiếu
-            </h2>
-            <Skeleton loading={isLoading} active>
-                <Table
-                    columns={columns}
-                    dataSource={dashboardData?.movie_stats
-                        ?.filter(
-                            (item: any) => item.movie_status === "coming_soon"
                         )
                         ?.map((item: any, index: number) => ({
                             ...item,

@@ -15,52 +15,62 @@ const CardsTitle = ({
     monthlyRevenueValue,
     newCustomers,
     totalTicketSold,
+    totalShowtimes,
 }: any) => {
     return (
-        <>
-            <Col span={6}>
-                <Card>
-                    <Statistic
-                        className={clsx(styles.statisticsInfo)}
-                        title={`Danh thu trong ngày (${dailyRevenueDate})`}
-                        value={dailyRevenueValue}
-                        prefix={<FileProtectOutlined />}
-                        suffix="VND"
-                    />
-                </Card>
-            </Col>
-            <Col span={6}>
-                <Card>
-                    <Statistic
-                        className={clsx(styles.statisticsInfo)}
-                        title="Khách hàng mới"
-                        value={newCustomers}
-                        prefix={<UserAddOutlined />}
-                    />
-                </Card>
-            </Col>
-            <Col span={6}>
-                <Card>
-                    <Statistic
-                        className={clsx(styles.statisticsInfo)}
-                        title="Tổng số vé bán ra"
-                        value={totalTicketSold}
-                        prefix={<ScheduleOutlined />}
-                    />
-                </Card>
-            </Col>
-            <Col span={6}>
-                <Card>
-                    <Statistic
-                        className={clsx(styles.statisticsInfo)}
-                        title={`Doanh thu tháng (${monthlyRevenueDate})`}
-                        value={monthlyRevenueValue}
-                        prefix={<DollarOutlined />}
-                        suffix="VND"
-                    />
-                </Card>
-            </Col>
-        </>
+        <div className={clsx(styles.cardsTitle)}>
+            <Card
+                className={clsx(styles.statisticsInfo, styles.statisticsInfo1)}
+            >
+                <Statistic
+                    title={`Danh thu trong ngày (${dailyRevenueDate})`}
+                    value={dailyRevenueValue}
+                    prefix={<FileProtectOutlined />}
+                    suffix="VND"
+                />
+            </Card>
+
+            <Card
+                className={clsx(styles.statisticsInfo, styles.statisticsInfo2)}
+            >
+                <Statistic
+                    title="Khách hàng mới"
+                    value={newCustomers}
+                    prefix={<UserAddOutlined />}
+                />
+            </Card>
+
+            <Card
+                className={clsx(styles.statisticsInfo, styles.statisticsInfo3)}
+            >
+                <Statistic
+                    title="Tổng số vé bán ra"
+                    value={totalTicketSold}
+                    prefix={<ScheduleOutlined />}
+                />
+            </Card>
+
+            <Card
+                className={clsx(styles.statisticsInfo, styles.statisticsInfo4)}
+            >
+                <Statistic
+                    title="Tổng suất chiếu đang chiếu"
+                    value={totalShowtimes}
+                    prefix={<ScheduleOutlined />}
+                />
+            </Card>
+
+            <Card
+                className={clsx(styles.statisticsInfo, styles.statisticsInfo5)}
+            >
+                <Statistic
+                    title={`Doanh thu tháng (${monthlyRevenueDate})`}
+                    value={monthlyRevenueValue}
+                    prefix={<DollarOutlined />}
+                    suffix="VND"
+                />
+            </Card>
+        </div>
     );
 };
 

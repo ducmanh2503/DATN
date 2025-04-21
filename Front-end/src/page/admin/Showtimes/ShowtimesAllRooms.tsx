@@ -1,4 +1,4 @@
-import { Space, Spin, Table, Tag } from "antd";
+import { Button, message, Space, Spin, Table, Tag } from "antd";
 import { RoomSHowtimesType } from "../../../types/interface";
 import DeleteShowtimes from "./DeleteShowtimes";
 import EditShowtimes from "./EditShowtimes";
@@ -15,6 +15,8 @@ const ShowtimesAllRooms = ({
 }: any) => {
     const [processedData, setProcessedData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [messageApi, contextHolder] = message.useMessage();
+
     useEffect(() => {
         if (showtimesData.length > 0) {
             setLoading(true);
@@ -68,6 +70,16 @@ const ShowtimesAllRooms = ({
                 );
             },
         },
+
+        {
+            title: "Phòng chiếu",
+            dataIndex: "room_name",
+            key: "room_name",
+            render: (_: any, recordRoom: any) => {
+                console.log(recordRoom);
+                return <Tag color="purple">{recordRoom?.room?.name}</Tag>;
+            },
+        },
         {
             title: "Hình thức chiếu",
             dataIndex: "room_type",
@@ -78,20 +90,12 @@ const ShowtimesAllRooms = ({
                 );
                 return (
                     <Tag color="volcano">
-                        {findSeatType ? findSeatType.name : "Không có dữ liệu"}
+                        {findSeatType
+                            ? findSeatType.name
+                            : recordRoom?.room?.room_type?.name}
                     </Tag>
                 );
             },
-        },
-        {
-            title: "Hình thức dịch",
-            dataIndex: "language",
-            key: "language",
-            render: (_: any, recordRoom: any) => (
-                <Tag color="purple">
-                    {recordRoom?.calendar_show?.movie?.language}
-                </Tag>
-            ),
         },
         {
             title: "Thời gian chiếu",
@@ -149,6 +153,7 @@ const ShowtimesAllRooms = ({
                             id={record.id}
                             selectedDate={selectedDate}
                             setShowtimesData={setShowtimesData}
+                            messageApi={messageApi}
                         ></DeleteShowtimes>
                         <EditShowtimes
                             id={record.id}
@@ -162,6 +167,7 @@ const ShowtimesAllRooms = ({
     ];
     return (
         <div className={clsx(styles.roomBox)}>
+            {contextHolder}
             <h1 className={clsx(styles.roomName)}>
                 {processedData[0].room.name}
             </h1>

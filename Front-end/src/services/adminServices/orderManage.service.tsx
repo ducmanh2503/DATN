@@ -3,6 +3,7 @@ import axios from "axios";
 import {
     CHANGE_CHECKIN_ORDER,
     DETAIL_ORDER,
+    EXPORT_PDF_ORDER,
     ORDERS_LIST,
 } from "../../config/ApiConfig";
 import { useAuthContext } from "../../ClientComponents/UseContext/TokenContext";
@@ -63,4 +64,33 @@ export const useChangeStatusCheckin = (messageApi: any) => {
         },
         onError: handleApiError,
     });
+};
+
+// xuất vé PDF
+export const useExportPDFOrder = () => {
+    const { mutate } = useMutation({
+        mutationFn: async (bookingId?: number) => {
+            const response = await axios.get(EXPORT_PDF_ORDER(bookingId!), {
+                responseType: "blob",
+            });
+
+            // Tạo URL từ blob và tải file
+            const blob = new Blob([response.data], { type: "application/pdf" });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `Cinema Forest-ticket-${bookingId}.pdf`
+            );
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            return true;
+        },
+        onError: handleApiError,
+    });
+    return { mutate };
 };

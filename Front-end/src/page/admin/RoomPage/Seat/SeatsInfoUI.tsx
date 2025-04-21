@@ -3,7 +3,12 @@ import styles from "./SeatsInfoUI.module.css";
 
 const SeatsInfoUI = () => {
     return (
-        <>
+        <div className={clsx(styles.seatsInfoContainer)}>
+            <div className={clsx(styles.warnning)}>
+                <p>Số cột phải là CHẴN nếu muốn build GHẾ SWEETBOX</p>
+                <p>Ghế Sweetbox đi theo cặp A1-A2, A3-A4, A5-A6, ...</p>
+            </div>
+
             <div className={clsx(styles.bookingSeatsInfo)}>
                 <div className={clsx(styles.flexBooking)}>
                     <div className={clsx(styles.seatsInfo)}>
@@ -65,7 +70,7 @@ const SeatsInfoUI = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

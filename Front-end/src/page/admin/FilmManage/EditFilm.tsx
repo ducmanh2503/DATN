@@ -162,6 +162,7 @@ const EditFilm = ({ id }: any) => {
 
     return (
         <div>
+            {contextHolder}
             <Button
                 type="primary"
                 onClick={showDrawer}
@@ -186,7 +187,6 @@ const EditFilm = ({ id }: any) => {
                     </Space>
                 }
             >
-                {contextHolder}
                 <Form
                     form={form}
                     name="edit-film-form"

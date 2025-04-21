@@ -19,11 +19,11 @@ interface VerifyCodeRequest {
 }
 
 const Register = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [phone, setPhone] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [isOtpModalVisible, setIsOtpModalVisible] = useState(false);
   const [otp, setOtp] = useState("");
@@ -31,11 +31,11 @@ const Register = () => {
 
   const logError = (action: string, error: any, requestData?: any) => {
     console.error(`[Register Component] ${action} Error:`, {
-      message: error.message || 'Unknown error',
-      status: error.status || 'N/A',
-      response: error.error || error.response || 'No response data',
-      requestData: requestData || 'N/A',
-      stack: error.stack || 'No stack trace',
+      message: error.message || "Unknown error",
+      status: error.status || "N/A",
+      response: error.error || error.response || "No response data",
+      requestData: requestData || "N/A",
+      stack: error.stack || "No stack trace",
     });
   };
 
@@ -61,9 +61,12 @@ const Register = () => {
     };
 
     try {
-      console.log('[Register Component] Sending Register Request:', registerData);
+      console.log(
+        "[Register Component] Sending Register Request:",
+        registerData
+      );
       const response = await authService.register(registerData);
-      console.log('[Register Component] Register Success:', {
+      console.log("[Register Component] Register Success:", {
         message: response.message,
         data: response,
       });
@@ -72,15 +75,16 @@ const Register = () => {
     } catch (error: any) {
       logError("Register - API Call", error, registerData);
 
-      let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+      let errorMessage = "Đăng ký thất bại. Vui lòng thử lại.";
       if (error.status === 422 && error.error) {
-        const errors = Object.values(error.error).flat().join(', ');
-        errorMessage = errors || 'Dữ liệu không hợp lệ.';
+        const errors = Object.values(error.error).flat().join(", ");
+        errorMessage = errors || "Dữ liệu không hợp lệ.";
       } else if (error.status === 500) {
-        if (error.message?.includes('Failed to authenticate on SMTP server')) {
-          errorMessage = 'Không thể gửi email xác thực. Vui lòng kiểm tra cấu hình email hoặc thử lại sau.';
+        if (error.message?.includes("Failed to authenticate on SMTP server")) {
+          errorMessage =
+            "Không thể gửi email xác thực. Vui lòng kiểm tra cấu hình email hoặc thử lại sau.";
         } else {
-          errorMessage = 'Lỗi hệ thống. Vui lòng liên hệ quản trị viên.';
+          errorMessage = "Lỗi hệ thống. Vui lòng liên hệ quản trị viên.";
         }
       }
 
@@ -92,28 +96,39 @@ const Register = () => {
 
   const handleOtpSubmit = async () => {
     if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
-      message.error('Vui lòng nhập mã OTP 6 chữ số!');
-      logError('OTP Submit - Invalid OTP', { message: 'OTP must be 6 digits', otp });
+      message.error("Vui lòng nhập mã OTP 6 chữ số!");
+      logError("OTP Submit - Invalid OTP", {
+        message: "OTP must be 6 digits",
+        otp,
+      });
       return;
     }
 
     try {
-      console.log('[Register Component] Sending OTP Verification:', { email, otp });
+      console.log("[Register Component] Sending OTP Verification:", {
+        email,
+        otp,
+      });
       const verifyResponse = await authService.verifyCode({ email, code: otp });
-      console.log('[Register Component] OTP Verification Success:', verifyResponse);
+      console.log(
+        "[Register Component] OTP Verification Success:",
+        verifyResponse
+      );
 
       if (verifyResponse.token) {
-        localStorage.setItem('auth_token', verifyResponse.token);
-        localStorage.setItem('user_role', 'customer'); // Mặc định vai trò là customer
+        localStorage.setItem("auth_token", verifyResponse.token);
+        localStorage.setItem("user_role", "customer"); // Mặc định vai trò là customer
 
         message.success(verifyResponse.message);
         setIsOtpModalVisible(false);
 
         // Tự động đăng nhập và chuyển hướng đến trang user
-        console.log('Đăng ký và tự động đăng nhập thành công, chuyển hướng tới: /');
-        navigate('/');
+        console.log(
+          "Đăng ký và tự động đăng nhập thành công, chuyển hướng tới: /"
+        );
+        navigate("/");
       } else {
-        throw new Error('Không nhận được token từ phản hồi xác thực OTP');
+        throw new Error("Không nhận được token từ phản hồi xác thực OTP");
       }
     } catch (error: any) {
       logError("OTP Submit - API Call", error, { email, otp });
@@ -123,13 +138,15 @@ const Register = () => {
 
   const handleResendOtp = async () => {
     try {
-      console.log('[Register Component] Sending Resend OTP Request:', { email });
+      console.log("[Register Component] Sending Resend OTP Request:", {
+        email,
+      });
       const response = await authService.resendVerificationEmail(email);
-      console.log('[Register Component] Resend OTP Success:', response);
+      console.log("[Register Component] Resend OTP Success:", response);
       message.success(response.message);
     } catch (error: any) {
-      logError('Resend OTP - API Call', error, { email });
-      message.error(error.message || 'Gửi lại OTP thất bại.');
+      logError("Resend OTP - API Call", error, { email });
+      message.error(error.message || "Gửi lại OTP thất bại.");
     }
   };
 

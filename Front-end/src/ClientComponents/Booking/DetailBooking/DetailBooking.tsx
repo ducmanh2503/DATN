@@ -2,7 +2,7 @@ import { Modal } from "antd";
 import styles from "./DetailBooking.module.css";
 import dayjs from "dayjs";
 import clsx from "clsx";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useState } from "react";
 import { useStepsContext } from "../../UseContext/StepsContext";
@@ -16,6 +16,7 @@ import {
 } from "../../../config/ApiConfig";
 import { useAuthContext } from "../../UseContext/TokenContext";
 import { usePromotionContext } from "../../UseContext/PromotionContext";
+import { handleApiError } from "../../../services/adminServices/utils";
 
 const DetailBooking = ({
     open,
@@ -36,21 +37,40 @@ const DetailBooking = ({
     const { totalPrice } = useFinalPriceContext();
     const { totalSeatPrice, typeSeats, selectedSeatIds, seatRoomPrice } =
         useSeatsContext();
-    const { nameCombo, totalComboPrice, holdComboID } = useComboContext();
+    const {
+        nameCombo,
+        totalComboPrice,
+        holdComboID,
+        setHoldComboID,
+        setNameCombo,
+        setQuantityCombo,
+        setTotalComboPrice,
+    } = useComboContext();
     const { usedPoints, promoCode, totalPricePoint, totalPriceVoucher } =
         usePromotionContext();
     const { tokenUserId } = useAuthContext();
 
+    const queryClient = useQueryClient();
     const [isSelected, setIsSelected] = useState(false);
     const currentYear = dayjs().year();
 
     const onOk = async () => {
         const selectedPaymentUrl =
-            paymentType === "vnpay" ? PAYMENT_WITH_VNPAY : PAYMENT_WITH_PAYPAL;
+            paymentType === "VNpay" ? PAYMENT_WITH_VNPAY : PAYMENT_WITH_PAYPAL;
 
         paymentMutation.mutate(selectedPaymentUrl, {
             onSuccess: (data: any) => {
                 window.location.href = data;
+            },
+            onError: (error) => {
+                handleApiError(error);
+                setHoldComboID([]);
+                setNameCombo([]);
+                setQuantityCombo(0);
+                setTotalComboPrice(0);
+                queryClient.invalidateQueries({
+                    queryKey: ["optionsCombos"],
+                });
             },
         });
 
@@ -67,7 +87,7 @@ const DetailBooking = ({
     };
 
     const paymentRequest = async (url: string) => {
-        console.log("discount_code:", promoCode);
+        // console.log("discount_code:", promoCode);
         const { data } = await axios.post(
             url,
             {

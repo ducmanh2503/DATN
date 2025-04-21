@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Excel as ExcelExcel;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class MoviesController extends Controller
 {
@@ -58,7 +59,7 @@ class MoviesController extends Controller
     }
 
     // Lấy danh sách phim cùng thể loại (trừ phim hiện tại)
-    public function relatedMovies(Request $request, $movieId)
+    public function relatedMovies($movieId)
     {
         // Tìm phim hiện tại dựa trên ID
         $currentMovie = Movies::with('genres')->find($movieId);
@@ -105,7 +106,7 @@ class MoviesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
 
         //Hiển thị tất cả phim
@@ -131,8 +132,6 @@ class MoviesController extends Controller
 
     /**
      * Lấy danh sách phim cho client
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function getMoviesForClient(Request $request)
     {
@@ -268,7 +267,7 @@ class MoviesController extends Controller
                     $path = $poster->store('images', 'public');
                     $posterPaths[$originalName] = Storage::url($path);
                 }
-                Log::info('Đường dẫn poster đã tải lên: ' . json_encode($posterPaths));
+                // Log::info('Đường dẫn poster đã tải lên: ' . json_encode($posterPaths));
             }
 
             // Import Excel với dữ liệu ảnh
@@ -277,6 +276,73 @@ class MoviesController extends Controller
             return response()->json(['message' => 'Import phim thành công'], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Lỗi khi import: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Tải về template Excel mẫu để nhập phim
+     */
+    public function downloadTemplateExcel()
+    {
+        try {
+            $templateData = [
+                [
+                    'title' => 'Ví dụ: Kimetsu no yaiba',
+                    'director' => 'Ví dụ: Hayao Miyazaki',
+                    'release_date' => 'Ví dụ: 2023-04-26',
+                    'running_time' => 'Ví dụ: 181 phút',
+                    'language' => 'Ví dụ: Tiếng Nhật',
+                    'rated' => 'Ví dụ: PG-13',
+                    'description' => 'Ví dụ: Một bộ phim hành động phiêu lưu',
+                    'poster' => 'Ví dụ: kimetsu_no_yaiba.jpg',
+                    'trailer' => 'Ví dụ: https://www.youtube.com/watch?v=example',
+                    'movie_status' => 'Ví dụ: now_showing',
+                    'actors' => 'Ví dụ: Kamado Tanjirou, Zenitsu Agatsuma, Songoku',
+                    'genres' => 'Ví dụ: Hành động, Hài hước, Phiêu lưu, hoạt hình',
+                ]
+            ];
+
+            return Excel::download(new class($templateData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings, \Maatwebsite\Excel\Concerns\WithStyles {
+                protected $data;
+
+                public function __construct(array $data)
+                {
+                    $this->data = $data;
+                }
+
+                public function array(): array
+                {
+                    return $this->data;
+                }
+
+                public function headings(): array
+                {
+                    return [
+                        'title',
+                        'director',
+                        'release_date',
+                        'running_time',
+                        'language',
+                        'rated',
+                        'description',
+                        'poster',
+                        'trailer',
+                        'movie_status',
+                        'actors',
+                        'genres',
+                    ];
+                }
+
+                public function styles(Worksheet $sheet)
+                {
+                    return [
+                        // In đậm và đổi màu nền cho hàng tiêu đề
+                        1 => ['font' => ['bold' => true], 'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFCCCCCC']]],
+                    ];
+                }
+            }, 'movie_import_template.xlsx');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Lỗi khi tạo template: ' . $e->getMessage()], 500);
         }
     }
 

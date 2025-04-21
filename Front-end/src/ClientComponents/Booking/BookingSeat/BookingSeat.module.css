@@ -10,41 +10,40 @@
     background-color: #1a1a1a;
     padding: 12px;
     text-align: center;
-    color: white;
+    color: rgb(202, 202, 202);
     margin-bottom: 40px;
     margin-left: 80px;
     transform: perspective(300px) rotateX(-10deg);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 1);
     width: 80%;
 }
 
 .matrixSeat {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
     overflow-x: auto;
-    padding: 20px;
 }
 .rowSeats {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
 }
 
 .colSeats {
     width: 30px;
     text-align: center;
     font-weight: 500;
+    position: absolute;
+    left: 0;
 }
 .seatName {
     width: 25px;
     height: 25px;
     border: 1px solid #8c8c8c;
-    color: black;
     border-radius: 6px;
     background: transparent;
-    opacity: 1;
     cursor: pointer;
     font-size: 11px;
     display: flex;
@@ -56,6 +55,8 @@
 
 .seatName:hover {
     background: #52c41a !important; /* Màu xám nhạt khi hover */
+    border: 1px solid #52c41a;
+    color: white;
 }
 
 .held {
@@ -74,6 +75,8 @@
 
 .selected {
     background: #52c41a;
+    border: 1px solid #52c41a !important;
+    color: white !important;
 }
 
 .empty {

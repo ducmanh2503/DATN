@@ -9,6 +9,8 @@ const DELETE_FILM = (id: number) => `${BASE_URL}/movies/${id}`;
 const RESTORE_FILM = (id: number) => `${BASE_URL}/movies/restore/${id}`;
 const DETAIL_DELETE_FILM = (id: number) =>
     `${BASE_URL}/movies/show-movie-destroy/${id}`;
+const CREATE_FILM_WITH_EXCEL = `${BASE_URL}/movies/import`; // thêm mới film mới file excel
+const DEFAULT_TERMINAL_EXCEL = `${BASE_URL}/template-excel`; // tải file excel mẫu
 
 const GET_DIRECTORS_LIST = `${BASE_URL}/directors`;
 const UPDATE_DIRECTORS = (id: number) => `${BASE_URL}/directors/${id}`;
@@ -26,6 +28,8 @@ const CREATE_CALENDAR = `${BASE_URL}/calendarShow`;
 const DELETE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const UPDATE_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
 const DETAIL_CALENDAR = (id: number) => `${BASE_URL}/calendarShow/${id}`;
+const ON_PUBLISH_CALENDARSHOW = (canlendarId: number) =>
+    `${BASE_URL}/calendarShow/${canlendarId}/publish`; // thực hiện render ra ngoài client
 
 const GET_ONE_SHOWTIMES = `${BASE_URL}/show-times/by-date`; // tìm kiếm suất chiếu qua ngày và phòng chiếu
 const UPDATE_SHOWTIMES = `${BASE_URL}/showTime`;
@@ -34,6 +38,8 @@ const DELETE_ONE_SHOWTIMES = (id: number, selected_date: string) =>
 const GET_DETAIL_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // chi tiết suất chiếu
 const UPDATE_ONE_SHOWTIMES = (id: number) => `${BASE_URL}/showTime/${id}`; // cập nhật suất chiếu
 const GET_DATES_BY_CALENDAR = `${BASE_URL}/show-times/get-date-range-by-calendar`; // lấy những ngày trong lịch chiếu
+const GET_SHOWTIMES_BY_FILM = (movie_id: number) =>
+    `${BASE_URL}/showtimes/movie/${movie_id}`; // lấy danh sách suất chiếu của 1 phim
 
 const GET_ROOMS = `${BASE_URL}/room`; // lấy danh sách phòng chiếu
 const GET_ONE_ROOM = (id: string | number) => `${BASE_URL}/room/${id}`; // lấy chi tiết 1 phòng chiếu
@@ -99,6 +105,9 @@ const CHANGE_PASSWORD = `${BASE_URL}/change-password`; // đổi mật khẩu
 
 const TICKET_DETAIL = `${BASE_URL}/ticket-details`; // chi tiết ticket để lấy QR
 
+const EXPORT_PDF_ORDER = (bookingId: number) =>
+    `${BASE_URL}/order/${bookingId}/export-tickets-pdf`; // xuất vé với file PDF
+
 const Orders_Details_Client = (bookingId: number) =>
     `${BASE_URL}/orders-details-client/${bookingId}`;
 
@@ -126,6 +135,8 @@ export {
     DELETE_FILM,
     RESTORE_FILM,
     DETAIL_DELETE_FILM,
+    CREATE_FILM_WITH_EXCEL,
+    DEFAULT_TERMINAL_EXCEL,
     GET_DIRECTORS_LIST,
     UPDATE_DIRECTORS,
     DELETE_DIRECTORS,
@@ -141,7 +152,7 @@ export {
     CREATE_CALENDAR,
     UPDATE_CALENDAR,
     DETAIL_CALENDAR,
-    // GET_ALL_SHOWTIMES,
+    ON_PUBLISH_CALENDARSHOW,
     UPDATE_SHOWTIMES,
     DELETE_ONE_SHOWTIMES,
     GET_DETAIL_ONE_SHOWTIMES,
@@ -177,4 +188,6 @@ export {
     UPDATE_SEAT_STATUS,
     HOLD_SEAT,
     TICKET_DETAIL,
+    GET_SHOWTIMES_BY_FILM,
+    EXPORT_PDF_ORDER,
 };

@@ -3,7 +3,7 @@ import ClientLayout from "../Layout";
 
 const CinemaForest = () => {
     return (
-        <div>
+        <div style={{ minHeight: "1600px" }}>
             <ClientLayout></ClientLayout>
         </div>
     );

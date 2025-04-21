@@ -3,29 +3,37 @@ import { useMutation } from "@tanstack/react-query";
 import { Button, message, Popconfirm } from "antd";
 import axios from "axios";
 import { DELETE_ONE_SHOWTIMES } from "../../../config/ApiConfig";
+import { handleApiError } from "../../../services/adminServices/utils";
 
-const DeleteShowtimes = ({ id, selectedDate, setShowtimesData }: any) => {
-    const [messageApi, contextHolder] = message.useMessage();
-
+const DeleteShowtimes = ({
+    id,
+    selectedDate,
+    setShowtimesData,
+    setDataByFilmId,
+    messageApi,
+}: any) => {
     const { mutate } = useMutation({
         mutationFn: async () => {
             await axios.delete(DELETE_ONE_SHOWTIMES(id, selectedDate));
         },
         onSuccess: () => {
-            setShowtimesData((prevData: any) =>
-                prevData.filter((item: any) => item.id !== id)
-            );
+            setShowtimesData &&
+                setShowtimesData((prevData: any) =>
+                    prevData.filter((item: any) => item.id !== id)
+                );
+
+            setDataByFilmId &&
+                setDataByFilmId((prevData: any) =>
+                    prevData.filter((item: any) => item.id !== id)
+                );
             messageApi.success("Xóa suất chiếu thành công");
         },
-        onError: () => {
-            messageApi.error("Lỗi: Không thể xóa suất chiếu");
-        },
+        onError: handleApiError,
     });
     return (
         <>
-            {contextHolder}
             <Popconfirm
-                title="Xóa phim này?"
+                title="Xóa suất chiếu này?"
                 description="Bạn có chắc chắn muốn xóa không?"
                 okText="Yes"
                 onConfirm={() => mutate(id)}

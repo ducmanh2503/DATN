@@ -16,6 +16,7 @@ export interface FormData {
     directors: string; //filmManage type
     genre: string; //filmManage type
     id: number; // editFilmManage type
+    excel_file: any;
 }
 
 export interface DataTypeGenresActorsDirectors {
@@ -27,6 +28,7 @@ export interface DataTypeGenresActorsDirectors {
     movie: string;
     title: string;
     movieTitle: string;
+    is_public: boolean;
 }
 
 export interface SelectFormProps {
@@ -51,6 +53,7 @@ export interface FieldType {
     room_type_id: string;
     show_date: string;
     date: string;
+    movie_id: string;
 }
 
 export interface RoomSHowtimesType {
@@ -59,6 +62,7 @@ export interface RoomSHowtimesType {
     name: string;
     age: number;
     address: string;
+    show_date: string;
 }
 
 // onError: (error: any) => {

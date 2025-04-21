@@ -1,12 +1,21 @@
+.seatsInfoContainer {
+    background-color: #e7e6e6;
+    margin-top: 32px;
+    padding: 6px 5px 10px;
+}
+
 .bookingSeatsInfo {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-    margin-top: 32px;
-    padding: 16px 5px;
-    background-color: #e7e6e6;
-    border-radius: 8px;
+    margin-top: 4px;
+}
+
+.warnning {
+    color: red;
+    text-align: center;
+    border-bottom: 1px solid #8c8c8c;
+    padding-bottom: 10px;
 }
 
 .flexBooking {

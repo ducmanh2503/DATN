@@ -38,6 +38,7 @@ const DetailFilm = ({ id, film }: any) => {
                     `http://localhost:8000/api/movies-details/${id}`
                 );
                 console.log("check-data-detail", data);
+
                 return data.data;
             } catch (err) {
                 console.error("Error fetching film details:", err);

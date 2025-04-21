@@ -521,6 +521,17 @@ class TicketController extends Controller
                 }
             }
 
+            // Trừ quantity của discount_code nếu có
+            if ($status == 'confirmed' && !empty($pricing['discount_code_id'])) {
+                $discount = DiscountCode::find($pricing['discount_code_id']);
+                if ($discount) {
+                    if ($discount->quantity < 1) {
+                        throw new \Exception("Mã khuyến mại {$discount->name_code} đã hết số lượng");
+                    }
+                    $discount->quantity -= 1;
+                    $discount->save();
+                }
+            }
 
             broadcast(new SeatHeldEvent(
                 $data['seat_ids'],
@@ -799,7 +810,6 @@ class TicketController extends Controller
             //         ->where('end_date', '>=', now())
             //         ->first();
 
-
             //     if (!$discount) {
             //         return response()->json([
             //             'success' => false,
@@ -807,7 +817,6 @@ class TicketController extends Controller
             //             'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
             //         ], 400);
             //     }
-
 
             //     // Kiểm tra số lượng discount code
             //     if ($discount->quantity < 1) {
@@ -818,10 +827,8 @@ class TicketController extends Controller
             //         ], 400);
             //     }
 
-
             //     $discountCodeId = $discount->id;
             // }
-
 
             // Kiểm tra số lượng combo trước khi lưu booking
             // if (!empty($request->combo_ids)) {
@@ -912,7 +919,6 @@ class TicketController extends Controller
                     }
                 }
 
-
                 // Gọi QR code
                 $ticketDetails['qr_code'] = $this->generateQrCode($booking, $ticketDetails);
 
@@ -950,10 +956,6 @@ class TicketController extends Controller
             ], 400);
         }
     }
-
-
-
-
 
 
 

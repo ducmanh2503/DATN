@@ -18,7 +18,10 @@ const VoucherInfo = () => {
         setQuantityPromotion,
         totalPricePoint,
         setTotalPriceVoucher,
-        totalPriceVoucher,
+        promoCodeLocal,
+        setPromoCodeLocal,
+        isVoucherUsed,
+        setIsVoucherUsed,
         setPromoCode, // Thêm setPromoCode từ context
     } = usePromotionContext();
     const { setTotalPrice, totalPrice } = useFinalPriceContext();
@@ -26,8 +29,8 @@ const VoucherInfo = () => {
     const { totalSeatPrice } = useSeatsContext();
     const { totalComboPrice } = useComboContext();
 
-    const [promoCode, setPromoCodeLocal] = useState<string>(""); // Giữ state cục bộ để quản lý input
-    const [isVoucherUsed, setIsVoucherUsed] = useState<boolean>(false);
+    // const [promoCodeLocal, setPromoCodeLocal] = useState<string>(""); // Giữ state cục bộ để quản lý input
+    // const [isVoucherUsed, setIsVoucherUsed] = useState<boolean>(false);
     const [voucherPrecent, setVoucherPrecent] = useState(""); // lưu % mã giảm giá
     const [maxPriceTotal, setMaxPriceTotal] = useState<number>(0);
 
@@ -69,14 +72,14 @@ const VoucherInfo = () => {
             });
             return;
         }
-        if (!promoCode) {
+        if (!promoCodeLocal) {
             openNotification({
                 title: "Forest Cinema cho biết",
                 description: "Nhập mã giảm giá nếu có",
             });
             return;
         }
-        getVoucher(promoCode);
+        getVoucher(promoCodeLocal);
     };
 
     // Gọi API kiểm tra mã khuyến mãi
@@ -84,35 +87,36 @@ const VoucherInfo = () => {
         mutationFn: async (code: string) => {
             const response = await axios.post(
                 GET_VOUCHER(code),
-                { name_code: promoCode },
+                { name_code: promoCodeLocal },
                 { headers: { Authorization: `Bearer ${tokenUserId}` } }
             );
 
             return response.data;
         },
         onSuccess: (data) => {
-            // debugger
+            debugger;
             const discountPercent = parseFloat(data.discount_percent);
             const maxDiscount = data.maxPrice;
 
             setVoucherPrecent(String(discountPercent));
             setMaxPriceTotal(maxDiscount);
 
+            // const defaultPrice = totalPrice + totalPricePoint;
             const defaultPrice = totalPrice + totalPricePoint;
-            const newPrice = defaultPrice * (1 - discountPercent / 100);
+            const priceDiscount = defaultPrice * (discountPercent / 100);
 
             if (!isNaN(discountPercent)) {
-                if (newPrice < maxDiscount) {
-                    setTotalPrice(newPrice - totalPricePoint);
-                    setTotalPriceVoucher(defaultPrice - newPrice);
+                if (priceDiscount < maxDiscount) {
+                    setTotalPriceVoucher(priceDiscount);
+                    setTotalPrice(totalPrice - priceDiscount);
                 } else {
-                    setTotalPrice(defaultPrice - maxDiscount);
+                    setTotalPrice(totalPrice - maxDiscount);
                     setTotalPriceVoucher(maxDiscount);
                 }
                 setQuantityPromotion(1);
                 setIsVoucherUsed(true);
             }
-            // debugger;
+            debugger;
         },
         onError: () => {
             openNotification({
@@ -121,9 +125,18 @@ const VoucherInfo = () => {
             });
         },
     });
+
+    // f5 thì reset lại điểm ở ssesion
     useEffect(() => {
-        console.log("maxPrice đã thay đổi:", maxPriceTotal);
-    }, [maxPriceTotal]);
+        const isReload =
+            window.performance &&
+            performance.getEntriesByType("navigation")[0].type === "reload";
+
+        if (isReload) {
+            setTotalPriceVoucher(0);
+            sessionStorage.removeItem("totalPriceVoucher");
+        }
+    }, []);
 
     return (
         <div className={clsx(styles.promotionInput)}>
@@ -131,7 +144,7 @@ const VoucherInfo = () => {
             <h3 className={clsx(styles.title)}>Mã khuyến mãi</h3>
             <Space.Compact>
                 <Input
-                    value={promoCode}
+                    value={promoCodeLocal}
                     onChange={onChangePromotion}
                     onKeyDown={(e) => {
                         if (e.key === "Backspace") {

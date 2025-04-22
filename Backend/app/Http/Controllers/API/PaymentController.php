@@ -115,7 +115,7 @@ class PaymentController extends Controller
             if (!$discount) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Mã khuyến mại không hợp lệ hoặc đã hết hạn',
+                    'message' => 'Mã khuyến mại đã được dùng hết',
                     'redirect' => 'http://localhost:5173/booking/payment-result?status=failure&message=' . urlencode('Mã khuyến mại không hợp lệ hoặc đã hết hạn'),
                 ], 400);
             }

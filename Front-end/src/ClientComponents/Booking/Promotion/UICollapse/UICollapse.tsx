@@ -42,7 +42,7 @@ const UICollapse = () => {
         if (!pointsNumber) {
             openNotification({
                 title: "Forest Cinema cho biết",
-                description: "Vui lòng nhập điểm tích lũy.",
+                description: "Vui lòng nhập điểm tích lũy nếu có.",
             });
             return;
         }
@@ -82,12 +82,11 @@ const UICollapse = () => {
     // Hàm xử lý sự kiện KeyDown
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Backspace") {
-            setTotalPrice((prev: number) => prev + prevPointsNumber * 1000);
-
             setPointsNumber(null);
             setPrevPointsNumber(0);
             setTotalPricePoint(0);
             setUsedPoints(0);
+            handleResetPoint();
         }
 
         if (e.key === "Enter") {
@@ -111,6 +110,20 @@ const UICollapse = () => {
         setUsedPoints(0);
         sessionStorage.removeItem("usedPoints");
     };
+
+    // f5 thì reset lại điểm ở ssesion
+    useEffect(() => {
+        const isReload =
+            window.performance &&
+            performance.getEntriesByType("navigation")[0].type === "reload";
+
+        if (isReload) {
+            setUsedPoints(0);
+            setTotalPricePoint(0);
+            sessionStorage.removeItem("usedPoints");
+            sessionStorage.removeItem("totalPricePoint");
+        }
+    }, []);
 
     const items = [
         {

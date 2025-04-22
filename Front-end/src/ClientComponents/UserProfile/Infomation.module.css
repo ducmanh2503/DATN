@@ -1,3 +1,9 @@
+.wrapper {
+    max-height: 700px;
+    padding: 10px;
+    overflow-y: auto;
+}
+
 .item {
     position: relative;
     padding: 12px 18px;
@@ -5,6 +11,7 @@
     background-color: #e0eefc;
     border-radius: 10px;
     margin-bottom: 20px;
+    margin-right: 20px;
     color: var(--border-color);
     cursor: pointer;
 }

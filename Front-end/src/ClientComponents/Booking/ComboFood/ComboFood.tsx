@@ -243,9 +243,7 @@ const ComboFood = ({ className }: any) => {
             performance.getEntriesByType("navigation")[0].type === "reload";
 
         if (isReload) {
-            if (totalComboPrice === 0) {
-                setQuantityMap({});
-            }
+            totalComboPrice === 0 && setQuantityMap({});
         }
     }, []);
 

@@ -36,11 +36,11 @@ class MoviesController extends Controller
             ->leftJoin('show_times', 'calendar_show.id', '=', 'show_times.calendar_show_id')
             ->leftJoin('bookings', 'show_times.id', '=', 'bookings.showtime_id')
             ->leftJoin('booking_details', 'bookings.id', '=', 'booking_details.booking_id')
-            ->whereNotNull('booking_details.seat_id') // Chỉ tính vé đã đặt
             ->select('movies.id', 'movies.title', 'movies.poster')
-            ->selectRaw('COUNT(booking_details.id) as total_tickets')
+            ->selectRaw('COALESCE(COUNT(booking_details.seat_id), 0) as total_tickets')
             ->groupBy('movies.id', 'movies.title', 'movies.poster')
-            ->orderBy('total_tickets', 'desc')
+            ->orderByDesc('total_tickets')
+            ->orderBy('movies.id')
             ->take(10)
             ->get()
             ->map(function ($item, $index) {
@@ -57,13 +57,14 @@ class MoviesController extends Controller
         $ticketedMovieIds = $movieRankings->pluck('movie_title')->toArray();
 
         // 2. Lấy danh sách phim mới, loại bỏ các phim đã có trong xếp hạng vé
-        $newMovies = Movies::select('title', 'poster')
+        $newMovies = Movies::select('id', 'title', 'poster')
             ->whereNotIn('title', $ticketedMovieIds) // Loại bỏ phim đã có trong xếp hạng
             ->orderBy('release_date', 'desc') // Hoặc 'created_at' nếu không có release_date
             ->take(10 - $movieRankings->count()) // Lấy đủ số phim để tổng là 10
             ->get()
             ->map(function ($item, $index) use ($movieRankings) {
                 return [
+                    'id' => $item->id,
                     'rank' => $movieRankings->count() + $index + 1, // Tiếp tục xếp hạng từ sau danh sách vé
                     'movie_title' => $item->title,
                     'total_tickets' => 0, // Phim mới không có vé

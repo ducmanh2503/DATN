@@ -1,32 +1,32 @@
 .r-product {
     width: 310px;
-    height: 290px;
     flex-shrink: 0;
     text-align: center;
-    /* background-color: var(--backgroud-product); */
     background-color: #fafafa;
 }
 
 .r-product .img-box {
     width: 100%;
+    height: 400px;
 }
 
 .r-product .img-box .image {
-    min-width: 300px;
-    width: 100%;
-    height: 100%;
+    padding-top: 10px;
+    width: 90%;
+    height: 400px;
     object-fit: cover;
 }
 
 .r-product .title {
     border-top: 1px solid var(--border-color);
     margin-top: 15px;
+    padding-bottom: 35px;
     display: flex;
 }
 .r-product .title .number {
-    width: 35px;
-    height: 34px;
-    padding-top: 4px;
+    width: 38px;
+    height: 40px;
+    padding-top: 6px;
     margin-left: 6px;
     color: white;
     font-size: 18px;

@@ -9,15 +9,17 @@ import "./RankingSlide.css";
 
 interface Movie {
   id: number;
-  title: string;
+  movie_title: string;
   poster: string;
-  ticket_count?: number;
+  rank: number;
+  total_tickets: number;
 }
 
 interface Product {
   id: number;
   name: string;
   img: string;
+  rank: number;
 }
 
 const RankingSlide = () => {
@@ -29,17 +31,20 @@ const RankingSlide = () => {
   useEffect(() => {
     const fetchRankingMovies = async () => {
       try {
-        // Thử lấy danh sách phim từ API movies-index trước
-        const response = await fetch("http://localhost:8000/api/movies-index");
+        // Lấy danh sách phim từ API ranking
+        const response = await fetch(
+          "http://localhost:8000/api/movies-ranking"
+        );
         const data = await response.json();
 
-        // Kiểm tra xem có dữ liệu phim đang chiếu không
-        if (data && data.now_showing && Array.isArray(data.now_showing)) {
+        // Kiểm tra xem có dữ liệu phim không
+        if (data && data.data && Array.isArray(data.data)) {
           // Chuyển đổi dữ liệu sang định dạng Product
-          const mappedProducts = data.now_showing.map((movie: Movie) => ({
+          const mappedProducts = data.data.map((movie: Movie) => ({
             id: movie.id,
-            name: movie.title,
+            name: movie.movie_title,
             img: movie.poster,
+            rank: movie.rank,
           }));
 
           // Cập nhật state với danh sách phim
@@ -87,14 +92,14 @@ const RankingSlide = () => {
               transform: `translateX(-${index * (310 + 75)}px)`,
             }}
           >
-            {products.map((product, index) => (
+            {products.map((product) => (
               <RankingProduct
                 key={product.id}
                 className="carousel-item"
-                number={index + 1}
+                number={product.rank} // Số thứ tự theo rank
                 name={product.name}
                 image={product.img}
-                id={product.id}
+                id={product.id} // ID phim để link đến trang chi tiết
               ></RankingProduct>
             ))}
           </div>

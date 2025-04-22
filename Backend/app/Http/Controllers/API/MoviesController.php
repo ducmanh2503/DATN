@@ -38,13 +38,15 @@ class MoviesController extends Controller
             ->leftJoin('booking_details', 'bookings.id', '=', 'booking_details.booking_id')
             ->whereNotNull('booking_details.seat_id') // Chỉ tính vé đã đặt
             ->select('movies.id', 'movies.title', 'movies.poster')
-            ->selectRaw('COUNT(booking_details.id) as total_tickets')
+            ->selectRaw('COALESCE(COUNT(booking_details.seat_id), 0) as total_tickets')
             ->groupBy('movies.id', 'movies.title', 'movies.poster')
-            ->orderBy('total_tickets', 'desc')
+            ->orderByDesc('total_tickets')
+            ->orderBy('movies.id')
             ->take(10)
             ->get()
             ->map(function ($item, $index) {
                 return [
+                    'id' => $item->id,
                     'rank' => $index + 1,
                     'movie_title' => $item->title,
                     'total_tickets' => (int) $item->total_tickets,
@@ -63,6 +65,7 @@ class MoviesController extends Controller
             ->get()
             ->map(function ($item, $index) use ($movieRankings) {
                 return [
+                    'id' => $item->id,
                     'rank' => $movieRankings->count() + $index + 1, // Tiếp tục xếp hạng từ sau danh sách vé
                     'movie_title' => $item->title,
                     'total_tickets' => 0, // Phim mới không có vé

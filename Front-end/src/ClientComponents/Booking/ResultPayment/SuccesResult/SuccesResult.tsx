@@ -329,7 +329,7 @@ const SuccesResult = () => {
                         ) : (
                             <img
                                 className={clsx(styles.qrCode)}
-                                src={`${URL_IMAGE}/defaultComingSoon.jpg`}
+                                src="../../../../../public/imageFE/defaultQRcode.jpg"
                                 alt=""
                             />
                         )}
@@ -351,7 +351,6 @@ const SuccesResult = () => {
                     className={clsx(styles.homeButton)}
                     onClick={() => {
                         navigate("/");
-                        resetDataShowtimes();
                     }}
                 >
                     Quay lại trang chủ

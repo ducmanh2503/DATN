@@ -10,6 +10,7 @@ import { useSeatsContext } from "../../UseContext/SeatsContext";
 import { useStepsContext } from "../../UseContext/StepsContext";
 import { ComboFoodType } from "../../../types/interface";
 import { URL_IMAGE } from "../../../config/ApiConfig";
+import { useEffect } from "react";
 
 const ComboFood = ({ className }: any) => {
     const {
@@ -20,6 +21,7 @@ const ComboFood = ({ className }: any) => {
         nameCombo,
         setNameCombo,
         setHoldComboID,
+        totalComboPrice,
     } = useComboContext();
     const { currentStep } = useStepsContext();
     const { quantitySeats } = useSeatsContext();
@@ -233,6 +235,19 @@ const ComboFood = ({ className }: any) => {
         staleTime: 1000 * 60 * 10,
         enabled: currentStep >= 1,
     });
+
+    // f5 thì reset lại giá trị
+    useEffect(() => {
+        const isReload =
+            window.performance &&
+            performance.getEntriesByType("navigation")[0].type === "reload";
+
+        if (isReload) {
+            if (totalComboPrice === 0) {
+                setQuantityMap({});
+            }
+        }
+    }, []);
 
     return (
         <div className={clsx(className)}>

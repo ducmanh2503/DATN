@@ -7,6 +7,8 @@ export const PromotionProvider = ({
 }: {
     children: React.ReactNode;
 }) => {
+    const [promoCodeLocal, setPromoCodeLocal] = useState<string>("");
+    const [isVoucherUsed, setIsVoucherUsed] = useState<boolean>(false);
     const [promotionOptions, setPromotionOptions] = useState<string | []>([]);
     const [quantityPromotion, setQuantityPromotion] = useState<number | null>(
         0
@@ -81,6 +83,10 @@ export const PromotionProvider = ({
                 setRankUser,
                 promoCode, // Thêm promoCode
                 setPromoCode, // Thêm setPromoCode
+                promoCodeLocal,
+                setPromoCodeLocal,
+                isVoucherUsed,
+                setIsVoucherUsed,
             }}
         >
             {children}

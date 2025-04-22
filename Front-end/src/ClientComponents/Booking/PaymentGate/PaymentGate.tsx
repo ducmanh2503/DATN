@@ -5,7 +5,6 @@ import { useStepsContext } from "../../UseContext/StepsContext";
 import UICollapse from "../Promotion/UICollapse/UICollapse";
 import styles from "./PaymentGate.module.css";
 import VoucherInfo from "../Promotion/Voucher/Voucher";
-import { URL_IMAGE } from "../../../config/ApiConfig";
 
 const PaymentGate = ({ className }: any) => {
     const { setPaymentType, paymentType } = useStepsContext();

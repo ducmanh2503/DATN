@@ -37,7 +37,7 @@ class MoviesController extends Controller
             ->leftJoin('bookings', 'show_times.id', '=', 'bookings.showtime_id')
             ->leftJoin('booking_details', 'bookings.id', '=', 'booking_details.booking_id')
             ->whereNotNull('booking_details.seat_id') // Chỉ tính vé đã đặt
-            ->select('movies.title', 'movies.poster')
+            ->select('movies.id', 'movies.title', 'movies.poster')
             ->selectRaw('COUNT(booking_details.id) as total_tickets')
             ->groupBy('movies.id', 'movies.title', 'movies.poster')
             ->orderBy('total_tickets', 'desc')
@@ -45,6 +45,7 @@ class MoviesController extends Controller
             ->get()
             ->map(function ($item, $index) {
                 return [
+                    'id' => $item->id,
                     'rank' => $index + 1,
                     'movie_title' => $item->title,
                     'total_tickets' => (int) $item->total_tickets,

@@ -56,7 +56,7 @@ class MoviesController extends Controller
         $ticketedMovieIds = $movieRankings->pluck('movie_title')->toArray();
 
         // 2. Lấy danh sách phim mới, loại bỏ các phim đã có trong xếp hạng vé
-        $newMovies = Movies::select('title', 'poster')
+        $newMovies = Movies::select('id', 'title', 'poster')
             ->whereNotIn('title', $ticketedMovieIds) // Loại bỏ phim đã có trong xếp hạng
             ->orderBy('release_date', 'desc') // Hoặc 'created_at' nếu không có release_date
             ->take(10 - $movieRankings->count()) // Lấy đủ số phim để tổng là 10

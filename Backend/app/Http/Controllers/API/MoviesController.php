@@ -26,7 +26,7 @@ class MoviesController extends Controller
         $currentDate = Carbon::today(); // Hôm nay (ví dụ: 2025-04-21)
         $startDate = Carbon::today()->startOfYear(); // 1/1 của năm hiện tại (ví dụ: 2025-01-01)
 
-        // Lấy danh sách phim có lịch chiếu
+        // 1. Lấy danh sách phim xếp hạng theo số vé bán ra
         $movieRankings = CalendarShow::where('show_date', '>=', $startDate)
             ->where(function ($q) use ($currentDate) {
                 $q->where('end_date', '>=', $currentDate)
@@ -53,10 +53,31 @@ class MoviesController extends Controller
                 ];
             });
 
+        // Lấy danh sách ID phim đã có trong xếp hạng vé
+        $ticketedMovieIds = $movieRankings->pluck('movie_title')->toArray();
+
+        // 2. Lấy danh sách phim mới, loại bỏ các phim đã có trong xếp hạng vé
+        $newMovies = Movies::select('title', 'poster')
+            ->whereNotIn('title', $ticketedMovieIds) // Loại bỏ phim đã có trong xếp hạng
+            ->orderBy('release_date', 'desc') // Hoặc 'created_at' nếu không có release_date
+            ->take(10 - $movieRankings->count()) // Lấy đủ số phim để tổng là 10
+            ->get()
+            ->map(function ($item, $index) use ($movieRankings) {
+                return [
+                    'rank' => $movieRankings->count() + $index + 1, // Tiếp tục xếp hạng từ sau danh sách vé
+                    'movie_title' => $item->title,
+                    'total_tickets' => 0, // Phim mới không có vé
+                    'poster' => $item->poster,
+                ];
+            });
+
+        // 3. Ghép danh sách phim xếp hạng vé và phim mới
+        $combinedResults = $movieRankings->concat($newMovies)->values();
+
         // Trả về phản hồi API
         return response()->json([
-            'message' => 'Xếp hạng phim đang có lịch chiếu',
-            'data' => $movieRankings,
+            'message' => 'Xếp hạng phim và danh sách phim mới',
+            'data' => $combinedResults,
         ]);
     }
 

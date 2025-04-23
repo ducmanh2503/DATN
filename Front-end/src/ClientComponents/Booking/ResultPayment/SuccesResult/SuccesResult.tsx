@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 
 import styles from "./SuccesResult.module.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useFinalPriceContext } from "../../../UseContext/FinalPriceContext";
 import { useFilmContext } from "../../../UseContext/FIlmContext";
 import { useSeatsContext } from "../../../UseContext/SeatsContext";
@@ -14,13 +14,12 @@ import { usePromotionContext } from "../../../UseContext/PromotionContext";
 import { VerticalAlignBottomOutlined } from "@ant-design/icons";
 import { useGetQRTicket } from "../../../../services/adminServices/getQR.service";
 import { useEffect, useState } from "react";
-import { URL_IMAGE } from "../../../../config/ApiConfig";
 import { useInfomationContext } from "../../../UseContext/InfomationContext";
 
 const SuccesResult = () => {
     const [qrCode, setQrCode] = useState<string>(""); // State QR code image
     const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
-
+    const { id } = useParams();
     const {
         showtimesTime,
         showtimesEndTime,
@@ -48,29 +47,34 @@ const SuccesResult = () => {
         `${showtimesDate}/${currentYear}`,
         "DD/MM/YYYY"
     ).format("DD/MM/YYYY"); // ngày chiếu film đã format
+    const [canShow, setCanShow] = useState(false);
 
     const startTimeFilm = dayjs(showtimesTime, "HH:mm:ss").format("HH:mm"); // lấy giờ bắt đầu chiếu phim
 
-    // xử lý tải ảnh về máy
-    const downloadBlobImage = async (imageUrl: string, fileName: string) => {
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
+    // lấy QR được tạo tải ảnh về máy
+    const handleDownload = () => {
+        if (!qrCode) return;
+
+        const base64Data = qrCode.split(",")[1]; // lấy phần base64 thuần
+        const contentType = qrCode.split(",")[0].split(":")[1].split(";")[0]; // "image/png"
+
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+
+        const blob = new Blob([byteArray], { type: contentType });
         const blobUrl = URL.createObjectURL(blob);
 
         const link = document.createElement("a");
         link.href = blobUrl;
-        link.download = fileName;
+        link.download = "QRcode.png";
         document.body.appendChild(link);
         link.click();
-
-        URL.revokeObjectURL(blobUrl);
         document.body.removeChild(link);
-    };
-
-    // lấy QR được tạo
-    const handleDownload = () => {
-        const imageUrl = `/storage/image/${qrCode}`;
-        downloadBlobImage(imageUrl, "poster.jpg");
+        URL.revokeObjectURL(blobUrl);
     };
 
     // gọi api lấy QR
@@ -104,6 +108,7 @@ const SuccesResult = () => {
         setLoyaltyPoints(points);
     }, [totalPrice, totalPricePoint, totalPriceVoucher, rankUser]);
 
+    // thêm info vào avatar
     useEffect(() => {
         setCountInfomation((prev: number) => prev + 1);
         setTextInfomation((prev: any[]) => [
@@ -115,7 +120,19 @@ const SuccesResult = () => {
                 date: today,
             },
         ]);
-    }, []); // meesagwe ở avatar
+    }, []);
+
+    useEffect(() => {
+        const paymentSuccess = sessionStorage.getItem("paymentSuccess");
+        if (paymentSuccess === "true") {
+            sessionStorage.removeItem("paymentSuccess");
+            setCanShow(true);
+        } else {
+            navigate("/", { replace: true });
+        }
+    }, []);
+
+    if (!canShow) return null;
 
     return (
         <div className={clsx(styles.container, "main-base")}>
@@ -127,8 +144,8 @@ const SuccesResult = () => {
                     Đặt vé thành công!
                 </h4>
                 <p className={clsx(styles.orderInfo)}>
-                    Forest Cinema cảm ơn bạn đã thanh toán thành công đơn hàng
-                    #XXXX
+                    Forest Cinema cảm ơn bạn đã thanh toán thành công đơn hàng #
+                    {id}
                 </p>
             </div>
 
@@ -350,7 +367,7 @@ const SuccesResult = () => {
                 <button
                     className={clsx(styles.homeButton)}
                     onClick={() => {
-                        navigate("/");
+                        navigate("/", { replace: true });
                     }}
                 >
                     Quay lại trang chủ

@@ -73,7 +73,6 @@ const DetailBooking = ({
                 window.location.href = data;
             },
             onError: (error) => {
-                console.log("check-error", error);
                 if (
                     error?.response?.data?.message ===
                     "Mã khuyến mại đã được dùng hết"
@@ -143,6 +142,8 @@ const DetailBooking = ({
     const paymentMutation = useMutation({
         mutationFn: (paymentUrl: string) => paymentRequest(paymentUrl),
     });
+
+    sessionStorage.setItem("paymentSuccess", "true");
 
     return (
         <Modal

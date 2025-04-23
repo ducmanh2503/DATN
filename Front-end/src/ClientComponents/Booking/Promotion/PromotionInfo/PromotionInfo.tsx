@@ -8,7 +8,7 @@ const PromotionInfo = () => {
 
     return (
         <>
-            <Divider />
+            <Divider dashed />
             {totalPriceVoucher === 0 ? (
                 ""
             ) : (

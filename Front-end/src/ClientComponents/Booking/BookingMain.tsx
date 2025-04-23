@@ -176,7 +176,6 @@ const BookingMain = () => {
     // giải phóng ghế khi ra ngoài booking bằng route
     useEffect(() => {
         return () => {
-            console.log("out-booking");
             const storedSeats = sessionStorage.getItem("selectedSeatIds");
             const selectedSeatIds: number[] = storedSeats
                 ? JSON.parse(storedSeats)
@@ -184,8 +183,6 @@ const BookingMain = () => {
             releaseSeats(selectedSeatIds);
         };
     }, []);
-
-    // giải phóng ghế khi ra ngoài booking bằng reload
 
     const renderStepContent = () => {
         switch (currentStep) {

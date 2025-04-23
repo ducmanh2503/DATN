@@ -6,7 +6,7 @@ import styles from "../BookingInfo/BookingInfo.module.css";
 const SeatHoldTime = () => {
     const [timeLeft, setTimeLeft] = useState(() => {
         const storedTimeLeft = sessionStorage.getItem("timeLeft");
-        return storedTimeLeft ? JSON.parse(storedTimeLeft) : 420;
+        return storedTimeLeft ? JSON.parse(storedTimeLeft) : 4200;
     }); //  giây
     const [isTimeUp, setIsTimeUp] = useState(false); // State để kiểm tra hết giờ chưa
     const navigate = useNavigate();

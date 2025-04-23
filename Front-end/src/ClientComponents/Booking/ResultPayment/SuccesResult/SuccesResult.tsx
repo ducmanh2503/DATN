@@ -47,7 +47,7 @@ const SuccesResult = () => {
     const showtimesDateFormat = dayjs(
         `${showtimesDate}/${currentYear}`,
         "DD/MM/YYYY"
-    ).format("YYYY/MM/DD"); // ngày chiếu film đã format
+    ).format("DD/MM/YYYY"); // ngày chiếu film đã format
 
     const startTimeFilm = dayjs(showtimesTime, "HH:mm:ss").format("HH:mm"); // lấy giờ bắt đầu chiếu phim
 
@@ -78,11 +78,13 @@ const SuccesResult = () => {
 
     // xử lý api
     useEffect(() => {
-        mutate(undefined, {
-            onSuccess: (result) => {
-                setQrCode(`data:image/png;base64,${result.data.qr_code}`);
-            },
-        });
+        if (!qrCode) {
+            mutate(undefined, {
+                onSuccess: (result) => {
+                    setQrCode(`data:image/png;base64,${result.data.qr_code}`);
+                },
+            });
+        }
     }, []);
 
     // tính điểm tích lũy

@@ -46,8 +46,18 @@ const DetailBooking = ({
         setQuantityCombo,
         setTotalComboPrice,
     } = useComboContext();
-    const { usedPoints, promoCode, totalPricePoint, totalPriceVoucher } =
-        usePromotionContext();
+    const {
+        usedPoints,
+        promoCode,
+        totalPricePoint,
+        totalPriceVoucher,
+        setPromoCode,
+        setTotalPriceVoucher,
+        setQuantityPromotion,
+        setPromoCodeLocal,
+        setIsVoucherUsed,
+    } = usePromotionContext();
+    const { setTotalPrice } = useFinalPriceContext();
     const { tokenUserId } = useAuthContext();
 
     const queryClient = useQueryClient();
@@ -63,14 +73,31 @@ const DetailBooking = ({
                 window.location.href = data;
             },
             onError: (error) => {
-                handleApiError(error);
-                setHoldComboID([]);
-                setNameCombo([]);
-                setQuantityCombo(0);
-                setTotalComboPrice(0);
-                queryClient.invalidateQueries({
-                    queryKey: ["optionsCombos"],
-                });
+                console.log("check-error", error);
+                if (
+                    error?.response?.data?.message ===
+                    "Mã khuyến mại đã được dùng hết"
+                ) {
+                    handleApiError(error);
+                    setPromoCode("");
+                    setPromoCodeLocal(null);
+                    setIsVoucherUsed(false);
+                    usedPoints !== 0
+                        ? setQuantityPromotion(1)
+                        : setQuantityPromotion(0);
+                    setTotalPriceVoucher(0);
+                    setTotalPrice(totalPrice + totalPriceVoucher);
+                } else {
+                    handleApiError(error);
+                    setHoldComboID([]);
+                    setNameCombo([]);
+                    setQuantityCombo(0);
+                    setTotalPrice(totalPrice - totalComboPrice);
+                    setTotalComboPrice(0);
+                    queryClient.invalidateQueries({
+                        queryKey: ["optionsCombos"],
+                    });
+                }
             },
         });
 

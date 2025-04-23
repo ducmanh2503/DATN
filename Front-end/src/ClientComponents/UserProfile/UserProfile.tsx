@@ -168,7 +168,7 @@ const UserProfile: React.FC = () => {
 
     return (
         <div className={clsx(styles.profileContainer, "main-base")}>
-            <Card>
+            <Card className={clsx(styles.profileCard)}>
                 <div className={clsx(styles.boxAvatar)}>
                     <Avatar
                         size={120}

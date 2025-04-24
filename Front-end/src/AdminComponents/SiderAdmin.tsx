@@ -53,6 +53,26 @@ const SiderAdmin = () => {
         ])
       );
     }
+    
+    if (userRole === "staff") {
+      menuItems.push(
+        getItem("Quản lý người dùng", "sub9", <TeamOutlined />, [
+          getItem(<Link to="/admin/directors">Danh sách đạo diễn</Link>, "sub10-1"),
+          getItem(<Link to="/admin/actors">Danh sách diễn viên</Link>, "sub10-2"),
+        ])
+      );
+    }
+    
+    if (userRole === "admin") {
+      menuItems.push(
+        getItem("Quản lý người dùng", "sub9", <TeamOutlined />, [
+          getItem(<Link to="/admin/users">Danh sách người dùng</Link>, "sub9-1"),
+          getItem(<Link to="/admin/directors">Danh sách đạo diễn</Link>, "sub10-1"),
+          getItem(<Link to="/admin/actors">Danh sách diễn viên</Link>, "sub10-2"),
+        ])
+      );
+    }
+    
 
     // Các mục menu khác hiển thị cho cả admin và staff
     menuItems = [
@@ -79,11 +99,11 @@ const SiderAdmin = () => {
       getItem("Quản lý đơn hàng", "sub8", <ShoppingOutlined />, [
         getItem(<Link to="orders">Danh sách đơn hàng</Link>, "sub8-1"),
       ]),
-      getItem("Quản lý người dùng", "sub9", <TeamOutlined />, [
-        getItem(<Link to="users">Danh sách người dùng</Link>, "sub9-1"),
-        getItem(<Link to="directors">Danh sách đạo diễn</Link>, "sub10-1"),
-        getItem(<Link to="actors">Danh sách diễn viên</Link>, "sub10-2"),
-      ]),
+      // getItem("Quản lý người dùng", "sub9", <TeamOutlined />, [
+      //   getItem(<Link to="users">Danh sách người dùng</Link>, "sub9-1"),
+      //   getItem(<Link to="directors">Danh sách đạo diễn</Link>, "sub10-1"),
+      //   getItem(<Link to="actors">Danh sách diễn viên</Link>, "sub10-2"),
+      // ]),
       getItem("Quản lý bài viết ", "sub13", <BarChartOutlined />, [
         getItem(<Link to="articlelist">Danh sách bài viết</Link>, "sub13-1"),
       ]),

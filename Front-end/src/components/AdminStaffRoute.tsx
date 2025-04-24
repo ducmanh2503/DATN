@@ -168,12 +168,11 @@ const AdminStaffRoute = () => {
         const currentPath = location.pathname;
         if (
           userRole === "staff" &&
-          (currentPath === "/admin" ||
-            currentPath.includes("/admin/dashboard") ||
-            currentPath.includes("/admin/dashboardFilm"))
+          (currentPath === "/admin" || currentPath.includes("/admin/dashboard") || currentPath.includes("/admin/dashboardFilm") || currentPath.includes("/admin/dashboardUser") || currentPath.includes("/admin/users")
+          )
         ) {
           console.log("Staff đang cố gắng truy cập trang dashboard");
-          toast.error("Cút, không bố chém!", {
+          toast.error("không có quyền truy cập!", {
             position: "top-right",
             autoClose: 3000,
           });

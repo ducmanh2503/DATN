@@ -5,12 +5,26 @@ import styles from "./ErrorResult.module.css";
 import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import useShowtimeData from "../../../refreshDataShowtimes/RefreshDataShowtimes";
+import { useEffect, useState } from "react";
 
 const ErrorResult = () => {
     const navigate = useNavigate();
     const { resetDataShowtimes } = useShowtimeData();
     const [searchParams] = useSearchParams();
     const message = searchParams.get("message");
+    const [canShow, setCanShow] = useState(false);
+
+    useEffect(() => {
+        const paymentSuccess = sessionStorage.getItem("paymentSuccess");
+        if (paymentSuccess === "true") {
+            sessionStorage.removeItem("paymentSuccess");
+            setCanShow(true);
+        } else {
+            navigate("/", { replace: true });
+        }
+    }, []);
+
+    if (!canShow) return null;
 
     return (
         <div className={clsx(styles.container)}>

@@ -27,7 +27,16 @@
 }
 
 .errorText {
-    color: red;
-    font-weight: bold;
+    display: inline-block;
+    width: 200px;
+    height: 110px;
     padding: 12px;
+    border: 6px solid #fe4f2d;
+    border-radius: 16px;
+    font-weight: 500;
+    color: white;
+    background-color: #fdab9e;
+    position: absolute;
+    top: 0;
+    left: -210px;
 }

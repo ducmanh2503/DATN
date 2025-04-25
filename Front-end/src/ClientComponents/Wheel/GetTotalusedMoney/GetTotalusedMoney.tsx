@@ -7,6 +7,7 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { useGetTotalUsedMoneyUser } from "../../../services/Wheel.service";
 import styles from "./GetTotalusedMoney.module.css";
 import { Link } from "react-router-dom";
+import { AxiosError } from "axios";
 
 dayjs.extend(isoWeek);
 dayjs.extend(isSameOrAfter);
@@ -17,13 +18,17 @@ const GetTotalusedMoney = ({
 }: {
     setTotalUsedMoneyOfUser: (value: number) => void;
 }) => {
-    const { data, isLoading, isError } = useGetTotalUsedMoneyUser();
+    const { data, isLoading, isError, error } = useGetTotalUsedMoneyUser();
 
-    if (isError) {
+    if (isError && error) {
+        console.log("Error from server:", error);
+
         return (
             <div className={clsx(styles.container)}>
                 <div className={clsx(styles.errorText)}>
-                    Đã có lỗi xảy ra. Vui lòng thử lại sau.
+                    {error?.status === 401
+                        ? "Bạn phải Đăng nhập trước."
+                        : "Đã có lỗi xảy ra. Vui lòng tải lại trang."}
                 </div>
             </div>
         );

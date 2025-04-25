@@ -21,8 +21,17 @@ const HowGiveCount = () => {
                         lượt quay may mắn!
                     </h2>
                     <p className={clsx(styles.sub)}>
-                        - Mỗi tuần sau 23:59:59 chủ nhật, hệ thống sẽ tự động
-                        làm mới và tính lại số tiền đã chi tiêu.
+                        - Mỗi tuần, sau 23:59:59 ngày chủ nhật.
+                    </p>
+                    <p className={clsx(styles.sub)}>
+                        + Hệ thống sẽ tự động làm mới và tính lại số tiền đã chi
+                        tiêu.
+                    </p>
+                    <p className={clsx(styles.sub)}>
+                        + Đồng thời lượt chơi còn dư của tuần cũ cũng sẽ bị xóa.
+                    </p>
+                    <p className={clsx(styles.sub)}>
+                        + Lịch sử chơi sẽ được giữ lại để bạn có thể theo dõi.
                     </p>
                     <p className={clsx(styles.sub)}>
                         - <Link to={"/playingFilm"}>Đặt vé ngay</Link> hôm nay

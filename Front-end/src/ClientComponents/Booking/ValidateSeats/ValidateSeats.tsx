@@ -10,6 +10,7 @@ const parseSeatCode = (seatCode: string) => {
 const useIsolatedSeatChecker = () => {
     const checkIsolatedSeat = useCallback(
         (selectedSeats: string[], allSeats: any) => {
+            // debugger;
             if (selectedSeats.length === 0) return false;
 
             const minCol = 1;
@@ -118,6 +119,7 @@ const useIsolatedSeatChecker = () => {
             }
 
             return false; // Không có ghế lẻ
+            // debugger;
         },
         []
     );

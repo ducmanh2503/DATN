@@ -21,6 +21,7 @@ export const InfomationProvider = ({
     useEffect(() => {
         localStorage.setItem("countInfomation", countInfomation.toString());
         localStorage.setItem("textInfomation", JSON.stringify(textInfomation));
+        countInfomation <= 0 && setCountInfomation(0);
     }, [countInfomation, textInfomation]);
 
     const removeInfomationFromID = (id: number) => {

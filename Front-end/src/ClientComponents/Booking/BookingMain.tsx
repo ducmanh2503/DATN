@@ -173,14 +173,28 @@ const BookingMain = () => {
         }
     }, [currentStep, navigate]);
 
+    const currentStepRef = useRef(currentStep);
+
+    useEffect(() => {
+        currentStepRef.current = currentStep;
+        console.log("currentStepRef", currentStepRef.current);
+    }, [currentStep]);
     // giải phóng ghế khi ra ngoài booking bằng route
+
     useEffect(() => {
         return () => {
             const storedSeats = sessionStorage.getItem("selectedSeatIds");
             const selectedSeatIds: number[] = storedSeats
                 ? JSON.parse(storedSeats)
                 : [];
-            releaseSeats(selectedSeatIds);
+
+            const storedCurrentStep = sessionStorage.getItem("currentStep");
+            const nowCurrentStep: number = storedCurrentStep
+                ? JSON.parse(storedCurrentStep)
+                : 0;
+            if (nowCurrentStep !== 4) {
+                releaseSeats(selectedSeatIds);
+            }
         };
     }, []);
 

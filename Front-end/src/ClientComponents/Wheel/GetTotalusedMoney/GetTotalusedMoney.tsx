@@ -7,7 +7,6 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { useGetTotalUsedMoneyUser } from "../../../services/Wheel.service";
 import styles from "./GetTotalusedMoney.module.css";
 import { Link } from "react-router-dom";
-import { AxiosError } from "axios";
 
 dayjs.extend(isoWeek);
 dayjs.extend(isSameOrAfter);
@@ -15,8 +14,10 @@ dayjs.extend(isSameOrBefore);
 
 const GetTotalusedMoney = ({
     setTotalUsedMoneyOfUser,
+    countPlayGame,
 }: {
     setTotalUsedMoneyOfUser: (value: number) => void;
+    countPlayGame: number;
 }) => {
     const { data, isLoading, isError, error } = useGetTotalUsedMoneyUser();
 
@@ -66,7 +67,7 @@ const GetTotalusedMoney = ({
                     </span>
                 )}
             </div>
-            {totalUsedMoney < 550000 && !isLoading && (
+            {countPlayGame <= 0 && !isLoading && (
                 <span className={clsx(styles.suggestText)}>
                     <Link to="/playingfilm">Đặt vé ngay</Link>, chơi vòng quay
                     liền tay

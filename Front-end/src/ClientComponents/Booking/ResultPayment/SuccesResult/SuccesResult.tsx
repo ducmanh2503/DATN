@@ -147,7 +147,7 @@ const SuccesResult = () => {
             if (count > 0) {
                 setIsModalOpen(true);
             }
-        }, 4000);
+        }, 1500);
 
         return () => clearTimeout(timer);
     }, [totalPrice, totalPricePoint, totalPriceVoucher]);

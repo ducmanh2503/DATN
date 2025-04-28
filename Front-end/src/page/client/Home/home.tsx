@@ -19,7 +19,7 @@ const Home = () => {
                 setIsModalOpen(true);
                 sessionStorage.setItem("hasSeenModal", "true");
             }
-        }, 2000);
+        }, 1300);
         return () => clearTimeout(TimeoutModalImage);
     }, []);
 

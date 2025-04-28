@@ -159,7 +159,7 @@ const SeatsForm = ({
                             {
                                 type: "number",
                                 min: 0,
-                                max: 14,
+                                max: 30,
                                 message: "phải là số từ 0 tới 13",
                             },
                         ]}

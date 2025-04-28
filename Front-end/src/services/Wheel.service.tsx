@@ -14,7 +14,6 @@ export const useGetTotalUsedMoneyUser = () => {
                     Authorization: `Bearer ${tokenUserId}`,
                 },
             });
-            console.log("check-response", data);
 
             return data.data;
         },

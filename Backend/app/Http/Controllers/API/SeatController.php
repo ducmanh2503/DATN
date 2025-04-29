@@ -73,7 +73,6 @@ class SeatController extends Controller
                 'isHeld' => $isHeld,
                 'heldByUser' => $heldByUser,
                 'price' => $price,
-                'backgroundimg' => $seat->backgroundimg,
             ];
         }
 
@@ -373,7 +372,6 @@ class SeatController extends Controller
                 'type' => $seat->seatType->name,
                 'status' => $seatStatus,
                 'price' => $price,
-                'backgroundimg' => $seat->backgroundimg,
             ];
         }
 
@@ -408,7 +406,6 @@ class SeatController extends Controller
             'row' => 'required|max:20',
             'column' => 'required|max:10',
             'seat_type_id' => 'required|exists:seat_types,id',
-            'backgroundimg' => 'nullable|string|max:255',
         ]);
 
         // Kiểm tra nếu có lỗi xác thực
@@ -479,7 +476,6 @@ class SeatController extends Controller
             'seats.*.row' => 'required|max:20',
             'seats.*.column' => 'required|max:10',
             'seats.*.seat_type_id' => 'required|exists:seat_types,id',
-            'seats.*.backgroundimg' => 'nullable|string|max:255',
         ]);
 
         // Kiểm tra nếu có lỗi xác thực
@@ -510,7 +506,6 @@ class SeatController extends Controller
                 'row' => $seatData['row'],
                 'column' => $seatData['column'],
                 'seat_type_id' => $seatData['seat_type_id'],
-                'backgroundimg' => $seatData['backgroundimg'] ?? null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -636,7 +631,6 @@ class SeatController extends Controller
             'row' => 'sometimes|max:20',
             'column' => 'sometimes|max:10',
             'seat_type_id' => 'sometimes|exists:seat_types,id',
-            'backgroundimg' => 'sometimes|nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -644,7 +638,7 @@ class SeatController extends Controller
         }
 
         // Cập nhật ghế
-        $seat->update($request->only(['row', 'column', 'seat_type_id','backgroundimg']));
+        $seat->update($request->only(['row', 'column', 'seat_type_id']));
 
         return response()->json(['message' => 'Cập nhật ghế thành công', 'data' => $seat->load('seatType')], 200);
     }

@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('seats', function (Blueprint $table) {
-            $table->string('backgroundimg')->nullable()->after('seat_type_id');
+        Schema::table('rooms', function (Blueprint $table) {
+            $table->string('background_img')->nullable()->after('room_type_id');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('seats', function (Blueprint $table) {
-            $table->dropColumn('backgroundimg');
+        Schema::table('rooms', function (Blueprint $table) {
+            $table->dropColumn('background_img');
         });
     }
 };

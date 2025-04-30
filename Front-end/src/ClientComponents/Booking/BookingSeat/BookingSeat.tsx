@@ -150,6 +150,13 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
     // gán các giá trị của ghế để hiển thị
     const handleSeatClick = (seat: BookingType) => {
+        const selectedTypes = new Set(typeSeats.map((seat: any) => seat.type));
+        if (selectedTypes.size >= 2 && !selectedTypes.has(seat.type)) {
+            return openNotification({
+                description: `Bạn chỉ được đặt tối đa 2 dạng ghế!`,
+            });
+        }
+
         setTypeSeats((prevSeats: any[]) => {
             if (!Array.isArray(prevSeats)) prevSeats = [];
 

@@ -15,6 +15,7 @@ import { VerticalAlignBottomOutlined } from "@ant-design/icons";
 import { useGetQRTicket } from "../../../../services/adminServices/getQR.service";
 import { useEffect, useState } from "react";
 import { useInfomationContext } from "../../../UseContext/InfomationContext";
+import ModalSuccessInfo from "./ModalSuccessInfo/ModalSuccessInfo";
 
 const SuccesResult = () => {
     const [qrCode, setQrCode] = useState<string>(""); // State QR code image
@@ -41,6 +42,8 @@ const SuccesResult = () => {
 
     const navigate = useNavigate();
 
+    const [isModalOpen, setIsModalOpen] = useState(false); // State modal
+    const [countPlayGame, setCountPlayGame] = useState(0); // số lượt chơi game
     const currentYear = dayjs().year(); //lấy năm hiện tại
     const today = dayjs().format("DD/MM/YYYY"); // lấy ngày hôm nay
     const showtimesDateFormat = dayjs(
@@ -53,6 +56,8 @@ const SuccesResult = () => {
 
     // lấy QR được tạo tải ảnh về máy
     const handleDownload = () => {
+        // debugger;
+
         if (!qrCode) return;
 
         const base64Data = qrCode.split(",")[1]; // lấy phần base64 thuần
@@ -75,6 +80,7 @@ const SuccesResult = () => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
+        // debugger;
     };
 
     // gọi api lấy QR
@@ -132,10 +138,29 @@ const SuccesResult = () => {
         }
     }, []);
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const count = Math.floor(
+                (totalPrice - totalPricePoint - totalPriceVoucher) / 555000
+            );
+            setCountPlayGame(count);
+            if (count > 0) {
+                setIsModalOpen(true);
+            }
+        }, 1500);
+
+        return () => clearTimeout(timer);
+    }, [totalPrice, totalPricePoint, totalPriceVoucher]);
+
     if (!canShow) return null;
 
     return (
         <div className={clsx(styles.container, "main-base")}>
+            <ModalSuccessInfo
+                isModalOpen={isModalOpen}
+                countPlayGame={countPlayGame}
+                handleClose={() => setIsModalOpen(false)}
+            ></ModalSuccessInfo>
             <div className={clsx(styles.header)}>
                 <span className={clsx(styles.icon)}>
                     <FontAwesomeIcon icon={faCheck} />

@@ -14,16 +14,22 @@ dayjs.extend(isSameOrBefore);
 
 const GetTotalusedMoney = ({
     setTotalUsedMoneyOfUser,
+    countPlayGame,
 }: {
     setTotalUsedMoneyOfUser: (value: number) => void;
+    countPlayGame: number;
 }) => {
-    const { data, isLoading, isError } = useGetTotalUsedMoneyUser();
+    const { data, isLoading, isError, error } = useGetTotalUsedMoneyUser();
 
-    if (isError) {
+    if (isError && error) {
+        console.log("Error from server:", error);
+
         return (
             <div className={clsx(styles.container)}>
                 <div className={clsx(styles.errorText)}>
-                    Đã có lỗi xảy ra. Vui lòng thử lại sau.
+                    {error?.status === 401
+                        ? "Bạn phải Đăng nhập trước."
+                        : "Đã có lỗi xảy ra. Vui lòng tải lại trang."}
                 </div>
             </div>
         );
@@ -61,7 +67,7 @@ const GetTotalusedMoney = ({
                     </span>
                 )}
             </div>
-            {totalUsedMoney < 550000 && !isLoading && (
+            {countPlayGame <= 0 && !isLoading && (
                 <span className={clsx(styles.suggestText)}>
                     <Link to="/playingfilm">Đặt vé ngay</Link>, chơi vòng quay
                     liền tay

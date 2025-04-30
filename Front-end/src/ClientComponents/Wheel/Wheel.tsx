@@ -91,14 +91,14 @@ const Wheel = () => {
 
     // index tương ứng với prizes: [0,1,2,3,4,5,6,7]
     const prizeWeightMap: { [index: number]: number } = {
-        0: 40, // Giảm 10K (chia 50% cho 3 vị trí: 17% mỗi cái)
-        1: 10, // Chúc bạn may mắn lần sau (chia 35% cho 2 vị trí: 18% và 17%)
-        2: 1, // Giảm 50K
-        3: 30, // Giảm 10K
-        4: 1, // Gấu bông
-        5: 7, // Giảm 20K
-        6: 35, // Giảm 10K
-        7: 10, // Chúc bạn may mắn lần sau
+        0: 400, // Giảm 10K
+        1: 48, // Chúc bạn may mắn lần sau
+        2: 0.1, // Giảm 50K
+        3: 400, // Giảm 10K
+        4: 0.1, // Gấu bông
+        5: 2.8, // Giảm 20K
+        6: 400, // Giảm 10K
+        7: 50, // Chúc bạn may mắn lần sau
     };
 
     const weightedIndexes: number[] = [];
@@ -109,6 +109,14 @@ const Wheel = () => {
             weightedIndexes.push(index);
         }
     });
+
+    // console.log(weightedIndexes);
+
+    // const isPrize50KPresent = weightedIndexes.includes(2);
+    // const isTeddyBearPresent = weightedIndexes.includes(4);
+
+    // console.log("Giảm 50K", isPrize50KPresent);
+    // console.log("Gấu bông", isTeddyBearPresent);
 
     const handleWheel = (isFreeMode = false) => {
         if (isSpinning) return;
@@ -133,8 +141,6 @@ const Wheel = () => {
             const normalizedRotation = newRotation % 360;
             const anglePerSlice = 360 / 8;
 
-            // Đảo chiều vì CSS quay theo chiều kim đồng hồ,
-            // còn mũi tên chỉ lên trên (ngược lại)
             const adjustedRotation =
                 (360 - normalizedRotation + anglePerSlice / 2) % 360;
             const numberIndex = Math.floor(adjustedRotation / anglePerSlice);
@@ -252,6 +258,7 @@ const Wheel = () => {
                     </div>
                     <GetTotalusedMoney
                         setTotalUsedMoneyOfUser={setTotalUsedMoneyOfUser}
+                        countPlayGame={countPlayGame}
                     ></GetTotalusedMoney>
                 </div>
                 <HowGiveCount></HowGiveCount>

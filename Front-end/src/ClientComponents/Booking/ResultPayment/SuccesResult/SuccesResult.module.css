@@ -154,7 +154,7 @@
     font-weight: 600;
     background-color: white;
     color: var(--border-color);
-    cursor: pointer;
+    cursor: pointer !important;
 }
 
 .summaryItem {

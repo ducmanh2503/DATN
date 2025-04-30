@@ -6,10 +6,29 @@ import RankingBox from "../../../ClientComponents/RankingBox/RankingBox";
 import RankingSlide from "../../../ClientComponents/RankingBox/RankingSlide/RankingSlide";
 import TitleMenu from "../../../ClientComponents/TitleMenu/TitleMenu";
 import ClientLayout from "../Layout";
+import ModalImage from "../../../ClientComponents/Modal Image/ModalImage";
+import { useEffect, useState } from "react";
 
 const Home = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false); // State modal
+
+    useEffect(() => {
+        const hasSeenModal = sessionStorage.getItem("hasSeenModal");
+        const TimeoutModalImage = setTimeout(() => {
+            if (!hasSeenModal) {
+                setIsModalOpen(true);
+                sessionStorage.setItem("hasSeenModal", "true");
+            }
+        }, 1300);
+        return () => clearTimeout(TimeoutModalImage);
+    }, []);
+
     return (
         <ClientLayout>
+            <ModalImage
+                isModalOpen={isModalOpen}
+                handleClose={() => setIsModalOpen(false)}
+            ></ModalImage>
             <Banner></Banner>
             <RankingBox>
                 <TitleMenu name="Xếp hạng phim" nameSub="Ranking"></TitleMenu>

@@ -119,7 +119,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/room', [MoviesController::class, 'destroyMultiple']);
         Route::put('/room/restore/{room}', [MoviesController::class, 'restore']);
         Route::get('/trashed', [RoomController::class, 'getTrashedRooms']);
-
+        Route::put('/rooms/{id}/background', [RoomController::class, 'updateBackground']);
 
         //room_type
         Route::apiResource('/room-type', RoomTypeController::class);

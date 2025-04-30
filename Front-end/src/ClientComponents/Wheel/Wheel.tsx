@@ -89,17 +89,16 @@ const Wheel = () => {
         "Chúc bạn may mắn lần sau",
     ];
 
-    // index tương ứng với prizes: [0,1,2,3,4,5,6,7]
     const prizeWeightMap: { [index: number]: number } = {
         0: 400, // Giảm 10K
         1: 48, // Chúc bạn may mắn lần sau
         2: 0.1, // Giảm 50K
-        3: 400, // Giảm 10K
+        3: 500, // Giảm 10K
         4: 0.1, // Gấu bông
-        5: 2.8, // Giảm 20K
-        6: 400, // Giảm 10K
+        5: 1.8, // Giảm 20K
+        6: 500, // Giảm 10K
         7: 50, // Chúc bạn may mắn lần sau
-    };
+    }; // tổng 1500
 
     const weightedIndexes: number[] = [];
 

@@ -56,7 +56,8 @@ class RoomController extends Controller
             // Kiểm tra dữ liệu nhập vào
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name',
-                'room_type_id' => 'required|exists:room_types,id'
+                'room_type_id' => 'required|exists:room_types,id',
+                'background_img' => 'nullable|string'
             ]);
 
             // Nếu có lỗi validate, trả về lỗi
@@ -68,7 +69,8 @@ class RoomController extends Controller
             $room = Room::create([
                 'name' => $data['name'],
                 'room_type_id' => $data['room_type_id'],
-                'capacity' => 0 // Gán mặc định là 0, sẽ cập nhật sau
+                'capacity' => 0, // Gán mặc định là 0, sẽ cập nhật sau
+                'background_img' => $data['background_img'] ?? null,
             ]);
 
             // Tính capacity dựa trên số ghế liên kết với room_id
@@ -104,6 +106,57 @@ class RoomController extends Controller
         return response()->json($room);
     }
 
+    public function updateBackground(Request $request, string $id)
+    {
+        try {
+
+            $room = Room::find($id);
+
+
+            // Nếu không tìm thấy phòng
+            if (!$room) {
+                return response()->json(['message' => 'Không tìm thấy phòng'], 404);
+            }
+
+
+            // Lấy dữ liệu JSON từ request
+            $data = $request->json()->all();
+
+
+
+            $validator = Validator::make($data, [
+                'background_img' => 'nullable|string'
+            ]);
+
+
+
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            }
+
+
+
+            $room->update([
+                'background_img' => $data['background_img'] ?? $room->background_img
+            ]);
+
+
+            // Trả về kết quả thành công
+            return response()->json([
+                'message' => 'Cập nhật hình nền phòng thành công',
+                'room' => $room
+            ], 200);
+        } catch (\Exception $e) {
+            // Nếu có lỗi, trả về thông tin lỗi (để debug)
+            return response()->json([
+                'error' => 'Đã xảy ra lỗi trong quá trình xử lý.',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
     /**
      * Update the specified resource in storage.
      */
@@ -132,7 +185,8 @@ class RoomController extends Controller
             // Kiểm tra dữ liệu nhập vào
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name,' . $id,
-                'room_type_id' => 'required|exists:room_types,id'
+                'room_type_id' => 'required|exists:room_types,id',
+                'background_img' => 'nullable|string'
             ]);
 
             // Nếu có lỗi validate, trả về lỗi
@@ -143,7 +197,8 @@ class RoomController extends Controller
             // Cập nhật thông tin phòng
             $room->update([
                 'name' => $data['name'],
-                'room_type_id' => $data['room_type_id']
+                'room_type_id' => $data['room_type_id'],
+                'background_img' => $data['background_img'] ?? null,
             ]);
 
             // Tính capacity dựa trên số ghế liên kết với room_id
@@ -164,6 +219,9 @@ class RoomController extends Controller
             ], 500);
         }
     }
+
+
+
 
     /**
      * Remove the specified resource from storage.

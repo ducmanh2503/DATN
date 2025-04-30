@@ -175,10 +175,10 @@ const BookingMain = () => {
 
     const currentStepRef = useRef(currentStep);
 
-    useEffect(() => {
-        currentStepRef.current = currentStep;
-        console.log("currentStepRef", currentStepRef.current);
-    }, [currentStep]);
+    // useEffect(() => {
+    //     currentStepRef.current = currentStep;
+    //     console.log("currentStepRef", currentStepRef.current);
+    // }, [currentStep]);
     // giải phóng ghế khi ra ngoài booking bằng route
 
     useEffect(() => {
@@ -197,6 +197,8 @@ const BookingMain = () => {
             }
         };
     }, []);
+
+    console.log("checck-step", currentStep);
 
     const renderStepContent = () => {
         switch (currentStep) {

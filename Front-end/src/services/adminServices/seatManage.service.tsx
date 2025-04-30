@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
+    BACKGROUND_IMG_SEATS,
     CREATE_SEAT,
     DELETE_ALL_SEATS_IN_ROOM,
     DELETE_SEAT,
@@ -147,6 +148,23 @@ export const useHideSeat = (messageApi: any) => {
             messageApi.success("Cập nhật trạng thái thành công");
             queryClient.invalidateQueries({
                 queryKey: ["SeatsByRoom"],
+            });
+        },
+        onError: handleApiError,
+    });
+};
+
+// chỉnh background ghế
+export const useUpdateBackgroundSeat = (messageApi: any) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ roomId, data }: { roomId: number; data: any }) => {
+            await axios.put(BACKGROUND_IMG_SEATS(roomId), data);
+        },
+        onSuccess: () => {
+            messageApi.success("Cập nhật BackGround thành công");
+            queryClient.invalidateQueries({
+                queryKey: ["roomsCinema"],
             });
         },
         onError: handleApiError,

@@ -47,6 +47,8 @@ const CREATE_ROOM = `${BASE_URL}/room`; // thêm phòng chiếu
 const UPDATE_ROOM = (id: string | number) => `${BASE_URL}/room/${id}`; // cập nhật phòng chiếu
 const DELETE_ROOM = (id: string | number) => `${BASE_URL}/room/${id}`; // Xóa phòng chiếu
 const GET_ROOM_TYPES = `${BASE_URL}/room-type`; // lấy danh sách loại phòng
+const BACKGROUND_IMG_SEATS = (roomId: number) =>
+    `${BASE_URL}/rooms/${roomId}/background`; // lấy ảnh nền ghế
 
 const GET_SEATS_BY_ROOM = (roomId: number) =>
     `${BASE_URL}/seats/room/${roomId}`; // lấy ma trận ghế của phòng chiếu
@@ -183,6 +185,7 @@ export {
     UPDATE_ROOM,
     DELETE_ROOM,
     GET_ROOM_TYPES,
+    BACKGROUND_IMG_SEATS,
     GET_SEATS_BY_ROOM,
     GET_SEATS_TYPE,
     UPDATE_SEAT_STATUS,

@@ -56,7 +56,8 @@ class RoomController extends Controller
             // Kiểm tra dữ liệu nhập vào
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name',
-                'room_type_id' => 'required|exists:room_types,id'
+                'room_type_id' => 'required|exists:room_types,id',
+                'background_img' => 'nullable|string'
             ]);
 
             // Nếu có lỗi validate, trả về lỗi
@@ -68,6 +69,7 @@ class RoomController extends Controller
             $room = Room::create([
                 'name' => $data['name'],
                 'room_type_id' => $data['room_type_id'],
+                'background_img' => $data['background_img'] ?? null,
                 'capacity' => 0 // Gán mặc định là 0, sẽ cập nhật sau
             ]);
 
@@ -132,7 +134,8 @@ class RoomController extends Controller
             // Kiểm tra dữ liệu nhập vào
             $validator = Validator::make($data, [
                 'name' => 'required|unique:rooms,name,' . $id,
-                'room_type_id' => 'required|exists:room_types,id'
+                'room_type_id' => 'required|exists:room_types,id',
+                'background_img' => 'nullable|string'
             ]);
 
             // Nếu có lỗi validate, trả về lỗi
@@ -143,7 +146,8 @@ class RoomController extends Controller
             // Cập nhật thông tin phòng
             $room->update([
                 'name' => $data['name'],
-                'room_type_id' => $data['room_type_id']
+                'room_type_id' => $data['room_type_id'],
+                'background_img' => $data['background_img'] ?? null
             ]);
 
             // Tính capacity dựa trên số ghế liên kết với room_id

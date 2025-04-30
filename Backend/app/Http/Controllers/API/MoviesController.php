@@ -42,7 +42,7 @@ class MoviesController extends Controller
             ->groupBy('movies.id', 'movies.title', 'movies.poster')
             ->orderByDesc('total_tickets')
             ->orderBy('movies.id')
-            ->take(10)
+            ->take(9)
             ->get()
             ->map(function ($item, $index) {
                 return [
@@ -61,7 +61,7 @@ class MoviesController extends Controller
         $newMovies = Movies::select('id', 'title', 'poster')
             ->whereNotIn('title', $ticketedMovieIds) // Loại bỏ phim đã có trong xếp hạng
             ->orderBy('release_date', 'desc') // Hoặc 'created_at' nếu không có release_date
-            ->take(10 - $movieRankings->count()) // Lấy đủ số phim để tổng là 10
+            ->take(9 - $movieRankings->count()) // Lấy đủ số phim để tổng là 10
             ->get()
             ->map(function ($item, $index) use ($movieRankings) {
                 return [

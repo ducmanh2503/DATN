@@ -43,12 +43,14 @@ class DiscountCodeController extends Controller
             'name_code' => 'required|string',
         ]);
 
+        // Lấy thông tin mã giảm giá
         $DiscountCode = DiscountCode::where('name_code', trim($request->name_code))
             ->where('status', 'active')
             ->where('start_date', '<=', Carbon::now())
             ->where('end_date', '>=', Carbon::now())
             ->first();
 
+        // Kiểm tra mã giảm giá có tồn tại và hợp lệ
         if (!$DiscountCode) {
             return response()->json([
                 'success' => false,
@@ -56,7 +58,7 @@ class DiscountCodeController extends Controller
             ], 404);
         }
 
-        // Kiểm tra quantity riêng
+        // Kiểm tra số lượng mã giảm giá
         if ($DiscountCode->quantity <= 0) {
             return response()->json([
                 'success' => false,
@@ -64,12 +66,132 @@ class DiscountCodeController extends Controller
             ], 404);
         }
 
+        // Kiểm tra nếu mã giảm giá là private
+        if ($DiscountCode->type === 'private') {
+            // Lấy user_id của người dùng đang đăng nhập
+            $userId = auth()->id();
+
+            // Nếu không có user_id (người dùng chưa đăng nhập)
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bạn cần đăng nhập để sử dụng mã giảm giá này.',
+                ], 401);
+            }
+
+            // Kiểm tra xem user_id có trong danh sách người dùng được phép
+            if (!$DiscountCode->users()->where('user_id', $userId)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mã giảm giá này không dành cho bạn.',
+                ], 403);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'discount_percent' => (int) $DiscountCode->percent,
-            'maxPrice' => (int) $DiscountCode->maxPrice,
+            'maxPrice' => (int) ($DiscountCode->maxPrice ?? 0),
             'message' => 'Áp dụng mã khuyến mãi thành công!',
         ]);
+    }
+
+    // Lấy danh sách mã giảm giá của người dùng
+    public function getUserDiscountCodes(Request $request)
+    {
+        // Lấy user_id của người dùng đang đăng nhập
+        $userId = auth()->id();
+
+        // Kiểm tra nếu người dùng chưa đăng nhập
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn cần đăng nhập để xem danh sách mã giảm giá.',
+                'data' => []
+            ], 401);
+        }
+
+        // Lấy danh sách mã giảm giá của user_id
+        $discountCodes = DiscountCode::whereHas('users', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })
+            ->where('status', 'active')
+            ->where('quantity', '>', 0)
+            ->where('start_date', '<=', Carbon::now())
+            ->where('end_date', '>=', Carbon::now())
+            ->get(['id', 'name_code', 'percent', 'maxPrice', 'start_date', 'end_date', 'type']);
+
+        if ($discountCodes->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy mã giảm giá nào dành cho bạn.',
+                'data' => []
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lấy danh sách mã giảm giá của bạn thành công.',
+            'data' => $discountCodes
+        ], 200);
+    }
+
+    // API mới để gán một user_id cho discount_code_id
+    public function assignUserToDiscountCode(Request $request)
+    {
+        // Validate dữ liệu đầu vào
+        $validator = Validator::make($request->all(), [
+            'discount_code_id' => 'required|numeric|exists:discount_code,id',
+            'user_id' => 'required|numeric|exists:users,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu đầu vào không hợp lệ.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $discountCodeId = $request->input('discount_code_id');
+            $userId = $request->input('user_id');
+
+            // Tìm mã giảm giá
+            $discountCode = DiscountCode::find($discountCodeId);
+            if (!$discountCode) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mã giảm giá không tồn tại.'
+                ], 404);
+            }
+
+            // Kiểm tra xem user_id đã được gán cho mã giảm giá chưa
+            if ($discountCode->users()->where('user_id', $userId)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Người dùng đã được gán cho mã giảm giá này.'
+                ], 409);
+            }
+
+            // Gán user_id cho mã giảm giá
+            $discountCode->users()->attach($userId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Gán người dùng cho mã giảm giá thành công.',
+                'data' => [
+                    'discount_code_id' => $discountCodeId,
+                    'user_id' => $userId
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi trong quá trình xử lý.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -89,8 +211,8 @@ class DiscountCodeController extends Controller
     {
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
-            'user_id' => 'nullable|exists:users,id',
             'name_code' => 'required|string|max:255|unique:discount_code,name_code',
+            'type' => 'nullable|in:public,private',
             'percent' => 'required|integer|max:100',
             'quantity' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',
@@ -159,8 +281,8 @@ class DiscountCodeController extends Controller
 
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
-            'user_id' => 'nullable|exists:users,id',
             'name_code' => 'required|string|max:255|unique:discount_code,name_code,' . $id,
+            'type' => 'nullable|in:public,private',
             'percent' => 'required|integer|max:100',
             'quantity' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',

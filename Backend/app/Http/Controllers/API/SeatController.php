@@ -83,8 +83,9 @@ class SeatController extends Controller
     //Cập nhật trạng thái ghế theo thời gian thực khi chọn ghế
     public function holdSelectedSeats(Request $request)
     {
+        // Validate request
         $validator = Validator::make($request->all(), [
-            'seats' => 'required|array',
+            'seats' => 'required|array|max:8', // Giới hạn tối đa 8 ghế trong một request
             'seats.*' => 'numeric|exists:seats,id',
             'room_id' => 'required|numeric|exists:rooms,id',
             'showtime_id' => 'required|numeric|exists:show_times,id'
@@ -100,38 +101,67 @@ class SeatController extends Controller
         $userId = auth()->id();
         $expiresAt = now()->addMinutes(7);
 
-        foreach ($request->seats as $seatId) {
-            $seat = Seat::find($seatId);
-            if ($seat->status === 'disabled' || $seat->status === 'empty') {
+        // Sử dụng lock để tránh xung đột
+        return Cache::lock("hold_seats_{$userId}_{$showTimeId}", 10)->block(2, function () use ($seats, $roomId, $showTimeId, $userId, $expiresAt) {
+            // Kiểm tra tổng số ghế đang giữ của người dùng
+            $userSeatsKey = "user_seats_{$userId}_{$showTimeId}";
+            $currentHeldSeats = Cache::get($userSeatsKey, []);
+            $totalSeats = count($currentHeldSeats) + count($seats);
+
+            if ($totalSeats > 8) {
                 return response()->json([
-                    'message' => 'Ghế đang bảo trì, vui lòng chọn ghế khác!',
-                    'seat_id' => $seatId,
-                    'status' => $seat->status
+                    'message' => 'Bạn chỉ có thể giữ tối đa 8 ghế!',
+                    'current_held' => count($currentHeldSeats),
+                    'requested' => count($seats)
                 ], 400);
             }
 
-            $cacheKey = "seat_{$showTimeId}_{$seatId}";
-            $heldSeat = Cache::get($cacheKey);
-            if (!empty($heldSeat) && $heldSeat['user_id'] !== $userId) {
-                return response()->json(['message' => 'Ghế đã được giữ bởi người khác!'], 409);
+            // Kiểm tra trạng thái ghế
+            foreach ($seats as $seatId) {
+                $seat = Seat::find($seatId);
+                if ($seat->status === 'disabled' || $seat->status === 'empty') {
+                    return response()->json([
+                        'message' => 'Ghế đang bảo trì, vui lòng chọn ghế khác!',
+                        'seat_id' => $seatId,
+                        'status' => $seat->status
+                    ], 400);
+                }
+
+                $cacheKey = "seat_{$showTimeId}_{$seatId}";
+                $heldSeat = Cache::get($cacheKey);
+                if (!empty($heldSeat) && $heldSeat['user_id'] !== $userId && $heldSeat['expires_at'] > now()) {
+                    return response()->json(['message' => 'Ghế đã được giữ bởi người khác!'], 409);
+                }
             }
-        }
 
-        foreach ($request->seats as $seatId) {
-            $cacheKey = "seat_{$showTimeId}_{$seatId}";
-            Cache::put($cacheKey, ['user_id' => $userId, 'expires_at' => $expiresAt], $expiresAt);
-        }
+            // Lưu ghế vào Cache
+            $newSeats = [];
+            foreach ($seats as $seatId) {
+                $cacheKey = "seat_{$showTimeId}_{$seatId}";
+                Cache::put($cacheKey, ['user_id' => $userId, 'expires_at' => $expiresAt], $expiresAt);
+                $newSeats[] = (int)$seatId;
+            }
 
-        // Phát sự kiện cho tất cả người dùng, bao gồm cả người dùng hiện tại
-        broadcast(new SeatHeldEvent(
-            $request->seats,
-            $userId,
-            $roomId,
-            $showTimeId,
-            'held'
-        ));
+            // Cập nhật danh sách ghế của người dùng
+            $updatedHeldSeats = array_unique(array_merge($currentHeldSeats, $newSeats));
+            Cache::put($userSeatsKey, $updatedHeldSeats, $expiresAt);
 
-        return response()->json(['message' => 'Ghế đã được giữ!', 'seats' => $seats, 'expires_at' => $expiresAt, 'user_id' => $userId]);
+            // Phát sự kiện
+            broadcast(new SeatHeldEvent(
+                $seats,
+                $userId,
+                $roomId,
+                $showTimeId,
+                'held'
+            ));
+
+            return response()->json([
+                'message' => 'Ghế đã được giữ!',
+                'seats' => $seats,
+                'expires_at' => $expiresAt,
+                'user_id' => $userId
+            ]);
+        }) ?: response()->json(['message' => 'Không thể xử lý yêu cầu do xung đột!'], 429);
     }
 
     /**
@@ -139,7 +169,7 @@ class SeatController extends Controller
      */
     public function releaseSeat(Request $request)
     {
-        // Xác thực dữ liệu đầu vào
+        // Validate request
         $validator = Validator::make($request->all(), [
             'seats' => 'required|array',
             'seats.*' => 'numeric|exists:seats,id',
@@ -147,71 +177,75 @@ class SeatController extends Controller
             'showtime_id' => 'required|numeric|exists:show_times,id'
         ]);
 
-        // Kiểm tra nếu có lỗi xác thực
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        // Lấy dữ liệu từ request
         $seats = $request->input('seats');
         $roomId = $request->input('room_id');
         $showTimeId = $request->input('showtime_id');
+        $userId = auth()->id();
 
-        // Kiểm tra xem $seats có phải là mảng hợp lệ không
         if (!is_array($seats) || empty($seats)) {
             return response()->json([
                 'message' => 'Danh sách ghế không hợp lệ!',
             ], 400);
         }
 
-        $releasedSeats = [];
-        $failedSeats = [];
+        // Sử dụng lock để tránh xung đột
+        return Cache::lock("hold_seats_{$userId}_{$showTimeId}", 10)->block(2, function () use ($seats, $roomId, $showTimeId, $userId) {
+            $releasedSeats = [];
+            $failedSeats = [];
 
-        // Lặp qua từng ghế để xử lý
-        foreach ($seats as $seatId) {
-            $cacheKey = "seat_{$showTimeId}_{$seatId}";
-            if (Cache::has($cacheKey)) {
-                Cache::forget($cacheKey);
-                $releasedSeats[] = (int)$seatId;
-            } else {
-                $failedSeats[] = $seatId;
+            // Lấy danh sách ghế của người dùng
+            $userSeatsKey = "user_seats_{$userId}_{$showTimeId}";
+            $currentHeldSeats = Cache::get($userSeatsKey, []);
+
+            foreach ($seats as $seatId) {
+                $cacheKey = "seat_{$showTimeId}_{$seatId}";
+                $heldSeat = Cache::get($cacheKey);
+
+                // Chỉ giải phóng nếu ghế do người dùng này giữ và chưa hết hạn
+                if ($heldSeat && $heldSeat['user_id'] === $userId && $heldSeat['expires_at'] > now()) {
+                    Cache::forget($cacheKey);
+                    $releasedSeats[] = (int)$seatId;
+                } else {
+                    $failedSeats[] = (int)$seatId;
+                }
             }
 
-            $cacheKey = "seat_" . (int)$seatId; // Chuyển $seatId thành số nguyên để tránh lỗi
-
-            // Kiểm tra ghế có tồn tại trong cache không
-            if (!Cache::has($cacheKey)) {
-                $failedSeats[] = $seatId;
-                continue;
+            // Cập nhật danh sách ghế của người dùng
+            if (!empty($releasedSeats)) {
+                $updatedHeldSeats = array_diff($currentHeldSeats, $releasedSeats);
+                if (empty($updatedHeldSeats)) {
+                    Cache::forget($userSeatsKey);
+                } else {
+                    Cache::put($userSeatsKey, array_values($updatedHeldSeats), now()->addMinutes(7));
+                }
             }
 
-            // Xóa ghế khỏi Redis
-            Cache::forget($cacheKey);
-            $releasedSeats[] = (int)$seatId; // Đảm bảo $releasedSeats chỉ chứa số
-        }
+            if (empty($releasedSeats)) {
+                return response()->json([
+                    'message' => 'Tất cả ghế chưa được giữ hoặc đã được giải phóng trước đó!',
+                    'failed_seats' => $failedSeats
+                ], 404);
+            }
 
-        // Nếu không có ghế nào được giải phóng, trả về lỗi
-        if (empty($releasedSeats)) {
+            // Phát sự kiện
+            broadcast(new SeatHeldEvent(
+                $releasedSeats,
+                null,
+                $roomId,
+                $showTimeId,
+                'released'
+            ))->toOthers();
+
             return response()->json([
-                'message' => 'Tất cả ghế chưa được giữ hoặc đã được giải phóng trước đó!',
+                'message' => 'Ghế đã được giải phóng!',
+                'seats' => $releasedSeats,
                 'failed_seats' => $failedSeats
-            ], 404);
-        }
-
-        // Phát sự kiện ghế đã được giải phóng
-        broadcast(new SeatHeldEvent(
-            $request->seat_ids,
-            null,
-            $roomId,
-            $showTimeId,
-            'released'
-        ))->toOthers();
-
-        return response()->json([
-            'message' => 'Ghế đã được giải phóng!',
-            'seats' => $releasedSeats,
-            'failed_seats' => $failedSeats
-        ]);
+            ]);
+        }) ?: response()->json(['message' => 'Không thể xử lý yêu cầu do xung đột!'], 429);
     }
 
     /**

@@ -78,4 +78,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Booking::class);
     }
+
+    /**
+     * Mối quan hệ nhiều-nhiều với DiscountCode
+     */
+    public function discountCodes()
+    {
+        return $this->belongsToMany(DiscountCode::class, 'discount_code_user', 'user_id', 'discount_code_id')
+            ->withTimestamps();
+    }
 }

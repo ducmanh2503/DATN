@@ -12,6 +12,7 @@ class DiscountCode extends Model
     protected $table = 'discount_code';
 
     protected $fillable = [
+        'user_id',
         'name_code',
         'percent',
         'quantity',

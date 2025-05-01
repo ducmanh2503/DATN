@@ -89,6 +89,7 @@ class DiscountCodeController extends Controller
     {
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
+            'user_id' => 'nullable|exists:users,id',
             'name_code' => 'required|string|max:255|unique:discount_code,name_code',
             'percent' => 'required|integer|max:100',
             'quantity' => 'required|integer|min:1',
@@ -158,6 +159,7 @@ class DiscountCodeController extends Controller
 
         // Validate dữ liệu
         $validator = Validator::make($request->all(), [
+            'user_id' => 'nullable|exists:users,id',
             'name_code' => 'required|string|max:255|unique:discount_code,name_code,' . $id,
             'percent' => 'required|integer|max:100',
             'quantity' => 'required|integer|min:1',

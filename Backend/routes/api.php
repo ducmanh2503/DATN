@@ -91,6 +91,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/hold-seats', [SeatController::class, 'holdSelectedSeats']);
     Route::post('/release-seats', [SeatController::class, 'releaseSeat']);
 
+    // Danh sách mã giảm giá cho khách hàng
+    Route::get('/my-discount-code', [DiscountCodeController::class, 'getUserDiscountCodes']);
+
+    // API gán một người dùng cho mã giảm giá
+    Route::post('/discount-codes/assign-user', [DiscountCodeController::class, 'assignUserToDiscountCode']);
+
 
     // Chỉ admin mới truy cập được
 

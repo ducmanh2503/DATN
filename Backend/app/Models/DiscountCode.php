@@ -12,8 +12,8 @@ class DiscountCode extends Model
     protected $table = 'discount_code';
 
     protected $fillable = [
-        'user_id',
         'name_code',
+        'type',
         'percent',
         'quantity',
         'status',
@@ -26,5 +26,14 @@ class DiscountCode extends Model
     public function bookings()
     {
         return $this->hasMany(Booking::class, 'discount_code_id');
+    }
+
+    /**
+     * Mối quan hệ nhiều-nhiều với User
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'discount_code_user', 'discount_code_id', 'user_id')
+            ->withTimestamps();
     }
 }

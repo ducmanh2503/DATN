@@ -12,11 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('discount_code', function (Blueprint $table) {
-            // Thêm cột user_id
-            $table->unsignedBigInteger('user_id')->nullable()->after('id');
-
-            // Thêm khóa ngoại liên kết với bảng users
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            // Thêm cột type với enum public/private
+            $table->enum('type', ['public', 'private'])->default('public')->after('name_code');
         });
     }
 
@@ -26,11 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('discount_code', function (Blueprint $table) {
-            // Xóa khóa ngoại trước
-            $table->dropForeign(['user_id']);
-
-            // Xóa cột user_id
-            $table->dropColumn('user_id');
+            // Xóa cột type
+            $table->dropColumn('type');
         });
     }
 };

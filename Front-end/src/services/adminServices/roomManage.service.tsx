@@ -14,6 +14,7 @@ import {
     UPDATE_ROOM,
 } from "../../config/ApiConfig";
 import { handleApiError } from "./utils";
+import { useAuthContext } from "../../ClientComponents/UseContext/TokenContext";
 
 // lấy danh sách phòng chiếu và loại phòng chiếu
 export const useGetRooms = () => {
@@ -71,10 +72,14 @@ export const useDeleteRoom = (messageApi: any) => {
 
 //detail phòng chiếu
 export const useDetailRoom = (id: any, open: boolean) => {
+    const { tokenUserId } = useAuthContext();
+
     const { data, isLoading } = useQuery({
         queryKey: ["detailRoom", id],
         queryFn: async () => {
-            const { data } = await axios.get(GET_ONE_ROOM(id));
+            const { data } = await axios.get(GET_ONE_ROOM(id), {
+                headers: { Authorization: `Bearer ${tokenUserId}` },
+            });
             return data;
         },
         staleTime: 1000 * 60 * 10,

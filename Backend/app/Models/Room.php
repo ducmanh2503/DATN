@@ -15,7 +15,7 @@ class Room extends Model
         'name',
         'capacity',
         'room_type_id',
-        'background_img',
+        'background_img'
     ];
 
     public function seats()

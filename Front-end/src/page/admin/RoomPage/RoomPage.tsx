@@ -3,7 +3,11 @@ import {
     useDeleteRoom,
     useGetRooms,
 } from "../../../services/adminServices/roomManage.service";
-import { DeleteOutlined } from "@ant-design/icons";
+import {
+    DeleteOutlined,
+    SettingOutlined,
+    ToolOutlined,
+} from "@ant-design/icons";
 import UpdateRoom from "./UpdateRoom";
 import { useEffect, useState } from "react";
 import CreateRoom from "./CreateRoom";
@@ -89,6 +93,9 @@ const RoomPage = () => {
                                 <DeleteOutlined /> Xóa
                             </Button>
                         </Popconfirm>
+                        <Button>
+                            <SettingOutlined /> Bảo trì
+                        </Button>
                     </Space>
                 );
             },

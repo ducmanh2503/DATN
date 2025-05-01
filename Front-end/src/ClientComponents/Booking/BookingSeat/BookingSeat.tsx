@@ -17,6 +17,7 @@ import UISeatsInfo from "../UISeatsInfo/UISeatsInfo";
 import CustomNotification from "../Notification/Notification";
 import { GET_USER } from "../../../config/ApiConfig";
 import { usePromotionContext } from "../../UseContext/PromotionContext";
+import { useDetailRoom } from "../../../services/adminServices/roomManage.service";
 
 const BookingSeat = ({ className }: { className?: string }) => {
     const {
@@ -44,6 +45,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
     const queryClient = useQueryClient();
     const [isPusherRegistered, setIsPusherRegistered] = useState(false);
+    const [backgroundImg, setBackgroundImg] = useState<string | null>(null);
     const pusherEventHandlersRegistered = useRef(false);
     const pollingIntervalRef = useRef<number | null>(null);
     const MAX_SEATS = 8;
@@ -66,6 +68,16 @@ const BookingSeat = ({ className }: { className?: string }) => {
         },
         enabled: !!tokenUserId, // Chỉ chạy khi có token
     });
+
+    // lấy background phòng
+    const { data: roomBackground } = useDetailRoom(roomIdFromShowtimes, true);
+    useEffect(() => {
+        if (roomBackground?.background_img !== null) {
+            setBackgroundImg(roomBackground?.background_img);
+        } else {
+            setBackgroundImg(null);
+        }
+    }, [roomBackground]);
 
     // Cập nhật userId khi getUserId có dữ liệu
     useEffect(() => {
@@ -153,7 +165,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
         const selectedTypes = new Set(typeSeats.map((seat: any) => seat.type));
         if (selectedTypes.size >= 2 && !selectedTypes.has(seat.type)) {
             return openNotification({
-                description: `Bạn chỉ được đặt tối đa 2 dạng ghế!`,
+                description: `Bạn chỉ được đặt tối đa 2 hạng ghế!`,
             });
         }
 
@@ -179,6 +191,10 @@ const BookingSeat = ({ className }: { className?: string }) => {
                 (sum, s) => sum + s.quantitySeats,
                 0
             );
+
+            // Số ghế muốn chọn thêm
+            const seatsToAdd = seatArray.length;
+
             const allSelectedCodes = prevSeats.flatMap((s) =>
                 s.seatCode.split(", ")
             );
@@ -186,7 +202,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
                 allSelectedCodes.includes(code)
             );
 
-            if (totalSeats >= MAX_SEATS && !isSelected) {
+            if (totalSeats + seatsToAdd > MAX_SEATS && !isSelected) {
                 openNotification({
                     description: `Bạn chỉ được đặt tối đa ${MAX_SEATS} ghế!`,
                 });
@@ -663,6 +679,17 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                                                 "Sweetbox" &&
                                                                 styles.sweetbox
                                                         )}
+                                                        style={
+                                                            isBooked &&
+                                                            backgroundImg !==
+                                                                null
+                                                                ? {
+                                                                      backgroundImage: `url(${backgroundImg})`,
+                                                                      color: "transparent",
+                                                                      border: "1px solid transparent",
+                                                                  }
+                                                                : undefined
+                                                        }
                                                         key={`seat-${seat.id}`}
                                                         onClick={() =>
                                                             handleSeatClick(

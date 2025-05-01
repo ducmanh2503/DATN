@@ -1,6 +1,8 @@
-import { Button, Form, Input, Modal, Select, Skeleton } from "antd";
+import { Button, Form, Input, message, Modal, Select, Skeleton } from "antd";
 import React, { useEffect, useMemo } from "react";
 import { useDetailRoom } from "../../../services/adminServices/roomManage.service";
+import LayoutMatrixExample from "./LayoutMatrixExample";
+import { useUpdateBackgroundSeat } from "../../../services/adminServices/seatManage.service";
 
 const { Option } = Select;
 
@@ -15,9 +17,24 @@ const RoomForm = ({
     roomsTypeList,
 }: any) => {
     const [form] = Form.useForm();
+    const [backgroundImg, setBackgroundImg] = React.useState<string>("");
+    const [messageApi, contextHolder] = message.useMessage();
 
     // Gọi API lấy dữ liệu chi tiết phòng khi `open` thay đổi
     const { data: detailRoom, isLoading } = useDetailRoom(id, open);
+
+    // api chỉnh background ghế
+    const updateBackgroundSeat = useUpdateBackgroundSeat(messageApi);
+
+    const handleUpdate = () => {
+        updateBackgroundSeat.mutate({
+            roomId: id,
+            data: {
+                background_img: backgroundImg,
+            },
+        });
+        onClose();
+    };
 
     // Cập nhật form khi dữ liệu phòng thay đổi
     useEffect(() => {
@@ -25,7 +42,9 @@ const RoomForm = ({
             form.setFieldsValue({
                 name: detailRoom.name,
                 room_type_id: detailRoom.room_type_id,
+                background_img: detailRoom.background_img,
             });
+            setBackgroundImg(detailRoom.background_img);
         }
     }, [detailRoom, id]);
 
@@ -43,58 +62,81 @@ const RoomForm = ({
     };
 
     return (
-        <Modal
-            title={editingRoom ? "Cập nhật phòng" : "Thêm phòng mới"}
-            open={open}
-            onCancel={onClose}
-            footer={null}
-        >
-            <Skeleton loading={isLoading} active>
-                <Form form={form} layout="vertical" onFinish={handleFinish}>
-                    <Form.Item
-                        label="Tên phòng"
-                        name="name"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Vui lòng nhập tên phòng!",
-                            },
-                        ]}
-                    >
-                        <Input placeholder="Nhập tên phòng" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Loại phòng"
-                        name="room_type_id"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Vui lòng chọn loại phòng!",
-                            },
-                        ]}
-                    >
-                        <Select placeholder="Chọn loại phòng">
-                            {roomOptions}
-                        </Select>
-                    </Form.Item>
-
-                    <Form.Item>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            loading={loading}
-                            style={{ marginRight: 8 }}
+        <>
+            {contextHolder}
+            <Modal
+                title={editingRoom ? "Cập nhật phòng" : "Thêm phòng mới"}
+                open={open}
+                onCancel={onClose}
+                footer={null}
+            >
+                <Skeleton loading={isLoading} active>
+                    <Form form={form} layout="vertical" onFinish={handleFinish}>
+                        <Form.Item
+                            label="Tên phòng"
+                            name="name"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Vui lòng nhập tên phòng!",
+                                },
+                            ]}
                         >
-                            {editingRoom ? "Cập nhật" : "Thêm mới"}
-                        </Button>
-                        <Button onClick={onClose} disabled={loading}>
-                            Hủy
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Skeleton>
-        </Modal>
+                            <Input placeholder="Nhập tên phòng" />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="Loại phòng"
+                            name="room_type_id"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Vui lòng chọn loại phòng!",
+                                },
+                            ]}
+                        >
+                            <Select placeholder="Chọn loại phòng">
+                                {roomOptions}
+                            </Select>
+                        </Form.Item>
+                        {editingRoom && (
+                            <Form.Item
+                                label="Ảnh nền ghế Event"
+                                name="background_img"
+                            >
+                                <Input
+                                    onChange={(e: any) =>
+                                        setBackgroundImg(e.target.value)
+                                    }
+                                />
+                            </Form.Item>
+                        )}
+
+                        <Form.Item>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={loading}
+                                style={{ marginRight: 8 }}
+                            >
+                                {editingRoom ? "Cập nhật" : "Thêm mới"}
+                            </Button>
+                            <Button onClick={onClose} disabled={loading}>
+                                Hủy
+                            </Button>
+                            <Button onClick={handleUpdate}>
+                                Cập nhật BackGround
+                            </Button>
+                        </Form.Item>
+                    </Form>
+                    {editingRoom && (
+                        <LayoutMatrixExample
+                            backgroundImg={backgroundImg}
+                        ></LayoutMatrixExample>
+                    )}
+                </Skeleton>
+            </Modal>
+        </>
     );
 };
 

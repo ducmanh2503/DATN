@@ -9,6 +9,7 @@ use App\Models\ShowTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class DiscountCodeController extends Controller
@@ -88,12 +89,29 @@ class DiscountCodeController extends Controller
             }
         }
 
-        return response()->json([
+        // Áp dụng mã giảm giá thành công
+        $response = [
             'success' => true,
             'discount_percent' => (int) $DiscountCode->percent,
             'maxPrice' => (int) ($DiscountCode->maxPrice ?? 0),
             'message' => 'Áp dụng mã khuyến mãi thành công!',
-        ]);
+        ];
+
+        // Nếu mã là private, xóa cặp discount_code_id và user_id khỏi bảng trung gian
+        if ($DiscountCode->type === 'private') {
+            try {
+                $DiscountCode->users()->detach($userId);
+            } catch (\Exception $e) {
+                // Ghi log lỗi nếu cần, nhưng không làm gián đoạn response thành công
+                Log::error('Failed to detach user from discount code:', [
+                    'discount_code_id' => $DiscountCode->id,
+                    'user_id' => $userId,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        return response()->json($response);
     }
 
     // Lấy danh sách mã giảm giá của người dùng

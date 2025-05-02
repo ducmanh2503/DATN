@@ -37,13 +37,11 @@ const DiscountManagement = () => {
   const fetchDiscounts = async () => {
     try {
       const response = await axios.get(GET_DISCOUNT_CODE);
-      // Log the raw data to debug
       console.log("Raw data from backend:", response.data);
 
-      // Transform maxPrice to 0 if null
       const transformedData = response.data.map((discount) => ({
         ...discount,
-        maxPrice: discount.maxPrice ?? 0, // Default to 0 if maxPrice is null
+        maxPrice: discount.maxPrice ?? 0,
       }));
       setDiscounts(transformedData);
     } catch (error) {
@@ -58,14 +56,12 @@ const DiscountManagement = () => {
         start_date: values.start_date.format("YYYY-MM-DD"),
         end_date: values.end_date.format("YYYY-MM-DD"),
         percent: Math.floor(Number(values.percent)),
-        maxPrice: Number(values.maxPrice), // Ensure maxPrice is a number
+        maxPrice: Number(values.maxPrice),
       };
 
-      // Log the data being sent to the backend
       console.log("Data sent to backend (ADD):", formattedValues);
 
       const response = await axios.post(CREATE_DISCOUNT_CODE, formattedValues);
-      // Log the backend response
       console.log("Backend response (ADD):", response.data);
 
       message.success("Thêm mã khuyến mãi thành công!");
@@ -87,10 +83,9 @@ const DiscountManagement = () => {
         start_date: values.start_date.format("YYYY-MM-DD"),
         end_date: values.end_date.format("YYYY-MM-DD"),
         percent: Math.floor(Number(values.percent)),
-        maxPrice: Number(values.maxPrice), // Ensure maxPrice is a number
+        maxPrice: Number(values.maxPrice),
       };
 
-      // Log the data being sent to the backend
       console.log("Data sent to backend (EDIT):", formattedValues);
 
       const response = await axios.put(
@@ -102,7 +97,6 @@ const DiscountManagement = () => {
           },
         }
       );
-      // Log the backend response
       console.log("Backend response (EDIT):", response.data);
 
       message.success("Cập nhật mã khuyến mãi thành công!");
@@ -116,7 +110,7 @@ const DiscountManagement = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: any) => {
     Modal.confirm({
       title: "Bạn có chắc chắn muốn xóa?",
       okText: "Xóa",
@@ -141,7 +135,7 @@ const DiscountManagement = () => {
       start_date: dayjs(record.start_date),
       end_date: dayjs(record.end_date),
       percent: record.percent,
-      maxPrice: record.maxPrice, // Already a number due to fetchDiscounts
+      maxPrice: record.maxPrice,
     });
     setIsEditModalVisible(true);
   };
@@ -153,6 +147,11 @@ const DiscountManagement = () => {
       key: "name_code",
     },
     {
+      title: "Loại",
+      dataIndex: "type",
+      key: "type",
+    },
+    {
       title: "Giảm giá (%)",
       dataIndex: "percent",
       key: "percent",
@@ -161,7 +160,7 @@ const DiscountManagement = () => {
       title: "Số tiền giới hạn",
       dataIndex: "maxPrice",
       key: "maxPrice",
-      render: (maxPrice) => `${maxPrice.toLocaleString()} đ`, // maxPrice is always a number
+      render: (maxPrice) => `${maxPrice.toLocaleString()} đ`,
     },
     {
       title: "Số lượng",
@@ -172,7 +171,16 @@ const DiscountManagement = () => {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: (status) => (status === "active" ? "Kích hoạt" : "Ẩn"),
+      render: (status) => (
+        <span
+          style={{
+            color: status === "active" ? "green" : "red",
+            fontWeight: "bold",
+          }}
+        >
+          {status === "active" ? "Kích hoạt" : "Ẩn"}
+        </span>
+      ),
     },
     {
       title: "Thời gian áp dụng",
@@ -240,6 +248,16 @@ const DiscountManagement = () => {
             <Input />
           </Form.Item>
           <Form.Item
+            name="type"
+            label="Loại mã"
+            rules={[{ required: true, message: "Chọn loại mã" }]}
+          >
+            <Select>
+              <Option value="public">public</Option>
+              <Option value="private">private</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
             name="percent"
             label="Phần trăm giảm"
             rules={[{ required: true, message: "Nhập phần trăm giảm" }]}
@@ -249,14 +267,14 @@ const DiscountManagement = () => {
           <Form.Item
             name="maxPrice"
             label="Số tiền giới hạn"
-            initialValue={0} // Default to 0 to ensure it's never null
+            initialValue={0}
             rules={[
               { required: true, message: "Nhập số tiền giới hạn" },
               {
                 type: "number",
                 min: 0,
                 message: "Số tiền giới hạn phải là số không âm",
-                transform: (value) => Number(value), // Convert to number for validation
+                transform: (value) => Number(value),
               },
             ]}
           >
@@ -320,6 +338,16 @@ const DiscountManagement = () => {
             <Input />
           </Form.Item>
           <Form.Item
+            name="type"
+            label="Loại mã"
+            rules={[{ required: true, message: "Chọn loại mã" }]}
+          >
+            <Select>
+              <Option value="public">Công khai</Option>
+              <Option value="private">Riêng tư</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
             name="percent"
             label="Phần trăm giảm"
             rules={[{ required: true, message: "Nhập phần trăm giảm" }]}
@@ -329,14 +357,14 @@ const DiscountManagement = () => {
           <Form.Item
             name="maxPrice"
             label="Số tiền giới hạn"
-            initialValue={0} // Default to 0 to ensure it's never null
+            initialValue={0}
             rules={[
               { required: true, message: "Nhập số tiền giới hạn" },
               {
                 type: "number",
                 min: 0,
                 message: "Số tiền giới hạn phải là số không âm",
-                transform: (value) => Number(value), // Convert to number for validation
+                transform: (value) => Number(value),
               },
             ]}
           >

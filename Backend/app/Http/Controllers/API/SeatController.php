@@ -85,7 +85,7 @@ class SeatController extends Controller
     {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'seats' => 'required|array|max:8', // Giới hạn tối đa 8 ghế trong một request
+            'seats' => 'required|array|max:8',
             'seats.*' => 'numeric|exists:seats,id',
             'room_id' => 'required|numeric|exists:rooms,id',
             'showtime_id' => 'required|numeric|exists:show_times,id'

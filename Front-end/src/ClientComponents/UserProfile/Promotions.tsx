@@ -1,44 +1,94 @@
-
 import { Card, Button, message } from "antd";
 import styles from "./Promotions.module.css";
+import { MY_DISCOUNT_CODE } from "../../config/ApiConfig";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-const mockPromotions = [
-  {
-    id: 1,
-    code: "KM2025APR",
-    description: "Giảm 5% đơn hàng từ 500K",
-    discountValue: "5%",
-    condition: "Đơn hàng từ 500K",
-    expiryDate: "30/04/2025",
-    status: "Chưa sử dụng",
-  },
-  {
-    id: 2,
-    code: "FREEPOP25",
-    description: "Tặng bỏng ngô miễn phí khi mua vé",
-    discountValue: "Miễn phí bỏng ngô",
-    condition: "Mua vé xem phim",
-    expiryDate: "15/05/2025",
-    status: "Chưa sử dụng",
-  },
-  {
-    id: 3,
-    code: "DISCOUNT50K",
-    description: "Giảm 50K đơn hàng từ 200K",
-    discountValue: "50K",
-    condition: "Đơn hàng từ 200K",
-    expiryDate: "31/05/2025",
-    status: "Chưa sử dụng",
-  },
-];
+interface PromotionsProps {
+  token: string | null;
+}
 
-const Promotions: React.FC = () => {
+const Promotions: React.FC<PromotionsProps> = ({ token }) => {
+  const [promotions, setPromotions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        if (!token) {
+          message.error("Không tìm thấy token. Vui lòng đăng nhập lại.");
+          setLoading(false); // Ensure loading is set to false
+          return;
+        }
+
+        // Log the request details for debugging
+        console.log("Fetching promotions from:", MY_DISCOUNT_CODE);
+        console.log("Using token:", token);
+
+        const response = await axios.get(MY_DISCOUNT_CODE, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json", // Explicitly set Content-Type
+          },
+          timeout: 10000, // Add timeout to prevent hanging requests
+        });
+
+        console.log("API Response:", response.data); // Log response for debugging
+
+        if (response.data.success) {
+          const mappedPromotions = response.data.data.map((promo: any) => ({
+            id: promo.id,
+            code: promo.name_code,
+            description: `Giảm ${
+              promo.percent
+            }% tối đa ${promo.maxPrice.toLocaleString()}`,
+            discountValue: `${promo.percent}%`,
+            condition: `Tối đa ${promo.maxPrice.toLocaleString()}`,
+            expiryDate: promo.end_date.split("-").reverse().join("/"),
+            status: "Chưa sử dụng",
+          }));
+          setPromotions(mappedPromotions);
+        } else {
+          message.error(
+            response.data.message || "Không thể lấy danh sách mã giảm giá."
+          );
+        }
+      } catch (error) {
+        // Enhanced error logging
+        console.error("Error fetching promotions:", error);
+        if (error.response) {
+          console.error("Response data:", error.response.data);
+          console.error("Response status:", error.response.status);
+          console.error("Response headers:", error.response.headers);
+          message.error(
+            error.response?.data?.message ||
+              `Lỗi server: ${error.response.status}. Vui lòng thử lại sau.`
+          );
+        } else if (error.request) {
+          console.error("No response received:", error.request);
+          message.error(
+            "Không thể kết nối đến server. Vui lòng kiểm tra mạng."
+          );
+        } else {
+          console.error("Error setting up request:", error.message);
+          message.error("Đã xảy ra lỗi khi gửi yêu cầu.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPromotions();
+  }, [token]);
+
   return (
     <div className={styles.promotionSection}>
       <h3 className={styles.promotionTitle}>Ưu đãi bạn đang có</h3>
-      {mockPromotions.length > 0 ? (
+      {loading ? (
+        <p>Đang tải...</p>
+      ) : promotions.length > 0 ? (
         <div className={styles.promotionList}>
-          {mockPromotions.map((promo) => (
+          {promotions.map((promo: any) => (
             <Card key={promo.id} className={styles.promotionCard}>
               <div className={styles.promotionContent}>
                 <div className={styles.promotionLeft}>

@@ -240,7 +240,7 @@ const authService = {
   async verifyCode(data: VerifyCodeRequest): Promise<AuthResponse> {
     try {
       console.log("[Auth Service] Verify Code Request:", data);
-      const response = await api.post<AuthResponse>("/verify", data);
+      const response = await api.post<AuthResponse>("/verify-code", data);
       console.log("[Auth Service] Verify Code Response:", response.data);
       saveAuthData(response.data);
       return response.data;
@@ -390,7 +390,7 @@ const authService = {
       console.log("[Auth Service] Verify Default Admin Request:", {
         otp,
       });
-      const response = await api.post<AuthResponse>("/verify-default-admin", {
+      const response = await api.post<AuthResponse>("/verify-code", {
         otp,
       });
       console.log(

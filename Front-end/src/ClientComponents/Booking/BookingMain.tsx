@@ -104,8 +104,19 @@ const BookingMain = () => {
                 console.error("Lỗi khi lưu vào localStorage:", e);
             }
         },
-        onError: () => {
-            message.error("Ghế đã bị giữ bởi người khác. Vui lòng thử lại!");
+        onError: (error) => {
+            console.log("Error holding seats:", error);
+            if (error.status === 400) {
+                openNotification({
+                    description:
+                        "Bạn được đặt tối đa 8 ghế, kiểm tra lại số lượng ở trình duyệt khác",
+                });
+            }
+            if (error.status === 409) {
+                openNotification({
+                    description: "Ghế đã được giữ bởi người khác",
+                });
+            }
             setCurrentStep(1);
         },
     });
@@ -131,6 +142,18 @@ const BookingMain = () => {
             });
             return;
         }
+        // if (currentStep === 1) {
+        //     holdSeatMutation.mutate(selectedSeatIds, {
+        //         onError: (error) => {
+        //             if (error.status === 400) {
+        //                 openNotification({
+        //                     description: "Bạn được đặt tối đa 8 ghế",
+        //                 });
+        //                 setCurrentStep(1);
+        //             }
+        //         },
+        //     });
+        // }
         // debugger;
         if (currentStep === 1 && quantitySeats !== 0) {
             holdSeatMutation.mutate(selectedSeatIds);
@@ -173,14 +196,6 @@ const BookingMain = () => {
         }
     }, [currentStep, navigate]);
 
-    const currentStepRef = useRef(currentStep);
-
-    // useEffect(() => {
-    //     currentStepRef.current = currentStep;
-    //     console.log("currentStepRef", currentStepRef.current);
-    // }, [currentStep]);
-    // giải phóng ghế khi ra ngoài booking bằng route
-
     useEffect(() => {
         return () => {
             const storedSeats = sessionStorage.getItem("selectedSeatIds");
@@ -197,8 +212,6 @@ const BookingMain = () => {
             }
         };
     }, []);
-
-    console.log("checck-step", currentStep);
 
     const renderStepContent = () => {
         switch (currentStep) {

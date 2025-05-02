@@ -29,8 +29,6 @@ const VoucherInfo = () => {
     const { totalSeatPrice } = useSeatsContext();
     const { totalComboPrice } = useComboContext();
 
-    // const [promoCodeLocal, setPromoCodeLocal] = useState<string>(""); // Giữ state cục bộ để quản lý input
-    // const [isVoucherUsed, setIsVoucherUsed] = useState<boolean>(false);
     const [voucherPrecent, setVoucherPrecent] = useState(""); // lưu % mã giảm giá
     const [maxPriceTotal, setMaxPriceTotal] = useState<number>(0);
 

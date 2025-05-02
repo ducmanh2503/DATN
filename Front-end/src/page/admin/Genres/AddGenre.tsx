@@ -93,7 +93,7 @@ const AddGenre = () => {
                         <Input placeholder="Nhập tên thể loại" />
                     </Form.Item>
 
-                    <Form.Item
+                    {/* <Form.Item
                         className={clsx(styles.inputLabel)}
                         label="ID"
                         name="id"
@@ -105,7 +105,7 @@ const AddGenre = () => {
                         ]}
                     >
                         <InputNumber placeholder="Nhập id"></InputNumber>
-                    </Form.Item>
+                    </Form.Item> */}
                 </Form>
             </Modal>
         </>

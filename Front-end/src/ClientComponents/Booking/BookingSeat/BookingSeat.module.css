@@ -87,20 +87,20 @@
     color: white;
 }
 
-.held {
-    border: 1px solid #f19902;
-    background: #f19902;
-    color: white;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
 .vip {
     border: 1px solid #1890ff;
 }
 
 .sweetbox {
     border: 1px solid #f5222d;
+}
+
+.held {
+    border: 1px solid #f19902;
+    background: #f19902;
+    color: white;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .booked {

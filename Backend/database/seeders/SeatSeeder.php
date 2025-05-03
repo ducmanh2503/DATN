@@ -9,22 +9,18 @@ class SeatSeeder extends Seeder
 {
     public function run()
     {
-        $rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J']; // Danh sách các hàng
-        $columns = range(1, 13); // Các cột từ 1 đến 13
-        $room_id = 15; // Giả sử phòng ID là 1
+        $rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']; // Danh sách các hàng
+        $columns = range(1, 20); // Các cột từ 1 đến 13
+        $room_id = 18; // Giả sử phòng ID là 1
 
         $seats = [];
 
         foreach ($rows as $row) {
             // Xác định seat_type_id theo hàng
-            if (in_array($row, ['A', 'B', 'C'])) {
-                $seat_type_id = 1;
-            } elseif (in_array($row, ['D', 'E', 'F', 'G', 'H'])) {
+            if (in_array($row, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'])) {
                 $seat_type_id = 2;
-            } elseif ($row === 'J') {
-                $seat_type_id = 3;
             } else {
-                $seat_type_id = 1; // Mặc định
+                $seat_type_id = 1;
             }
 
             foreach ($columns as $column) {

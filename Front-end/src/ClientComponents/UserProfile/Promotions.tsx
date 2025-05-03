@@ -39,11 +39,14 @@ const Promotions: React.FC<PromotionsProps> = ({ token }) => {
           const mappedPromotions = response.data.data.map((promo: any) => ({
             id: promo.id,
             code: promo.name_code,
-            description: `Giảm ${
-              promo.percent
-            }% tối đa ${promo.maxPrice.toLocaleString()}`,
-            discountValue: `${promo.percent}%`,
-            condition: `Tối đa ${promo.maxPrice.toLocaleString()}`,
+            description: `Giảm ${Number(promo.percent).toFixed(
+              2
+            )}% tối đa ${Number(promo.maxPrice).toLocaleString("vi-VN")} VND`,
+            discountValue: `${Number(promo.percent).toFixed(2)}%`,
+            condition: `Tối đa ${Number(promo.maxPrice).toLocaleString(
+              "vi-VN"
+            )} VND`,
+
             expiryDate: promo.end_date.split("-").reverse().join("/"),
             status: "Chưa sử dụng",
           }));

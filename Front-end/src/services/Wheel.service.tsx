@@ -54,7 +54,7 @@ export const useGetUserId = () => {
                 });
                 console.log("User ID:", data); // Log user ID to console
 
-                return data.id;
+                return data;
             } catch (error) {
                 console.error("Lỗi khi lấy userId:", error);
                 return null;

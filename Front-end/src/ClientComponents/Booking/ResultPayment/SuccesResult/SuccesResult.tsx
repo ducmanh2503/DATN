@@ -138,6 +138,7 @@ const SuccesResult = () => {
         }
     }, []);
 
+    // tính số lượt chơi game
     useEffect(() => {
         const timer = setTimeout(() => {
             const count = Math.floor(

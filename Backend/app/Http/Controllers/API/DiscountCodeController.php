@@ -154,26 +154,27 @@ class DiscountCodeController extends Controller
         ], 200);
     }
 
-    // API mới để gán một user_id cho discount_code_id
+    // Gán một user_id cho discount_code_id
     public function assignUserToDiscountCode(Request $request)
     {
         // Validate dữ liệu đầu vào
-        $validator = Validator::make($request->all(), [
-            'discount_code_id' => 'required|numeric|exists:discount_code,id',
-            'user_id' => 'required|numeric|exists:users,id'
-        ]);
+        // $validator = Validator::make($request->all(), [
+        //     'discount_code_id' => 'required|numeric|exists:discount_code,id',
+        //     'user_id' => 'required|numeric|exists:users,id'
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Dữ liệu đầu vào không hợp lệ.',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Dữ liệu đầu vào không hợp lệ.',
+        //         'errors' => $validator->errors()
+        //     ], 422);
+        // }
 
         try {
-            $discountCodeId = $request->input('discount_code_id');
-            $userId = $request->input('user_id');
+            $data = $request->all();
+            $discountCodeId = $data['discount_code_id'];
+            $userId = $data['user_id'];
 
             // Tìm mã giảm giá
             $discountCode = DiscountCode::find($discountCodeId);
@@ -198,10 +199,7 @@ class DiscountCodeController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Gán người dùng cho mã giảm giá thành công.',
-                'data' => [
-                    'discount_code_id' => $discountCodeId,
-                    'user_id' => $userId
-                ]
+                'data' => $data,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

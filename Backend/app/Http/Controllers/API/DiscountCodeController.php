@@ -189,7 +189,7 @@ class DiscountCodeController extends Controller
             if ($discountCode->users()->where('user_id', $userId)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Người dùng đã được gán cho mã giảm giá này.'
+                    'message' => 'Bạn đã quay trúng mã giảm giá này.'
                 ], 409);
             }
 

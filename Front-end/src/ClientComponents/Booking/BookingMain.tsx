@@ -74,7 +74,6 @@ const BookingMain = () => {
             return data;
         },
         onSuccess: () => {
-            message.success("Đã giữ ghế thành công!");
             queryClient.invalidateQueries({
                 queryKey: [
                     "matrixSeats",
@@ -142,18 +141,7 @@ const BookingMain = () => {
             });
             return;
         }
-        // if (currentStep === 1) {
-        //     holdSeatMutation.mutate(selectedSeatIds, {
-        //         onError: (error) => {
-        //             if (error.status === 400) {
-        //                 openNotification({
-        //                     description: "Bạn được đặt tối đa 8 ghế",
-        //                 });
-        //                 setCurrentStep(1);
-        //             }
-        //         },
-        //     });
-        // }
+
         // debugger;
         if (currentStep === 1 && quantitySeats !== 0) {
             holdSeatMutation.mutate(selectedSeatIds);
@@ -207,6 +195,8 @@ const BookingMain = () => {
             const nowCurrentStep: number = storedCurrentStep
                 ? JSON.parse(storedCurrentStep)
                 : 0;
+            // releaseSeats(selectedSeatIds);
+
             if (nowCurrentStep !== 4) {
                 releaseSeats(selectedSeatIds);
             }

@@ -157,19 +157,19 @@ class DiscountCodeController extends Controller
     // API mới để gán một user_id cho discount_code_id
     public function assignUserToDiscountCode(Request $request)
     {
-        // Validate dữ liệu đầu vào
-        $validator = Validator::make($request->all(), [
-            'discount_code_id' => 'required|numeric|exists:discount_code,id',
-            'user_id' => 'required|numeric|exists:users,id'
-        ]);
+        // // Validate dữ liệu đầu vào
+        // $validator = Validator::make($request->all(), [
+        //     'discount_code_id' => 'required|numeric|exists:discount_code,id',
+        //     'user_id' => 'required|numeric|exists:users,id'
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Dữ liệu đầu vào không hợp lệ.',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Dữ liệu đầu vào không hợp lệ.',
+        //         'errors' => $validator->errors()
+        //     ], 422);
+        // }
 
         try {
             $discountCodeId = $request->input('discount_code_id');

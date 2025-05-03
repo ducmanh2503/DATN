@@ -11,6 +11,7 @@ import { useFinalPriceContext } from "../../../UseContext/FinalPriceContext";
 import CustomNotification from "../../Notification/Notification";
 import { useSeatsContext } from "../../../UseContext/SeatsContext";
 import { useComboContext } from "../../../UseContext/CombosContext";
+import { handleApiError } from "../../../../services/adminServices/utils";
 
 const VoucherInfo = () => {
     const { tokenUserId } = useAuthContext();
@@ -29,8 +30,6 @@ const VoucherInfo = () => {
     const { totalSeatPrice } = useSeatsContext();
     const { totalComboPrice } = useComboContext();
 
-    // const [promoCodeLocal, setPromoCodeLocal] = useState<string>(""); // Giữ state cục bộ để quản lý input
-    // const [isVoucherUsed, setIsVoucherUsed] = useState<boolean>(false);
     const [voucherPrecent, setVoucherPrecent] = useState(""); // lưu % mã giảm giá
     const [maxPriceTotal, setMaxPriceTotal] = useState<number>(0);
 
@@ -118,10 +117,10 @@ const VoucherInfo = () => {
             }
             debugger;
         },
-        onError: () => {
+        onError: (error) => {
             openNotification({
                 title: "Forest Cinema cho biết",
-                description: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn",
+                description: `${error.response.data.message}`,
             });
         },
     });

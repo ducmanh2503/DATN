@@ -9,6 +9,7 @@ import Introduce from "./Introduce/Introduce";
 import GetTotalusedMoney from "./GetTotalusedMoney/GetTotalusedMoney";
 import HistoryPlayWheel from "./HistoryPlayWheel/HistoryPlayWheel";
 import { useInfomationContext } from "../UseContext/InfomationContext";
+import { useGetUserId } from "../../services/Wheel.service";
 
 const Wheel = () => {
     const wheel = useRef<HTMLDivElement>(null);
@@ -29,6 +30,15 @@ const Wheel = () => {
     const [totalUsedMoneyOfUser, setTotalUsedMoneyOfUser] = useState<number>(0); // tổng  tiền đã dùng của user
     const [countPlayGame, setCountPlayGame] = useState<number>(0); // số lượng chơi của User
     const [countPlayedGame, setCountPlayedGame] = useState<number>(0); // số lượt đã chơi của Users
+    const [userId, setUserId] = useState<string | null>(null); // id của user
+
+    // lấy id của user
+    const { data: user, isLoading } = useGetUserId();
+    useEffect(() => {
+        if (user) {
+            setUserId(user.id);
+        }
+    }, [user]);
 
     // lấy tuần hiện tại
     const getPlaysThisWeek = (history: { date: string; prize: string }[]) => {
@@ -230,6 +240,7 @@ const Wheel = () => {
                             isModalOpen={isModalOpen}
                             setIsModalOpen={setIsModalOpen}
                             isFree={isFree}
+                            userId={userId}
                         />
                     )}
                 </div>

@@ -11,10 +11,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A1
@@ -24,10 +25,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A2
@@ -36,10 +38,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A3
@@ -48,10 +51,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A4
@@ -60,10 +64,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A5
@@ -72,10 +77,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A6
@@ -84,10 +90,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A7
@@ -96,10 +103,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A8
@@ -108,10 +116,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A9
@@ -120,10 +129,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A10
@@ -132,10 +142,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A11
@@ -144,10 +155,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A12
@@ -156,10 +168,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A13
@@ -168,10 +181,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A14
@@ -180,10 +194,11 @@ const LayoutMatrixExample = ({ backgroundImg }: { backgroundImg: string }) => {
                     className={clsx(styles.seat)}
                     style={{
                         backgroundImage: `url(${backgroundImg})`,
-                        color: backgroundImg ? "transparent" : "black",
+                        backgroundColor: backgroundImg ? "none" : "#a615d2",
+                        color: backgroundImg ? "transparent" : "white",
                         border: backgroundImg
                             ? "1px solid transparent"
-                            : " 1px solid #ccc",
+                            : " 1px solid #a615d2",
                     }}
                 >
                     A15

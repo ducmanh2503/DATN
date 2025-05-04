@@ -97,6 +97,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // API gán một người dùng cho mã giảm giá
     Route::post('/discount-codes/assign-user', [DiscountCodeController::class, 'assignUserToDiscountCode']);
 
+    Route::apiResource('/room', RoomController::class);
+
+
 
     // Chỉ admin mới truy cập được
 
@@ -121,10 +124,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         // Room
-        Route::apiResource('/room', RoomController::class);
+        // Route::apiResource('/room', RoomController::class);
         Route::delete('/room', [MoviesController::class, 'destroyMultiple']);
         Route::put('/room/restore/{room}', [MoviesController::class, 'restore']);
-        Route::get('/trashed', [RoomController::class, 'getTrashedRooms']);
+        Route::get('/room/trashed', [RoomController::class, 'getTrashedRooms']);
         Route::put('/rooms/{id}/background', [RoomController::class, 'updateBackground']);
 
         //room_type

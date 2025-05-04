@@ -39,15 +39,18 @@ const ResultWheel = ({
         "Giảm 20K": 20,
         "Giảm 50K": 50,
     };
+    console.log("check", userId);
+
     useEffect(() => {
         if (isModalOpen && isDiscountPrize && !isFree) {
             const discount_code_id = prizeToDiscountId[currentPrize];
-            if (!discount_code_id) return;
+            console.log(typeof discount_code_id);
 
+            if (!discount_code_id) return;
             assignDiscount({
                 data: {
-                    discount_code_id,
                     user_id: userId,
+                    discount_code_id,
                 },
             });
         }

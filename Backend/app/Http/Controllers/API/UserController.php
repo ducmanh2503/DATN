@@ -92,7 +92,12 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|max:255',
-            'phone' => 'required|numeric|digits_between:10,15|unique:users,phone',
+            'phone' => [
+                'nullable',
+                'numeric',
+                'digits_between:10,15',
+                Rule::unique('users', 'phone')->ignore($user->id),
+            ],
         ]);
 
         if ($validator->fails()) {

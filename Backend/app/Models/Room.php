@@ -18,6 +18,8 @@ class Room extends Model
         'background_img'
     ];
 
+    protected $dates = ['deleted_at']; // là cột chứa thời gian xóa mềm
+
     public function seats()
     {
         return $this->hasMany(Seat::class);  // Một thể loại có nhiều phim

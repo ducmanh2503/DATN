@@ -37,6 +37,7 @@
 
 .filmInfo {
     margin-left: 8px;
+    position: relative;
 }
 
 .infoTitle {
@@ -52,8 +53,10 @@
 }
 
 .genreItem {
+    display: inline-block;
     font-size: 14px;
-    padding: 1px 4px;
+    padding: 2px 5px;
+    margin-top: 3px;
     margin-right: 3px;
     background-color: #ececec;
     border-radius: 4px;
@@ -61,11 +64,19 @@
 }
 
 .infoSub {
+    display: flex;
     margin-top: 7px;
 }
 
 .subRated {
-    margin-top: 60px;
+    display: inline-block;
+    min-width: 30px;
+    min-height: 36px;
+    padding: 10px;
+    color: white;
+    font-weight: 600;
+    position: absolute;
+    bottom: 0;
 }
 
 .subRoomType {

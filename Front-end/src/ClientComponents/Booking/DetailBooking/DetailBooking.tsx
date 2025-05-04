@@ -176,9 +176,9 @@ const DetailBooking = ({
                             <span className={clsx(styles.language)}>
                                 {dataDetailFilm?.language}
                             </span>
-                            <span className={clsx(styles.rated)}>
-                                {dataDetailFilm?.rated}
-                            </span>
+                        </div>
+                        <div className={clsx(styles.rated)}>
+                            {dataDetailFilm?.rated}
                         </div>
                     </div>
                 </div>

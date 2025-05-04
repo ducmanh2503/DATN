@@ -53,7 +53,7 @@ const useShowtimeData = () => {
         setUsedPoints(0);
         setTotalPricePoint(0);
         setTotalPriceVoucher(0);
-        setSeatRoomPrice(0);
+        // setSeatRoomPrice(0);
     };
 
     //giải phóng ghế

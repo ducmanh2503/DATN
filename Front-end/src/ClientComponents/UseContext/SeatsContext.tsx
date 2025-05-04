@@ -31,9 +31,9 @@ export const SeatsProvider = ({ children }: { children: React.ReactNode }) => {
         const storedSelectedSeatIds = sessionStorage.getItem("selectedSeatIds");
         return storedSelectedSeatIds ? JSON.parse(storedSelectedSeatIds) : [];
     }); //  id ghế đã chọn
-    const [seatRoomPrice, setSeatRoomPrice] = useState(() => {
+    const [seatRoomPrice, setSeatRoomPrice] = useState<number>(() => {
         const storedSeatRoomPrice = sessionStorage.getItem("seatRoomPrice");
-        return storedSeatRoomPrice ? JSON.parse(storedSeatRoomPrice) : "";
+        return storedSeatRoomPrice ? JSON.parse(storedSeatRoomPrice) : 0;
     }); // giá tiền ghế theo phòng
 
     // cập nhât sessionStorage khi các state thay đổi

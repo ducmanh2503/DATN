@@ -7,10 +7,12 @@ import {
 import axios from "axios";
 import {
     CREATE_ROOM,
+    DELETE_AT_ROOM,
     DELETE_ROOM,
     GET_ONE_ROOM,
     GET_ROOM_TYPES,
     GET_ROOMS,
+    RESTORE_ROOM,
     UPDATE_ROOM,
 } from "../../config/ApiConfig";
 import { handleApiError } from "./utils";
@@ -115,6 +117,62 @@ export const useCreateRoom = (messageApi: any) => {
         },
         onSuccess: () => {
             messageApi.success("Thêm mới phòng chiếu thành công");
+            queryClient.invalidateQueries({
+                queryKey: ["roomsCinema"],
+            });
+        },
+        onError: handleApiError,
+    });
+};
+
+// Bảo trì phòng
+export const useDeleteAtRoom = (messageApi: any) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: number) => {
+            await axios.delete(DELETE_AT_ROOM(id));
+        },
+        onSuccess: () => {
+            messageApi.success(
+                "Cập nhật trạng thái bảo trì phòng chiếu thành công"
+            );
+            queryClient.invalidateQueries({
+                queryKey: ["roomsCinema"],
+            });
+        },
+        onError: handleApiError,
+    });
+};
+
+// danh sách phòng bảo trì
+export const useListDeleteAtRooms = () => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["ListDeleteAtRooms"],
+        queryFn: async () => {
+            const { data } = await axios.get(GET_ROOMS);
+
+            return data.trashed_rooms;
+        },
+        staleTime: 1000 * 60 * 20,
+        refetchOnMount: false,
+    });
+    return { data, isLoading, isError };
+};
+
+// khôi phục phòng
+export const useRestoreRoom = (messageApi: any) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (room: number) => {
+            await axios.put(RESTORE_ROOM(room));
+        },
+        onSuccess: () => {
+            messageApi.success(
+                "Cập nhật trạng thái bảo trì phòng chiếu thành công"
+            );
+            queryClient.invalidateQueries({
+                queryKey: ["ListDeleteAtRooms"],
+            });
             queryClient.invalidateQueries({
                 queryKey: ["roomsCinema"],
             });

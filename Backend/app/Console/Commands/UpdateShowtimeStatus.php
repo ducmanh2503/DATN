@@ -21,13 +21,10 @@ class UpdateShowtimeStatus extends Command
         $this->info('Bắt đầu cập nhật trạng thái show_times...');
 
         // Lấy thời gian hiện tại
-        $now = Carbon::now(); // Ví dụ: 26/03/2025 07:44:00
+        $now = Carbon::now();
 
-        // Lấy tất cả suất chiếu có trạng thái coming_soon hoặc now_showing trong ngày hiện tại
-        $showtimes = Showtime::whereIn('status', ['coming_soon', 'now_showing'])
-            ->whereDate('start_time', '>=', Carbon::today())
-            ->whereDate('end_time', '<=', Carbon::today()->endOfDay())
-            ->get();
+        // Lấy tất cả suất chiếu có trạng thái coming_soon hoặc now_showing
+        $showtimes = Showtime::whereIn('status', ['coming_soon', 'now_showing'])->get();
 
         foreach ($showtimes as $showtime) {
             $startTime = Carbon::parse($showtime->start_time);

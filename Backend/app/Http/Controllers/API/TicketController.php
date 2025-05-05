@@ -384,17 +384,6 @@ class TicketController extends Controller
 
 
 
-
-
-
-
-
-
-
-
-
-
-
     function saveBooking(array $data, string $status, array $pricing)
     {
 
@@ -414,8 +403,6 @@ class TicketController extends Controller
             if ($existingBooking) {
                 return $existingBooking;
             }
-
-
 
 
             // Lưu booking vào bảng bookings

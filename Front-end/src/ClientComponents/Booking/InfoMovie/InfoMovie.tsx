@@ -82,9 +82,34 @@ const InfoMovie = () => {
                         <span className={clsx(styles.subForm)}>
                             {chuyendoi?.language}
                         </span>
-                        <div className={clsx(styles.subRated)}>
-                            {chuyendoi?.rated}
-                        </div>
+                    </div>
+                    <div
+                        className={clsx(styles.subRated)}
+                        style={
+                            chuyendoi?.rated === "P"
+                                ? {
+                                      backgroundColor: "#024ca1",
+                                  }
+                                : chuyendoi?.rated === "K"
+                                ? {
+                                      backgroundColor: "#00b6e6",
+                                  }
+                                : chuyendoi?.rated === "T13"
+                                ? {
+                                      backgroundColor: "#f58020",
+                                  }
+                                : chuyendoi?.rated === "T16"
+                                ? {
+                                      backgroundColor: "#f9ad19",
+                                  }
+                                : chuyendoi?.rated === "T16"
+                                ? {
+                                      backgroundColor: "#5d9e3a",
+                                  }
+                                : undefined
+                        }
+                    >
+                        {chuyendoi?.rated}
                     </div>
                 </div>
             </div>

@@ -178,7 +178,34 @@ const SuccesResult = () => {
             <div className={clsx(styles.ticketInfo)}>
                 <div className={clsx(styles.movieInfo)}>
                     <div className={clsx(styles.movieTitle)}>
-                        <span className={clsx(styles.ageLimit)}>16+</span>
+                        <span
+                            className={clsx(styles.ageLimit)}
+                            style={
+                                movieData?.rated === "P"
+                                    ? {
+                                          backgroundColor: "#024ca1",
+                                      }
+                                    : movieData?.rated === "K"
+                                    ? {
+                                          backgroundColor: "#00b6e6",
+                                      }
+                                    : movieData?.rated === "T13"
+                                    ? {
+                                          backgroundColor: "#f58020",
+                                      }
+                                    : movieData?.rated === "T16"
+                                    ? {
+                                          backgroundColor: "#f9ad19",
+                                      }
+                                    : movieData?.rated === "T16"
+                                    ? {
+                                          backgroundColor: "#5d9e3a",
+                                      }
+                                    : { backgroundColor: "#393E46" }
+                            }
+                        >
+                            {movieData.rated}
+                        </span>
                         <h1 className={clsx(styles.movieName)}>
                             {movieData?.title}
                         </h1>

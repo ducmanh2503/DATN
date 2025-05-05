@@ -113,6 +113,15 @@
     background-position: center;
 }
 
+.bookedWithImg {
+    border: 1px solid transparent;
+    color: transparent;
+    background-position: center;
+    background-size: cover;
+    pointer-events: none;
+    user-select: none;
+}
+
 .selected {
     background: #52c41a;
     border: 1px solid #52c41a;

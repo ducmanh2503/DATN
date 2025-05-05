@@ -52,6 +52,7 @@ import ErrorResult from "./ClientComponents/Booking/ResultPayment/ErrorResult/Er
 import ClientLayout from "./page/client/Layout";
 import Header from "./ClientComponents/Header/Header";
 import AppFooter from "./ClientComponents/Footer/footer";
+import RestoreRooms from "./page/admin/RoomPage/RestoreRooms";
 
 axios.defaults.baseURL = "http://localhost:8000/api";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -264,6 +265,10 @@ export const router = createBrowserRouter([
                     {
                         path: "rooms",
                         element: <RoomPage />,
+                    },
+                    {
+                        path: "restoreRooms",
+                        element: <RestoreRooms />,
                     },
                     {
                         path: "articlelist",

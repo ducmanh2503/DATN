@@ -32,6 +32,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
         setSelectedSeatIds,
         setMatrixSeatsManage,
         seatRoomPrice,
+        setSeatRoomPrice,
     } = useSeatsContext();
     const { setTotalPrice } = useFinalPriceContext();
     const { roomIdFromShowtimes, showtimeIdFromBooking } = useFilmContext();
@@ -121,6 +122,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
     });
 
     // lưu ma trậng ghế vào data
+
     useEffect(() => {
         if (matrixSeats) {
             setMatrixSeatsManage(matrixSeats ?? null);
@@ -141,7 +143,7 @@ const BookingSeat = ({ className }: { className?: string }) => {
             // Cập nhật lại giá trị đã xử lý
             setMatrixSeatsManage(updatedMatrix);
         }
-    }, [matrixSeats, seatRoomPrice]);
+    }, [matrixSeats, seatRoomPrice, setSeatRoomPrice]);
 
     const findSeatCodeById = useCallback(
         (seatId: number): string | null => {
@@ -658,12 +660,22 @@ const BookingSeat = ({ className }: { className?: string }) => {
 
                                                 return (
                                                     <button
+                                                        style={
+                                                            isBooked &&
+                                                            backgroundImg
+                                                                ? {
+                                                                      backgroundImage: `url(${backgroundImg})`,
+                                                                  }
+                                                                : undefined
+                                                        }
                                                         className={clsx(
                                                             styles.seatName,
                                                             isHeld &&
                                                                 styles.held,
                                                             isBooked &&
-                                                                styles.booked,
+                                                                (backgroundImg
+                                                                    ? styles.bookedWithImg
+                                                                    : styles.booked),
                                                             isSelected &&
                                                                 styles.selected,
                                                             isEmpty &&
@@ -679,17 +691,6 @@ const BookingSeat = ({ className }: { className?: string }) => {
                                                                 "Sweetbox" &&
                                                                 styles.sweetbox
                                                         )}
-                                                        style={
-                                                            isBooked &&
-                                                            backgroundImg !==
-                                                                null
-                                                                ? {
-                                                                      backgroundImage: `url(${backgroundImg})`,
-                                                                      color: "transparent",
-                                                                      border: "1px solid transparent",
-                                                                  }
-                                                                : undefined
-                                                        }
                                                         key={`seat-${seat.id}`}
                                                         onClick={() =>
                                                             handleSeatClick(

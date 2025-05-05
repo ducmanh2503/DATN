@@ -17,30 +17,15 @@ class RoomController extends Controller
      */
     public function index(Request $request)
     {
-        // Lấy danh sách phòng và phân trang
+        // Lấy danh sách phòng
         $rooms = Room::query()->latest('id')->get();
+        $roomsTrashed = Room::onlyTrashed()->latest('id')->get();
 
         // Trả về phản hồi dạng JSON với cấu trúc dữ liệu phân trang đầy đủ
         return response()->json([
             'message' => 'Danh sách phòng',
             'rooms' => $rooms,
-        ], 200);
-    }
-
-    /**
-     * Display a listing of trashed (soft-deleted) rooms.
-     */
-    public function getTrashedRooms(Request $request)
-    {
-        // Lấy danh sách phòng bị xóa mềm (đang bảo trì) và phân trang
-        $rooms = Room::onlyTrashed() // Chỉ lấy các phòng bị xóa mềm
-            ->latest('deleted_at') // Sắp xếp theo thời gian xóa mới nhất
-            ->get();
-
-        // Trả về phản hồi dạng JSON
-        return response()->json([
-            'message' => 'Danh sách phòng đang bảo trì',
-            'rooms' => $rooms,
+            'trashed_rooms' => $roomsTrashed,
         ], 200);
     }
 

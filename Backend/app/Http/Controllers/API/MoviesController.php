@@ -7,6 +7,7 @@ use App\Imports\MoviesImport;
 use App\Models\BookingDetail;
 use App\Models\CalendarShow;
 use App\Models\Movies;
+use App\Models\Room;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -586,15 +587,15 @@ class MoviesController extends Controller
     {
 
 
-        $movie = Movies::onlyTrashed()->find($id);
+        $room = Room::onlyTrashed()->find($id);
 
-        if (!$movie) {
-            return response()->json(['message' => 'Không tìm thấy phim đã bị xóa'], 404);
+        if (!$room) {
+            return response()->json(['message' => 'Không tìm thấy phòng đã bị xóa'], 404);
         }
 
-        $movie->restore(); // Khôi phục phim
+        $room->restore(); // Khôi phục phòng
 
-        return response()->json(['message' => 'Khôi phục phim thành công'], 200);
+        return response()->json(['message' => 'Khôi phục phòng thành công'], 200);
     }
 
     //Xóa vĩnh viễn nhiều phim

@@ -3,6 +3,7 @@ import React, { useEffect, useMemo } from "react";
 import { useDetailRoom } from "../../../services/adminServices/roomManage.service";
 import LayoutMatrixExample from "./LayoutMatrixExample";
 import { useUpdateBackgroundSeat } from "../../../services/adminServices/seatManage.service";
+import styles from "./RoomPage.module.css";
 
 const { Option } = Select;
 
@@ -12,7 +13,6 @@ const RoomForm = ({
     open,
     onSubmit,
     onClose,
-    roomTypes,
     loading,
     roomsTypeList,
 }: any) => {
@@ -73,6 +73,7 @@ const RoomForm = ({
                 <Skeleton loading={isLoading} active>
                     <Form form={form} layout="vertical" onFinish={handleFinish}>
                         <Form.Item
+                            className={styles.specail1}
                             label="Tên phòng"
                             name="name"
                             rules={[
@@ -86,6 +87,7 @@ const RoomForm = ({
                         </Form.Item>
 
                         <Form.Item
+                            className={styles.specail1}
                             label="Loại phòng"
                             name="room_type_id"
                             rules={[
@@ -101,6 +103,7 @@ const RoomForm = ({
                         </Form.Item>
                         {editingRoom && (
                             <Form.Item
+                                className={styles.specail}
                                 label="Ảnh nền ghế Event"
                                 name="background_img"
                             >
@@ -124,9 +127,16 @@ const RoomForm = ({
                             <Button onClick={onClose} disabled={loading}>
                                 Hủy
                             </Button>
-                            <Button onClick={handleUpdate}>
-                                Cập nhật BackGround
-                            </Button>
+                            {editingRoom && (
+                                <Button
+                                    color="pink"
+                                    variant="solid"
+                                    onClick={handleUpdate}
+                                    style={{ marginLeft: "10px" }}
+                                >
+                                    Cập nhật ảnh nền
+                                </Button>
+                            )}
                         </Form.Item>
                     </Form>
                     {editingRoom && (

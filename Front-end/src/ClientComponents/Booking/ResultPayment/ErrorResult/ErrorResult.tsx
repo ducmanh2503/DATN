@@ -2,14 +2,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import clsx from "clsx";
 import styles from "./ErrorResult.module.css";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import useShowtimeData from "../../../refreshDataShowtimes/RefreshDataShowtimes";
 import { useEffect, useState } from "react";
 
 const ErrorResult = () => {
     const navigate = useNavigate();
-    const { resetDataShowtimes } = useShowtimeData();
+    const { resetDataShowtimes, releaseSeats } = useShowtimeData();
     const [searchParams] = useSearchParams();
     const message = searchParams.get("message");
     const [canShow, setCanShow] = useState(false);
@@ -43,6 +43,7 @@ const ErrorResult = () => {
                     onClick={() => {
                         navigate("/");
                         resetDataShowtimes();
+                        releaseSeats();
                     }}
                 >
                     Quay lại trang chủ

@@ -1,13 +1,10 @@
 import { Button, message, Popconfirm, Skeleton, Space, Table, Tag } from "antd";
 import {
+    useDeleteAtRoom,
     useDeleteRoom,
     useGetRooms,
 } from "../../../services/adminServices/roomManage.service";
-import {
-    DeleteOutlined,
-    SettingOutlined,
-    ToolOutlined,
-} from "@ant-design/icons";
+import { DeleteOutlined, LockOutlined } from "@ant-design/icons";
 import UpdateRoom from "./UpdateRoom";
 import { useEffect, useState } from "react";
 import CreateRoom from "./CreateRoom";
@@ -19,6 +16,7 @@ const RoomPage = () => {
 
     const { rooms, seatTypes, isSeatTypesLoading } = useGetRooms(); // api lấy danh sách phòng và loại phòng
     const deleteRoom = useDeleteRoom(messageApi); // api xóa phòng
+    const deleteAtRoom = useDeleteAtRoom(messageApi); // api bảo trì phòng
 
     // lưu data vào state quản lý
     useEffect(() => {
@@ -30,6 +28,11 @@ const RoomPage = () => {
     // xử lý xóa phòng
     const handleDelete = (id: number) => {
         deleteRoom.mutate(id);
+    };
+
+    // xử lý bảo trì phòng
+    const handleDeleteAtRoom = (id: number) => {
+        deleteAtRoom.mutate(id);
     };
 
     const columns = [
@@ -93,8 +96,8 @@ const RoomPage = () => {
                                 <DeleteOutlined /> Xóa
                             </Button>
                         </Popconfirm>
-                        <Button>
-                            <SettingOutlined /> Bảo trì
+                        <Button onClick={() => handleDeleteAtRoom(record.id)}>
+                            <LockOutlined /> Bảo trì
                         </Button>
                     </Space>
                 );

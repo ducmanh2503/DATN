@@ -126,113 +126,113 @@ cd DATN/Front-end/package.json
 
 #### Login
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20211957.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20211957.png)
 
 #### Home
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212241.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212337.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212343.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212350.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212241.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212337.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212343.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212350.png)
 
 #### Playing Film
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212407.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212416.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212407.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212416.png)
 
 #### Coming Film
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212424.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212432.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212424.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212432.png)
 
 #### Forest
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212443.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212443.png)
 
 #### Booking
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212520.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212554.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212633.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212734.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212812.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212520.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212554.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212633.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212734.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20212812.png)
 
 #### minigame
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213309.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213327.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213320.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20220402.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213309.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213327.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213320.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20220402.png)
 
 #### User Profile
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213158.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213209.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20220357.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213224.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213158.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213209.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20220357.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213224.png)
 
 ### Admin pages
 
 #### Statistics
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213405.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213547.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213554.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20220745.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20220812.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213405.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213547.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213554.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20220745.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20220812.png)
 
 #### Films management
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213445.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20221445.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213458.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213525.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214452.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20222631.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20221643.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213445.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20221445.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213458.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20213525.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214452.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20222631.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20221643.png)
 
 #### Check in ticket
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214035.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214232.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214242.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214310.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214035.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214232.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214242.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214310.png)
 
 #### Cinema rooms management
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214507.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214531.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214542.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214554.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214507.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214531.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214542.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214554.png)
 
 #### Order management
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214627.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214627.png)
 
 #### User management
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214658.png)
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214714.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214658.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214714.png)
 
 #### Ticket price management
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214610.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214610.png)
 
 #### Discout Code management
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214638.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214638.png)
 
 #### Combos management
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214618.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214618.png)
 
 #### Article management
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214633.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214633.png)
 
 #### Slider management
 
-![](../Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214647.png)
+![](./Front-end/public/imageFE/image-readme/Screenshot%202025-05-14%20214647.png)
 
 ---
 

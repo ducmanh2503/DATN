@@ -115,6 +115,7 @@ php artisan ser
 
 ```
 cd DATN/Front-end/package.json
+npm run dev
 
 ```
 

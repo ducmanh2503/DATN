@@ -12,7 +12,7 @@ const ChartsFilm = ({ dashboardData, isLoading }: any) => {
     useEffect(() => {
         if (!OrdersList) return;
         const absentCount = OrdersList?.filter(
-            (item: any) => item.check_in === "absent"
+            (item: any) => item.check_in === "checked_in"
         ).length;
 
         const percentage = ((absentCount / OrdersList.length) * 100).toFixed(2);
